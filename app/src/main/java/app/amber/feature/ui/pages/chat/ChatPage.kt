@@ -1649,12 +1649,14 @@ private fun ChatShelfPanelHost(
                 .distinctUntilChanged { old, new -> old.first == new.first && old.second === new.second }
         }
         val refreshKey by refreshKeyFlow.collectAsStateWithLifecycle(initialValue = null)
-        val items by produceState<List<ShelfItem>?>(initialValue = null, refreshKey) {
+        val settings by vm.settings.collectAsStateWithLifecycle()
+        val generativeUiSetting = settings.agentRuntime.generativeUi
+        val items by produceState<List<ShelfItem>?>(initialValue = null, refreshKey, generativeUiSetting) {
             // Streaming replaces the newest message every flush; let bursts settle first.
             if (value != null) delay(400)
             value = runCatching {
                 val full = vm.loadFullConversation()
-                withContext(Dispatchers.Default) { full.collectShelfItems() }
+                withContext(Dispatchers.Default) { full.collectShelfItems(generativeUiSetting) }
             }.getOrElse { error ->
                 if (error is kotlinx.coroutines.CancellationException) throw error
                 value.orEmpty()

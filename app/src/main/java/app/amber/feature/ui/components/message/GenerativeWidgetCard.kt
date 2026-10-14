@@ -146,6 +146,7 @@ private val heightCache = object {
 fun GenerativeWidgetCard(
     widget: GenerativeWidgetSegment.Widget,
     modifier: Modifier = Modifier,
+    isStreaming: Boolean = !widget.complete,
     onAction: (String) -> Unit = {},
 ) {
     // T-C perf-layer dispatch — see PerfFlags + docs/visual-sanity-check.md.
@@ -176,6 +177,18 @@ fun GenerativeWidgetCard(
             .joinToString("|")
             .ifBlank { "widget-${widget.widgetCode.hashCode()}" }
     }
+    val revealIdentity = remember(widget.title, widget.renderer) {
+        "${widget.renderer.ifBlank { "widget" }}:${widget.title.orEmpty()}"
+    }
+    val fullHtmlRevealState = remember(revealIdentity) { UIGenerationRevealState("full-html:$revealIdentity") }
+    var fullHtmlRevealPending by remember(revealIdentity) { mutableStateOf(false) }
+    LaunchedEffect(isStreaming, widget.complete, widget.renderer) {
+        if (widget.renderer == GuizangHtmlDeckValidator.RENDERER &&
+            fullHtmlRevealState.update(isStreaming = isStreaming || !widget.complete, complete = widget.complete)
+        ) {
+            fullHtmlRevealPending = true
+        }
+    }
     var showExpanded by remember { mutableStateOf(false) }
     val canOpenExpanded = sanitized.status == GenerativeWidgetSanitizeStatus.READY &&
         (widget.complete || sanitized.html.length >= WIDGET_MIN_PARTIAL_RENDER_CHARS)
@@ -187,6 +200,8 @@ fun GenerativeWidgetCard(
             setting = settings,
             onDismissRequest = { showExpanded = false },
             initialFullscreen = widget.renderer == "slides" || widget.renderer == GuizangHtmlDeckValidator.RENDERER,
+            generationRevealRequested = fullHtmlRevealPending,
+            onGenerationRevealConsumed = { fullHtmlRevealPending = false },
         )
     }
 
@@ -248,6 +263,8 @@ fun GenerativeWidgetCard(
                             html = sanitized.html,
                             setting = settings,
                             streaming = !widget.complete,
+                            liveStreaming = isStreaming && widget.renderer != GuizangHtmlDeckValidator.RENDERER,
+                            complete = widget.complete,
                             widgetKey = widgetKey,
                             onTap = { showExpanded = true },
                         )
@@ -362,6 +379,8 @@ fun ExpandedGenerativeWidgetDialog(
     setting: GenerativeUiSetting,
     onDismissRequest: () -> Unit,
     initialFullscreen: Boolean = false,
+    generationRevealRequested: Boolean = false,
+    onGenerationRevealConsumed: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val toaster = LocalToaster.current
@@ -540,6 +559,8 @@ fun ExpandedGenerativeWidgetDialog(
                             if (isGuizangRenderer) {
                                 GuizangHtmlDeckWebView(
                                     specJson = widget.specJson,
+                                    generationRevealRequested = generationRevealRequested,
+                                    onGenerationRevealConsumed = onGenerationRevealConsumed,
                                     modifier = Modifier.fillMaxSize(),
                                     onWebViewReady = { webView = it },
                                 )
@@ -699,6 +720,8 @@ private fun SafeGenerativeWidgetWebView(
     setting: GenerativeUiSetting,
     streaming: Boolean,
     modifier: Modifier = Modifier,
+    liveStreaming: Boolean = streaming,
+    complete: Boolean = !streaming,
     widgetKey: String? = null,
     minHeightDp: Int = WIDGET_MIN_HEIGHT_DP,
     fallbackHeightDp: Int = WIDGET_FALLBACK_HEIGHT_DP,
@@ -724,6 +747,13 @@ private fun SafeGenerativeWidgetWebView(
         .coerceIn(minHeightDp, 1600)
     val cacheKey = remember(widgetKey) {
         widgetKey?.takeIf { it.isNotBlank() } ?: html.take(200).ifBlank { UUID.randomUUID().toString() }
+    }
+    val revealState = remember { UIGenerationRevealState("widget:${cacheKey.take(48)}") }
+    var pendingReveal by remember { mutableStateOf(false) }
+    LaunchedEffect(liveStreaming, streaming, complete, interactive) {
+        if (!interactive && revealState.update(isStreaming = liveStreaming || streaming, complete = complete)) {
+            pendingReveal = true
+        }
     }
     // Do not key on cacheKey — see DisposableEffect comment below. Resetting this to null
     // mid-stream creates a brief window where LaunchedEffect skips the push because
@@ -787,10 +817,19 @@ private fun SafeGenerativeWidgetWebView(
             fillContainer = fillContainer,
         )
     }
-    LaunchedEffect(renderedHtml, streaming, readyWebView) {
+    LaunchedEffect(html, renderedHtml, streaming, readyWebView, pendingReveal) {
         val target = readyWebView ?: return@LaunchedEffect
-        val next = renderedHtml.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        val effectiveHtml = if (streaming) renderedHtml else html
+        val next = effectiveHtml.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         target.pushWidgetHtml(next, finalize = !streaming)
+        if (!streaming && pendingReveal) {
+            pendingReveal = false
+            UIGenerationMotion.play(
+                context = context,
+                webView = target,
+                selector = UIGenerationMotion.DEFAULT_WIDGET_SELECTOR,
+            )
+        }
     }
 
     Box(
@@ -883,6 +922,7 @@ private fun SafeGenerativeWidgetWebView(
     DisposableEffect(Unit) {
         onDispose {
             activeWebView?.apply {
+                UIGenerationMotion.cancel(this)
                 stopLoading()
                 removeJavascriptInterface("AmberWidget")
                 loadUrl("about:blank")
@@ -901,8 +941,10 @@ private fun SafeGenerativeWidgetWebView(
     DisposableEffect(lifecycleOwner, activeWebView) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP ->
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    UIGenerationMotion.cancel(activeWebView)
                     activeWebView?.evaluateJavascript(WIDGET_PAUSE_ANIMATIONS_JS, null)
+                }
 
                 Lifecycle.Event.ON_RESUME ->
                     activeWebView?.evaluateJavascript(WIDGET_RESUME_ANIMATIONS_JS, null)
@@ -912,6 +954,7 @@ private fun SafeGenerativeWidgetWebView(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            UIGenerationMotion.cancel(activeWebView)
             activeWebView?.evaluateJavascript(WIDGET_PAUSE_ANIMATIONS_JS, null)
         }
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -1429,8 +1472,11 @@ private fun isSafeExternalWidgetUrl(url: String): Boolean {
 private fun GuizangHtmlDeckWebView(
     specJson: String,
     modifier: Modifier = Modifier,
+    generationRevealRequested: Boolean = false,
+    onGenerationRevealConsumed: () -> Unit = {},
     onWebViewReady: (WebView?) -> Unit = {},
 ) {
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val deck = remember(specJson) { GuizangHtmlDeckValidator.normalizeSpecJson(specJson) }
     val validated = remember(deck) {
@@ -1438,10 +1484,23 @@ private fun GuizangHtmlDeckWebView(
             ?: GuizangHtmlDeckValidator.ValidationResult(false, "expected spec.html")
     }
     var activeWebView by remember { mutableStateOf<WebView?>(null) }
+    var pageReady by remember(specJson) { mutableStateOf(false) }
     var currentSlide by remember { mutableStateOf(0) }
     var slideCount by remember { mutableStateOf(0) }
     var lowPower by remember { mutableStateOf(false) }
     val lowPowerState by rememberUpdatedState(lowPower)
+
+    LaunchedEffect(activeWebView, pageReady, generationRevealRequested) {
+        val target = activeWebView ?: return@LaunchedEffect
+        if (pageReady && generationRevealRequested) {
+            onGenerationRevealConsumed()
+            UIGenerationMotion.play(
+                context = context,
+                webView = target,
+                selector = UIGenerationMotion.DEFAULT_FULL_HTML_SELECTOR,
+            )
+        }
+    }
 
     if (!validated.valid || deck == null) {
         Text(
@@ -1487,6 +1546,7 @@ private fun GuizangHtmlDeckWebView(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    UIGenerationMotion.cancel(activeWebView)
                     activeWebView?.evaluateJavascript(
                         guizangSetLowPowerModeJs(true),
                         null,
@@ -1578,6 +1638,7 @@ private fun GuizangHtmlDeckWebView(
                         override fun onPageFinished(view: WebView?, url: String?) {
                             view?.evaluateJavascript(buildGuizangDeckBootstrapJs()) {
                                 view.evaluateJavascript(guizangSetLowPowerModeJs(lowPowerState), null)
+                                if (view === activeWebView) pageReady = true
                             }
                         }
                     }
@@ -1657,6 +1718,7 @@ private fun GuizangHtmlDeckWebView(
     DisposableEffect(Unit) {
         onDispose {
             activeWebView?.apply {
+                UIGenerationMotion.cancel(this)
                 evaluateJavascript(guizangSetLowPowerModeJs(true), null)
                 onPause()
                 stopLoading()
@@ -2245,6 +2307,7 @@ a{color:$primary;text-decoration:none;}
     // the DOM never round-trips byte-equal, so every recomposition would
     // replace innerHTML and restart declarative animation timelines.
     if(window.__amberWidgetLastHtml!==html){
+      if(window.__amberGenerationCancel) window.__amberGenerationCancel();
       window.__amberWidgetLastHtml=html;
       root.innerHTML=html;
       // A fresh <svg> starts its SMIL timeline unpaused — re-apply the host's
@@ -2256,6 +2319,7 @@ a{color:$primary;text-decoration:none;}
   };
   window.__amberWidgetFinalizeHtmlReal = function(html){
     if(window.__amberWidgetLastHtml!==html){
+      if(window.__amberGenerationCancel) window.__amberGenerationCancel();
       window.__amberWidgetLastHtml=html;
       root.innerHTML=html;
       if(window.__amberWidgetPaused) window.__amberWidgetApplyPause();

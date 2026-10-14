@@ -85,6 +85,8 @@ import app.amber.agent.data.db.entity.MiniAppEntity
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.components.nav.BackButton
 import app.amber.feature.ui.components.ds.amberCanvas
+import app.amber.feature.ui.components.message.ChatLiveEntranceRegistry
+import app.amber.feature.ui.components.message.UIGenerationMotion
 import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.core.utils.writeClipboardText
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,7 +109,12 @@ fun MiniAppRunnerPage(
             MiniAppRunnerLoadState.Missing -> state = MiniAppRunnerState.Missing
             is MiniAppRunnerLoadState.Error -> state = MiniAppRunnerState.Error(loaded.message)
             is MiniAppRunnerLoadState.Ready -> {
-                state = MiniAppRunnerState.Ready(loaded.app)
+                val revealEligible = loaded.app.runCount == 0 &&
+                    ChatLiveEntranceRegistry.claim("miniapp:${loaded.app.id}:${loaded.app.version}")
+                state = MiniAppRunnerState.Ready(
+                    app = loaded.app,
+                    generationRevealRequested = revealEligible,
+                )
                 markRunnerVisit(repository, appId)
             }
         }
@@ -162,6 +169,13 @@ fun MiniAppRunnerPage(
                     MiniAppWebView(
                         app = current.app,
                         reloadKey = reloadKey,
+                        generationRevealRequested = current.generationRevealRequested,
+                        onGenerationRevealConsumed = {
+                            val active = state
+                            if (active is MiniAppRunnerState.Ready && active.app.id == current.app.id) {
+                                state = active.copy(generationRevealRequested = false)
+                            }
+                        },
                         onError = { message -> state = MiniAppRunnerState.Error(message) },
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -270,7 +284,10 @@ private fun MiniAppRunnerError(
 private sealed interface MiniAppRunnerState {
     data object Loading : MiniAppRunnerState
     data object Missing : MiniAppRunnerState
-    data class Ready(val app: MiniAppEntity) : MiniAppRunnerState
+    data class Ready(
+        val app: MiniAppEntity,
+        val generationRevealRequested: Boolean = false,
+    ) : MiniAppRunnerState
     data class Error(val message: String) : MiniAppRunnerState
 }
 
@@ -295,6 +312,8 @@ internal suspend fun loadMiniAppRunnerState(
 private fun MiniAppWebView(
     app: MiniAppEntity,
     reloadKey: Int,
+    generationRevealRequested: Boolean = false,
+    onGenerationRevealConsumed: () -> Unit = {},
     onError: (String) -> Unit,
     modifier: Modifier = Modifier,
     repository: MiniAppRepository = koinInject(),
@@ -335,11 +354,24 @@ private fun MiniAppWebView(
     val primary = MaterialTheme.colorScheme.primary
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     var webViewRef by remember(app.id) { mutableStateOf<WebView?>(null) }
+    var pageReady by remember(app.id, reloadKey) { mutableStateOf(false) }
     var bridgeRef by remember(app.id) { mutableStateOf<MiniAppBridge?>(null) }
     var systemOwnerRef by remember(app.id) { mutableStateOf<MiniAppAndroidDeviceCapabilities?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val foregroundProvider = remember(lifecycleOwner) {
         { lifecycleOwner.lifecycle.currentState == Lifecycle.State.RESUMED }
+    }
+
+    LaunchedEffect(webViewRef, pageReady, generationRevealRequested) {
+        val target = webViewRef ?: return@LaunchedEffect
+        if (pageReady && generationRevealRequested) {
+            onGenerationRevealConsumed()
+            UIGenerationMotion.play(
+                context = context,
+                webView = target,
+                selector = UIGenerationMotion.DEFAULT_MINIAPP_SELECTOR,
+            )
+        }
     }
 
     // P4 W11: share result comes back through the real ActivityResult flow;
@@ -383,6 +415,7 @@ private fun MiniAppWebView(
     DisposableEffect(lifecycleOwner, systemOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
+                UIGenerationMotion.cancel(webViewRef)
                 systemOwner.suspendRunner()
             }
         }
@@ -439,6 +472,14 @@ private fun MiniAppWebView(
 
                     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                         super.onPageStarted(view, url, favicon)
+                        if (view === webViewRef) pageReady = false
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        if (view === webViewRef && url == MiniAppShell.BASE_URL) {
+                            pageReady = true
+                        }
                     }
 
                     override fun onReceivedError(
@@ -448,6 +489,8 @@ private fun MiniAppWebView(
                     ) {
                         super.onReceivedError(view, request, error)
                         if (request?.isForMainFrame == true) {
+                            pageReady = false
+                            UIGenerationMotion.cancel(view)
                             val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 error?.description?.toString()
                             } else {
@@ -509,6 +552,8 @@ private fun MiniAppWebView(
     )
 
     LaunchedEffect(webViewRef, shellHtml, reloadKey) {
+        pageReady = false
+        UIGenerationMotion.cancel(webViewRef)
         webViewRef?.loadDataWithBaseURL(MiniAppShell.BASE_URL, shellHtml, "text/html", "utf-8", null)
     }
 
@@ -516,6 +561,7 @@ private fun MiniAppWebView(
         onDispose {
             // Owner first: late JS calls get runner_closed, speech stops and
             // screen leases restore before the WebView itself goes away.
+            UIGenerationMotion.cancel(webViewRef)
             systemOwner.close()
             systemOwnerRef = null
             bridgeRef?.close()

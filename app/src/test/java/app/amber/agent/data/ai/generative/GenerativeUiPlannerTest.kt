@@ -170,6 +170,61 @@ class GenerativeUiPlannerTest {
         assertTrue(requirement.expectFullHtmlDeck)
     }
 
+    @Test
+    fun studyFlashcardAndQuizRequestsRouteToTaskUi() {
+        val setting = GenerativeUiSetting(enabled = true)
+        val flashcardMessages = listOf(userMessage("给我做一套英语单词闪卡和 3 道随堂测验"))
+
+        val prompt = GenerativeUiPlanner.buildPrompt(setting = setting, messages = flashcardMessages)
+        val requirement = GenerativeUiPlanner.widgetRequirement(setting = setting, messages = flashcardMessages)
+
+        assertTrue(prompt.contains("```task-ui"))
+        assertTrue(prompt.contains("\"kind\":\"study\""))
+        assertTrue(prompt.contains("flashcard_deck"))
+        assertTrue(prompt.contains("quiz_item"))
+        assertTrue(prompt.contains("Do NOT use `full_html` PPT covers or MiniApp for study flashcards or quizzes."))
+        assertTrue(requirement.required)
+        assertTrue(requirement.expectTaskUi)
+        assertFalse(requirement.expectSlides)
+        assertFalse(requirement.expectFullHtmlDeck)
+    }
+
+    @Test
+    fun slashRouteTaskUiRoutesAndStripsCleanly() {
+        val setting = GenerativeUiSetting(enabled = true)
+        val messages = listOf(userMessage("[ROUTE:task-ui]\n做一个房贷月供参数测算卡"))
+
+        val prompt = GenerativeUiPlanner.buildPrompt(setting = setting, messages = messages)
+        val requirement = GenerativeUiPlanner.widgetRequirement(setting = setting, messages = messages)
+
+        assertTrue(prompt.contains("task-ui"))
+        assertTrue(prompt.contains("value_field_id"))
+        assertTrue(requirement.required)
+        assertTrue(requirement.expectTaskUi)
+        assertFalse(GenerativeUiPlanner.stripVisualRouteTagsForDisplay("[ROUTE:task-ui]\n做一个房贷月供参数测算卡").contains("[ROUTE:"))
+    }
+
+    @Test
+    fun expectTaskUiQualityCheckAcceptsTaskUiAndRejectsShowWidget() {
+        val requirement = GenerativeUiWidgetRequirement(required = true, expectTaskUi = true)
+        val validTaskUi = """
+            ```task-ui
+            {"kind":"study","title":"词汇卡","components":[{"id":"fc1","kind":"flashcard","front":"Apple","back":"苹果"}]}
+            ```
+        """.trimIndent()
+        val wrongShowWidget = """
+            ```show-widget
+            {"title":"流程","widget_code":"<svg width=\"100%\" viewBox=\"0 0 680 180\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"24\" y=\"24\" width=\"200\" height=\"80\"/><text x=\"48\" y=\"70\">A</text></svg>"}
+            ```
+        """.trimIndent()
+
+        assertTrue(GenerativeWidgetParser.widgetQualityIssue(validTaskUi, requirement) == null)
+        val wrongWidgetIssue = GenerativeWidgetParser.widgetQualityIssue(wrongShowWidget, requirement)
+        assertTrue(wrongWidgetIssue != null && wrongWidgetIssue.contains("expected task-ui interactive card"))
+        val missingIssue = GenerativeWidgetParser.widgetQualityIssue("纯文本回答", requirement)
+        assertTrue(missingIssue == "missing required task-ui")
+    }
+
     private fun userMessage(text: String) = UIMessage(
         role = MessageRole.USER,
         parts = listOf(UIMessagePart.Text(text)),

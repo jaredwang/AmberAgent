@@ -784,10 +784,10 @@ class ChatGenerationRoundEngine(
             ?.filterIsInstance<UIMessagePart.Text>()
             ?.joinToString("\n") { it.text }
             .orEmpty()
-        // Strip any ```show-widget``` fence so the check measures *prose*, not the
+        // Strip any ```show-widget``` or ```task-ui``` fence so the check measures *prose*, not the
         // widget JSON the model may have already produced.
         val withoutWidget = text.replace(
-            Regex("```\\s*(?:show-widget|widget|generative-ui)[\\s\\S]*?```"),
+            Regex("```\\s*(?:show-widget|widget|generative-ui|task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)[\\s\\S]*?```"),
             "",
         ).trim()
         return withoutWidget.length >= MEANINGFUL_TEXT_MIN_CHARS
@@ -811,6 +811,19 @@ class ChatGenerationRoundEngine(
         previousIssue: String?,
     ): String {
         val issue = previousIssue?.takeIf { it.isNotBlank() } ?: "missing required show-widget"
+        if (requirement.expectTaskUi) {
+            return """
+                **Visible Task UI Repair**
+                The previous output did not produce a valid interactive task card: $issue
+                Reply in visible content immediately with one valid fenced `task-ui` JSON block (`kind`: `"decision"`, `"form"`, `"explore"`, or `"study"`).
+                Use this exact form:
+                ```task-ui
+                {"kind":"study","title":"互动练习","subtitle":"翻转闪卡或完成小测验","components":[{"id":"fc_1","kind":"flashcard","front":"核心概念","back":"简明解释","hint":"提示"},{"id":"q_1","kind":"quiz_item","title":"测验题目","options":[{"id":"a","label":"选项 A","value":"A"},{"id":"b","label":"选项 B","value":"B"}],"correct_option":"A","explanation":"解析说明"},{"id":"score_1","kind":"score_summary"}]}
+                ```
+                Replace the content with the actual requested flashcards, quiz, decision options, form inputs, or parameter explorer.
+                Do not put `task-ui` JSON inside hidden reasoning, and do not use `full_html` PPT covers or MiniApp for flashcards/quizzes.
+            """.trimIndent()
+        }
         if (requirement.expectFullHtmlDeck) {
             return """
                 **Visible Full HTML Deck Repair**
@@ -859,6 +872,7 @@ class ChatGenerationRoundEngine(
     ): List<UIMessage> {
         val labels = fallbackWidgetLabels(baseMessages)
         val fallbackText = when {
+            requirement.expectTaskUi -> buildLocalTaskUiFallbackWidget(labels)
             requirement.expectFullHtmlDeck || requirement.expectSlides -> buildLocalFullHtmlDeckFallbackWidget(labels)
             else -> buildLocalGenerativeUiFallbackWidget(labels)
         }
@@ -895,7 +909,7 @@ class ChatGenerationRoundEngine(
         val userHint = baseMessages.lastOrNull { it.role == MessageRole.USER }
             ?.parts
             ?.filterIsInstance<UIMessagePart.Text>()
-            ?.joinToString(" ") { it.text }
+            ?.joinToString(" ") { GenerativeUiPlanner.stripVisualRouteTagsForDisplay(it.text) }
             ?.replace(Regex("""\s+"""), " ")
             ?.trim()
             ?.take(26)
@@ -915,8 +929,15 @@ class ChatGenerationRoundEngine(
             .replace(Regex("""\s+"""), " ")
             .trim()
         if (compact.length < 2) return null
-        if (compact.startsWith("```")) return null
-        if (compact.contains("widget_code") || compact.contains("renderer")) return null
+        if (compact.startsWith("```") || compact.startsWith("{") || compact.startsWith("[")) return null
+        if (
+            compact.contains("widget_code") ||
+            compact.contains("renderer") ||
+            compact.contains("\"components\"") ||
+            compact.contains("\"kind\"")
+        ) {
+            return null
+        }
         if (GenerativeWidgetParser.containsWidgetFence(compact)) return null
         return compact.take(30)
     }
@@ -941,6 +962,38 @@ class ChatGenerationRoundEngine(
         return """
         ```show-widget
         $widget
+        ```
+        """.trimIndent()
+    }
+
+    private fun buildLocalTaskUiFallbackWidget(labels: List<String>): String {
+        val safeLabels = labels.ifEmpty { listOf("核心概念", "关键要点", "重点总结") }.take(4)
+        val title = safeLabels.first().take(24).ifBlank { "互动卡片" }
+        val components = buildJsonArray {
+            safeLabels.forEachIndexed { index, label ->
+                add(
+                    buildJsonObject {
+                        put("id", "opt_${index + 1}")
+                        put("kind", "option_card")
+                        put("title", label)
+                        put("body", "点击选择该项并继续互动")
+                        if (index == 0) {
+                            put("recommended", true)
+                        }
+                    }
+                )
+            }
+        }
+        val doc = buildJsonObject {
+            put("kind", "decision")
+            put("title", title)
+            put("subtitle", "请选择一项继续深入探讨")
+            put("submit_label", "确认选择")
+            put("components", components)
+        }
+        return """
+        ```task-ui
+        $doc
         ```
         """.trimIndent()
     }
