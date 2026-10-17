@@ -153,18 +153,18 @@ class JevStatusToolTest {
 
         assertEquals("vercel", out["api_mode"]!!.jsonPrimitive.content)
         assertEquals(
-            "https://gw.example/v1/evaluation-model",
+            "https://gw.example/v1/decision-model",
             out["endpoint"]!!.jsonPrimitive.content,
         )
-        // VERCEL 评估模型有标准缺省：未配置时透出生效值而非 null
-        assertEquals("typesafe-ai/jev", out["model"]!!.jsonPrimitive.content)
+        // VERCEL decision 模型有标准缺省：未配置时透出生效值而非 null
+        assertEquals("typesafe-ai/jev-1.14.0", out["model"]!!.jsonPrimitive.content)
 
         val configured = payload(
             Settings(jev = JevSetting(enabled = true, apiMode = JevApiMode.VERCEL, vercelModel = "acme/eval-v2")),
         )
         assertEquals("acme/eval-v2", configured["model"]!!.jsonPrimitive.content)
         assertEquals(
-            "https://ai-gateway.vercel.sh/v4/ai/evaluation-model",
+            "https://ai-gateway.vercel.sh/v4/ai/decision-model",
             configured["endpoint"]!!.jsonPrimitive.content,
         )
     }

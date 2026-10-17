@@ -22,6 +22,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import coil3.request.allowHardware
+import coil3.request.crossfade
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,7 +104,10 @@ import com.composables.icons.lucide.AppWindow
 import com.composables.icons.lucide.File
 import com.composables.icons.lucide.Globe
 import com.composables.icons.lucide.Image
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Layers
+import com.composables.icons.lucide.Radio
+import com.composables.icons.lucide.Video
 import com.composables.icons.lucide.Lucide
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.delay
@@ -336,6 +343,141 @@ fun ChatShelfButton(
                 tint = if (open) theme.accent else tokens.ink,
                 modifier = Modifier.size(20.dp),
             )
+        }
+    }
+}
+
+/**
+ * 跨对话活动"卫星"：其他对话还在运行时出现在产物架左侧。
+ *
+ * 刻意不做成产物架按钮的变形——那样会在别的对话运行期间把本对话的产物入口
+ * 挤掉，用户得等它跑完才能拿到自己的东西。这里是一个只在有事时出现的独立
+ * 48dp 触控目标。
+ */
+@Composable
+fun ChatActivityButton(
+    count: Int,
+    open: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (count <= 0) return
+    val tokens = LocalAmberTokens.current
+    val theme = LocalChatTheme.current
+    val label = stringResource(R.string.chat_activity_other_running)
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) {
+        // 这里只给底色成圆，不能 clip 子节点：角标压在 32dp 圆的右上角，
+        // clip(CircleShape) 会把角标削掉约三分之一。
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(if (open) theme.accentTint else Color.Transparent, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Lucide.Radio,
+                contentDescription = null,
+                tint = if (open) theme.accent else tokens.ink,
+                modifier = Modifier.size(20.dp),
+            )
+            // 数字角标只告诉"有几条"，具体是谁在面板里看。
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(14.dp)
+                    .clip(CircleShape)
+                    .background(theme.accent),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = count.coerceAtMost(9).toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = theme.onAccent,
+                )
+            }
+        }
+    }
+}
+
+/** 其他对话的活动列表；点一条跳到那个对话。 */
+@Composable
+fun ColumnScope.ChatActivityPanelContent(
+    notices: List<app.amber.feature.runtime.ConversationActivityNotice>?,
+    onOpen: (String) -> Unit,
+) {
+    val tokens = LocalAmberTokens.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.chat_activity_panel_title),
+            style = MaterialTheme.typography.labelMedium,
+            color = tokens.ink3,
+            modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 4.dp),
+        )
+        when {
+            notices == null -> Text(
+                text = stringResource(R.string.chat_activity_loading),
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.ink3,
+                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
+            )
+            notices.isEmpty() -> Text(
+                text = stringResource(R.string.chat_activity_empty),
+                style = MaterialTheme.typography.bodySmall,
+                color = tokens.ink3,
+                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
+            )
+            else -> notices.forEach { notice ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onOpen(notice.conversationId) }
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        imageVector = Lucide.Radio,
+                        contentDescription = null,
+                        tint = tokens.ink3,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = notice.title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = tokens.ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = stringResource(R.string.chat_activity_kind_running),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = tokens.ink3,
+                            maxLines = 1,
+                        )
+                    }
+                    Icon(
+                        imageVector = Lucide.ChevronRight,
+                        contentDescription = null,
+                        tint = tokens.ink3,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -689,7 +831,11 @@ fun ColumnScope.ChatShelfPanelContent(
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
     Text(
-        text = stringResource(R.string.chat_shelf),
+        text = if (items.isNullOrEmpty()) {
+            stringResource(R.string.chat_shelf)
+        } else {
+            stringResource(R.string.chat_shelf_title_count, stringResource(R.string.chat_shelf), items.size)
+        },
         style = type.screenTitle,
         color = tokens.ink,
         modifier = Modifier.padding(vertical = 4.dp),
@@ -711,14 +857,46 @@ fun ColumnScope.ChatShelfPanelContent(
     items.forEach { item -> ShelfRow(item, onClick = { onOpen(item) }) }
 }
 
+/** 产物架缩略图；加载失败回落到 kind 图标，不显示空框。 */
+@Composable
+private fun ShelfThumbnail(
+    url: String,
+    fallback: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: androidx.compose.ui.graphics.Color,
+) {
+    val context = LocalContext.current
+    var failed by remember(url) { mutableStateOf(false) }
+    if (failed) {
+        Icon(fallback, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+        return
+    }
+    // 请求要 remember：列表滚动与流式重组都会重新组合这一行，每次新建请求会重复解码。
+    val request = remember(url, context) {
+        coil3.request.ImageRequest.Builder(context)
+            .data(url)
+            .crossfade(false)
+            .allowHardware(true)
+            .build()
+    }
+    coil3.compose.AsyncImage(
+        model = request,
+        contentDescription = null,
+        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+        modifier = Modifier.fillMaxSize(),
+        onError = { failed = true },
+    )
+}
+
 @Composable
 private fun ShelfRow(item: ShelfItem, onClick: () -> Unit) {
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
     val (icon, kindLabel) = when (item.kind) {
         ShelfItemKind.IMAGE -> Lucide.Image to stringResource(R.string.chat_shelf_kind_image)
+        ShelfItemKind.VIDEO -> Lucide.Video to stringResource(R.string.chat_shelf_kind_video)
         ShelfItemKind.FILE -> Lucide.File to stringResource(R.string.chat_shelf_kind_file)
         ShelfItemKind.MINI_APP -> Lucide.AppWindow to stringResource(R.string.chat_shelf_kind_app)
+        ShelfItemKind.HTML -> Lucide.Layers to stringResource(R.string.chat_shelf_kind_html)
         ShelfItemKind.WEB -> Lucide.Globe to stringResource(R.string.chat_shelf_kind_web)
     }
     Row(
@@ -738,7 +916,24 @@ private fun ShelfRow(item: ShelfItem, onClick: () -> Unit) {
                 .background(tokens.surface2),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = tokens.ink2, modifier = Modifier.size(18.dp))
+            // 图片项直接给缩略图：产物架里全是同名 fileLabel 时，图标无法区分是哪张。
+            if (item.kind == ShelfItemKind.IMAGE && item.target.isNotBlank()) {
+                ShelfThumbnail(url = item.target, fallback = icon, tint = tokens.ink2)
+            } else if (item.kind == ShelfItemKind.VIDEO && item.target.isNotBlank()) {
+                val cover = app.amber.feature.ui.components.media.rememberVideoCover(item.target)
+                if (cover != null) {
+                    Image(
+                        bitmap = cover,
+                        contentDescription = null,
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    Icon(icon, contentDescription = null, tint = tokens.ink2, modifier = Modifier.size(18.dp))
+                }
+            } else {
+                Icon(icon, contentDescription = null, tint = tokens.ink2, modifier = Modifier.size(18.dp))
+            }
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(

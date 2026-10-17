@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
@@ -53,7 +54,7 @@ data class JevHttpRequest(
     val apiKey: String,
     val body: String,
     val timeoutMs: Long,
-    /** 协议附加头（VERCEL 评估模型走 ai-model-id 等；TYPESAFE 为空）。 */
+    /** 协议附加头（VERCEL decision 模型走 ai-model-id 等；其余方言为空）。 */
     val headers: Map<String, String> = emptyMap(),
 )
 
@@ -74,34 +75,129 @@ class JevClient(
         state: JsonElement,
         questions: Map<String, JevQuestion>,
         apiMode: JevApiMode = JevApiMode.TYPESAFE,
-    ): String = when (apiMode) {
-        JevApiMode.TYPESAFE -> encodeTypesafeRequestBody(model, state, questions)
-        JevApiMode.VERCEL -> encodeVercelRequestBody(model, state, questions)
+        assets: Map<String, JevImageAsset> = emptyMap(),
+    ): String {
+        requireJevCapabilities(apiMode, questions, assets)
+        return when (apiMode) {
+            JevApiMode.VERCEL -> encodeVercelRequestBody(model, state, questions, assets)
+            // TypeSafe 原生、Perplexity Decisions、Liquid systemone 三种方言的 body 同构。
+            JevApiMode.TYPESAFE, JevApiMode.PERPLEXITY, JevApiMode.LIQUID ->
+                encodeTypesafeRequestBody(model, state, questions, assets)
+        }
     }
 
-    private fun encodeTypesafeRequestBody(model: String, state: JsonElement, questions: Map<String, JevQuestion>): String {
+    /**
+     * 方言能力前置校验：不支持图片/Box 的方言必须显式拒收，
+     * 而不是把资产按 systemone 形状发过去换一个 400。
+     */
+    private fun requireJevCapabilities(
+        apiMode: JevApiMode,
+        questions: Map<String, JevQuestion>,
+        assets: Map<String, JevImageAsset>,
+    ) {
+        if (assets.isNotEmpty()) {
+            require(jevSupportsImages(apiMode)) { "images unsupported by provider: $apiMode" }
+        }
+        val hasBox = questions.values.any { it is JevQuestion.Box }
+        if (hasBox) {
+            require(jevSupportsBox(apiMode)) { "box questions require the native systemone API: $apiMode" }
+        }
+    }
+
+    /** 原生方言：状态是结构化 JSON，图片以 `assets[reference] = {format, data}` 旁挂。 */
+    private fun encodeTypesafeRequestBody(
+        model: String,
+        state: JsonElement,
+        questions: Map<String, JevQuestion>,
+        assets: Map<String, JevImageAsset>,
+    ): String {
         val body = buildJsonObject {
             put("model", model)
             put("state", state)
             put("questions", buildJsonObject {
                 questions.forEach { (id, question) -> put(id, question.toJson()) }
             })
+            if (assets.isNotEmpty()) {
+                put("assets", buildJsonObject {
+                    assets.forEach { (reference, asset) ->
+                        put(reference, buildJsonObject {
+                            put("format", asset.format)
+                            put("data", asset.base64())
+                        })
+                    }
+                })
+            }
         }
         return json.encodeToString(JsonObject.serializer(), body)
     }
 
     /**
-     * VERCEL 方言：评估模型端点 `{state, questions}`——模型走 `ai-model-id`
-     * header（见 [call]），题型 noul 在线上记作 boolean。criteria 形状与原生一致。
+     * VERCEL 方言（decision-model 契约）：body 为 `{stateParts, questions}`——
+     * 状态按有序文本块发送（图片在 stateParts 中以 file part 表达），模型走
+     * `ai-model-id` header（见 [call]），题型 noul 在线上记作 boolean。
      */
-    private fun encodeVercelRequestBody(model: String, state: JsonElement, questions: Map<String, JevQuestion>): String {
+    private fun encodeVercelRequestBody(
+        model: String,
+        state: JsonElement,
+        questions: Map<String, JevQuestion>,
+        assets: Map<String, JevImageAsset>,
+    ): String {
+        // 状态本身是结构化 JSON；网关只收文本块，按 JSON 文本原样下发，不做二次摘要。
+        val stateText = json.encodeToString(JsonElement.serializer(), state)
         val body = buildJsonObject {
-            put("state", state)
+            put("stateParts", buildJsonArray {
+                gatewayStateParts(stateText, assets).forEach { add(it) }
+            })
             put("questions", buildJsonObject {
                 questions.forEach { (id, question) -> put(id, question.toJson(apiMode = JevApiMode.VERCEL)) }
             })
         }
         return json.encodeToString(JsonObject.serializer(), body)
+    }
+
+    /**
+     * 按图片参考标记在 state 文本里的位置切成有序块：文本 / file / 文本 …
+     * 参考标记必须出现且不得重叠，否则拒绝——静默丢图会让判断基于错误的输入。
+     */
+    private fun gatewayStateParts(
+        stateText: String,
+        assets: Map<String, JevImageAsset>,
+    ): List<JsonObject> {
+        if (assets.isEmpty()) {
+            return listOf(buildJsonObject { put("type", "text"); put("text", stateText) })
+        }
+        val placements = assets.map { (reference, asset) ->
+            val index = stateText.indexOf(reference)
+            require(index >= 0) { "image reference not present in state: $reference" }
+            Triple(index, reference, asset)
+        }.sortedBy { it.first }
+        val parts = mutableListOf<JsonObject>()
+        var cursor = 0
+        placements.forEach { (index, reference, asset) ->
+            require(index >= cursor) { "overlapping image references: $reference" }
+            if (index > cursor) {
+                parts += buildJsonObject {
+                    put("type", "text")
+                    put("text", stateText.substring(cursor, index))
+                }
+            }
+            parts += buildJsonObject {
+                put("type", "file")
+                put("mediaType", if (asset.format == "png") "image/png" else "image/jpeg")
+                put("data", buildJsonObject {
+                    put("type", "data")
+                    put("data", asset.base64())
+                })
+            }
+            cursor = index + reference.length
+        }
+        if (cursor < stateText.length) {
+            parts += buildJsonObject {
+                put("type", "text")
+                put("text", stateText.substring(cursor))
+            }
+        }
+        return parts
     }
 
     /**
@@ -113,8 +209,10 @@ class JevClient(
         questions: Map<String, JevQuestion>,
         apiMode: JevApiMode = JevApiMode.TYPESAFE,
     ): JevDecodedResponse = when (apiMode) {
-        JevApiMode.TYPESAFE -> decodeTypesafeResponse(bodyText, questions)
         JevApiMode.VERCEL -> decodeVercelResponse(bodyText, questions)
+        // 三种 systemone 同构方言共用一套解析（含内嵌 confidence）。
+        JevApiMode.TYPESAFE, JevApiMode.PERPLEXITY, JevApiMode.LIQUID ->
+            decodeTypesafeResponse(bodyText, questions)
     }
 
     private fun decodeTypesafeResponse(bodyText: String, questions: Map<String, JevQuestion>): JevDecodedResponse {
@@ -212,6 +310,31 @@ class JevClient(
                 }
                 JevAnswer.Choice(selected, confidence)
             }
+            is JevQuestion.Box -> {
+                if (type != "box") throw JevDecodeException("answer $id type mismatch: $type")
+                val box = obj["box"] as? JsonObject
+                    ?: throw JevDecodeException("answer $id missing box")
+                fun edge(name: String): Double {
+                    val value = box[name].finiteDouble("answer $id box.$name")
+                        ?: throw JevDecodeException("answer $id box missing $name")
+                    if (value !in 0.0..1.0) throw JevDecodeException("answer $id box.$name out of range: $value")
+                    return value
+                }
+                val left = edge("left")
+                val top = edge("top")
+                val right = edge("right")
+                val bottom = edge("bottom")
+                if (right < left || bottom < top) {
+                    throw JevDecodeException("answer $id box is inverted")
+                }
+                JevAnswer.Box(
+                    left = left,
+                    top = top,
+                    right = right,
+                    bottom = bottom,
+                    confidence = obj.confidenceOrNull("answer $id"),
+                )
+            }
             is JevQuestion.Score -> {
                 if (type != "score") throw JevDecodeException("answer $id type mismatch: $type")
                 val score = obj["score"].finiteDouble("answer $id score")
@@ -251,6 +374,7 @@ class JevClient(
             is JevQuestion.Noul -> if (apiMode == JevApiMode.VERCEL) "boolean" else "noul"
             is JevQuestion.Choice -> "choice"
             is JevQuestion.Score -> "score"
+            is JevQuestion.Box -> "box"
         })
         put("instructions", instructions)
         when (val q = this@toJson) {
@@ -268,6 +392,7 @@ class JevClient(
                 }
             })
             is JevQuestion.Score -> put("criteria", JsonArray(q.levels.map { JsonPrimitive(it) }))
+            is JevQuestion.Box -> q.targetDescription?.let { put("criteria", buildJsonObject { put("target", it) }) }
         }
     }
 
@@ -279,9 +404,20 @@ class JevClient(
         apiKey: String,
         state: JsonElement,
         questions: Map<String, JevQuestion>,
+        assets: Map<String, JevImageAsset> = emptyMap(),
     ): JevCallResult {
-        val body = encodeRequestBody(model, state, questions, apiMode)
-        if (body.toByteArray(Charsets.UTF_8).size > JevLimits.MAX_REQUEST_BODY_BYTES) {
+        val body = try {
+            encodeRequestBody(model, state, questions, apiMode, assets)
+        } catch (e: IllegalArgumentException) {
+            // 能力不匹配 / 参考标记缺失都是确定性错误，不重试。
+            return JevCallResult.Decode(e.message ?: "invalid request")
+        }
+        val bodyLimit = if (assets.isEmpty()) {
+            JevLimits.MAX_REQUEST_BODY_BYTES
+        } else {
+            JevLimits.MAX_IMAGE_REQUEST_BODY_BYTES
+        }
+        if (body.toByteArray(Charsets.UTF_8).size > bodyLimit) {
             return JevCallResult.Transport("request body too large")
         }
         val response = try {
@@ -292,13 +428,22 @@ class JevClient(
                     body = body,
                     timeoutMs = jevDeadlineMs(apiMode),
                     headers = when (apiMode) {
-                        JevApiMode.TYPESAFE -> emptyMap()
-                        // Vercel AI Gateway 评估模型协议头（与 @ai-sdk/gateway 一致）。
+                        // 图片与 Box 属实验能力，必须显式声明危险区头部，否则服务端忽略资产。
+                        JevApiMode.TYPESAFE -> if (assets.isEmpty() &&
+                            questions.values.none { it is JevQuestion.Box }
+                        ) {
+                            emptyMap()
+                        } else {
+                            mapOf("TypeSafe-Danger-Zone-Images" to "true")
+                        }
+                        JevApiMode.PERPLEXITY, JevApiMode.LIQUID -> emptyMap()
+                        // Vercel AI Gateway decision-model 协议头（与 @ai-sdk/gateway 一致）：
+                        // 模型 id 与 spec 版本走 header，body 不再携带 model。
                         JevApiMode.VERCEL -> mapOf(
                             "ai-model-id" to model,
                             "ai-gateway-protocol-version" to "0.0.1",
                             "ai-gateway-auth-method" to "api-key",
-                            "ai-evaluation-model-specification-version" to "4",
+                            "ai-decision-model-specification-version" to "4",
                         )
                     },
                 ),

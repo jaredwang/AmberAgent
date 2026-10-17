@@ -128,7 +128,8 @@ class ToolRegistry private constructor(
             val category = category()
             val riskProfile = riskProfile()
             val risk = riskProfile.risk
-            val mandatoryApprovalEffective = mandatoryApproval || name == "screen_run_goal"
+            val mandatoryApprovalEffective = mandatoryApproval ||
+                name == "screen_run_goal" || name == "screen_run_flow"
             val effectiveNeedsApproval = mandatoryApprovalEffective || needsApproval || mutates || risk == ToolRisk.High
             val effectiveAutoApproval = !mandatoryApprovalEffective &&
                 allowsAutoApproval &&
@@ -264,7 +265,8 @@ fun Tool.invocationPolicy(input: JsonElement?): ToolInvocationPolicy {
     var mutates = baseMutates
     var risk = baseRisk
     var riskExplicit = baseRiskProfile.explicit
-    var mandatoryApprovalEffective = mandatoryApproval || name == "screen_run_goal"
+    var mandatoryApprovalEffective = mandatoryApproval ||
+        name == "screen_run_goal" || name == "screen_run_flow"
     var needsApproval = mandatoryApprovalEffective || needsApproval || baseMutates || baseRisk == ToolRisk.High
     var autoApprovable = !mandatoryApprovalEffective && allowsAutoApproval && baseRisk != ToolRisk.High
     var concurrencySafe = concurrencySafe()
@@ -617,6 +619,11 @@ private fun Tool.mutatesState(): Boolean {
     if (name == "memory_tool") return true
     if (name == "deep_read_open") return true
     if (name == "run_plan_update") return false
+    // screen_stop 只结束本次自控会话，不改用户数据；把它当写入会让"停手"也需要审批。
+    if (name == "screen_stop") return false
+    // screen_add_app 落盘一个可被 screen_run_goal 进入的应用（扩权），
+    // 名称里的 add 不在写入提示表里，必须显式声明。
+    if (name == "screen_add_app") return true
     // P4-03: js_cell_* manage a sandboxed cell's own private state (metadata,
     // store, terminal status) — same pattern as run_plan_update; they never
     // mutate user data, so they stay READ_ONLY for the ledger and
@@ -650,6 +657,7 @@ private fun Tool.mutatesState(): Boolean {
         name in setOf("subagent_start", "subagent_cancel") ||
         name in setOf("wm_click", "wm_tap", "wm_type", "wm_keys", "wm_select", "wm_eval", "wm_site_remove", "wm_zcode_ask") ||
         name == "screen_run_goal" ||
+        name == "screen_run_flow" ||
         name.startsWith("skill_enable") ||
         name.startsWith("skill_disable")
 }
@@ -676,7 +684,8 @@ private fun Tool.riskProfile(): RiskProfile = when {
     name == "http_request" -> RiskProfile(ToolRisk.High, explicit = true)
     name == "memory_tool" -> RiskProfile(ToolRisk.High, explicit = true)
     name == "mcp_call_tool" -> RiskProfile(ToolRisk.Sensitive, explicit = true)
-    name == "wm_eval" || name == "wm_zcode_ask" || name == "screen_run_goal" ->
+    name == "wm_eval" || name == "wm_zcode_ask" ||
+        name == "screen_run_goal" || name == "screen_run_flow" ->
         RiskProfile(ToolRisk.High, explicit = true)
     // Provider config writers rewrite persisted credentials / endpoints /
     // model slots — High risk so plain auto-approval can never silently run

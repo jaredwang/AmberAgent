@@ -37,8 +37,8 @@ data class JevPolicy(
     companion object {
         /**
          * 判断语义版本：VERCEL 契约、预算档位或阈值变更时递增（参与缓存键）。
-         * 本次仅把既有阈值收编进 policy，数值不变，版本维持 2。
+         * v3：VERCEL 从 evaluation-model 改为 decision-model（stateParts，spec 版本头改名）。
          */
-        const val CURRENT_POLICY_VERSION = 2
+        const val CURRENT_POLICY_VERSION = 3
     }
 }

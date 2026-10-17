@@ -53,11 +53,14 @@ import app.amber.core.jev.JevMetricEntry
 import app.amber.core.jev.JevMode
 import app.amber.core.jev.JevPurpose
 import app.amber.core.jev.JevSetting
+import app.amber.core.jev.jevConnectionTestModelFor
+import app.amber.core.jev.jevDefaultModelFor
 import app.amber.core.settings.secret.SecretStore
 import app.amber.core.di.JevApiKeyDescriptor
 import app.amber.core.utils.plus
 import app.amber.feature.ui.components.ds.amberCanvas
 import app.amber.feature.ui.components.nav.BackButton
+import app.amber.feature.ui.components.ui.Select
 import app.amber.feature.ui.components.ui.Switch
 import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.feature.ui.components.ui.workspaceColors
@@ -159,37 +162,32 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                         trailingContent = { SettingChevron() },
                     )
                     item(
+                        modifier = Modifier.settingTwoLine(),
                         headlineContent = { Text(stringResource(R.string.setting_jev_api_mode_title)) },
                         supportingContent = {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    stringResource(R.string.setting_jev_api_mode_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = workspaceColors().muted,
-                                )
-                                SettingSegmentedChoice(
-                                    options = JevApiMode.entries,
-                                    selected = jev.apiMode,
-                                    onSelected = { mode ->
-                                        if (mode != jev.apiMode) {
-                                            updateJev { current -> current.copy(apiMode = mode) }
-                                            // 方言/端点变化与凭据收紧同语义：失效缓存并解除认证暂停；
-                                            // 旧端点上测出的连接结果对新方言无意义，一并清掉。
-                                            coordinator.onCredentialOrScopeChanged()
-                                            connection = null
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { mode ->
-                                        Text(
-                                            mode.label(),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    },
-                                )
-                            }
+                            Text(
+                                stringResource(R.string.setting_jev_api_mode_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = workspaceColors().muted,
+                            )
+                        },
+                        // 四家供应商名称在 320dp 上放不进等宽分段控件（会被 "Perplexity" 挤成省略号），
+                        // 与工具循环上限等设置行一致收进 Select：值收起、全名在菜单里完整可读。
+                        trailingContent = {
+                            Select(
+                                options = JevApiMode.entries,
+                                selectedOption = jev.apiMode,
+                                onOptionSelected = { mode ->
+                                    if (mode != jev.apiMode) {
+                                        updateJev { current -> current.copy(apiMode = mode) }
+                                        // 方言/端点变化与凭据收紧同语义：失效缓存并解除认证暂停；
+                                        // 旧端点上测出的连接结果对新方言无意义，一并清掉。
+                                        coordinator.onCredentialOrScopeChanged()
+                                        connection = null
+                                    }
+                                },
+                                optionToString = { mode -> mode.label() },
+                            )
                         },
                     )
                     if (jev.apiMode == JevApiMode.VERCEL) {
@@ -220,21 +218,15 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                     item(
                         modifier = Modifier.settingTwoLine(),
                         onClick = {
-                            modelInput = when (jev.apiMode) {
-                                JevApiMode.TYPESAFE -> jev.model.orEmpty()
-                                JevApiMode.VERCEL -> jev.vercelModel.orEmpty()
-                            }
+                            modelInput = jev.modelFor(jev.apiMode).orEmpty()
                             editingModel = true
                         },
                         headlineContent = { Text(stringResource(R.string.setting_jev_model_title)) },
                         supportingContent = {
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(
-                                    when (jev.apiMode) {
-                                        JevApiMode.TYPESAFE -> jev.model ?: JevLimits.DEFAULT_MODEL
-                                        JevApiMode.VERCEL -> jev.vercelModel?.takeIf { it.isNotBlank() }
-                                            ?: JevLimits.VERCEL_DEFAULT_MODEL
-                                    },
+                                    jev.modelFor(jev.apiMode)?.takeIf { it.isNotBlank() }
+                                        ?: jevDefaultModelFor(jev.apiMode),
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -258,7 +250,7 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                                         when {
                                             ok -> stringResource(
                                                 R.string.setting_jev_connection_ok,
-                                                model ?: JevLimits.CONNECTION_TEST_MODEL,
+                                                model ?: jevConnectionTestModelFor(jev.apiMode),
                                                 latencyMs,
                                             )
                                             keyMissing -> stringResource(R.string.setting_jev_connection_key_missing)
@@ -285,10 +277,7 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                                                 coordinator.connectionTest(
                                                     apiMode = jev.apiMode,
                                                     baseUrl = jev.baseUrl,
-                                                    model = when (jev.apiMode) {
-                                                        JevApiMode.TYPESAFE -> jev.model
-                                                        JevApiMode.VERCEL -> jev.vercelModel
-                                                    },
+                                                    model = jev.modelFor(jev.apiMode),
                                                 ),
                                             )
                                         }
@@ -689,19 +678,36 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                                 Text(stringResource(R.string.setting_jev_model_desc))
                             },
                         )
-                        val storedModel = when (jev.apiMode) {
-                            JevApiMode.TYPESAFE -> jev.model
-                            JevApiMode.VERCEL -> jev.vercelModel
+                        val storedModel = jev.modelFor(jev.apiMode)
+                        // 只在"生效模型"不是推荐版时提供入口：未固定时已生效推荐版，
+                        // 再给按钮会与下方"清除"互为逆操作且点完无可见变化。
+                        val effectiveModel = storedModel?.takeIf { it.isNotBlank() }
+                            ?: jevDefaultModelFor(jev.apiMode)
+                        if (jev.apiMode == JevApiMode.TYPESAFE && effectiveModel != JevLimits.RECOMMENDED_MODEL) {
+                            // 已验收的固定版本：浮动别名（jev-latest/jev-preview）不作为已验收版本。
+                            TextButton(
+                                onClick = {
+                                    updateJev { current ->
+                                        current.withModel(jev.apiMode, JevLimits.RECOMMENDED_MODEL)
+                                    }
+                                    coordinator.onCredentialOrScopeChanged()
+                                    connection = null
+                                    modelInput = ""
+                                    editingModel = false
+                                },
+                            ) {
+                                Text(
+                                    stringResource(
+                                        R.string.setting_jev_model_use_recommended,
+                                        JevLimits.RECOMMENDED_MODEL,
+                                    ),
+                                )
+                            }
                         }
                         if (storedModel != null) {
                             TextButton(
                                 onClick = {
-                                    updateJev { current ->
-                                        when (jev.apiMode) {
-                                            JevApiMode.TYPESAFE -> current.copy(model = null)
-                                            JevApiMode.VERCEL -> current.copy(vercelModel = null)
-                                        }
-                                    }
+                                    updateJev { current -> current.withModel(jev.apiMode, null) }
                                     coordinator.onCredentialOrScopeChanged()
                                     connection = null
                                     modelInput = ""
@@ -717,12 +723,7 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                     TextButton(
                         onClick = {
                             val newValue = modelInput.trim().ifEmpty { null }
-                            updateJev { current ->
-                                when (jev.apiMode) {
-                                    JevApiMode.TYPESAFE -> current.copy(model = newValue)
-                                    JevApiMode.VERCEL -> current.copy(vercelModel = newValue)
-                                }
-                            }
+                            updateJev { current -> current.withModel(jev.apiMode, newValue) }
                             coordinator.onCredentialOrScopeChanged()
                             connection = null
                             modelInput = ""
@@ -791,6 +792,7 @@ private fun JevDataScope.title(): String = stringResource(
         JevDataScope.TOOL_OUTPUT -> R.string.setting_jev_scope_tool_output
         JevDataScope.WEB_CONTENT -> R.string.setting_jev_scope_web_content
         JevDataScope.SCREEN_CONTENT -> R.string.setting_jev_scope_screen_content
+        JevDataScope.SCREEN_SCREENSHOTS -> R.string.setting_jev_scope_screen_screenshots
     },
 )
 
@@ -803,6 +805,7 @@ private fun JevDataScope.description(): String = stringResource(
         JevDataScope.TOOL_OUTPUT -> R.string.setting_jev_scope_tool_output_desc
         JevDataScope.WEB_CONTENT -> R.string.setting_jev_scope_web_content_desc
         JevDataScope.SCREEN_CONTENT -> R.string.setting_jev_scope_screen_content_desc
+        JevDataScope.SCREEN_SCREENSHOTS -> R.string.setting_jev_scope_screen_screenshots_desc
     },
 )
 
@@ -845,5 +848,7 @@ private fun JevApiMode.label(): String = stringResource(
     when (this) {
         JevApiMode.TYPESAFE -> R.string.setting_jev_api_mode_typesafe
         JevApiMode.VERCEL -> R.string.setting_jev_api_mode_vercel
+        JevApiMode.PERPLEXITY -> R.string.setting_jev_api_mode_perplexity
+        JevApiMode.LIQUID -> R.string.setting_jev_api_mode_liquid
     },
 )

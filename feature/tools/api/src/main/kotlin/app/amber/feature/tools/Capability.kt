@@ -226,7 +226,12 @@ fun capabilityForTool(name: String): Capability? = when (name) {
     "screen_back", "screen_home", "screen_read_ui", "screen_find_text",
     "screen_tap_text", "screen_wait_for_text", "screen_scroll_until",
     -> Capability.SCREEN_CONTROL
-    "screen_run_goal" -> Capability.SCREEN_AUTOMATION
+    "screen_run_goal", "screen_run_flow" -> Capability.SCREEN_AUTOMATION
+    // 授权落盘一个可被 screen_run_goal 进入的应用 = 扩大自控范围，
+    // 与 screen_run_goal 同一 High 下限；查询/结束不扩权，归观察面。
+    "screen_add_app" -> Capability.SCREEN_AUTOMATION
+    "screen_status", "screen_apps", "screen_stop", "screen_remove_app", "screen_collect_list" ->
+        Capability.SCREEN_CONTROL
     "clipboard_tool" -> Capability.CLIPBOARD_ACCESS
 
     // Expanded MCP entries keep the `mcp__server__tool` namespace at the

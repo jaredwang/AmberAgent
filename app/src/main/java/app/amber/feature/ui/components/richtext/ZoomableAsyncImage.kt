@@ -35,18 +35,26 @@ fun ZoomableAsyncImage(
     val context = LocalContext.current
     val placeholder = if(LocalDarkMode.current) R.drawable.placeholder_dark else R.drawable.placeholder
     val export = LocalExportContext.current
-    val coilModel = ImageRequest.Builder(context)
-        .data(model)
-        .placeholder(placeholder)
-        .crossfade(false)
-        .allowHardware(!export)
-        .build()
-    var loading by remember { mutableStateOf(false) }
+    // 必须记住请求：流式渲染每帧都会重组，每次新建 ImageRequest 会让 Coil 把它当成
+    // 新请求重启加载，图还在屏幕里就退回占位/水波纹——这正是"滚回屏幕前一直是空白"。
+    // data 是稳定 String，remember 后同一个请求复用内存缓存，命中即绘制。
+    val coilModel = remember(model, export, context, placeholder) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .placeholder(placeholder)
+            .crossfade(false)
+            .allowHardware(!export)
+            .build()
+    }
+    var loading by remember(model) { mutableStateOf(model.isNullOrBlank()) }
+    // 一旦这张图成功画过，就再也不用水波纹盖住它：水波纹是"还没有图"的提示，
+    // 覆盖已画好的内容只会看起来像图片又变空白了。
+    var loaded by remember(model) { mutableStateOf(false) }
     AsyncImage(
         model = coilModel,
         contentDescription = contentDescription,
         modifier = modifier
-            .shimmer(isLoading = loading)
+            .shimmer(isLoading = loading && !loaded)
             .clickable {
                 showImageViewer = true
             },
@@ -58,6 +66,7 @@ fun ZoomableAsyncImage(
         },
         onSuccess = {
             loading = false
+            loaded = true
         },
         onError = {
             loading = false

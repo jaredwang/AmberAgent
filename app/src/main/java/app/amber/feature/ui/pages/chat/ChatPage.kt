@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -155,6 +156,7 @@ import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import app.amber.feature.ui.components.ui.WorkspaceIconButton
 import app.amber.feature.ui.components.ui.WorkspaceTone
+import app.amber.feature.ui.components.ui.ImagePreviewDialog
 import app.amber.feature.ui.components.ui.workspaceColors
 import app.amber.feature.ui.components.workspace.WorkspaceFilePreview
 import app.amber.feature.ui.components.workspace.WorkspaceFileSheet
@@ -570,12 +572,15 @@ private fun ChatPageTopBar(
     recapEligible: Boolean,
     recapOpen: Boolean,
     shelfOpen: Boolean,
+    activityOpen: Boolean,
+    otherActivityCount: Int,
     modelMenuOpen: Boolean,
     onToggleModelMenu: () -> Unit,
     onIslandOpenRecap: () -> Unit,
     onIslandJumpToLive: () -> Unit,
     onIslandStop: () -> Unit,
     onToggleShelf: () -> Unit,
+    onToggleActivity: () -> Unit,
 ) {
     val headerConversationFlow = remember(vm.conversation) {
         vm.conversation
@@ -596,12 +601,15 @@ private fun ChatPageTopBar(
         recapEligible = recapEligible,
         recapOpen = recapOpen,
         shelfOpen = shelfOpen,
+        activityOpen = activityOpen,
+        otherActivityCount = otherActivityCount,
         modelMenuOpen = modelMenuOpen,
         onToggleModelMenu = onToggleModelMenu,
         onIslandOpenRecap = onIslandOpenRecap,
         onIslandJumpToLive = onIslandJumpToLive,
         onIslandStop = onIslandStop,
         onToggleShelf = onToggleShelf,
+        onToggleActivity = onToggleActivity,
     )
 }
 
@@ -894,6 +902,9 @@ private fun ChatPageContent(
     // Header island: recap panel, shelf panel, and timeline jumps they trigger.
     var recapOpen by remember(conversation.id) { mutableStateOf(false) }
     var shelfOpen by remember(conversation.id) { mutableStateOf(false) }
+    var activityOpen by remember(conversation.id) { mutableStateOf(false) }
+    // 产物架里点图片：直接看大图，而不是先跳到那条消息再找图。
+    var shelfImagePreview by remember(conversation.id) { mutableStateOf<String?>(null) }
     var renameOpen by remember { mutableStateOf(false) }
     var jumpTarget by remember(conversation.id) { mutableStateOf<TimelineJumpTarget?>(null) }
     var jumpToLiveKey by remember(conversation.id) { mutableIntStateOf(0) }
@@ -925,6 +936,14 @@ private fun ChatPageContent(
         }.distinctUntilChanged()
     }
     val recapEligible by recapEligibleFlow.collectAsStateWithLifecycle(initialValue = false)
+    // 跨对话活动：只读投影，别的对话还在跑时顶栏出现卫星。
+    val activityCenter: app.amber.feature.runtime.ConversationActivityCenter = koinInject()
+    val otherActivityFlow = remember(activityCenter, conversation.id) {
+        activityCenter.notices(excluding = conversation.id.toString())
+    }
+    val otherActivity by otherActivityFlow.collectAsStateWithLifecycle(
+        initialValue = emptyList(),
+    )
     LaunchedEffect(jumpToLiveKey) {
         if (jumpToLiveKey > 0) {
             previewMode = false
@@ -935,6 +954,7 @@ private fun ChatPageContent(
     fun closeHeaderPanels() {
         recapOpen = false
         shelfOpen = false
+        activityOpen = false
     }
     CompositionLocalProvider(LocalTimelineHighlight provides timelineHighlight) {
     Box(modifier = Modifier.fillMaxSize().amberCanvas()) {
@@ -953,6 +973,8 @@ private fun ChatPageContent(
                     recapEligible = recapEligible,
                     recapOpen = recapOpen,
                     shelfOpen = shelfOpen,
+                    activityOpen = activityOpen,
+                    otherActivityCount = otherActivity.size,
                     modelMenuOpen = modelMenuOpen,
                     onToggleModelMenu = {
                         closeHeaderPanels()
@@ -964,6 +986,7 @@ private fun ChatPageContent(
                         } else {
                             modelMenuOpen = false
                             shelfOpen = false
+                            activityOpen = false
                             recapOpen = true
                             vm.requestRecap()
                         }
@@ -980,13 +1003,30 @@ private fun ChatPageContent(
                         } else {
                             modelMenuOpen = false
                             recapOpen = false
+                            activityOpen = false
                             shelfOpen = true
+                        }
+                    },
+                    onToggleActivity = {
+                        if (activityOpen) {
+                            activityOpen = false
+                        } else {
+                            modelMenuOpen = false
+                            recapOpen = false
+                            shelfOpen = false
+                            activityOpen = true
                         }
                     },
                 )
             },
             bottomBar = {
-                Column {
+                // Same reading column as the timeline on tablets; phones are narrower than it.
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                        .widthIn(max = app.amber.feature.ui.adaptive.ChatReadingWidth),
+                ) {
                     outcomeUnknown.forEach { prompt ->
                         OutcomeUnknownCard(
                             prompt = prompt,
@@ -1510,13 +1550,38 @@ private fun ChatPageContent(
                 onDismiss = { shelfOpen = false },
                 onOpen = { item ->
                     shelfOpen = false
-                    jumpTarget = TimelineJumpTarget(item.nodeId, item.messageId)
+                    if (item.kind == ShelfItemKind.IMAGE && item.target.isNotBlank()) {
+                        shelfImagePreview = item.target
+                    } else {
+                        jumpTarget = TimelineJumpTarget(item.nodeId, item.messageId)
+                    }
                 },
                 modifier = Modifier.padding(
                     top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding(),
                 ),
             )
+
+            ChatActivityPanelHost(
+                visible = activityOpen,
+                notices = otherActivity,
+                onDismiss = { activityOpen = false },
+                modifier = Modifier.padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding(),
+                ),
+                onOpen = { conversationId ->
+                    activityOpen = false
+                    val target = runCatching { Uuid.parse(conversationId) }.getOrNull()
+                    if (target != null && target != conversation.id) {
+                        navigateToChatPage(navController, chatId = target)
+                    }
+                },
+            )
+
+            shelfImagePreview?.let { url ->
+                ImagePreviewDialog(images = listOf(url)) { shelfImagePreview = null }
+            }
             }  // end outer Box (fillMaxSize)
         }
 
@@ -1626,6 +1691,25 @@ private fun ChatRecapPanelHost(
  * loaded off the paged window (the timeline itself is not widened). They refresh when
  * a message is added or the newest message changes.
  */
+/** 跨对话活动面板：复用顶栏面板外壳，语义只有"谁在跑"。 */
+@Composable
+private fun ChatActivityPanelHost(
+    visible: Boolean,
+    notices: List<app.amber.feature.runtime.ConversationActivityNotice>,
+    onDismiss: () -> Unit,
+    onOpen: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ChatTopPanel(
+        visible = visible,
+        onDismiss = onDismiss,
+        transformOriginX = 1f,
+        modifier = modifier,
+    ) {
+        ChatActivityPanelContent(notices = notices, onOpen = onOpen)
+    }
+}
+
 @Composable
 private fun ChatShelfPanelHost(
     vm: ChatVM,
@@ -2264,12 +2348,15 @@ private fun TopBar(
     recapEligible: Boolean,
     recapOpen: Boolean,
     shelfOpen: Boolean,
+    activityOpen: Boolean,
+    otherActivityCount: Int,
     modelMenuOpen: Boolean,
     onToggleModelMenu: () -> Unit,
     onIslandOpenRecap: () -> Unit,
     onIslandJumpToLive: () -> Unit,
     onIslandStop: () -> Unit,
     onToggleShelf: () -> Unit,
+    onToggleActivity: () -> Unit,
 ) {
     val newSessionLabel = stringResource(R.string.chat_page_new_session)
     val amberTokens = LocalAmberTokens.current
@@ -2366,6 +2453,15 @@ private fun TopBar(
                         )
                     }
                 }
+
+                // 跨对话活动卫星只在别处有 run 时出现，不挤掉产物架入口。
+                // 刻意为它保留 0 宽度：常驻 48dp 空位会把岛屿永久左移 24dp，
+                // 比"别的对话开始/结束时顶栏短暂横移一次"更差。
+                ChatActivityButton(
+                    count = otherActivityCount,
+                    open = activityOpen,
+                    onClick = onToggleActivity,
+                )
 
                 // The shelf replaces the context ring; usage now lives in the model menu.
                 Box(

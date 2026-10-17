@@ -92,4 +92,59 @@ class ChatShelfItemsTest {
         )
         assertEquals(emptyList<ShelfItem>(), disabledItems)
     }
+    @Test
+    fun `collects video parts as VIDEO and markdown images from text`() {
+        val video = MessageNode(
+            messages = listOf(
+                UIMessage(
+                    role = MessageRole.USER,
+                    parts = listOf(UIMessagePart.Video(url = "file:///v/clip.mp4")),
+                ),
+            ),
+        )
+        val assistant = MessageNode(
+            messages = listOf(
+                UIMessage(
+                    role = MessageRole.ASSISTANT,
+                    parts = listOf(
+                        UIMessagePart.Text(
+                            "宋太祖两张：\n![画像](https://example.com/a.jpg)\n![b](https://example.com/b.png)",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val items = Conversation(
+            assistantId = Uuid.random(),
+            messageNodes = listOf(video, assistant),
+        ).collectShelfItems()
+
+        assertEquals(
+            listOf(ShelfItemKind.IMAGE, ShelfItemKind.IMAGE, ShelfItemKind.VIDEO),
+            items.map { it.kind },
+        )
+        // 有 alt 时用 alt 当标签（比文件名更能说明是哪张图），无 alt 才回落 URL 末段。
+        assertEquals(listOf("画像", "b", "clip.mp4"), items.map { it.label })
+        assertEquals("https://example.com/a.jpg", items[0].target)
+        assertEquals("file:///v/clip.mp4", items[2].target)
+    }
+
+    @Test
+    fun `markdown images inside fenced code are not shelf artifacts`() {
+        val node = MessageNode(
+            messages = listOf(
+                UIMessage(
+                    role = MessageRole.ASSISTANT,
+                    parts = listOf(
+                        UIMessagePart.Text(
+                            "示例：\n```markdown\n![x](https://example.com/not-a-real-asset.png)\n```",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val items = Conversation(assistantId = Uuid.random(), messageNodes = listOf(node)).collectShelfItems()
+        assertEquals(emptyList<ShelfItemKind>(), items.map { it.kind })
+    }
+
 }

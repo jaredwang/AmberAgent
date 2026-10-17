@@ -131,6 +131,17 @@ class JevScreenDeviceTest {
         withTimeout(15_000) { settings.settingsFlow.first { !it.init } }
         assertEquals(JevMode.ACTIVE, settings.settingsFlow.value.jev.modeFor(JevPurpose.SCREEN_AUTOMATION))
         connectAccessibility()
+        // W08：多步自控只进显式授权的应用；测试操作员在此显式授权。
+        settings.update { current ->
+            val scope = current.agentRuntime.screenAutomation
+            current.copy(
+                agentRuntime = current.agentRuntime.copy(
+                    screenAutomation = scope.copy(
+                        allowedPackages = (scope.allowedPackages + "tv.danmaku.bili").distinct(),
+                    ),
+                ),
+            )
+        }
         val tool = koin.get<ScreenAutomationTools>().getTools("device-bilibili-${System.nanoTime()}")
             .single { it.name == "screen_run_goal" }
         val output = tool.execute(buildJsonObject {
@@ -169,6 +180,17 @@ class JevScreenDeviceTest {
         } }
         connectAccessibility()
         val testPackage = instrumentation.context.packageName
+        // W08：先显式授权测试夹具包名，再跑多步目标。
+        settings.update { current ->
+            val scope = current.agentRuntime.screenAutomation
+            current.copy(
+                agentRuntime = current.agentRuntime.copy(
+                    screenAutomation = scope.copy(
+                        allowedPackages = (scope.allowedPackages + testPackage).distinct(),
+                    ),
+                ),
+            )
+        }
         openFixture()
         val tool = koin.get<ScreenAutomationTools>().getTools("device-jev-${System.nanoTime()}")
             .single { it.name == "screen_run_goal" }

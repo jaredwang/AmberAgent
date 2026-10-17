@@ -33,13 +33,10 @@ class JevRuntime(
         return JevRuntimeConfig(
             mode = mode,
             allowedScopes = setting.dataScopes,
-            // 两模式模型字段独立（model=typesafe 固定版本，vercelModel=网关评估模型 id）
-            // 互不串味；VERCEL 空值回落 canonical 默认 typesafe-ai/jev。
-            model = when (setting.apiMode) {
-                JevApiMode.TYPESAFE -> setting.model ?: JevLimits.DEFAULT_MODEL
-                JevApiMode.VERCEL -> setting.vercelModel?.takeIf { it.isNotBlank() }
-                    ?: JevLimits.VERCEL_DEFAULT_MODEL
-            },
+            // 每个方言的模型字段独立（model=typesafe 固定版本，vercelModel=网关 decision 模型 id，
+            // perplexityModel / liquidModel=各自模型 id）互不串味；空值回落该方言的缺省 id。
+            model = setting.modelFor(setting.apiMode)?.takeIf { it.isNotBlank() }
+                ?: jevDefaultModelFor(setting.apiMode),
             policyVersion = policy.policyVersion,
             apiMode = setting.apiMode,
             endpoint = jevEndpointFor(setting.apiMode, setting.baseUrl),
@@ -57,9 +54,19 @@ class JevRuntime(
         questions: Map<String, JevQuestion>,
         requiredScopes: Set<JevDataScope>,
         cacheAnchor: String? = null,
+        assets: Map<String, JevImageAsset> = emptyMap(),
     ): JevRuntimeOutcome? {
         val config = configFor(purpose) ?: return null
-        val decision = coordinator.decide(purpose, config, runKey, state, questions, requiredScopes, cacheAnchor)
+        val decision = coordinator.decide(
+            purpose, config, runKey, state, questions,
+            requiredScopes = if (assets.isEmpty()) {
+                requiredScopes
+            } else {
+                requiredScopes + JevDataScope.SCREEN_SCREENSHOTS
+            },
+            cacheAnchor = cacheAnchor,
+            assets = assets,
+        )
         val stale = configFor(purpose) != config
         return JevRuntimeOutcome(config.mode, decision, stale)
     }

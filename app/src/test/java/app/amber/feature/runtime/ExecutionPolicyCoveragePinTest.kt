@@ -253,8 +253,11 @@ class ExecutionPolicyCoveragePinTest {
                 "screen_click", "screen_long_click", "screen_swipe", "screen_input_text",
                 "screen_back", "screen_home", "screen_read_ui", "screen_find_text",
                 "screen_tap_text", "screen_wait_for_text", "screen_scroll_until",
+                // 观察自控面本身（状态/已装应用）与结束会话不扩权，留在观察面。
+                "screen_status", "screen_apps", "screen_stop", "screen_remove_app", "screen_collect_list",
             ),
-            Capability.SCREEN_AUTOMATION to setOf("screen_run_goal"),
+            // screen_add_app 落盘一个可被 screen_run_goal 进入的应用 = 扩大自控范围。
+            Capability.SCREEN_AUTOMATION to setOf("screen_run_goal", "screen_run_flow", "screen_add_app"),
             Capability.CLIPBOARD_ACCESS to setOf("clipboard_tool"),
         )
 

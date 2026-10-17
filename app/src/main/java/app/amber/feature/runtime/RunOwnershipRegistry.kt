@@ -2,9 +2,19 @@ package app.amber.feature.runtime
 
 import android.util.Log
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.ConcurrentHashMap
 
 private const val TAG = "RunOwnershipRegistry"
+
+/** 一个仍在运行的对话 run；只读投影，用于跨对话活动提示。 */
+data class ActiveRun(
+    val conversationId: String,
+    val runId: String,
+    val registeredAtMs: Long,
+)
 
 /** P1-05 — cancellation key: assistantId + conversationId + runId. */
 data class RunOwnerKey(
@@ -44,6 +54,20 @@ class RunOwnershipRegistry {
 
     private val entries = ConcurrentHashMap<String, Entry>()
 
+    private val _activeRuns = MutableStateFlow<List<ActiveRun>>(emptyList())
+
+    /**
+     * 当前有 run 在跑的对话。只读投影：其他界面（跨对话活动提示）据此判断
+     * "别处还在生成"，不参与任何取消/所有权决策。
+     */
+    val activeRuns: StateFlow<List<ActiveRun>> = _activeRuns.asStateFlow()
+
+    private fun publishActiveRuns() {
+        _activeRuns.value = entries.values
+            .map { ActiveRun(it.key.conversationId, it.key.runId, it.registeredAtMs) }
+            .sortedBy { it.registeredAtMs }
+    }
+
     /**
      * Own [runId] to [job]. Returns false (and keeps the existing owner) when
      * the same runId is already owned by a different key — a run may resume
@@ -57,12 +81,13 @@ class RunOwnershipRegistry {
             return false
         }
         entries[runId] = Entry(key = key, job = job, registeredAtMs = System.currentTimeMillis())
+        publishActiveRuns()
         return true
     }
 
     /** Called when the run's generation flow ends (onCompletion). */
     fun unregister(runId: String) {
-        entries.remove(runId)
+        if (entries.remove(runId) != null) publishActiveRuns()
     }
 
     /**
@@ -81,6 +106,7 @@ class RunOwnershipRegistry {
             return false
         }
         entries.remove(runId)
+        publishActiveRuns()
         entry.job.cancel()
         return true
     }
@@ -88,5 +114,6 @@ class RunOwnershipRegistry {
     /** Test/observability hook. */
     fun clearForTest() {
         entries.clear()
+        publishActiveRuns()
     }
 }

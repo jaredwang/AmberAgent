@@ -59,6 +59,15 @@ val agentInfraModule = module {
     // P1-05: ownership map for scoped run cancellation (assistantId +
     // conversationId + runId → generation job).
     single { RunOwnershipRegistry() }
+    // 跨对话活动提示：只读投影，不参与取消或所有权决策。
+    single {
+        app.amber.feature.runtime.ConversationActivityCenter(get()) { conversationId ->
+            runCatching {
+                get<app.amber.core.repository.ConversationRepository>()
+                    .getConversationTitleById(kotlin.uuid.Uuid.parse(conversationId))
+            }.getOrNull()
+        }
+    }
 
     // P8-10: one-time approval tokens for notification approve/deny/reply
     // actions (bound to runId + toolCallId + args digest).
@@ -79,7 +88,7 @@ val agentInfraModule = module {
 
     single { ScreenCaptureManager(get()) }
 
-    single { ScreenAutomationTools(get(), get(), get(), get()) }
+    single { ScreenAutomationTools(get(), get(), get(), get(), get()) }
 
     single { AgentPermissionBroker(get(), BuildConfig.DEBUG) }
 
