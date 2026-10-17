@@ -74,6 +74,7 @@ class JevDecisionCoordinator(
         questions: Map<String, JevQuestion>,
         requiredScopes: Set<JevDataScope>,
         cacheAnchor: String? = null,
+        assets: Map<String, JevImageAsset> = emptyMap(),
     ): JevDecision {
         if (config.mode == JevMode.OFF) return JevDecision.Skipped(JevSkipReason.OFF)
         if (!config.allowedScopes.containsAll(requiredScopes)) {
@@ -92,13 +93,28 @@ class JevDecisionCoordinator(
         if (authPaused) return skipped(purpose, config, JevSkipReason.AUTH_PAUSED)
         if (clock() < cooldownUntil) return skipped(purpose, config, JevSkipReason.COOLDOWN)
 
-        val body = client.encodeRequestBody(config.model, state, questions, config.apiMode)
+        val body = try {
+            client.encodeRequestBody(config.model, state, questions, config.apiMode, assets)
+        } catch (e: IllegalArgumentException) {
+            // 能力不匹配（图片/Box）或参考标记缺失：确定性错误，回退原路径。
+            return failed(purpose, config, JevDecision.Failed(JevFailureReason.CLIENT_ERROR, e.message), clock(), 0)
+        }
         val bodyBytes = body.toByteArray(Charsets.UTF_8).size.toLong()
-        if (bodyBytes > JevLimits.MAX_REQUEST_BODY_BYTES) {
+        val bodyLimit = if (assets.isEmpty()) {
+            JevLimits.MAX_REQUEST_BODY_BYTES
+        } else {
+            JevLimits.MAX_IMAGE_REQUEST_BODY_BYTES
+        }
+        if (bodyBytes > bodyLimit) {
             return skipped(purpose, config, JevSkipReason.REQUEST_TOO_LARGE)
         }
+        // 预算按"状态字节"记：图片是载荷而不是状态，计入会让 512 KiB 的
+        // screen 预算把任何带图请求直接判成 BUDGET_EXHAUSTED。
+        val imageBytes = assets.values.sumOf { (it.data.size.toLong() * 4 + 2) / 3 }
+        val stateChargeBytes = if (assets.isEmpty()) bodyBytes else (bodyBytes - imageBytes).coerceAtLeast(0)
 
-        val cacheKey = cacheAnchor?.let { anchor ->
+        // 图片判断不缓存：复用旧画面等于用过期观察做决策。
+        val cacheKey = cacheAnchor?.takeIf { assets.isEmpty() }?.let { anchor ->
             "${config.apiMode.name}|${config.endpoint}|${purpose.name}|${config.model}|v${config.policyVersion}|${config.allowedScopes.joinToString(",")}|$anchor"
         }
         if (cacheKey != null) {
@@ -154,7 +170,7 @@ class JevDecisionCoordinator(
                     lastFailure = JevDecision.Failed(JevFailureReason.TIMEOUT)
                     break
                 }
-                if (!budget.consume(runKey, 1, bodyBytes, purpose)) {
+                if (!budget.consume(runKey, 1, stateChargeBytes, purpose)) {
                     metrics.record(metric(purpose, config, "fallback:budget_exhausted", clock() - startedAt, bodyBytes, null, null))
                     return JevDecision.Skipped(JevSkipReason.BUDGET_EXHAUSTED)
                 }
@@ -162,7 +178,7 @@ class JevDecisionCoordinator(
                 val remaining = deadline - clock()
                 val result = try {
                     withTimeout(remaining.coerceAtLeast(1)) {
-                        client.call(config.apiMode, config.endpoint, config.model, apiKey, state, questions)
+                        client.call(config.apiMode, config.endpoint, config.model, apiKey, state, questions, assets)
                     }
                 } catch (e: TimeoutCancellationException) {
                     JevCallResult.Transport("deadline")
@@ -271,10 +287,7 @@ class JevDecisionCoordinator(
     ): JevConnectionTestResult {
         val apiKey = apiKeyProvider()
         if (apiKey.isNullOrBlank()) return JevConnectionTestResult(keyMissing = true)
-        val testModel = model?.takeIf { it.isNotBlank() } ?: when (apiMode) {
-            JevApiMode.TYPESAFE -> JevLimits.CONNECTION_TEST_MODEL
-            JevApiMode.VERCEL -> JevLimits.VERCEL_DEFAULT_MODEL
-        }
+        val testModel = model?.takeIf { it.isNotBlank() } ?: jevConnectionTestModelFor(apiMode)
         val question = JevQuestion.Noul(
             instructions = "Is 7 a prime number? Answer strictly from arithmetic.",
         )

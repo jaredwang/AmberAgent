@@ -36,8 +36,12 @@ class JevBudget(
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     companion object {
-        /** Screen automation needs more turns than ordinary Jev purposes. */
-        const val SCREEN_AUTOMATION_MAX_REQUESTS = 24
+        /**
+         * Screen automation needs more turns than ordinary Jev purposes.
+         * 一次 goal 每步一次决策、上限 30 步，同一 run 可以连续跑多个 goal：
+         * 24 会让第二个 15 步 goal 必然中途 budget_exhausted。
+         */
+        const val SCREEN_AUTOMATION_MAX_REQUESTS = 150
         const val SCREEN_AUTOMATION_MAX_STATE_BYTES = 512 * 1024
     }
 

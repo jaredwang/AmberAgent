@@ -2,6 +2,7 @@ package app.amber.feature.ui.components.message
 
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +22,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -33,6 +36,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -41,6 +46,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
@@ -57,7 +63,14 @@ import app.amber.ai.ui.streamToolIndex
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.FileText
 import com.composables.icons.lucide.Music
-import com.composables.icons.lucide.Video
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.composables.icons.lucide.Play
 import app.amber.agent.R
 import app.amber.agent.Screen
 import app.amber.core.model.AssistantAffectScope
@@ -65,6 +78,7 @@ import app.amber.core.model.AssistantRegex
 import app.amber.core.ai.generative.GenerativeUiPlanner
 import app.amber.core.ai.generative.GenerativeWidgetCopy
 import app.amber.core.ai.generative.GenerativeWidgetParser
+import app.amber.feature.ui.components.media.rememberVideoCover
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.components.richtext.StreamingSingleTextMarkdown
 import app.amber.feature.ui.components.richtext.ZoomableAsyncImage
@@ -443,25 +457,65 @@ internal fun MessagePartsBlock(
                     }
 
                     is UIMessagePart.Video -> {
+                        // 卡片本身不解析视频：预留固定比例，点击才创建播放器，
+                        // 关闭即停止。播放失败仍可走"用其他应用打开"。
+                        var playing by remember(part.url) { mutableStateOf(false) }
+                        val cover = rememberVideoCover(part.url)
                         Surface(
                             tonalElevation = 2.dp,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW)
-                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                intent.data = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    part.url.toUri().toFile()
-                                )
-                                val chooserIndent = Intent.createChooser(intent, null)
-                                context.startActivity(chooserIndent)
-                            },
-                            modifier = Modifier,
-                            shape = RoundedCornerShape(8.dp),
+                            onClick = { playing = true },
+                            modifier = Modifier.widthIn(max = 260.dp),
+                            shape = RoundedCornerShape(12.dp),
                         ) {
-                            Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
-                                Icon(Lucide.Video, null)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 56.dp)
+                                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                // 固定 44dp 缩略图：封面到位前后尺寸不变，timeline 不会因此跳一下。
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.08f)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (cover != null) {
+                                        Image(
+                                            bitmap = cover,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Lucide.Play,
+                                        contentDescription = null,
+                                        tint = if (cover != null) {
+                                            androidx.compose.ui.graphics.Color.White
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        },
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                                Text(
+                                    text = part.url.substringAfterLast('/').ifBlank { "video" },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
                             }
+                        }
+                        if (playing) {
+                            VideoPlaybackDialog(
+                                url = part.url,
+                                onDismiss = { playing = false },
+                            )
                         }
                     }
 
@@ -663,3 +717,106 @@ private fun UIMessagePart.Tool.stableStepKey(): String =
     toolCallId.ifBlank {
         streamToolIndex()?.let { "stream-tool-$it" } ?: hashCode().toString()
     }
+
+/**
+ * 全屏视频播放：只在用户点开时创建 MediaPlayer，关闭或离开组合即停止并释放。
+ * 本地文件走 FileProvider（读权限），http(s) 直连；两者都失败时提示可外部打开。
+ */
+@Composable
+private fun VideoPlaybackDialog(url: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var failed by remember(url) { mutableStateOf(false) }
+    val playerView = remember(url) { mutableStateOf<android.widget.VideoView?>(null) }
+    // MediaPlayer 不受 Activity 生命周期约束：退到后台必须主动停，否则音频会继续。
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                runCatching { playerView.value?.pause() }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            runCatching { playerView.value?.stopPlayback() }
+        }
+    }
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f),
+            color = androidx.compose.ui.graphics.Color.Black,
+        ) {
+            if (failed) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(R.string.chat_video_playback_failed),
+                            color = androidx.compose.ui.graphics.Color.White,
+                        )
+                        val external = remember(url) {
+                            runCatching {
+                                val target = if (url.startsWith("http")) {
+                                    url.toUri()
+                                } else {
+                                    FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        url.toUri().toFile(),
+                                    )
+                                }
+                                Intent(Intent.ACTION_VIEW).apply {
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    data = target
+                                }
+                            }.getOrNull()
+                        }
+                        if (external != null) {
+                            TextButton(onClick = { context.startActivity(Intent.createChooser(external, null)) }) {
+                                Text(stringResource(R.string.chat_video_open_external))
+                            }
+                        }
+                    }
+                }
+            } else {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth(),
+                    factory = { ctx ->
+                        android.widget.VideoView(ctx).apply {
+                            playerView.value = this
+                            setOnPreparedListener { player ->
+                                player.isLooping = false
+                                start()
+                            }
+                            setOnErrorListener { _, _, _ ->
+                                failed = true
+                                true
+                            }
+                            runCatching {
+                                setVideoURI(
+                                    if (url.startsWith("http")) {
+                                        url.toUri()
+                                    } else {
+                                        FileProvider.getUriForFile(
+                                            ctx,
+                                            "${ctx.packageName}.fileprovider",
+                                            url.toUri().toFile(),
+                                        )
+                                    },
+                                )
+                            }.onFailure { failed = true }
+                        }
+                    },
+                    onRelease = { view ->
+                        // 关闭即停止：不留下后台播放。
+                        runCatching { view.stopPlayback() }
+                    },
+                )
+            }
+        }
+    }
+}

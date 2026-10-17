@@ -37,6 +37,12 @@ class ScreenCaptureManager(private val context: Context) {
     var lastResult: ScreenCaptureResult? = null
         private set
 
+    /**
+     * 已建立 MediaProjection 会话时才允许"顺手截一帧"。没有会话时 [capture]
+     * 会拉起授权 Activity，不能在目标循环里隐式触发，因此调用方先看这个。
+     */
+    val hasActiveSession: Boolean get() = sessionActive
+
     suspend fun capture(timeoutMillis: Long = DEFAULT_TIMEOUT_MS): ScreenCaptureResult {
         val pending = PendingCapture(UUID.randomUUID().toString(), CompletableDeferred())
         try {

@@ -2,23 +2,34 @@ package app.amber.feature.ui.pages.setting
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
@@ -27,6 +38,7 @@ import com.composables.icons.lucide.CodeXml
 import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.SearchCheck
+import com.composables.icons.lucide.Smartphone
 import com.composables.icons.lucide.Megaphone
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Sparkles
@@ -51,11 +63,15 @@ fun SettingAgentExecutionPage(vm: SettingVM = koinViewModel()) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val navController = LocalNavController.current
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val toolLoopStepOptions = remember { listOf(64, 128, 256, 384, 512) }
+    // 384 保留：已有用户可能正停在该值，删掉会让 Select 找不到选项。
+    val toolLoopStepOptions = remember { listOf(64, 128, 256, 384, 512, 1024, 2048, 8192) }
     val retryCountOptions = remember { listOf(1, 2, 3, 5) }
     val operationPreviewModeOptions = remember { AgentOperationPreviewMode.entries }
     val liveRefreshOptions = remember { listOf(1_000L, 1_500L, 2_000L, 3_000L) }
     val liveMaxNodeOptions = remember { listOf(80, 120, 180, 240) }
+    // 手机自控白名单是 screen_run_goal 唯一可进入的应用集合，用户必须能看见并撤销。
+    val allowedScreenPackages = settings.agentRuntime.screenAutomation.allowedPackages
+    var showScreenScopeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -180,6 +196,28 @@ fun SettingAgentExecutionPage(vm: SettingVM = koinViewModel()) {
                                     stringResource(R.string.setting_page_agent_tool_loop_steps_value, it)
                                 },
                                 // V3 ValueChip 内容自适应,
+                            )
+                        },
+                    )
+                    item(
+                        modifier = Modifier.heightIn(min = 56.dp),
+                        onClick = { showScreenScopeDialog = true },
+                        leadingContent = { SettingTileIcon(Lucide.Smartphone) },
+                        supportingContent = {
+                            Text(
+                                if (allowedScreenPackages.isEmpty()) {
+                                    stringResource(R.string.setting_agent_screen_scope_empty)
+                                } else {
+                                    allowedScreenPackages.joinToString("、").take(120)
+                                },
+                            )
+                        },
+                        headlineContent = { Text(stringResource(R.string.setting_agent_screen_scope_title)) },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Lucide.ChevronRight,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
                             )
                         },
                     )
@@ -417,5 +455,76 @@ fun SettingAgentExecutionPage(vm: SettingVM = koinViewModel()) {
                 }
             }
         }
+    if (showScreenScopeDialog) {
+        ScreenScopeDialog(
+            packages = allowedScreenPackages,
+            onRemove = { packageName ->
+                vm.updateSettings { current ->
+                    val scope = current.agentRuntime.screenAutomation
+                    current.copy(
+                        agentRuntime = current.agentRuntime.copy(
+                            screenAutomation = scope.copy(
+                                allowedPackages = scope.allowedPackages - packageName,
+                            ),
+                        ),
+                    )
+                }
+            },
+            onDismiss = { showScreenScopeDialog = false },
+        )
     }
+
+    }
+}
+
+/**
+ * 手机自控白名单的查看与撤销。白名单由 screen_add_app 写入；这里只做展示与撤销，
+ * 撤销立即落盘，下一次 screen_run_goal 会拒绝该应用。
+ */
+@Composable
+private fun ScreenScopeDialog(
+    packages: List<String>,
+    onRemove: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.setting_agent_screen_scope_title)) },
+        text = {
+            if (packages.isEmpty()) {
+                Text(stringResource(R.string.setting_agent_screen_scope_empty))
+            } else {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 360.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    packages.forEach { packageName ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Text(
+                                text = packageName,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            TextButton(onClick = { onRemove(packageName) }) {
+                                Text(stringResource(R.string.setting_agent_screen_scope_remove))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+    )
 }

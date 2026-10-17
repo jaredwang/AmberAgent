@@ -15,6 +15,7 @@ import app.amber.core.jev.JevDataScope
 import app.amber.core.jev.JevDecisionCoordinator
 import app.amber.core.jev.JevLimits
 import app.amber.core.jev.JevPurpose
+import app.amber.core.jev.jevDefaultModelFor
 import app.amber.core.jev.jevEndpointFor
 import app.amber.core.settings.Settings
 
@@ -35,10 +36,10 @@ fun createJevStatusTool(
 ): Tool = Tool(
     name = "jev_status",
     description = "Report AmberAgent's Jev quick-judgment service status: master switch, API mode " +
-        "(typesafe/vercel) and resolved endpoint, per-purpose off/shadow/active modes, allowed data " +
-        "scopes, API key presence, daily budget, cooldown/auth-pause state, and recent decision " +
-        "metrics. Use to answer 'what is jev', explain which internal pipelines it affects, or " +
-        "diagnose why it is not acting. Read-only; never returns the API key or judged content.",
+        "(typesafe/vercel/perplexity/liquid) and resolved endpoint, per-purpose off/shadow/active modes, " +
+        "allowed data scopes, API key presence, daily budget, cooldown/auth-pause state, and recent " +
+        "decision metrics. Use to answer 'what is jev', explain which internal pipelines it affects, " +
+        "or diagnose why it is not acting. Read-only; never returns the API key or judged content.",
     parameters = {
         InputSchema.Obj(properties = buildJsonObject {})
     },
@@ -52,9 +53,11 @@ fun createJevStatusTool(
                 "about",
                 "Jev is AmberAgent's quick-judgment service: it scores/selects " +
                     "among finite candidates for internal pipelines; filtering, budgets, execution " +
-                    "and permissions stay in app code. It can call either the TypeSafe systemone " +
-                    "endpoint natively (api_mode=typesafe) or the Vercel AI Gateway " +
-                    "evaluation-model endpoint (api_mode=vercel, model via ai-model-id header). " +
+                    "and permissions stay in app code. It can call the TypeSafe systemone " +
+                    "endpoint natively (api_mode=typesafe), the Vercel AI Gateway " +
+                    "decision-model endpoint (api_mode=vercel, model via ai-model-id header), or " +
+                    "the Perplexity / Liquid decision endpoints, which share the native systemone " +
+                    "request shape and differ only in endpoint and model id. " +
                     "shadow = evaluates and " +
                     "records metrics but does not change behavior (still sends data externally); " +
                     "active = applies results; any failure or timeout falls back to the original " +
@@ -63,12 +66,9 @@ fun createJevStatusTool(
             put("enabled", jev.enabled)
             put("api_mode", jev.apiMode.name.lowercase())
             put("endpoint", jevEndpointFor(jev.apiMode, jev.baseUrl))
-            val effectiveModel = when (jev.apiMode) {
-                JevApiMode.TYPESAFE -> jev.model ?: JevLimits.DEFAULT_MODEL
-                JevApiMode.VERCEL -> jev.vercelModel?.takeIf { it.isNotBlank() }
-                    ?: JevLimits.VERCEL_DEFAULT_MODEL
-            }
-            if (effectiveModel != null) put("model", effectiveModel) else put("model", JsonNull)
+            val effectiveModel = jev.modelFor(jev.apiMode)?.takeIf { it.isNotBlank() }
+                ?: jevDefaultModelFor(jev.apiMode)
+            put("model", effectiveModel)
             put("api_key_configured", jev.apiKeyMask != null)
             jev.apiKeyMask?.let { put("api_key_mask", it) }
             put(

@@ -12,13 +12,17 @@ import kotlinx.serialization.Serializable
 enum class JevMode { OFF, SHADOW, ACTIVE }
 
 /**
- * 出站调用方言。TYPESAFE = typesafe 原生 `/v1/systemone`；
- * VERCEL = Vercel AI Gateway 评估模型端点 `POST {baseUrl}/evaluation-model`——
- * `typesafe-ai/jev` 是 evaluation 模型（不产聊天文本），OpenAI 兼容端点打不通，
- * 契约以 @ai-sdk/gateway 源码为准：模型走 `ai-model-id` header，body `{state, questions}`。
+ * 出站调用方言。
+ *
+ * - TYPESAFE = typesafe 原生 `/v1/systemone`；
+ * - VERCEL = Vercel AI Gateway 的 decision-model 契约 `POST {base}/decision-model`：
+ *   body 为 `{stateParts, questions}`（状态按有序文本块发送，模型走 `ai-model-id`
+ *   header，题型 noul 在线上记作 boolean，spec 版本走 `ai-decision-model-specification-version`）；
+ * - PERPLEXITY / LIQUID = 第三方 decision 模型，与原生 systemone 同构
+ *   （body `{model, state, questions}`、答案内嵌 confidence），只有 endpoint 与模型 id 不同。
  */
 @Serializable
-enum class JevApiMode { TYPESAFE, VERCEL }
+enum class JevApiMode { TYPESAFE, VERCEL, PERPLEXITY, LIQUID }
 
 /** [requiredScopes]：该用途每次请求都需要的外发授权；运行时与设置页的可用性判断共用这一处定义。 */
 @Serializable
@@ -42,6 +46,8 @@ enum class JevDataScope {
     TOOL_OUTPUT,
     WEB_CONTENT,
     SCREEN_CONTENT,
+    /** 手机屏幕截图（实验）。默认关闭，必须单独授权；未授权时请求只发文字。 */
+    SCREEN_SCREENSHOTS,
 }
 
 /** 独立于聊天 provider 的 Jev 设置；真实 API Key 只存 SecretStore，这里仅留掩码。 */
@@ -50,16 +56,35 @@ data class JevSetting(
     val enabled: Boolean = false,
     /** TYPESAFE 模式的固定模型版本；null 回落 [JevLimits.DEFAULT_MODEL]。 */
     val model: String? = null,
-    /** VERCEL 模式的网关评估模型 id（默认 typesafe-ai/jev）；必填，缺省由协调器 NO_MODEL 跳过。 */
+    /** VERCEL 模式的网关 decision 模型 id（默认 typesafe-ai/jev-1.14.0）；必填，缺省由协调器 NO_MODEL 跳过。 */
     val vercelModel: String? = null,
     val purposes: Map<JevPurpose, JevMode> = emptyMap(),
     val dataScopes: Set<JevDataScope> = emptySet(),
     val apiKeyMask: String? = null,
     val apiMode: JevApiMode = JevApiMode.TYPESAFE,
-    /** VERCEL 模式的 OpenAI 兼容 base URL；null 用 [JevLimits.VERCEL_DEFAULT_BASE_URL]。 */
+    /** VERCEL 模式的网关 base URL；null 用 [JevLimits.VERCEL_DEFAULT_BASE_URL]。 */
     val baseUrl: String? = null,
+    /** PERPLEXITY 模式的模型 id；null 用 [JevLimits.PERPLEXITY_DEFAULT_MODEL]。 */
+    val perplexityModel: String? = null,
+    /** LIQUID 模式的模型 id；null 用 [JevLimits.LIQUID_DEFAULT_MODEL]。 */
+    val liquidModel: String? = null,
 ) {
     fun modeFor(purpose: JevPurpose): JevMode = if (!enabled) JevMode.OFF else purposes[purpose] ?: JevMode.OFF
+
+    /** 当前方言下用户显式固定的模型；null = 未配置，按 [defaultModelFor] 回落。 */
+    fun modelFor(apiMode: JevApiMode): String? = when (apiMode) {
+        JevApiMode.TYPESAFE -> model
+        JevApiMode.VERCEL -> vercelModel
+        JevApiMode.PERPLEXITY -> perplexityModel
+        JevApiMode.LIQUID -> liquidModel
+    }
+
+    fun withModel(apiMode: JevApiMode, value: String?): JevSetting = when (apiMode) {
+        JevApiMode.TYPESAFE -> copy(model = value)
+        JevApiMode.VERCEL -> copy(vercelModel = value)
+        JevApiMode.PERPLEXITY -> copy(perplexityModel = value)
+        JevApiMode.LIQUID -> copy(liquidModel = value)
+    }
 }
 
 /** 一次 decide 调用携带的配置快照；异步返回后与当前配置比对，防止旧结果串任务。 */
@@ -94,6 +119,43 @@ sealed interface JevQuestion {
         override val instructions: String,
         val levels: List<String>,
     ) : JevQuestion
+
+    /**
+     * 目标定位题：返回归一化四边与 confidence（0..1 比例，相对整张图）。
+     * 只在支持 Box 的原生方言上可用；**Box 永不作为发起点击的依据**，
+     * 目标不存在时服务端同样会返回 Box，只能当候选定位的辅助证据。
+     */
+    data class Box(
+        override val instructions: String,
+        val targetDescription: String? = null,
+    ) : JevQuestion
+}
+
+/**
+ * 一张随请求发送的图片。参考标记必须出现在 state 文本里，
+ * 网关按它在 stateParts 的位置切成 file part；原生方言走 `assets` 映射。
+ */
+data class JevImageAsset(
+    val reference: String,
+    /** `png` 或 `jpeg`。 */
+    val format: String,
+    val data: ByteArray,
+    /** 出图尺寸；已知时按官方 280–1568 每边范围校验，未知则不猜。 */
+    val widthPx: Int? = null,
+    val heightPx: Int? = null,
+) {
+    init {
+        require(reference.isNotBlank()) { "image reference is required" }
+        require(format == "png" || format == "jpeg") { "unsupported image format: $format" }
+        require(data.isNotEmpty()) { "empty image data" }
+        listOfNotNull(widthPx, heightPx).forEach { edge ->
+            require(edge in JevLimits.MIN_IMAGE_EDGE_PX..JevLimits.MAX_IMAGE_EDGE_PX) {
+                "image edge out of range: $edge (allowed ${JevLimits.MIN_IMAGE_EDGE_PX}..${JevLimits.MAX_IMAGE_EDGE_PX})"
+            }
+        }
+    }
+
+    fun base64(): String = java.util.Base64.getEncoder().encodeToString(data)
 }
 
 sealed interface JevAnswer {
@@ -102,6 +164,15 @@ sealed interface JevAnswer {
     data class Choice(val selected: String, val confidence: Double?) : JevAnswer
 
     data class Score(val score: Double, val confidence: Double?) : JevAnswer
+
+    /** 归一化四边（0..1）与 confidence；坐标只描述位置，不构成可执行动作。 */
+    data class Box(
+        val left: Double,
+        val top: Double,
+        val right: Double,
+        val bottom: Double,
+        val confidence: Double?,
+    ) : JevAnswer
 }
 
 @Serializable
@@ -133,13 +204,22 @@ sealed interface JevDecision {
  */
 object JevLimits {
     const val ENDPOINT = "https://api.typesafe.ai/v1/systemone"
-    /** VERCEL 模式缺省网关；`{base}/evaluation-model` 追加路径。 */
+    /** VERCEL 模式缺省网关；`{base}/decision-model` 追加路径。 */
     const val VERCEL_DEFAULT_BASE_URL = "https://ai-gateway.vercel.sh/v4/ai"
-    /** VERCEL 模式缺省评估模型（Vercel AI Gateway 上的 canonical Model ID）。 */
-    const val VERCEL_DEFAULT_MODEL = "typesafe-ai/jev"
+    /** VERCEL 模式缺省 decision 模型（Gateway 上的 canonical Model ID，已含 1.14）。 */
+    const val VERCEL_DEFAULT_MODEL = "typesafe-ai/jev-1.14.0"
+    /** Perplexity Decisions 端点：与 systemone 同构，只有 endpoint 与模型 id 不同。 */
+    const val PERPLEXITY_ENDPOINT = "https://api.perplexity.ai/v1/decisions"
+    const val PERPLEXITY_DEFAULT_MODEL = "pplx-decider-v1.2"
+    /** Liquid AI decision models 端点；模型 d1 / d1-ultra。 */
+    const val LIQUID_ENDPOINT = "https://api.liquid.ai/decisions/v1/systemone"
+    const val LIQUID_DEFAULT_MODEL = "d1"
     /** 连接测试与实验用；active 用途应使用经验收固定的 [JevSetting.model]。 */
-    const val CONNECTION_TEST_MODEL = "jev-latest"
-    const val DEFAULT_MODEL = "jev-latest"
+    const val CONNECTION_TEST_MODEL = "jev-1.14.0"
+    /** 推荐固定版本：图片/Box 与新协议均已验收的 1.14。 */
+    const val RECOMMENDED_MODEL = "jev-1.14.0"
+    /** 未固定时的缺省版本；浮动别名（jev-latest / jev-preview）不计为已验收版本。 */
+    const val DEFAULT_MODEL = RECOMMENDED_MODEL
 
     /** 单次出站请求（含排队/重试/解析）的总 deadline；超时不再阻塞原路径。 */
     const val DECISION_DEADLINE_MS = 1_200L
@@ -151,6 +231,11 @@ object JevLimits {
     const val MAX_CANDIDATES = 64
     const val MAX_STATE_BYTES = 48 * 1024
     const val MAX_REQUEST_BODY_BYTES = 64 * 1024
+    /** 带图片的请求单独放行到 2 MiB；纯文本请求仍守 64 KiB，不放宽。 */
+    const val MAX_IMAGE_REQUEST_BODY_BYTES = 2 * 1024 * 1024
+    /** 图片每边像素范围（与官方 images 契约一致）。 */
+    const val MIN_IMAGE_EDGE_PX = 280
+    const val MAX_IMAGE_EDGE_PX = 1568
     const val MAX_RESPONSE_BODY_BYTES = 256 * 1024
 
     /** 在途上限：每 run 最多 1 个、App 全局最多 3 个实际请求。 */
@@ -173,16 +258,51 @@ object JevLimits {
     const val COOLDOWN_MS = 60_000L
 }
 
-/** 解析本次调用的完整 URL；VERCEL 模式对 base 去尾斜杠后追加 /evaluation-model。 */
+/** 解析本次调用的完整 URL；VERCEL 模式对 base 去尾斜杠后追加 /decision-model。 */
 fun jevEndpointFor(apiMode: JevApiMode, baseUrl: String?): String = when (apiMode) {
     JevApiMode.TYPESAFE -> JevLimits.ENDPOINT
     JevApiMode.VERCEL ->
         (baseUrl?.trim()?.trimEnd('/')?.takeIf { it.isNotEmpty() }
-            ?: JevLimits.VERCEL_DEFAULT_BASE_URL) + "/evaluation-model"
+            ?: JevLimits.VERCEL_DEFAULT_BASE_URL) + "/decision-model"
+    JevApiMode.PERPLEXITY -> JevLimits.PERPLEXITY_ENDPOINT
+    JevApiMode.LIQUID -> JevLimits.LIQUID_ENDPOINT
 }
 
-/** 单次 decide 总 deadline，按方言分档（VERCEL 经网关+通用模型，显著更慢）。 */
+/**
+ * 该方言是否支持图片输入。Perplexity / Liquid 走 systemone 同构但未实现图片编码，
+ * 必须显式拒绝，否则会把图片按 systemone 形状发到不支持它的服务换一个 400。
+ */
+fun jevSupportsImages(apiMode: JevApiMode): Boolean = when (apiMode) {
+    JevApiMode.TYPESAFE -> true
+    // 网关只有固定 1.14 支持图片；浮动别名不作为已验收版本。
+    JevApiMode.VERCEL -> true
+    JevApiMode.PERPLEXITY, JevApiMode.LIQUID -> false
+}
+
+/** 只有原生 systemone 支持 Box 题型（Gateway 不支持）。 */
+fun jevSupportsBox(apiMode: JevApiMode): Boolean = apiMode == JevApiMode.TYPESAFE
+
+/** 未显式固定模型时该方言的缺省模型 id。 */
+fun jevDefaultModelFor(apiMode: JevApiMode): String = when (apiMode) {
+    JevApiMode.TYPESAFE -> JevLimits.DEFAULT_MODEL
+    JevApiMode.VERCEL -> JevLimits.VERCEL_DEFAULT_MODEL
+    JevApiMode.PERPLEXITY -> JevLimits.PERPLEXITY_DEFAULT_MODEL
+    JevApiMode.LIQUID -> JevLimits.LIQUID_DEFAULT_MODEL
+}
+
+/** 连接测试用的模型 id：TypeSafe 探测已验收的固定版本，其余用各自默认 id。 */
+fun jevConnectionTestModelFor(apiMode: JevApiMode): String = when (apiMode) {
+    JevApiMode.TYPESAFE -> JevLimits.CONNECTION_TEST_MODEL
+    JevApiMode.VERCEL -> JevLimits.VERCEL_DEFAULT_MODEL
+    JevApiMode.PERPLEXITY -> JevLimits.PERPLEXITY_DEFAULT_MODEL
+    JevApiMode.LIQUID -> JevLimits.LIQUID_DEFAULT_MODEL
+}
+
+/**
+ * 单次 decide 总 deadline，按方言分档：VERCEL 经网关 + 通用模型显著更慢；
+ * Perplexity / Liquid 是第三方托管的 decision 服务，与网关同档以免把可用服务判成超时。
+ */
 fun jevDeadlineMs(apiMode: JevApiMode): Long = when (apiMode) {
     JevApiMode.TYPESAFE -> JevLimits.DECISION_DEADLINE_MS
-    JevApiMode.VERCEL -> JevLimits.VERCEL_DECISION_DEADLINE_MS
+    JevApiMode.VERCEL, JevApiMode.PERPLEXITY, JevApiMode.LIQUID -> JevLimits.VERCEL_DECISION_DEADLINE_MS
 }

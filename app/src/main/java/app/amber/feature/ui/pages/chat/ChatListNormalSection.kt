@@ -498,15 +498,25 @@ internal fun ChatListNormal(
             exit = fadeOut(animationSpec = tween(80)),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                // Centred as padding rather than a narrower list, so the gutters still scroll.
+                val readingGutter = app.amber.feature.ui.adaptive.chatReadingGutter(
+                    app.amber.feature.ui.adaptive.currentChatPaneWidth(),
+                )
+                // 可见窗口前后各预取若干条消息里的图片，滚入时直接命中内存缓存。
+                TimelineImagePrefetch(
+                    listState = state,
+                    plan = chatTimelinePlan,
+                    messageNodes = conversation.messageNodes,
+                )
                 LazyColumn(
             state = state,
             // 底部锚定列表：index 0 是视觉底部（最新内容），流式增长从锚定的
             // start 边（屏幕底缘）原生向上展开，钉底跟随不需要任何滚动调用。
             reverseLayout = true,
             contentPadding = PaddingValues(
-                start = TimelineHorizontalPadding,
+                start = TimelineHorizontalPadding + readingGutter,
                 top = TimelineTopPadding,
-                end = TimelineHorizontalPadding,
+                end = TimelineHorizontalPadding + readingGutter,
                 bottom = timelineBottomPadding,
             ),
             horizontalAlignment = Alignment.CenterHorizontally,

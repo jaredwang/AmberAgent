@@ -71,5 +71,41 @@ val jevModule = module {
     single { JevCouncilPoolRanker(get()) }
     single<CouncilPoolRanker> { get<JevCouncilPoolRanker>() }
     single { JevWebGoalRunner(get()) }
-    single { app.amber.core.jev.JevScreenGoalRunner(get()) }
+    single {
+        app.amber.core.jev.JevScreenGoalRunner(
+            runtime = get(),
+            // 只有宿主已有 MediaProjection 会话时才"顺手截一帧"；没有会话直接返回 null，
+            // 绝不在目标循环里拉起授权 Activity。
+            screenshotProvider = { reference ->
+                val manager = get<app.amber.core.automation.ScreenCaptureManager>()
+                if (!manager.hasActiveSession) {
+                    app.amber.core.jev.ScreenshotAttempt.Skipped("no_capture_session")
+                } else {
+                    val captured = runCatching { manager.capture() }.getOrNull()
+                    val bytes = captured?.file?.let { runCatching { it.readBytes() }.getOrNull() }
+                    when {
+                        captured == null -> app.amber.core.jev.ScreenshotAttempt.Skipped("capture_failed")
+                        bytes == null -> app.amber.core.jev.ScreenshotAttempt.Skipped("read_failed")
+                        else -> {
+                            val isPng = bytes.size >= 2 && bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte()
+                            // 面板原分辨率常超过 1568 每边上限：如实报 skipped，由回执暴露，不静默降级。
+                            runCatching {
+                                app.amber.core.jev.ScreenshotAttempt.Attached(
+                                    app.amber.core.jev.JevImageAsset(
+                                        reference = reference,
+                                        format = if (isPng) "png" else "jpeg",
+                                        data = bytes,
+                                        widthPx = captured.width,
+                                        heightPx = captured.height,
+                                    ),
+                                )
+                            }.getOrElse {
+                                app.amber.core.jev.ScreenshotAttempt.Skipped("image_edge_out_of_range")
+                            }
+                        }
+                    }
+                }
+            },
+        )
+    }
 }
