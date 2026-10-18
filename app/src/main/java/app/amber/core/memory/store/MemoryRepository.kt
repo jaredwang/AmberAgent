@@ -1,6 +1,8 @@
 package app.amber.core.memory.store
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import androidx.room.withTransaction
 import app.amber.agent.data.db.AppDatabase
@@ -54,7 +56,7 @@ open class MemoryRepository(
     fun getMemoriesOfAssistantFlow(assistantId: String): Flow<List<AssistantMemory>> =
         memoryDAO.getMemoriesOfAssistantFlow(assistantId).map { entities ->
             entities.map { it.toAssistantMemory() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     suspend fun getMemoriesOfAssistant(assistantId: String): List<AssistantMemory> =
         memoryDAO.getMemoriesOfAssistant(assistantId).map { it.toAssistantMemory() }
@@ -62,7 +64,7 @@ open class MemoryRepository(
     fun getGlobalMemoriesFlow(): Flow<List<AssistantMemory>> =
         memoryDAO.getMemoriesOfAssistantFlow(GLOBAL_MEMORY_ID).map { entities ->
             entities.map { it.toAssistantMemory() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     fun getMemoryCountsFlow(): Flow<Map<String, Int>> =
         memoryDAO.getMemoryCountsFlow().map { rows ->
@@ -83,7 +85,7 @@ open class MemoryRepository(
     fun getShortTermMemoriesFlow(): Flow<List<AssistantMemory>> =
         memoryDAO.getMemoriesOfAssistantFlow(SHORT_TERM_MEMORY_ID).map { entities ->
             entities.map { it.toAssistantMemory() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     suspend fun getShortTermMemories(): List<AssistantMemory> =
         memoryDAO.getMemoriesOfAssistant(SHORT_TERM_MEMORY_ID).map { it.toAssistantMemory() }
@@ -91,7 +93,7 @@ open class MemoryRepository(
     fun getLongTermMemoriesFlow(): Flow<List<AssistantMemory>> =
         memoryDAO.getMemoriesOfAssistantFlow(LONG_TERM_MEMORY_ID).map { entities ->
             entities.map { it.toAssistantMemory() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     suspend fun getLongTermMemories(): List<AssistantMemory> =
         memoryDAO.getMemoriesOfAssistant(LONG_TERM_MEMORY_ID).map { it.toAssistantMemory() }
@@ -512,7 +514,7 @@ open class MemoryRepository(
     fun getArchivedMemoriesFlow(): Flow<List<AssistantMemory>> =
         memoryDAO.getArchivedMemoriesFlow().map { entities ->
             entities.map { it.toAssistantMemory() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     /**
      * Archive one record with a CAS bound to [expectedRevision]; a revision
@@ -687,7 +689,7 @@ open class MemoryRepository(
     fun getPendingCandidatesFlow(): Flow<List<MemoryCandidate>> =
         candidateDAO.getCandidatesByStatusFlow(MemoryCandidateStatus.PENDING.wireName).map { list ->
             list.map { it.toCandidate() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     fun getPendingCandidateCountFlow(): Flow<Int> =
         candidateDAO.countCandidatesByStatusFlow(MemoryCandidateStatus.PENDING.wireName)

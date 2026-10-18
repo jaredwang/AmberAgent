@@ -97,7 +97,8 @@ fun DeepReadHistoryPage(
     repository: HotListRepository = koinInject(),
 ) {
     val navController = LocalNavController.current
-    val history by repository.observeDeepReadHistory().collectAsStateWithLifecycle(initialValue = emptyList())
+    val history by remember(repository) { repository.observeDeepReadHistory() }
+        .collectAsStateWithLifecycle(initialValue = emptyList())
     val colors = workspaceColors()
     val tokens = LocalAmberTokens.current
     val scope = rememberCoroutineScope()

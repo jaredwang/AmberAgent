@@ -90,10 +90,14 @@ fun ModelSelector(
     var popup by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val visibleProviders = providers
-    val modelIndex = remember(visibleProviders, type) {
-        visibleProviders.buildModelProviderIndex(type)
+    val model = if ((customTrigger != null && !onlyIcon) || modelId == null) {
+        null
+    } else {
+        val modelIndex = remember(visibleProviders, type) {
+            visibleProviders.buildModelProviderIndex(type)
+        }
+        modelIndex[modelId]?.model
     }
-    val model = modelId?.let { modelIndex[it]?.model }
 
     if (!onlyIcon) {
         if (customTrigger != null) {

@@ -98,18 +98,23 @@ class BackupVM(
 
     init {
         viewModelScope.launch {
-            settingsStore.update { current ->
-                if (current.init || current.syncSettings.deviceId.isNotBlank()) {
-                    current
-                } else {
-                    current.copy(
-                        syncSettings = current.syncSettings.copy(
-                            deviceId = Uuid.random().toString()
+            val currentSettings = settingsStore.settingsFlow.value
+            if (currentSettings.syncSettings.deviceId.isBlank()) {
+                settingsStore.update { current ->
+                    if (current.init || current.syncSettings.deviceId.isNotBlank()) {
+                        current
+                    } else {
+                        current.copy(
+                            syncSettings = current.syncSettings.copy(
+                                deviceId = Uuid.random().toString()
+                            )
                         )
-                    )
+                    }
                 }
             }
-            folderInfo.value = persistedFolderStore.read()
+            folderInfo.value = withContext(Dispatchers.IO) {
+                persistedFolderStore.read()
+            }
             googleConnection.restoreGoogleSessionIfPossible()
         }
     }
@@ -595,13 +600,17 @@ class BackupVM(
 
     fun saveLocalFolder(uri: Uri, displayName: String) {
         if (!providerV2Enabled.value) return
-        persistedFolderStore.save(uri.toString(), displayName)
-        folderInfo.value = persistedFolderStore.read()
-        folderMessage.value = backupMessage(
-            R.string.backup_folder_selected,
-            displayName.ifBlank { uri.toString() },
-        )
-        refreshLocalFolderSnapshots()
+        viewModelScope.launch {
+            folderInfo.value = withContext(Dispatchers.IO) {
+                persistedFolderStore.save(uri.toString(), displayName)
+                persistedFolderStore.read()
+            }
+            folderMessage.value = backupMessage(
+                R.string.backup_folder_selected,
+                displayName.ifBlank { uri.toString() },
+            )
+            refreshLocalFolderSnapshots()
+        }
     }
 
     fun refreshLocalFolderSnapshots() {

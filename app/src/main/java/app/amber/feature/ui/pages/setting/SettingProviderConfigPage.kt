@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,8 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import app.amber.ai.provider.GoogleAuthMode
 import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderSetting
@@ -151,8 +155,8 @@ internal fun ProviderConsole(
                 ProviderConsoleIdentity(
                     provider = provider,
                     onEdit = onEdit,
-                    oauthUsable = grokTokens?.let {
-                        GrokAuthStatus.from(it.value, System.currentTimeMillis()).usable
+                    oauthUsable = grokTokens?.takeIf { it.loaded.value }?.let {
+                        GrokAuthStatus.from(it.tokens.value, System.currentTimeMillis()).usable
                     },
                 )
             }
@@ -225,7 +229,7 @@ private fun ProviderAuthSection(
     onModelCandidatesInvalidated: () -> Unit,
     autoStartOAuth: Boolean,
     onAutoStartConsumed: () -> Unit,
-    grokTokens: MutableState<GrokOAuthTokens?>?,
+    grokTokens: GrokOAuthTokenState?,
 ) {
     ProviderSectionLabel(stringResource(R.string.setting_provider_page_authentication))
     ProviderCard(modifier = Modifier.fillMaxWidth()) {
@@ -269,7 +273,7 @@ private fun OpenAIAuthConsole(
     onModelCandidatesInvalidated: () -> Unit,
     autoStartOAuth: Boolean,
     onAutoStartConsumed: () -> Unit,
-    grokTokens: MutableState<GrokOAuthTokens?>?,
+    grokTokens: GrokOAuthTokenState?,
 ) {
     val isGrok = provider.isGrokProvider()
     val grokStore = if (isGrok) koinInject<GrokAuthStore>() else null
@@ -391,20 +395,37 @@ private fun GoogleAuthConsole(
     }
 }
 
+private data class GrokOAuthTokenState(
+    val tokens: MutableState<GrokOAuthTokens?>,
+    val loaded: State<Boolean>,
+    val readGeneration: MutableState<Int>,
+)
+
 @Composable
-private fun rememberGrokOAuthTokens(provider: ProviderSetting.OpenAI): MutableState<GrokOAuthTokens?> {
+private fun rememberGrokOAuthTokens(provider: ProviderSetting.OpenAI): GrokOAuthTokenState {
     val store = koinInject<GrokAuthStore>()
-    val tokens = remember(provider.id, store) { mutableStateOf(store.get(provider.id)) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        tokens.value = store.get(provider.id)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val tokens = remember(provider.id, store) { mutableStateOf<GrokOAuthTokens?>(null) }
+    val loaded = remember(provider.id, store) { mutableStateOf(false) }
+    val readGeneration = remember(provider.id, store) { mutableStateOf(0) }
+    LaunchedEffect(provider.id, store, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            val requestGeneration = readGeneration.value + 1
+            readGeneration.value = requestGeneration
+            val cached = withContext(Dispatchers.IO) { store.get(provider.id) }
+            if (readGeneration.value == requestGeneration) {
+                tokens.value = cached
+                loaded.value = true
+            }
+        }
     }
-    return tokens
+    return GrokOAuthTokenState(tokens, loaded, readGeneration)
 }
 
 @Composable
 private fun GrokOAuthConsole(
     provider: ProviderSetting.OpenAI,
-    tokenState: MutableState<GrokOAuthTokens?>,
+    tokenState: GrokOAuthTokenState,
     onCommit: (ProviderSetting.OpenAI) -> Unit,
     autoStartOAuth: Boolean,
     onAutoStartConsumed: () -> Unit,
@@ -415,24 +436,32 @@ private fun GrokOAuthConsole(
     val httpClient = koinInject<OkHttpClient>()
     val store = koinInject<GrokAuthStore>()
     val client = remember(httpClient, store) { GrokOAuthClient(httpClient, store) }
-    var tokens by tokenState
+    var tokens by tokenState.tokens
     val latestProvider by rememberUpdatedState(provider)
     LaunchedEffect(provider.id, provider.authMode) {
-        if (provider.authMode == OpenAIAuthMode.GROK_OAUTH && store.getBackup(provider.id) == null) {
-            store.saveBackup(provider.id, provider.baseUrl)
+        if (provider.authMode == OpenAIAuthMode.GROK_OAUTH) {
+            withContext(Dispatchers.IO) {
+                if (store.getBackup(provider.id) == null) {
+                    store.saveBackup(provider.id, provider.baseUrl)
+                }
+            }
         }
     }
     var busy by remember(provider.id) { mutableStateOf(false) }
 
     suspend fun login() {
         if (busy) return
+        tokenState.readGeneration.value += 1
         busy = true
         try {
             val result = client.authorize(context, provider.id)
             val current = latestProvider
             val loginGeneration = client.sessionGeneration(provider.id)
             if (current.id != provider.id || client.sessionGeneration(provider.id) != loginGeneration) return
-            tokens = client.cached(provider.id) ?: return
+            val cached = withContext(Dispatchers.IO) { client.cached(provider.id) } ?: return
+            if (client.sessionGeneration(provider.id) != loginGeneration) return
+            tokenState.readGeneration.value += 1
+            tokens = cached
             onCommit(current.copy(baseUrl = GROK_CLI_PROXY_BASE_URL, useResponseApi = false, chatCompletionsPath = "/chat/completions"))
             toaster.show(
                 context.getString(
@@ -456,9 +485,11 @@ private fun GrokOAuthConsole(
         }
     }
 
-    LaunchedEffect(provider.id) {
-        if (autoStartOAuth && tokens == null && !busy) {
-            onAutoStartConsumed()
+    val latestAutoStart by rememberUpdatedState(autoStartOAuth)
+    val latestOnAutoStartConsumed by rememberUpdatedState(onAutoStartConsumed)
+    LaunchedEffect(provider.id, tokenState.loaded.value) {
+        if (latestAutoStart && tokenState.loaded.value && tokens == null && !busy) {
+            latestOnAutoStartConsumed()
             login()
         }
     }
@@ -480,7 +511,7 @@ private fun GrokOAuthConsole(
             else -> stringResource(R.string.setting_provider_page_grok_oauth_relogin)
         },
         accent = tokens == null,
-        enabled = !busy,
+        enabled = tokenState.loaded.value && !busy,
         onClick = { scope.launch { login() } },
         modifier = Modifier.fillMaxWidth(),
     )
@@ -488,6 +519,7 @@ private fun GrokOAuthConsole(
         ProviderCommandButton(
             text = stringResource(R.string.setting_provider_page_grok_oauth_logout),
             onClick = {
+                tokenState.readGeneration.value += 1
                 client.logout(provider.id)
                 tokens = null
                 onCommit(

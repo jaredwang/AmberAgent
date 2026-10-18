@@ -1,6 +1,8 @@
 package app.amber.core.memory.dream
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import app.amber.agent.data.db.dao.MemoryDreamPlanDAO
@@ -41,7 +43,9 @@ class MemoryDreamPlanStore(
     private val restoreWriteGate: SyncRestoreWriteGate? = null,
 ) {
     val pendingPlanFlow: Flow<PersistedMemoryDreamPlan?> =
-        dao.getPendingPlanFlow().map { entity -> entity?.toPersisted() }
+        dao.getPendingPlanFlow()
+            .map { entity -> entity?.toPersisted() }
+            .flowOn(Dispatchers.Default)
 
     suspend fun getPendingPlan(): PersistedMemoryDreamPlan? =
         dao.getPendingPlan()?.toPersisted()

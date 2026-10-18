@@ -8,6 +8,7 @@ import app.amber.core.context.AgentCapabilitySnapshotBuilder
 import app.amber.core.context.ConversationContextEngine
 import app.amber.core.context.ConversationContextRepository
 import app.amber.core.font.SlidesFontRepository
+import app.amber.core.infra.AppScope
 import org.koin.dsl.module
 
 /**
@@ -37,7 +38,14 @@ val workspaceModule = module {
 
     single { WorkspaceArtifactTools(get(), get(), get()) }
 
-    single { SlidesFontRepository(context = get(), client = get(), json = get()) }
+    single {
+        SlidesFontRepository(
+            context = get(),
+            client = get(),
+            json = get(),
+            appScope = get<AppScope>(),
+        )
+    }
 
     single { ExternalFileTools(get(), get(), get()) }
 }

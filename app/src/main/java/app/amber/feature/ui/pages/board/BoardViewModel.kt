@@ -1,10 +1,14 @@
 package app.amber.feature.ui.pages.board
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import app.amber.agent.AppScope
 import app.amber.feature.board.BoardRepository
 import app.amber.feature.board.TODAY_BOARD_AUTO_MUTE_DISMISS_COUNT
@@ -27,8 +31,6 @@ import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.agent.data.db.entity.BoardItemEntity
 import app.amber.agent.data.db.entity.BoardWeightEntity
 import app.amber.agent.data.db.entity.DailyReviewEntity
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 class BoardViewModel(
@@ -70,7 +72,7 @@ class BoardViewModel(
         dashboard
             .filterEnabledSources(enabledSources)
             .applyInterestFilter(board.hotListFocusKeywords, board.hotListFilterMode)
-    }
+    }.flowOn(Dispatchers.Default)
 
     fun markCompleted(itemId: String) {
         appScope.launch {

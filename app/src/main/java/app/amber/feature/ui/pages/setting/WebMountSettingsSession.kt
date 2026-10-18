@@ -5,8 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import app.amber.agent.R
 import app.amber.feature.webmount.core.WebMountManager
 import app.amber.feature.webmount.core.WebMountStatus
@@ -47,14 +49,10 @@ internal class WebMountSettingsSession(
     var preLoginCookies by mutableStateOf<Map<String, String>>(emptyMap())
     var oauthEditDialog by mutableStateOf<UserSite?>(null)
     var addSiteDialogOpen by mutableStateOf(false)
-    // Phase 2 Plan v2 review B-1 fix: cookie-state revision counter. The
-    // login dialog dismiss + sign-out actions bump this; UserSiteCard reads
-    // it inside its `loggedIn` computation so rows re-probe CookieManager
-    // on every state change instead of caching the answer for the page's
-    // lifetime.
+    // Cookie and OAuth revisions refresh the per-site authentication snapshot.
     var cookieRevision by mutableStateOf(0)
 
-    // Forces OAuth section to recompose when token store updates.
+    // Refreshes per-site OAuth state when tokens or credentials change.
     var oauthRevision by mutableStateOf(0)
     private val signedInTemplate get() = context.getString(R.string.setting_webmount_login_dialog_signed_in)
     private val notReadyTemplate get() = context.getString(R.string.setting_webmount_login_dialog_not_ready)
@@ -86,11 +84,10 @@ internal class WebMountSettingsSession(
     fun oauthProvider(providerId: String) = oauthClient.provider(providerId)
     fun oauthCredentials(providerId: String) = oauthStore.getCredentials(providerId)
 
-    fun siteAuth(site: UserSite): WebMountSiteAuth {
-        // Re-read actual cookie/token stores when the screen's mutation revision changes.
-        @Suppress("UNUSED_EXPRESSION") cookieRevision
-        @Suppress("UNUSED_EXPRESSION") oauthRevision
-        val loggedIn = run {
+    suspend fun siteAuth(site: UserSite): WebMountSiteAuth = withContext(Dispatchers.IO) {
+        val loggedIn = if (site.authKind == AuthKind.ANONYMOUS) {
+            null
+        } else {
             val loginTarget = WebMountLoginTarget.fromUserSite(site, webMountManager, profileRegistry)
             val urls = loginTarget.urls
             if (urls.isEmpty()) {
@@ -120,7 +117,7 @@ internal class WebMountSettingsSession(
             oauthStore.getCredentials(oauthProviderIdLocal) != null
         } else false
 
-        return WebMountSiteAuth(loggedIn, hasToken, tokenExpired, hasCredentials)
+        WebMountSiteAuth(loggedIn, hasToken, tokenExpired, hasCredentials)
     }
 
     fun installSlash() {

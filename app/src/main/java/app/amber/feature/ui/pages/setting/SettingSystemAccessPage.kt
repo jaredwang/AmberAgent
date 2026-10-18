@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -24,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +42,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.TriangleAlert
 import com.composables.icons.lucide.FileText
@@ -83,9 +88,14 @@ fun SettingSystemAccessPage(
         refreshToken++
     }
     DisposableEffect(lifecycleOwner) {
+        var skipInitialResume = true
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                refreshToken++
+                if (skipInitialResume) {
+                    skipInitialResume = false
+                } else {
+                    refreshToken++
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -93,8 +103,13 @@ fun SettingSystemAccessPage(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    val capabilities = remember(refreshToken, permissionBroker) {
-        permissionBroker.capabilities.map { it to permissionBroker.getStatus(it) }
+    var capabilities by remember(permissionBroker) {
+        mutableStateOf<List<Pair<AgentPermissionCapability, AgentPermissionStatus>>?>(null)
+    }
+    LaunchedEffect(refreshToken, permissionBroker) {
+        capabilities = withContext(Dispatchers.IO) {
+            permissionBroker.capabilities.map { it to permissionBroker.getStatus(it) }
+        }
     }
 
     fun requestRuntime(capability: AgentPermissionCapability) {
@@ -171,53 +186,65 @@ fun SettingSystemAccessPage(
                 }
             }
 
-            item("runtime") {
-                SettingCardGroup(title = stringResource(R.string.setting_system_access_runtime_section)) {
-                    capabilities
-                        .filter { (capability, _) -> capability.specialAccess == null }
-                        .forEach { (capability, status) ->
-                            permissionItem(
-                                capability = capability,
-                                status = status,
-                                displayContext = context,
-                                onClick = {
-                                    if (status != AgentPermissionStatus.Granted) {
-                                        requestRuntime(capability)
-                                    }
-                                },
-                                action = {
-                                    PermissionAction(
-                                        status = status,
-                                        onClick = { requestRuntime(capability) },
-                                    )
-                                }
-                            )
-                        }
+            val statuses = capabilities
+            if (statuses == null) {
+                item("permission_status_loading") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    }
                 }
-            }
-
-            item("special") {
-                SettingCardGroup(title = stringResource(R.string.setting_system_access_special_section)) {
-                    capabilities
-                        .filter { (capability, _) -> capability.specialAccess != null }
-                        .forEach { (capability, status) ->
-                            permissionItem(
-                                capability = capability,
-                                status = status,
-                                displayContext = context,
-                                onClick = {
-                                    if (status != AgentPermissionStatus.Granted) {
-                                        openSpecial(capability)
+            } else {
+                item("runtime") {
+                    SettingCardGroup(title = stringResource(R.string.setting_system_access_runtime_section)) {
+                        statuses
+                            .filter { (capability, _) -> capability.specialAccess == null }
+                            .forEach { (capability, status) ->
+                                permissionItem(
+                                    capability = capability,
+                                    status = status,
+                                    displayContext = context,
+                                    onClick = {
+                                        if (status != AgentPermissionStatus.Granted) {
+                                            requestRuntime(capability)
+                                        }
+                                    },
+                                    action = {
+                                        PermissionAction(
+                                            status = status,
+                                            onClick = { requestRuntime(capability) },
+                                        )
                                     }
-                                },
-                                action = {
-                                    PermissionAction(
-                                        status = status,
-                                        onClick = { openSpecial(capability) },
-                                    )
-                                }
-                            )
-                        }
+                                )
+                            }
+                    }
+                }
+
+                item("special") {
+                    SettingCardGroup(title = stringResource(R.string.setting_system_access_special_section)) {
+                        statuses
+                            .filter { (capability, _) -> capability.specialAccess != null }
+                            .forEach { (capability, status) ->
+                                permissionItem(
+                                    capability = capability,
+                                    status = status,
+                                    displayContext = context,
+                                    onClick = {
+                                        if (status != AgentPermissionStatus.Granted) {
+                                            openSpecial(capability)
+                                        }
+                                    },
+                                    action = {
+                                        PermissionAction(
+                                            status = status,
+                                            onClick = { openSpecial(capability) },
+                                        )
+                                    }
+                                )
+                            }
+                    }
                 }
             }
 

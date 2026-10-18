@@ -40,7 +40,7 @@ class ICloudDriveTools(
             textJson {
                 putState(state)
                 putLoginSnapshot(login)
-                put("next_action", manager.nextAction(state))
+                put("next_action", manager.nextAction(state, login))
                 put("login_url", ICloudDriveWebEndpoints.GLOBAL.loginUrl)
                 put("china_login_url", ICloudDriveWebEndpoints.CHINA.loginUrl)
                 put("note", "This experimental Android-only iCloud Web Mount supports global iCloud and China iCloud WebView sessions. It never stores the Apple ID password.")

@@ -438,6 +438,8 @@ class RouteActivity : ComponentActivity() {
             *if (startScreen is Screen.Chat) arrayOf(Screen.SessionHome, startScreen)
             else arrayOf(startScreen)
         )
+        val navigator = remember(backStack) { Navigator(backStack) }
+        val navigationEntries = remember { appNavigationEntries() }
         var currentIntent by remember { mutableStateOf(intent) }
         SideEffect {
             this@RouteActivity.navStack = backStack
@@ -480,7 +482,7 @@ class RouteActivity : ComponentActivity() {
         SharedTransitionLayout {
             CompositionLocalProvider(
                 LocalUriHandler provides appUriHandler,
-                LocalNavController provides Navigator(backStack),
+                LocalNavController provides navigator,
                 LocalSharedTransitionScope provides this,
                 LocalSettings provides settings,
                 LocalHighlighter provides highlighter,
@@ -515,7 +517,7 @@ class RouteActivity : ComponentActivity() {
                         },
                         popTransitionSpec = { routePopTransition() },
                         predictivePopTransitionSpec = { routePopTransition() },
-                        entryProvider = appNavigationEntries(),
+                        entryProvider = navigationEntries,
                     )
                 }
                 if (StandaloneSurfaces.current == StandaloneSurfaces.NOVEL) {

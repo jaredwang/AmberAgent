@@ -19,7 +19,10 @@ import androidx.compose.material3.Surface
 import app.amber.feature.ui.components.ui.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,6 +33,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Lucide
@@ -39,6 +45,7 @@ import app.amber.agent.R
 import app.amber.feature.icloud.ICLOUD_CHINA_LOGIN_URL
 import app.amber.feature.icloud.ICLOUD_GLOBAL_LOGIN_URL
 import app.amber.feature.icloud.ICloudDriveManager
+import app.amber.feature.icloud.ICloudDriveLoginSnapshot
 import app.amber.feature.ui.components.webview.WebView
 import app.amber.feature.ui.components.webview.rememberWebViewState
 import app.amber.feature.ui.context.LocalToaster
@@ -52,13 +59,34 @@ fun SettingExperimentalICloudPage(
     val iCloudState by iCloudDriveManager.state.collectAsStateWithLifecycle()
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
     var showICloudLogin by remember { mutableStateOf(false) }
     var iCloudLoginUrl by remember { mutableStateOf(ICLOUD_GLOBAL_LOGIN_URL) }
     var iCloudBusy by remember { mutableStateOf(false) }
+    var resumeEpoch by remember { mutableIntStateOf(0) }
     var iCloudVaultInput by remember(iCloudState.vaultPath) { mutableStateOf(iCloudState.vaultPath) }
     val iCloudSavedToast = stringResource(R.string.setting_icloud_saved)
-    val iCloudLoginSnapshot = remember(iCloudState.updatedAtMillis, iCloudBusy, showICloudLogin) {
-        iCloudDriveManager.loginSnapshot()
+    var iCloudLoginSnapshot by remember(iCloudDriveManager) {
+        mutableStateOf<ICloudDriveLoginSnapshot?>(null)
+    }
+    DisposableEffect(lifecycleOwner) {
+        var skipInitialResume = true
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (skipInitialResume) {
+                    skipInitialResume = false
+                } else {
+                    resumeEpoch++
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(iCloudDriveManager, iCloudState.updatedAtMillis, iCloudBusy, showICloudLogin, resumeEpoch) {
+        if (!iCloudBusy && !showICloudLogin) {
+            iCloudLoginSnapshot = iCloudDriveManager.loginSnapshot()
+        }
     }
 
     ExperimentalSettingsScaffold(
@@ -169,22 +197,24 @@ fun SettingExperimentalICloudPage(
                         label = stringResource(R.string.setting_experimental_capability),
                         value = iCloudState.capability.wireName,
                     )
-                    ExperimentStatusRow(
-                        label = stringResource(R.string.setting_icloud_endpoint_hint),
-                        value = iCloudLoginSnapshot.endpointHint?.displayName ?: stringResource(R.string.setting_icloud_endpoint_unknown),
-                    )
-                    ExperimentStatusRow(
-                        label = stringResource(R.string.setting_icloud_login_detected),
-                        value = if (iCloudLoginSnapshot.loginDetected) {
-                            stringResource(R.string.setting_icloud_login_detected_yes)
-                        } else {
-                            stringResource(R.string.setting_icloud_login_detected_no)
-                        },
-                    )
-                    ExperimentStatusRow(
-                        label = stringResource(R.string.setting_icloud_next_action),
-                        value = iCloudDriveManager.nextAction(iCloudState),
-                    )
+                    iCloudLoginSnapshot?.let { loginSnapshot ->
+                        ExperimentStatusRow(
+                            label = stringResource(R.string.setting_icloud_endpoint_hint),
+                            value = loginSnapshot.endpointHint?.displayName ?: stringResource(R.string.setting_icloud_endpoint_unknown),
+                        )
+                        ExperimentStatusRow(
+                            label = stringResource(R.string.setting_icloud_login_detected),
+                            value = if (loginSnapshot.loginDetected) {
+                                stringResource(R.string.setting_icloud_login_detected_yes)
+                            } else {
+                                stringResource(R.string.setting_icloud_login_detected_no)
+                            },
+                        )
+                        ExperimentStatusRow(
+                            label = stringResource(R.string.setting_icloud_next_action),
+                            value = iCloudDriveManager.nextAction(iCloudState, loginSnapshot),
+                        )
+                    }
                     iCloudState.message?.takeIf { it.isNotBlank() }?.let { message ->
                         ExperimentNote(text = message)
                     }
