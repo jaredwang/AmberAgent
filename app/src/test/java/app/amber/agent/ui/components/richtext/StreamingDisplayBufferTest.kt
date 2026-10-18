@@ -6,33 +6,6 @@ import org.junit.Test
 
 class StreamingDisplayBufferTest {
 
-    @Test
-    fun immediate_display_returns_full_complete_content() {
-        val content = "Streaming content ".repeat(80)
-
-        assertEquals(content, streamingImmediateDisplayText(content))
-    }
-
-    @Test
-    fun immediate_display_trims_dangling_high_surrogate() {
-        val content = "hello " + '\uD83D'
-
-        assertEquals("hello ", streamingImmediateDisplayText(content))
-    }
-
-    @Test
-    fun immediate_display_trims_terminal_zwj_boundary() {
-        val manEmoji = String(Character.toChars(0x1F468))
-        val content = manEmoji + "‍"
-
-        assertEquals(manEmoji, streamingImmediateDisplayText(content))
-    }
-
-    @Test
-    fun immediate_display_trims_isolated_terminal_combining_mark() {
-        assertEquals("", streamingImmediateDisplayText("\u0301"))
-    }
-
     // ------------------------------------------------------------------
     // Release units (word quantization)
     // ------------------------------------------------------------------

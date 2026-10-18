@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import app.amber.core.infra.AppScope
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.settings.BackupReminderConfig
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.WebDavConfig
 import app.amber.core.model.Lorebook
 import app.amber.core.model.PromptInjection

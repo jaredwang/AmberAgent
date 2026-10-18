@@ -35,7 +35,7 @@ import app.amber.core.settings.SeedRoutingQuickMessages
 import app.amber.core.settings.SeedSvgQuickMessageId
 import app.amber.core.settings.AMBER_AGENT_REQUIRED_SKILLS
 import app.amber.core.settings.Settings
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.secret.SecretRedactor
 import app.amber.core.settings.secret.SecretReference
 import app.amber.core.agent.utils.JsonInstant

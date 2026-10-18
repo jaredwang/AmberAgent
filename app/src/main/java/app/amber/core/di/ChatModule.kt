@@ -20,9 +20,6 @@ import app.amber.core.service.PendingMessageQueue
 import app.amber.core.infra.AppScope
 import app.amber.core.service.PendingMessageStore
 import app.amber.core.service.UserInputPreprocessor
-import app.amber.core.service.orchestrator.BranchMessageOrchestrator
-import app.amber.core.service.orchestrator.RegenerateMessageOrchestrator
-import app.amber.core.service.orchestrator.SendMessageOrchestrator
 import java.io.File
 import org.koin.dsl.module
 
@@ -243,26 +240,4 @@ val chatModule = module {
         )
     }
     single<ConversationAccess> { get<ConversationStore>() }
-
-    single {
-        SendMessageOrchestrator(
-            chatService = get(),
-            analytics = get(),
-            eventBus = get(),
-        )
-    }
-
-    single {
-        RegenerateMessageOrchestrator(
-            chatService = get(),
-            analytics = get(),
-        )
-    }
-
-    single {
-        BranchMessageOrchestrator(
-            chatService = get(),
-        )
-    }
-
 }

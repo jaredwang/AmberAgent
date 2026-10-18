@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 import app.amber.agent.R
 import app.amber.common.android.LogEntry
 import app.amber.common.android.Logging
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.settingsStore
 import app.amber.feature.ui.components.nav.BackButton
 import app.amber.feature.ui.components.ui.JsonTree

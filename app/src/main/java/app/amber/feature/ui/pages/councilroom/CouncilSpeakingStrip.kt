@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.amber.feature.modelcouncil.CouncilParticipant
 import app.amber.agent.R
@@ -60,18 +62,22 @@ internal fun CouncilSpeakingStrip(participant: CouncilParticipant, onClick: () -
                     R.string.council_room_speaking,
                     participant.name.ifBlank { participant.id },
                 ),
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodySmall,
                 color = workspace.muted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             val modelLabel = participant.modelLabel()
             if (modelLabel.isNotBlank()) {
-                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                    Text(
-                        text = modelLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = workspace.faint,
-                    )
-                }
+                Text(
+                    text = modelLabel,
+                    modifier = Modifier.widthIn(max = 140.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = workspace.faint,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }

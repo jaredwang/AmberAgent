@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -104,10 +105,11 @@ internal fun MagazineHero(
                         caption,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(end = 30.dp, bottom = 12.dp),
+                            .padding(start = 30.dp, end = 30.dp, bottom = 12.dp),
                         style = MaterialTheme.typography.labelSmall.withReadingFont(fontFamily),
                         color = palette.muted,
                         maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -288,12 +290,14 @@ private fun SlantedHeroMeta(
     ) {
         Text(
             type.uppercase(),
+            modifier = Modifier.weight(1f, fill = false),
             style = MaterialTheme.typography.labelSmall.copy(
                 letterSpacing = 3.2.sp,
                 fontWeight = FontWeight.Light,
                 color = palette.accent,
             ),
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         Text(
             sourceLabel,

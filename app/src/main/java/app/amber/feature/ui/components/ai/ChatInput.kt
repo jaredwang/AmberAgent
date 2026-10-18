@@ -547,7 +547,7 @@ internal fun ChatInput(
                     )
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(ComposerButtonSize)
                             .minimumInteractiveComponentSize()
                             .combinedClickable(
                                 interactionSource = sendInteraction,
@@ -570,7 +570,7 @@ internal fun ChatInput(
                                     scaleX = sendScale
                                     scaleY = sendScale
                                 }
-                                .size(44.dp)
+                                .size(ComposerButtonSize)
                                 .clip(CircleShape)
                                 .background(sendFill),
                             contentAlignment = Alignment.Center,
@@ -660,7 +660,7 @@ private fun InlineAttachmentIcon(
     val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(ComposerButtonSize)
             .clip(CircleShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,

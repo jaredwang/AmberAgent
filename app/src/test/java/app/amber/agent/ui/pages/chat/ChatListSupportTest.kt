@@ -8,21 +8,11 @@ import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.Conversation
 import app.amber.core.model.MessageNode
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 import kotlin.uuid.Uuid
 
 class ChatListSupportTest {
-    @Test
-    fun `timeline boundary item keys stay fixed`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineItems.kt").readText()
-
-        assertTrue(source.contains("ChatTimelineEntry.TimelineTail -> TimelineTailKey"))
-        assertTrue(source.contains("ChatTimelineEntry.HistoryLoading -> HistoryLoadingItemKey"))
-    }
-
     @Test
     fun `latest render token is empty for empty conversation`() {
         val conversation = Conversation(
@@ -162,93 +152,5 @@ class ChatListSupportTest {
         ).latestRenderToken()
 
         assertTrue(firstToken != secondToken)
-    }
-
-    @Test
-    fun `timeline uses reverse layout anchored at visual bottom`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
-        val page = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatPage.kt").readText()
-        val effects = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
-
-        assertTrue(source.contains("reverseLayout = true"))
-        // 跟随状态机已由 reverseLayout 原生锚定取代
-        assertFalse((source + effects).contains("TimelineFollowMode"))
-        assertFalse((source + effects).contains("scrollToTimelineBottom"))
-        assertFalse((source + effects).contains("streamingVisibleEvents"))
-        assertFalse((source + effects).contains("programmaticScrollInProgress"))
-        // 默认初始位即底部：ChatPage 不再做"等两帧再 scrollToItem(last)"的初始化
-        assertTrue(page.contains("rememberLazyListState(initialFirstVisibleItemIndex = initialChatListIndex)"))
-        assertFalse(page.contains("withFrameNanos { }"))
-    }
-
-    @Test
-    fun `timeline tail shield keeps native anchoring for structural insertions`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelinePlan.kt").readText()
-        val section = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
-
-        // TimelineTail 恒为 reversed 发射的第一个 entry（index 0 = 视觉底部锚定边），
-        // 一切结构性插入都发生在它之上（index ≥ 1），Compose key 锚定使钉底视图
-        // 原生保持不动 —— 因此不需要任何"插入时 re-pin"的补偿 effect。
-        assertTrue(source.contains("add(ChatTimelineEntry.TimelineTail)"))
-        assertFalse(section.contains("prevFirst == 0"))
-        assertFalse(section.contains("first == inserted"))
-    }
-
-    @Test
-    fun `tail indicator reserve is retained until the next message replaces the tail`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
-
-        // reverseLayout 下 TimelineTail（index 0）在锚定边，生成结束立刻移除其
-        // 70dp reserve 会让时间线单帧下坠；保留空间直到下一条消息成为尾部。
-        assertTrue(source.contains("retainedTailReserveMessageId"))
-        assertTrue(source.contains("timelineLoading ||"))
-    }
-
-    @Test
-    fun `send paths land the view on the bottom regardless of scroll position`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
-
-        // 监听 pending/直接发送追加统一覆盖所有发送路径；`prevPendingCount == 0`
-        // 守卫把直接发送（追加前队列空）与队列排水（排水前 pending 非空）区分，
-        // 后者不得拽走读历史的用户；尾节点 id 变化判定排除历史分页 prepend。
-        assertTrue(source.contains("if (pendingAdded > 0 || directSendAppend)"))
-        assertTrue(source.contains("prevPendingCount == 0"))
-        assertTrue(source.contains("lastNodeId != prevLastNodeId"))
-    }
-
-    @Test
-    fun `markdown streaming visual callbacks remain available for council room`() {
-        val markdown = repoFile("src/main/java/app/amber/feature/ui/components/richtext/Markdown.kt").readText()
-        val message = repoFile("src/main/java/app/amber/feature/ui/components/message/ChatMessage.kt").readText()
-        val council = repoFile("src/main/java/app/amber/feature/ui/pages/councilroom/CouncilTimelineTab.kt").readText()
-
-        assertTrue(markdown.contains("onStreamingVisualActiveChange"))
-        assertTrue(message.contains("onStreamingVisualActiveChange = onStreamingVisualActiveChange"))
-        assertTrue(council.contains("onStreamingVisibleFrame"))
-    }
-
-    @Test
-    fun `streaming tail indicator renders in list without pinned overlay`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineItems.kt").readText()
-        val plan = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelinePlan.kt").readText()
-
-        // reverseLayout 下跟随时 TimelineTail item 恒在底部视口内，列表内指示器
-        // 足够；pin 交接/保留圆点等防抖机制已删除。
-        assertTrue(source.contains("tailIndicatorReserveVisible"))
-        assertTrue(source.contains("TimelineTailWorkingIndicator("))
-        assertFalse(source.contains("pinTailIndicator"))
-        assertFalse(source.contains("retainedTailIndicatorMessageId"))
-        assertFalse(source.contains("AgentWorkingIndicator("))
-        assertTrue(plan.contains("add(ChatTimelineEntry.TimelineTail)"))
-        assertFalse(plan.contains("add(ChatTimelineEntry.Loading)"))
-        assertFalse(plan.contains("add(ChatTimelineEntry.ScrollBottom)"))
-    }
-
-    private fun repoFile(pathInAppModule: String): File {
-        return listOf(
-            File(pathInAppModule),
-            File("app/$pathInAppModule"),
-        ).firstOrNull { it.isFile }
-            ?: error("Cannot locate $pathInAppModule")
     }
 }

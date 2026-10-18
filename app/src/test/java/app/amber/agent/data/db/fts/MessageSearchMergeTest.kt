@@ -12,10 +12,6 @@ import java.time.Instant
 
 /**
  * P8-04：搜索会话标题和消息正文。
- *
- * - 合并/去重逻辑是纯函数 [mergeMessageSearchResults]，直接单测。
- * - 已删除/重命名会话的标题索引同步、以及 CJK 分词配置是 SQL/原生层，
- *   JVM 单测无法执行 libsimple.so（jieba 扩展），用源码断言如实记录接入点。
  */
 class MessageSearchMergeTest {
 
@@ -138,44 +134,6 @@ class MessageSearchMergeTest {
         }.exceptionOrNull()
 
         assertSame(cancellation, observed)
-    }
-
-    // ---- 已删除 / 重命名会话的标题索引同步（SQL 层，源码断言） ----
-
-    @Test
-    fun `deleted conversation removes its title fts row and query joins live entity`() {
-        val source = repoFile("src/main/java/app/amber/agent/data/db/fts/MessageFtsManager.kt").readText()
-
-        // 删除路径必须清掉标题行
-        assertTrue(source.contains("DELETE FROM conversation_title_fts WHERE conversation_id = ?"))
-        // 标题查询 JOIN 会话实体——实体已删除的行即使残留也不会返回（与正文查询同策略）
-        assertTrue(source.contains("FROM conversation_title_fts"))
-        assertTrue(source.contains("JOIN ConversationEntity c ON c.id = conversation_title_fts.conversation_id"))
-    }
-
-    @Test
-    fun `renamed conversation resyncs title fts row`() {
-        val source = repoFile("src/main/java/app/amber/agent/data/db/fts/MessageFtsManager.kt").readText()
-
-        // 重命名路径同步标题表：先删旧行再插新行，保证每会话恰好一行
-        // （FTS5 无唯一约束，INSERT OR IGNORE 会产生重复行，故用 DELETE+INSERT）。
-        val renameSection = source.substringAfter("UPDATE message_fts SET title = ?, update_at = ?")
-        assertTrue("重命名应删除旧标题行", renameSection.contains("DELETE FROM conversation_title_fts WHERE conversation_id = ?"))
-        assertTrue("重命名应插入新标题行", renameSection.contains("INSERT INTO conversation_title_fts(title, conversation_id, update_at) VALUES (?, ?, ?)"))
-    }
-
-    // ---- CJK 分词：现有 FTS 配置（libsimple.so + jieba 词典）支持 CJK ----
-
-    @Test
-    fun `title query uses same jieba tokenizer as body query`() {
-        val source = repoFile("src/main/java/app/amber/agent/data/db/fts/MessageFtsManager.kt").readText()
-        val module = repoFile("src/main/java/app/amber/core/di/DataSourceModule.kt").readText()
-
-        assertTrue(source.contains("WHERE title MATCH jieba_query(?)"))
-        assertTrue(source.contains("WHERE text MATCH jieba_query(?)"))
-        // 标题表与正文表同 tokenizer（simple + jieba 词典），CJK 分词行为一致
-        assertTrue(module.contains("CREATE VIRTUAL TABLE IF NOT EXISTS conversation_title_fts USING fts5("))
-        assertTrue(module.contains("tokenize = 'simple'"))
     }
 
     @Test

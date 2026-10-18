@@ -5,7 +5,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class StreamingMarkdownRepairTest {
     @Test
@@ -208,16 +207,6 @@ class StreamingMarkdownRepairTest {
     }
 
     @Test
-    fun `streaming parse throttle does not sample single value flows`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/MarkdownDocument.kt").readText()
-
-        assertTrue(source.contains(".transform { triple ->"))
-        assertTrue(source.contains("SystemClock.uptimeMillis()"))
-        assertFalse(source.contains("flowOf(triple).sample"))
-        assertFalse(source.contains(".flatMapLatest { triple ->"))
-    }
-
-    @Test
     fun `presentation gate keeps new visible text out of semantic parse until motion delay`() {
         val gate = StreamingMarkdownPresentationGate(initialContent = "", commitDelayNanos = 100)
 
@@ -255,26 +244,5 @@ class StreamingMarkdownRepairTest {
 
         assertEquals("goodbye", replaced.semanticContent)
         assertFalse(replaced.motionActive)
-    }
-
-    @Test
-    fun `streaming markdown reveal keeps vertical motion out of block containers`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/StreamingMarkdownPresentation.kt").readText()
-
-        assertTrue(source.contains("BaselineShift"))
-        assertTrue(source.contains("STREAMING_CHAR_REVEAL_LIFT_EM"))
-        assertFalse(source.contains("STREAMING_BLOCK_REVEAL_OFFSET_DP"))
-        assertFalse(source.contains("translationY"))
-    }
-
-    private fun repoFile(pathInAppModule: String): File {
-        val userDir = System.getProperty("user.dir") ?: "."
-        var dir = File(userDir).absoluteFile
-        repeat(8) {
-            val candidate = File(dir, "app/$pathInAppModule")
-            if (candidate.exists()) return candidate
-            dir = dir.parentFile ?: dir
-        }
-        return File(userDir, "app/$pathInAppModule")
     }
 }

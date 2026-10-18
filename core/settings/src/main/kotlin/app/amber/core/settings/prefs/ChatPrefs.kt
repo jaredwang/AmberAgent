@@ -23,7 +23,7 @@ import app.amber.core.ai.prompts.DEFAULT_TITLE_PROMPT
 import app.amber.core.settings.DEFAULT_AUTO_MODEL_ID
 import app.amber.core.settings.DEFAULT_AMBER_SYSTEM_PROMPT
 import app.amber.core.settings.ModelGroupSessionDefault
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.agent.utils.JsonInstant
 import app.amber.core.settings.toMutableStateFlow
 import app.amber.core.model.AssistantRegex

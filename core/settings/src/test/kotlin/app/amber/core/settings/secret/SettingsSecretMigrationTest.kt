@@ -12,7 +12,7 @@ import app.amber.ai.core.ReasoningLevel
 import app.amber.core.ai.mcp.McpCommonOptions
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.agent.utils.JsonInstant
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.Settings
 import app.amber.core.model.AMBER_AGENT_ID
 import app.amber.core.settings.LegacyAssistantProfile

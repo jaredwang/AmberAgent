@@ -23,7 +23,7 @@ import app.amber.core.context.ConversationContextEngine
 import app.amber.core.context.ConversationContextRepository
 import app.amber.core.infra.AppScope
 import app.amber.core.memory.recall.MemoryRecallStore
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.settings.AgentRuntimeSetting
 import app.amber.core.settings.ContextCompactionSetting
 import app.amber.core.settings.GenerativeUiSetting

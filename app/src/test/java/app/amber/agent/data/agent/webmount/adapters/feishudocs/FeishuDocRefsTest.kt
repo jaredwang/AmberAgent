@@ -5,7 +5,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class FeishuDocRefsTest {
     @Test
@@ -60,30 +59,5 @@ class FeishuDocRefsTest {
         assertNull(FeishuDocRefs.decode("fdc_not-base64"))
         assertNull(FeishuDocRefs.decodeBlock("fdb_not-base64"))
         assertNull(FeishuDocRefs.fromUrl("https://example.com/not-feishu"))
-    }
-
-    @Test
-    fun toolsExposeStableDocAndBlockRefs() {
-        val source = locateTools().readText()
-
-        assertTrue(source.contains("name = \"feishu_docs_resolve\""))
-        assertTrue(source.contains("name = \"feishu_docs_blocks\""))
-        assertTrue(source.contains("put(\"doc_ref\""))
-        assertTrue(source.contains("put(\"block_ref\""))
-        assertTrue(source.contains("parent_block_ref"))
-        assertTrue(source.contains("unsupportedDocRefJson"))
-        assertTrue(source.contains("use_feishu_docs_snapshot"))
-        assertTrue(source.contains("name = \"feishu_docs_snapshot\""))
-        assertTrue(source.contains("name = \"feishu_docs_network_summary\""))
-        assertTrue(source.contains("name = \"feishu_docs_markdown_pack\""))
-    }
-
-    private fun locateTools(): File {
-        val candidates = listOf(
-            File("src/main/java/app/amber/feature/webmount/adapters/feishudocs/FeishuDocsTools.kt"),
-            File("app/src/main/java/app/amber/feature/webmount/adapters/feishudocs/FeishuDocsTools.kt"),
-        )
-        return candidates.firstOrNull { it.isFile }
-            ?: error("Could not locate FeishuDocsTools.kt")
     }
 }

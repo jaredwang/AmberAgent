@@ -1,6 +1,6 @@
 # Rust Native Components
 
-本目录是 Android 端的 Rust workspace。十个 crate 中，`jni-common` 提供共享 JNI 边界，`tokenizer` 只参与 Native 单测；其余八个 crate 构建为 arm64 Android `.so`：
+本目录是 Android 端的 Rust workspace。九个 crate 中，`jni-common` 提供共享 JNI 边界，其余八个 crate 构建为 arm64 Android `.so`：
 
 ```text
 office-parsers

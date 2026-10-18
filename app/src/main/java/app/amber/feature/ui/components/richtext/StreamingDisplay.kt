@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import app.amber.agent.PerfFlags
 import kotlin.math.exp
 
 /**
@@ -42,19 +41,6 @@ fun rememberStreamingDisplayText(
     streaming: Boolean,
     onVisibleFrame: (() -> Unit)? = null,
 ): String {
-    if (PerfFlags.STREAMING_IMMEDIATE_CONTENT_REVEAL && streaming) {
-        val visible = streamingImmediateDisplayText(content)
-        val updatedOnVisibleFrame by rememberUpdatedState(onVisibleFrame)
-        var previousVisible by remember { mutableStateOf<String?>(null) }
-        SideEffect {
-            if (previousVisible != visible) {
-                previousVisible = visible
-                updatedOnVisibleFrame?.invoke()
-            }
-        }
-        return visible
-    }
-
     var visible by remember { mutableStateOf(content) }
     val updatedContent by rememberUpdatedState(content)
     val updatedStreaming by rememberUpdatedState(streaming)
@@ -372,15 +358,6 @@ private fun Int.isCjkAttachPunctuation(): Boolean {
     return false
 }
 
-internal fun streamingImmediateDisplayText(content: String): String {
-    val safeEnd = content.safeStreamingTerminalEnd()
-    return if (safeEnd == content.length) {
-        content
-    } else {
-        content.substring(0, safeEnd)
-    }
-}
-
 private fun String.safeStreamingDisplayEnd(candidate: Int): Int {
     var end = candidate.coerceIn(0, length)
     if (end == 0 || end >= length) return end
@@ -402,48 +379,6 @@ private fun String.safeStreamingDisplayEnd(candidate: Int): Int {
         end += Character.charCount(nextCodePoint)
     }
     return end.coerceAtMost(length)
-}
-
-private fun String.safeStreamingTerminalEnd(): Int {
-    var end = length
-    while (end > 0) {
-        val last = this[end - 1]
-        if (Character.isHighSurrogate(last)) {
-            end--
-            continue
-        }
-        if (
-            Character.isLowSurrogate(last) &&
-            (end == 1 || !Character.isHighSurrogate(this[end - 2]))
-        ) {
-            end--
-            continue
-        }
-        if (codePointBefore(end) == ZERO_WIDTH_JOINER) {
-            end--
-            continue
-        }
-        val attachedRunStart = terminalAttachedMarkRunStart(end)
-        if (
-            attachedRunStart < end &&
-            (attachedRunStart == 0 || codePointBefore(attachedRunStart) == ZERO_WIDTH_JOINER)
-        ) {
-            end = attachedRunStart
-            continue
-        }
-        break
-    }
-    return end
-}
-
-private fun String.terminalAttachedMarkRunStart(endExclusive: Int): Int {
-    var start = endExclusive
-    while (start > 0) {
-        val cp = codePointBefore(start)
-        if (!cp.isAttachedMark()) break
-        start -= Character.charCount(cp)
-    }
-    return start
 }
 
 private fun String.nextCodePointEnd(offset: Int): Int {

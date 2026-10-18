@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -110,6 +111,10 @@ fun SkillsPage() {
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
     var showImportDialog by rememberSaveable { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<SkillMetadata?>(null) }
+
+    LaunchedEffect(Unit) {
+        vm.loadSkills()
+    }
 
     Scaffold(
         topBar = {
@@ -241,8 +246,9 @@ fun SkillsPage() {
             },
             onConfirm = { name, content ->
                 vm.saveSkill(name, content) { success ->
-                    showAddDialog = false
-                    if (!success) {
+                    if (success) {
+                        showAddDialog = false
+                    } else {
                         toaster.show(context.getString(R.string.skills_page_save_failed))
                     }
                 }
@@ -253,10 +259,11 @@ fun SkillsPage() {
     if (showImportDialog) {
         ImportSkillDialog(
             onDismiss = { showImportDialog = false },
-            onConfirm = { repoUrl ->
+            onConfirm = { repoUrl, onDone ->
                 vm.importSkillFromGitHub(repoUrl) { success, message ->
-                    showImportDialog = false
+                    onDone(success)
                     if (success) {
+                        showImportDialog = false
                         toaster.show(context.getString(R.string.skills_page_import_success, message))
                     } else {
                         toaster.show(context.getString(R.string.skills_page_import_failed, message))
@@ -664,7 +671,8 @@ private fun AddSkillDialog(
     val name = remember(content) {
         SkillFrontmatterParser.parse(content)["name"]?.trim() ?: ""
     }
-    val nameError = content.isNotBlank() && name.isBlank()
+    val nameInvalid = name.contains('/') || name.contains('\\') || name == "." || name == ".."
+    val nameError = content.isNotBlank() && (name.isBlank() || nameInvalid)
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
 
@@ -828,7 +836,7 @@ private fun SkillAddOptionRow(
 @Composable
 private fun ImportSkillDialog(
     onDismiss: () -> Unit,
-    onConfirm: (repoUrl: String) -> Unit,
+    onConfirm: (repoUrl: String, onDone: (Boolean) -> Unit) -> Unit,
 ) {
     var url by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
@@ -878,7 +886,7 @@ private fun ImportSkillDialog(
             TextButton(
                 onClick = {
                     loading = true
-                    onConfirm(url)
+                    onConfirm(url) { loading = false }
                 },
                 enabled = url.isNotBlank() && !loading,
             ) {

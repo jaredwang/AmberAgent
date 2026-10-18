@@ -371,8 +371,6 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            // TokenCounter is not wired into production; do not ship stale local builds.
-            excludes += "**/libtokenizer.so"
         }
     }
     tasks.withType<KotlinCompile>().configureEach {
@@ -515,10 +513,6 @@ val requiredRustSharedLibraries = listOf(
     "sync_crypto",
 )
 
-val forbiddenRustSharedLibraries = listOf(
-    "tokenizer",
-)
-
 val rustNativeCheckedBuildTypes = setOf("release", "graphite", "baseline")
 
 // Flavor-aware variant matrix: novel/deepread have no `baseline` variant
@@ -548,19 +542,12 @@ afterEvaluate {
                 val requiredEntries = requiredRustSharedLibraries.map { name ->
                     "lib/arm64-v8a/lib$name.so"
                 }
-                val forbiddenEntries = forbiddenRustSharedLibraries.map { name ->
-                    "lib/arm64-v8a/lib$name.so"
-                }
                 val failures = buildList {
                     apks.forEach { apk ->
                         ZipFile(apk).use { zip ->
                             val missing = requiredEntries.filter { entry -> zip.getEntry(entry) == null }
                             if (missing.isNotEmpty()) {
                                 add("${apk.name} missing ${missing.joinToString()}")
-                            }
-                            val forbidden = forbiddenEntries.filter { entry -> zip.getEntry(entry) != null }
-                            if (forbidden.isNotEmpty()) {
-                                add("${apk.name} contains removed native libs ${forbidden.joinToString()}")
                             }
                         }
                     }
@@ -863,22 +850,9 @@ dependencies {
     implementation(project(":core:agent-runtime-impl"))
     implementation(project(":core:agent-runtime"))
     implementation(project(":core:agent-store-room"))
-    implementation(project(":feature:deepread:api"))
-    implementation(project(":feature:chat:api"))
-    implementation(project(":feature:terminal:api"))
-    implementation(project(":feature:board:api"))
     implementation(project(":feature:live:api"))
-    implementation(project(":feature:modelcouncil:api"))
-    implementation(project(":feature:subagent:api"))
     implementation(project(":core:ai-prompts"))
-    implementation(project(":core:memory:api"))
-    implementation(project(":core:sync:api"))
-    implementation(project(":core:context:api"))
-    implementation(project(":core:ai:api"))
-    implementation(project(":core:ai:transformers:api"))
-    implementation(project(":core:ai:generation:api"))
     implementation(project(":feature:subagent"))
-    implementation(project(":core:automation:api"))
     implementation(project(":feature:tools:impl"))
     implementation(project(":feature:board:impl"))
     implementation(project(":feature:runtime:api"))

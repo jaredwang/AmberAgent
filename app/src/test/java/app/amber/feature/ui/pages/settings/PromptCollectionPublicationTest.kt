@@ -3,7 +3,7 @@ package app.amber.feature.ui.pages.settings
 import androidx.lifecycle.viewModelScope
 import app.amber.core.model.Lorebook
 import app.amber.core.model.PromptInjection
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.utils.JsonInstant
 import app.amber.feature.ui.pages.extensions.PromptVM
 import kotlinx.coroutines.Job

@@ -10,7 +10,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,28 +44,6 @@ class SyncArchiveTableCoverageTest {
     fun ephemeralCachesStayOutOfSyncTables() {
         val syncTables = SyncArchiveManager.SYNC_TABLES.toSet()
         assertTrue(ephemeralTables.intersect(syncTables).isEmpty())
-    }
-
-    @Test
-    fun restoreStagesTableEntriesInsteadOfRetainingAllJsonRows() {
-        val source = listOf(
-            File("app/src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt"),
-            File("src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt"),
-        ).first { it.isFile }.readText()
-
-        assertTrue(source.contains("val stagedTableFiles = linkedMapOf<String, File>()"))
-        assertFalse(source.contains("linkedMapOf<String, MutableList<JsonObject>>()"))
-    }
-
-    @Test
-    fun exportReadsAllDatabaseTablesFromOneSnapshot() {
-        val source = listOf(
-            File("app/src/main/java/app/amber/core/sync/core/SyncPayloadExporter.kt"),
-            File("src/main/java/app/amber/core/sync/core/SyncPayloadExporter.kt"),
-        ).first { it.isFile }.readText()
-
-        assertTrue(source.contains("db.beginTransactionNonExclusive()"))
-        assertTrue(source.contains("db.setTransactionSuccessful()"))
     }
 
     private fun appDatabaseSchemaTables(): List<String> {

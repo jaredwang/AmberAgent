@@ -13,7 +13,7 @@ import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.settings.LegacyAssistantProfile
 import app.amber.core.settings.selectLegacyAssistantProfile
 import app.amber.core.settings.canonicalizedForAmberAgent
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.WebDavConfig
 import app.amber.core.settings.prefs.decodeJsonOrNull
 import app.amber.core.settings.prefs.decodeSearchServicesDroppingLegacy

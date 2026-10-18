@@ -38,7 +38,7 @@ import app.amber.core.memory.recall.MemoryRecallStore
 import app.amber.core.model.Conversation
 import app.amber.core.model.AMBER_AGENT_ID
 import app.amber.core.model.MessageNode
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.settings.AgentRuntimeSetting
 import app.amber.core.settings.Capability
 import app.amber.core.settings.CapabilityFlags

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import app.amber.core.infra.AppScope
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 
 /**
  * Per-component enable flags for the Rust JNI production switch.

@@ -30,9 +30,13 @@ kotlin {
 
 dependencies {
     api(project(":ai"))
+    api(project(":core:agent-runtime"))
+    api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation("androidx.compose.runtime:runtime")
+
+    testImplementation(libs.junit)
 }

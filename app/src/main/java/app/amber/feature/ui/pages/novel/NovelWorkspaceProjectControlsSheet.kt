@@ -471,8 +471,16 @@ internal fun NovelWorkspaceProjectControlsSheet(
                 }
             }
 
-                TextButton(onClick = onOpenPolish, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.novel_batch_polish), style = type.body, color = workspace.blue)
+                TextButton(
+                    onClick = onOpenPolish,
+                    enabled = !busy && !branchOwned,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.novel_batch_polish),
+                        style = type.body,
+                        color = if (!busy && !branchOwned) workspace.blue else workspace.faint,
+                    )
                 }
                 if (plotStale && !branchOwned) {
                     Text(stringResource(R.string.novel_plot_stale_warning), style = type.secondary, color = workspace.amber)
@@ -518,7 +526,7 @@ internal fun NovelWorkspaceProjectControlsSheet(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable(enabled = !busy) {
+                            .clickable(enabled = !busy && !branchOwned) {
                                 onInjectionChange(
                                     when (index) {
                                         0 -> injection.copy(plot = !checked)
@@ -537,7 +545,7 @@ internal fun NovelWorkspaceProjectControlsSheet(
                         }
                         Switch(
                             checked = checked,
-                            enabled = !busy,
+                            enabled = !busy && !branchOwned,
                             onCheckedChange = {
                                 onInjectionChange(
                                     when (index) {

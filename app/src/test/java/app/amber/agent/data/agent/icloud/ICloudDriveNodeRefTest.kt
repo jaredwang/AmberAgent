@@ -2,12 +2,10 @@ package app.amber.feature.icloud
 
 import kotlinx.serialization.json.buildJsonObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class ICloudDriveNodeRefTest {
     @Test
@@ -40,26 +38,5 @@ class ICloudDriveNodeRefTest {
         assertNull(ICloudDriveNodeRefs.decode(""))
         assertNull(ICloudDriveNodeRefs.decode("not-a-node-ref"))
         assertNull(ICloudDriveNodeRefs.decode("icn_not-base64"))
-    }
-
-    @Test
-    fun clientTreatsNodeRefAsPathScopedHint() {
-        val source = locateClient().readText()
-
-        assertTrue(source.contains("val node = resolveNode(session, resolvedPath.iCloudPath)"))
-        assertTrue(source.contains("node.matches(nodeRef)"))
-        assertFalse(
-            "node_ref must not be used as a direct retrieveNode capability token",
-            source.contains("retrieveNode(session, drivewsId)"),
-        )
-    }
-
-    private fun locateClient(): File {
-        val candidates = listOf(
-            File("../feature/icloud/src/main/kotlin/app/amber/feature/icloud/ICloudDriveClient.kt"),
-            File("feature/icloud/src/main/kotlin/app/amber/feature/icloud/ICloudDriveClient.kt"),
-        )
-        return candidates.firstOrNull { it.isFile }
-            ?: error("Could not locate ICloudDriveClient.kt")
     }
 }

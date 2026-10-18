@@ -110,26 +110,35 @@ private fun MemoryDocRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = doc.fileName,
-                    style = LocalAmberType.current.meta.copy(fontWeight = FontWeight.SemiBold),
-                    color = tokens.ink,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Text(
-                    text = formatMemorySize(doc.sizeBytes),
-                    style = LocalAmberType.current.meta,
-                    color = workspaceColors().muted,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-                Spacer(Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = doc.fileName,
+                        style = LocalAmberType.current.meta.copy(fontWeight = FontWeight.SemiBold),
+                        color = tokens.ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Text(
+                        text = formatMemorySize(doc.sizeBytes),
+                        style = LocalAmberType.current.meta,
+                        color = workspaceColors().muted,
+                        modifier = Modifier.padding(start = 8.dp),
+                        maxLines = 1,
+                    )
+                }
                 Text(
                     text = formatMemoryDate(doc.updatedAt),
                     style = LocalAmberType.current.meta,
                     color = workspaceColors().muted,
+                    modifier = Modifier.padding(start = 8.dp),
                     maxLines = 1,
                 )
             }
@@ -368,7 +377,6 @@ private fun MemoryRecordsHeader(
         ) {
             SectionLabel(
                 text = title,
-                modifier = Modifier.padding(bottom = 8.dp),
             )
             Box(
                 modifier = Modifier

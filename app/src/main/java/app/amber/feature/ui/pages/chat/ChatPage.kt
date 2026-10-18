@@ -16,10 +16,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
@@ -35,9 +32,6 @@ import app.amber.core.model.Conversation
 import app.amber.feature.ui.adaptive.LocalTwoPaneLayout
 import app.amber.feature.ui.components.ai.ChatInputSubmissionOwner
 import app.amber.feature.ui.components.workspace.WorkspaceFilePreview
-import app.amber.feature.ui.components.workspace.WorkspaceFileSheet
-import app.amber.feature.ui.components.workspace.WorkspaceFileVM
-import app.amber.feature.ui.components.workspace.ArtifactsVM
 import app.amber.feature.ui.components.workspace.SaveMessageToWorkspaceDialog
 import app.amber.agent.data.workspace.ArtifactRepository
 import app.amber.core.settings.Capability
@@ -63,21 +57,6 @@ fun ChatPage(
     /** The route's enter transition; the timeline composes once it has settled. */
     enterTransition: Transition<EnterExitState>? = null,
 ) {
-    // T2 perf-layer dispatch — flag-gated route to ChatPageSplit (scaffold).
-    // Default flag = false → legacy path below runs unchanged. See PerfFlags.kt
-    // + ChatPageSplit.kt for the new code path and on-device verification
-    // steps in docs/visual-sanity-check.md.
-    if (app.amber.agent.PerfFlags.USE_SPLIT_CHATPAGE_COMPOSABLES) {
-        ChatPageSplit(
-            id = id,
-            text = text,
-            files = files,
-            nodeId = nodeId,
-            messageId = messageId,
-            toolCallId = toolCallId,
-        )
-        return
-    }
 
     val vm: ChatVM = koinViewModel(
         parameters = {
@@ -92,7 +71,6 @@ fun ChatPage(
     val filesManager: FilesManager = koinInject()
     val eventBus: AppEventBus = koinInject()
     val navController = LocalNavController.current
-    var showWorkspaceSheet by remember { mutableStateOf(false) }
     var previewFilePath by remember { mutableStateOf<String?>(null) }
     val workspaceManager: WorkspaceManager = koinInject()
     // P3-01/P3-02: Workspace Artifact Registry — flag-gated create/reparse/delete,
@@ -335,37 +313,6 @@ fun ChatPage(
             { msg -> messageToSave = conversation.id.toString() to msg }
         } else null,
     )
-    if (showWorkspaceSheet) {
-        val workspaceCtx = LocalContext.current
-        val workspaceMgrForVm = workspaceManager
-        val workspaceVm = viewModel<WorkspaceFileVM>(
-            factory = object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return WorkspaceFileVM(workspaceCtx, workspaceMgrForVm) as T
-                }
-            }
-        )
-        val artifactsVm = viewModel<ArtifactsVM>(
-            factory = object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return ArtifactsVM(artifactRepository) as T
-                }
-            }
-        )
-        WorkspaceFileSheet(
-            vm = workspaceVm,
-            artifactsVm = artifactsVm,
-            artifactsEnabled = artifactsEnabled,
-            onDismiss = { showWorkspaceSheet = false },
-            onOpenFile = { path -> previewFilePath = path },
-            onOpenSourceConversation = { conversationId ->
-                showWorkspaceSheet = false
-                navController.navigate(Screen.Chat(id = conversationId))
-            },
-        )
-    }
     previewFilePath?.let { path ->
         WorkspaceFilePreview(
             relativePath = path,

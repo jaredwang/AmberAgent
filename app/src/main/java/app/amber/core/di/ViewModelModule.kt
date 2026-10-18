@@ -48,12 +48,10 @@ val viewModelModule = module {
             conversationRepo = get(),
             chatService = get(),
             analytics = get(),
+            eventBus = get(),
             filesManager = get(),
             favoriteRepository = get(),
             contextRepository = get(),
-            sendMessageOrchestrator = get(),
-            regenerateMessageOrchestrator = get(),
-            branchMessageOrchestrator = get(),
             conversationDraftStore = get(),
             startSuggestionGenerator = get(),
         )

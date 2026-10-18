@@ -31,7 +31,7 @@ import app.amber.core.memory.model.MemoryWorkerDreamGate
 import app.amber.core.memory.store.bucketForScope
 import app.amber.core.memory.store.MemoryStaleException
 import app.amber.core.model.AssistantMemory
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import java.io.File
 
 internal const val LOW_CONFIDENCE_CANDIDATE_THRESHOLD = 0.60f

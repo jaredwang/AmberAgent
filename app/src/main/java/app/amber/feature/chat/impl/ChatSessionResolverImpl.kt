@@ -19,7 +19,7 @@ import app.amber.core.ai.transformers.ThinkTagTransformer
 import app.amber.core.ai.transformers.TimeReminderTransformer
 import app.amber.core.settings.getCurrentChatModel
 import app.amber.core.settings.prefs.SettingsAggregator
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.service.ChatRunCoordinator
 import app.amber.core.service.ChatRunHooksFactory
 import app.amber.core.service.ChatErrorStore

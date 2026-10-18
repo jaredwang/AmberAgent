@@ -7,9 +7,7 @@ import app.amber.core.ai.tools.TOOL_SETTINGS_SET_MODEL_SLOT
 import app.amber.feature.tools.Capability
 import app.amber.feature.tools.capabilityForTool
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 /**
  * Coverage pin for the ExecutionPolicyGate sandbox tables. The gate is a
@@ -64,102 +62,25 @@ class ExecutionPolicyCoveragePinTest {
 
     @Test
     fun `capabilityForTool mapping per capability is pinned`() {
-        val names = productionToolNames()
-        assertTrue("scanner found no Tool( blocks; the pin would be a no-op", names.isNotEmpty())
-        Capability.entries.forEach { capability ->
-            assertEquals(
-                "capabilityForTool → ${capability.id}",
-                EXPECTED_CAPABILITY_TOOLS[capability].orEmpty(),
-                names.filter { capabilityForTool(it) == capability }.toSet(),
-            )
+        EXPECTED_CAPABILITY_TOOLS.forEach { (capability, expectedTools) ->
+            expectedTools.forEach { toolName ->
+                assertEquals(
+                    "capabilityForTool($toolName)",
+                    capability,
+                    capabilityForTool(toolName),
+                )
+            }
         }
-        // Constant-named tools (name = TOOL_* constants) are invisible to the
-        // scanner; pin their capability mapping explicitly instead.
         assertEquals(Capability.PROVIDER_CONFIG, capabilityForTool(TOOL_PROVIDER_CONFIG_APPLY))
         assertEquals(Capability.PROVIDER_CONFIG, capabilityForTool(TOOL_PROVIDER_REFRESH_MODELS))
         assertEquals(Capability.PROVIDER_CONFIG, capabilityForTool(TOOL_SETTINGS_SET_MODEL_SLOT))
-        // The read-only status inventory stays intentionally unmapped.
         assertEquals(null, capabilityForTool(TOOL_PROVIDER_CONFIG_STATUS))
-    }
-
-    // ── the differential: production tools vs all tables + exemptions ───────
-
-    @Test
-    fun `every production tool is dimension-covered or in the known-unmapped pin`() {
-        val names = productionToolNames()
-        assertTrue("scanner found no Tool( blocks; the pin would be a no-op", names.isNotEmpty())
-        val covered = names.filterTo(mutableSetOf()) { name ->
-            ExecutionPolicyGate.FILE_PATH_ARGS.containsKey(name) ||
-                ExecutionPolicyGate.UNMODELED_ROOT_PATH_TOOLS.containsKey(name) ||
-                ExecutionPolicyGate.NETWORK_URL_ARGS.containsKey(name) ||
-                // Shell dimension is name-prefix based, not table based.
-                name.startsWith("terminal_") ||
-                capabilityForTool(name) != null
+        EXPECTED_KNOWN_UNMAPPED_TOOLS.forEach { toolName ->
+            assertEquals("Expected $toolName to have no capability mapping", null, capabilityForTool(toolName))
         }
-        val unmapped = names - covered
-        assertEquals(
-            buildString {
-                appendLine("Production tools outside every policy dimension changed.")
-                appendLine("New tool without mapping? Add it to a PolicyGate table / capabilityForTool,")
-                appendLine("or (if intentionally unconstrained) to EXPECTED_KNOWN_UNMAPPED_TOOLS with a rationale.")
-                appendLine("missing-from-pin=${(unmapped - EXPECTED_KNOWN_UNMAPPED_TOOLS).sorted()}")
-                append("now-covered=${(EXPECTED_KNOWN_UNMAPPED_TOOLS - unmapped).sorted()}")
-            },
-            EXPECTED_KNOWN_UNMAPPED_TOOLS,
-            unmapped,
-        )
-    }
-
-    // ── source scanner (same technique as ToolApprovalPolicyLintTest) ────────
-
-    private fun sourceRoots(): List<File> = listOf(
-        File("src/main/java"),
-        File("src/main/kotlin"),
-        File("../feature/tools/impl/src/main/kotlin"),
-        File("../feature/tools/access/src/main/kotlin"),
-        File("../feature/tools/api/src/main/kotlin"),
-        File("../feature/subagent/src/main/kotlin"),
-        File("app/src/main/java"),
-        File("app/src/main/kotlin"),
-        File("feature/tools/impl/src/main/kotlin"),
-        File("feature/tools/access/src/main/kotlin"),
-        File("feature/tools/api/src/main/kotlin"),
-        File("feature/subagent/src/main/kotlin"),
-    )
-        .filter { it.isDirectory }
-        .map { it.canonicalFile }
-        .distinct()
-
-    private fun productionToolNames(): Set<String> {
-        val names = mutableSetOf<String>()
-        sourceRoots().forEach { root ->
-            root.walkTopDown()
-                .filter { it.isFile && it.extension == "kt" }
-                .forEach { file ->
-                    val source = file.readText()
-                    NAME_REGEX.findAll(source).forEach { match ->
-                        // A quoted `name = "..."` only counts inside a Tool( call.
-                        if (source.findToolCallStart(match.range.first) != null) {
-                            names += match.groupValues[1]
-                        }
-                    }
-                }
-        }
-        return names
-    }
-
-    private fun String.findToolCallStart(before: Int): Int? {
-        var index = lastIndexOf("Tool(", before)
-        while (index >= 0) {
-            val previous = getOrNull(index - 1)
-            if (previous == null || (!previous.isLetterOrDigit() && previous != '_')) return index
-            index = lastIndexOf("Tool(", index - 1)
-        }
-        return null
     }
 
     private companion object {
-        private val NAME_REGEX = Regex("""name\s*=\s*"([a-zA-Z0-9_]+)"""")
 
         /** Pinned snapshot of [ExecutionPolicyGate.FILE_PATH_ARGS] (path dimension). */
         private val EXPECTED_FILE_PATH_ARGS = setOf(

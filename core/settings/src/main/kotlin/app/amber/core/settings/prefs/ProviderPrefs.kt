@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import app.amber.ai.provider.ProviderSetting
 import app.amber.core.infra.AppScope
 import app.amber.core.settings.DEFAULT_PROVIDERS
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.secret.SecretRedactor
 import app.amber.core.settings.secret.SecretStore
 import app.amber.core.agent.utils.JsonInstant

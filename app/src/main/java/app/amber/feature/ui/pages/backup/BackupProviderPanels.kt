@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import app.amber.core.sync.core.SyncSettings
 import app.amber.core.sync.provider.SyncSnapshot
 import app.amber.core.settings.WebDavConfig
-import app.amber.feature.ui.components.ds.Hairline
 import app.amber.feature.ui.pages.setting.SettingTileIcon
 import app.amber.feature.ui.pages.setting.SettingCardGroup
 import app.amber.feature.ui.pages.setting.ExperimentActionButton
@@ -264,7 +263,7 @@ internal fun WebDavBackupPanel(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Row(
@@ -337,7 +336,7 @@ internal fun WebDavBackupPanel(
     }
     if (webDavSnapshots.isNotEmpty()) {
         SettingCardGroup(title = stringResource(R.string.backup_webdav_snapshots)) {
-            webDavSnapshots.forEachIndexed { index, snapshot ->
+            webDavSnapshots.forEach { snapshot ->
                 rawItem {
                     ProviderSnapshotRow(
                         snapshot = snapshot,
@@ -345,7 +344,6 @@ internal fun WebDavBackupPanel(
                         onDelete = { onDelete(snapshot) },
                     )
                 }
-                if (index != webDavSnapshots.lastIndex) rawItem { Hairline() }
             }
         }
     }
@@ -397,7 +395,7 @@ internal fun FolderBackupPanel(
     }
     if (localFolderSnapshots.isNotEmpty()) {
         SettingCardGroup(title = stringResource(R.string.backup_folder_snapshots)) {
-            localFolderSnapshots.forEachIndexed { index, snapshot ->
+            localFolderSnapshots.forEach { snapshot ->
                 rawItem {
                     ProviderSnapshotRow(
                         snapshot = snapshot,
@@ -405,7 +403,6 @@ internal fun FolderBackupPanel(
                         onDelete = { onDelete(snapshot) },
                     )
                 }
-                if (index != localFolderSnapshots.lastIndex) rawItem { Hairline() }
             }
         }
     }

@@ -21,7 +21,6 @@ import app.amber.ai.provider.Model
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
 import app.amber.ai.ui.isEmptyUIMessage
-import app.amber.agent.PerfFlags
 import app.amber.core.model.AssistantAffectScope
 import app.amber.core.model.AssistantRegex
 import app.amber.core.model.MessageNode
@@ -160,7 +159,7 @@ internal fun buildChatMessageVirtualItems(
     val groupedParts = message.parts.groupMessageParts()
     val shouldSplitComplexMessage = groupedParts.size > 2 || message.parts.size > 4
     val searchPresentation = deriveSearchPresentation(message.parts)
-    val imageAnchorResolver = if (PerfFlags.SEARCH_INLINE_IMAGES && searchPresentation.images.isNotEmpty()) {
+    val imageAnchorResolver = if (searchPresentation.images.isNotEmpty()) {
         SearchBlockImageAnchorResolver(searchPresentation)
     } else {
         null

@@ -5,7 +5,7 @@ import app.amber.agent.BuildConfig
 import app.amber.common.android.LogEntry
 import app.amber.common.android.Logging
 import app.amber.core.jev.JevHttpRequest
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.settingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

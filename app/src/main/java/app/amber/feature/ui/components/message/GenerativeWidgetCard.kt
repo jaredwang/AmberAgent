@@ -48,11 +48,6 @@ fun GenerativeWidgetCard(
     isStreaming: Boolean = !widget.complete,
     onAction: (String) -> Unit = {},
 ) {
-    // T-C perf-layer dispatch — see PerfFlags + docs/visual-sanity-check.md.
-    if (app.amber.agent.PerfFlags.USE_SPLIT_GENERATIVE_WIDGET_CARD) {
-        GenerativeWidgetCardSplit(widget = widget, modifier = modifier, onAction = onAction)
-        return
-    }
 
     val context = LocalContext.current
     val toaster = LocalToaster.current
@@ -207,7 +202,10 @@ fun GenerativeWidgetCard(
             if (widget.complete && widget.renderer in setOf("vchart", "slides", GuizangHtmlDeckValidator.RENDERER) &&
                 widget.specJson != null && canOpenExpanded
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     Surface(
                         onClick = { showExpanded = true },
                         shape = RoundedCornerShape(6.dp),

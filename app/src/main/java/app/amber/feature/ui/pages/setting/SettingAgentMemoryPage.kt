@@ -37,7 +37,7 @@ import app.amber.core.memory.model.MemoryCandidate
 import app.amber.core.memory.model.MemoryEvent
 import app.amber.core.memory.model.MemoryWorkerDreamGate
 import app.amber.core.model.AssistantMemory
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.feature.ui.components.nav.BackButton
 import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.feature.ui.context.LocalNavController

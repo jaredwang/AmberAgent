@@ -352,6 +352,7 @@ internal fun ChatPageTimelineHost(
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
+                            .padding(bottom = innerPadding.calculateBottomPadding())
                             .fillMaxWidth()
                             .height(56.dp)
                             .background(

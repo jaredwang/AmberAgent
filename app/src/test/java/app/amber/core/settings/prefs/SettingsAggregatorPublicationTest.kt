@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import app.amber.core.agent.utils.JsonInstant
 import app.amber.core.infra.AppScope
 import app.amber.core.settings.DEFAULT_AUTO_MODEL_ID
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.secret.SecretCipher
 import app.amber.core.settings.secret.SecretRedactor
 import app.amber.core.settings.secret.SecretStore

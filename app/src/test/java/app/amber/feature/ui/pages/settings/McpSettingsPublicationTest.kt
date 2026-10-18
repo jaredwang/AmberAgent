@@ -8,7 +8,7 @@ import app.amber.core.ai.mcp.McpImportPreparation
 import app.amber.core.ai.mcp.McpImportTransaction
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.files.SkillManager
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.utils.JsonInstant
 import app.amber.feature.runtime.CapabilityPermissionStore
 import app.amber.feature.ui.pages.extensions.SkillDetailVM

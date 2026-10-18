@@ -402,7 +402,10 @@ internal fun ChatPageScaffold(
                                 )
                             }
                         },
-                        modifier = Modifier.padding(top = innerPadding.calculateTopPadding()),
+                        modifier = Modifier.padding(
+                            top = innerPadding.calculateTopPadding(),
+                            bottom = innerPadding.calculateBottomPadding(),
+                        ),
                         header = if (conversation.messageNodes.isNotEmpty()) {
                             {
                                 ChatModelMenuUsageHeader(

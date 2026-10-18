@@ -13,7 +13,7 @@ import app.amber.core.repository.ConversationRepository
 import app.amber.core.repository.FavoriteRepository
 import app.amber.core.repository.FilesRepository
 import app.amber.core.repository.ImageGenerationRepository
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.memory.recall.MemoryRecallStore
 import app.amber.core.sync.core.SyncRestoreWriteGate
 import org.koin.dsl.module
@@ -44,10 +44,6 @@ val repositoryModule = module {
 
     single {
         MemoryRepository(get(), get(), get(), get(), get())
-    }
-
-    single<app.amber.core.memory.store.MemoryRepository> {
-        get<MemoryRepository>()
     }
 
     single {

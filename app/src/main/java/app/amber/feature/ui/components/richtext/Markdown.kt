@@ -80,21 +80,6 @@ fun MarkdownBlock(
     onStreamingVisualActiveChange: ((Boolean) -> Unit)? = null,
     onClickCitation: (String) -> Unit = {}
 ) {
-    // T-C perf-layer dispatch — see PerfFlags + docs/visual-sanity-check.md.
-    if (app.amber.agent.PerfFlags.USE_SPLIT_MARKDOWN) {
-        MarkdownBlockSplit(
-            content = content,
-            modifier = modifier,
-            style = style,
-            fillWidth = fillWidth,
-            streaming = streaming,
-            deferStreamingParse = deferStreamingParse,
-            onStreamingVisibleFrame = onStreamingVisibleFrame,
-            onStreamingVisualActiveChange = onStreamingVisualActiveChange,
-            onClickCitation = onClickCitation,
-        )
-        return
-    }
     MarkdownBlockLegacy(
         content = content,
         modifier = modifier,

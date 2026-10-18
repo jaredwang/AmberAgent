@@ -39,7 +39,7 @@ import app.amber.agent.R
 import app.amber.core.model.AssistantMemory
 import app.amber.core.model.MemoryKind
 import app.amber.core.model.MemoryScope
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.feature.ui.components.ui.workspaceColors
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
@@ -127,7 +127,7 @@ internal fun MemoryEditorDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = !isSaving,
+                enabled = !isSaving && memory.content.isNotBlank(),
                 onClick = onSave,
             ) {
                 Text(stringResource(R.string.common_save))

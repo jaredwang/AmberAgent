@@ -3,7 +3,7 @@ package app.amber.core.service.tools
 import android.content.Context
 import app.amber.ai.core.Tool
 import app.amber.core.ai.tools.buildMemoryTools
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.settings.Settings
 import app.amber.core.utils.appLocale
 import app.amber.feature.runtime.CapabilityPermissionStore

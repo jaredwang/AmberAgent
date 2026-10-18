@@ -151,7 +151,7 @@ internal fun DeepReadReaderContent(
                     val noticeModifier = Modifier
                         .align(Alignment.TopCenter)
                         .statusBarsPadding()
-                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                        .padding(horizontal = 64.dp, vertical = 10.dp)
                     when {
                         generating -> RunningStageNotice(
                             progress = data.deepReadProgressSnapshot(running = true, locale = appLocale),
@@ -232,7 +232,7 @@ internal fun DeepReadReaderContent(
                                 modifier = Modifier
                                     .align(Alignment.TopCenter)
                                     .statusBarsPadding()
-                                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                                    .padding(horizontal = 64.dp, vertical = 10.dp),
                             )
                         }
                         DeepReadBackButton(
@@ -286,7 +286,7 @@ internal fun DeepReadReaderContent(
                     val noticeModifier = Modifier
                         .align(Alignment.TopCenter)
                         .statusBarsPadding()
-                        .padding(horizontal = 18.dp, vertical = 10.dp)
+                        .padding(horizontal = 64.dp, vertical = 10.dp)
 
                     when {
                         generating -> RunningStageNotice(

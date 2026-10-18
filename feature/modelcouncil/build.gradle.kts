@@ -27,7 +27,7 @@ kotlin {
 }
 
 dependencies {
-    api(project(":feature:modelcouncil:api"))
+    api(project(":core:model"))
     api(project(":ai"))
     api(project(":core:app-infra"))
     api(project(":core:settings"))

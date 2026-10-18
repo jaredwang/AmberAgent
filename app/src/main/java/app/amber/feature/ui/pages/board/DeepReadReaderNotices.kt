@@ -131,6 +131,8 @@ internal fun DeepReadPartialErrorNotice(
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.error,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
             androidx.compose.material3.TextButton(
                 onClick = onRetry,

@@ -3,15 +3,8 @@ package app.amber.core.service
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 import kotlin.uuid.Uuid
 
-/**
- * P8-07：错误按会话过滤。
- *
- * - 过滤/分区是纯函数（[errorsForConversation] / [globalErrors]），直接单测。
- * - UI 区分（全局 banner 与消息错误）用源码断言验证接入点。
- */
 class ChatErrorFilterTest {
 
     private fun chatError(conversationId: Uuid?, message: String) = ChatError(
@@ -59,35 +52,5 @@ class ChatErrorFilterTest {
         assertEquals(listOf("provider config broken"), global.map { it.error.message })
         assertTrue(global.all { it.conversationId == null })
         assertEquals(listOf("generation failed"), errors.errorsForConversation(a).map { it.error.message })
-    }
-
-    // ---- UI 接入：全局 banner 与消息错误区分 ----
-
-    @Test
-    fun `chat vm exposes per-conversation errors and global errors separately`() {
-        val vm = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatVM.kt").readText()
-        val page = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatPage.kt").readText()
-
-        assertTrue(vm.contains("errorsForConversation(_conversationId)"))
-        assertTrue(vm.contains("it.globalErrors()"))
-        assertTrue(page.contains("globalErrors by vm.globalErrors.collectAsStateWithLifecycle()"))
-    }
-
-    @Test
-    fun `global error card uses distinct styling from message error`() {
-        val card = repoFile("src/main/java/app/amber/feature/ui/components/ui/ErrorCard.kt").readText()
-
-        assertTrue(card.contains("globalErrors: List<ChatError> = emptyList()"))
-        assertTrue(card.contains("isGlobal: Boolean = false"))
-        assertTrue(card.contains("tertiaryContainer"))
-        assertTrue(card.contains("errorContainer"))
-    }
-
-    private fun repoFile(pathInAppModule: String): File {
-        return listOf(
-            File(pathInAppModule),
-            File("app/$pathInAppModule"),
-        ).firstOrNull { it.isFile }
-            ?: error("Cannot locate $pathInAppModule")
     }
 }

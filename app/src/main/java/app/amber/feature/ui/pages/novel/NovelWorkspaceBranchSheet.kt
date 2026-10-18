@@ -154,14 +154,20 @@ internal fun BranchSheet(
                             )
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    if (branch.isMain) branch.title else branch.slug,
+                                    branch.title.ifBlank { branch.slug },
                                     style = type.body.copy(fontWeight = if (current) FontWeight.SemiBold else FontWeight.Normal),
                                     color = workspace.ink,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 if (!branch.isMain && branch.slug != branch.title) {
-                                    Text(branch.slug, style = type.tinyTag, color = workspace.faint, maxLines = 1)
+                                    Text(
+                                        branch.slug,
+                                        style = type.tinyTag,
+                                        color = workspace.faint,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
                                 }
                             }
                             if (current) {

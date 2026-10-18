@@ -6,7 +6,6 @@ members = [
     "markdown-parser",
     "highlight-parser",
     "regex-transformer",
-    "tokenizer",
     "reader-extractor",
     "sync-crypto",
     "markdown-preprocess",

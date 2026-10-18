@@ -48,7 +48,7 @@ import app.amber.highlight.HighlightText
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Trash2
 import app.amber.agent.R
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.feature.ui.components.richtext.HighlightCodeBlock
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.components.richtext.ZoomableAsyncImage

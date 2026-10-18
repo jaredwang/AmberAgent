@@ -62,12 +62,11 @@ import app.amber.core.service.ChatStartSuggestionGenerator
 import app.amber.core.service.ConversationTimelineLoadState
 import app.amber.core.service.PendingUserMessage
 import app.amber.core.service.PendingUserMessageMode
+import app.amber.core.ai.tools.parseDeepReadSlashCommand
+import app.amber.core.event.AppEventBus
 import app.amber.core.service.blockedReason
 import app.amber.core.service.errorsForConversation
 import app.amber.core.service.globalErrors
-import app.amber.core.service.orchestrator.BranchMessageOrchestrator
-import app.amber.core.service.orchestrator.RegenerateMessageOrchestrator
-import app.amber.core.service.orchestrator.SendMessageOrchestrator
 import app.amber.feature.runtime.OutcomeUnknownPrompt
 import app.amber.feature.miniapp.ConversationDraftStore
 import app.amber.feature.ui.hooks.writeStringPreference
@@ -86,12 +85,10 @@ class ChatVM(
     private val conversationRepo: ConversationRepository,
     private val chatService: ChatService,
     private val analytics: FirebaseAnalytics,
+    private val eventBus: AppEventBus,
     private val filesManager: FilesManager,
     private val favoriteRepository: FavoriteRepository,
     private val contextRepository: ConversationContextRepository,
-    private val sendMessageOrchestrator: SendMessageOrchestrator,
-    private val regenerateMessageOrchestrator: RegenerateMessageOrchestrator,
-    private val branchMessageOrchestrator: BranchMessageOrchestrator,
     private val conversationDraftStore: ConversationDraftStore,
     private val startSuggestionGenerator: ChatStartSuggestionGenerator,
 ) : ViewModel() {
@@ -359,7 +356,13 @@ class ChatVM(
         answer: Boolean = true,
         queueMode: PendingUserMessageMode = PendingUserMessageMode.FOLLOWUP,
     ): Boolean {
-        val accepted = sendMessageOrchestrator.send(_conversationId, content, answer, queueMode)
+        if (content.isEmptyInputMessage()) return false
+        analytics.logEvent("ai_send_message", null)
+        val accepted = if (parseDeepReadSlashCommand(content)?.let { eventBus.tryEmit(it) } == true) {
+            true
+        } else {
+            chatService.sendMessage(_conversationId, content, answer, queueMode)
+        }
         // P3-03: once anything is actually sent, a MiniApp-hosted composer
         // draft is consumed and must not come back on the next open.
         if (accepted) {
@@ -431,7 +434,7 @@ class ChatVM(
     }
 
     suspend fun forkMessage(message: UIMessage): Conversation {
-        return branchMessageOrchestrator.fork(_conversationId, message)
+        return chatService.forkConversationAtMessage(_conversationId, message.id)
     }
 
     fun deleteMessage(message: UIMessage) {
@@ -452,7 +455,8 @@ class ChatVM(
         message: UIMessage,
         regenerateAssistantMsg: Boolean = true
     ) {
-        regenerateMessageOrchestrator.regenerate(_conversationId, message, regenerateAssistantMsg)
+        analytics.logEvent("ai_regenerate_at_message", null)
+        chatService.regenerateAtMessage(_conversationId, message, regenerateAssistantMsg)
     }
 
     fun handleToolApproval(

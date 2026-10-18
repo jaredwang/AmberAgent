@@ -41,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -318,6 +319,8 @@ fun DeepReadLuckyBanner(
                 stringResource(R.string.deepread_lucky_prefix, pick.detail),
                 style = type.meta.copy(fontSize = 11.sp),
                 color = tokens.ink3,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 pick.title,
@@ -328,6 +331,7 @@ fun DeepReadLuckyBanner(
                 ),
                 color = tokens.ink,
                 maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Box(

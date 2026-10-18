@@ -10,7 +10,7 @@ import app.amber.core.ai.mcp.McpCommonOptions
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.agent.utils.JsonInstant
 import app.amber.core.infra.AppScope
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.Settings
 import app.amber.core.settings.AgentRuntimeSetting
 import app.amber.core.settings.DisplaySetting

@@ -17,7 +17,7 @@ import app.amber.ai.provider.ProviderSetting
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.settings.LegacyAssistantProfile
 import app.amber.core.model.AMBER_AGENT_ID
-import app.amber.core.settings.PreferencesKeys
+import app.amber.core.infra.PreferencesKeys
 import app.amber.core.settings.WebDavConfig
 import app.amber.core.agent.utils.JsonInstant
 import app.amber.core.sync.s3.S3Config

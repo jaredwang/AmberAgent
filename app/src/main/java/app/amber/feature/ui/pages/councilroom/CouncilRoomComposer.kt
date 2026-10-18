@@ -65,6 +65,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.amber.ai.ui.UIMessagePart
 import app.amber.agent.R
@@ -115,6 +116,10 @@ fun CouncilRoomComposer(
 ) {
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
+    val settings = LocalSettings.current
+    val toaster = LocalToaster.current
+    val context = LocalContext.current
+    val attachmentStrings = remember(context) { ImageAttachmentStrings.from(context) }
     val filesManager: FilesManager = koinInject()
     val scope = rememberCoroutineScope()
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -420,6 +425,15 @@ fun CouncilRoomComposer(
                             }
                             val text = textFieldValue.text.trim()
                             if (text.isNotEmpty() || attachments.isNotEmpty()) {
+                                val blockingIssue = ImageAttachmentValidator.firstBlockingIssue(
+                                    parts = attachments.toList(),
+                                    settings = settings,
+                                    strings = attachmentStrings,
+                                )
+                                if (blockingIssue != null) {
+                                    toaster.show(blockingIssue.message, type = ToastType.Error)
+                                    return@clickable
+                                }
                                 val resolved = mentionTargets.filter { pid ->
                                     room.participantById(pid)?.name?.let { "@$it" in text } ?: false
                                 }
@@ -547,7 +561,12 @@ private fun CouncilAttachmentStrip(
                             ImageAttachmentValidator.inspectImage(part, settings, attachmentStrings)
                         }
                     }
-                    Box {
+                    Box(
+                        modifier = Modifier.clickable(
+                            enabled = status.blocksSend,
+                            onClick = { toaster.show(status.message, type = ToastType.Error) },
+                        ),
+                    ) {
                         AsyncImage(
                             model = part.url,
                             contentDescription = stringResource(R.string.council_room_image_attachment),
@@ -582,13 +601,7 @@ private fun CouncilAttachmentStrip(
                                         .align(Alignment.TopEnd)
                                         .padding(2.dp)
                                         .clip(CircleShape)
-                                        .background(dotColor)
-                                        .clickable(
-                                            enabled = status.blocksSend,
-                                            onClick = {
-                                                toaster.show(status.message, type = ToastType.Error)
-                                            },
-                                        )
+                                        .background(dotColor),
                                 )
                             }
                         }
@@ -621,6 +634,7 @@ private fun CouncilAttachmentStrip(
                             style = MaterialTheme.typography.labelMedium,
                             color = tokens.ink,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                     AttachmentRemoveBadge(

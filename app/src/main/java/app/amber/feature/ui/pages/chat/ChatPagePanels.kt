@@ -170,39 +170,42 @@ internal fun UserMessageEditConfirmBar(
     onCancelEdit: () -> Unit,
 ) {
     val workspace = workspaceColors()
-    Row(
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
+        verticalArrangement = Arrangement.Center,
     ) {
-        if (!generating) {
-            Text(
-                text = stringResource(R.string.edit),
-                style = MaterialTheme.typography.labelMedium,
-                color = workspace.muted,
-            )
-            Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = stringResource(if (generating) R.string.chat_page_edit_generating else R.string.edit),
+            style = if (generating) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
+            color = workspace.muted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f, fill = true)
+                .align(Alignment.CenterVertically),
+        )
+        TextButton(
+            onClick = onCancelEdit,
+            modifier = Modifier.align(Alignment.CenterVertically),
+        ) {
+            Text(stringResource(R.string.chat_page_cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        if (generating) {
-            Text(
-                text = stringResource(R.string.chat_page_edit_generating),
-                style = MaterialTheme.typography.labelSmall,
-                color = workspace.muted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
+        TextButton(
+            onClick = onSaveOnly,
+            enabled = !generating,
+            modifier = Modifier.align(Alignment.CenterVertically),
+        ) {
+            Text(stringResource(R.string.chat_page_save_only), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        TextButton(onClick = onCancelEdit) {
-            Text(stringResource(R.string.chat_page_cancel), maxLines = 1)
-        }
-        TextButton(onClick = onSaveOnly, enabled = !generating) {
-            Text(stringResource(R.string.chat_page_save_only), maxLines = 1)
-        }
-        Button(onClick = onSaveAndRegenerate, enabled = !generating) {
-            Text(stringResource(R.string.chat_page_save_and_regenerate), maxLines = 1)
+        Button(
+            onClick = onSaveAndRegenerate,
+            enabled = !generating,
+            modifier = Modifier.align(Alignment.CenterVertically),
+        ) {
+            Text(stringResource(R.string.chat_page_save_and_regenerate), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

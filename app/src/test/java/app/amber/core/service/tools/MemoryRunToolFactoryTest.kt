@@ -4,7 +4,7 @@ import app.amber.ai.core.Tool
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.memory.model.MemoryKind
 import app.amber.core.memory.model.MemoryScope
-import app.amber.core.repository.MemoryRepository
+import app.amber.core.memory.store.MemoryRepository
 import app.amber.core.settings.Settings
 import app.amber.feature.runtime.DurableRuntimeTestBase
 import kotlinx.coroutines.runBlocking

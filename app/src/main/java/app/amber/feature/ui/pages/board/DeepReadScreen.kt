@@ -55,17 +55,6 @@ fun DeepReadScreen(
     initialForceRegenerate: Boolean = false,
     fromHistory: Boolean = false,
 ) {
-    // T-C perf-layer dispatch — see PerfFlags + docs/visual-sanity-check.md.
-    if (app.amber.agent.PerfFlags.USE_SPLIT_DEEPREAD_SCREEN) {
-        DeepReadScreenSplit(
-            topicId = topicId,
-            title = title,
-            sourceUrl = sourceUrl,
-            initialForceRegenerate = initialForceRegenerate,
-            fromHistory = fromHistory,
-        )
-        return
-    }
 
     val deepReadScheduler: DeepReadScheduler = koinInject()
     val settingsStore: SettingsAggregator = koinInject()
@@ -196,7 +185,7 @@ fun DeepReadScreen(
                 runCatching { hotListRepository.countCompletedDeepReads() }.getOrDefault(0)
             }
             pressSeal = DeepReadMoments.pressSeal(
-                finishedWithError = output?.sectionFailureMessage() != null,
+                finishedWithError = output.sectionFailureMessage() != null,
                 wasFirstDraft = entryHadReady != true,
                 completedCount = count,
             )

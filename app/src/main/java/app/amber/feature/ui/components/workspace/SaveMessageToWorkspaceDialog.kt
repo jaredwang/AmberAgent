@@ -283,3 +283,9 @@ private fun workspaceLabel(workspaceId: String): String =
     } else {
         workspaceId
     }
+
+private fun formatTime(epochMs: Long): String {
+    if (epochMs <= 0L) return ""
+    return java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+        .format(java.util.Date(epochMs))
+}
