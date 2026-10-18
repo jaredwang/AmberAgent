@@ -21,7 +21,7 @@ class ScreenExpectationTest {
         override fun matchingTexts(query: String): List<ProbeTextMatch> =
             texts[query].orEmpty().map { ProbeTextMatch(enabled = it) }
 
-        override fun editableLabels(): List<String> = editable
+        override fun editableValues(): List<String> = editable
     }
 
     private fun evaluate(
@@ -130,11 +130,11 @@ class ScreenExpectationTest {
         assertEquals("value_mismatch", mismatch.detail)
     }
 
-    /** 密码框在快照里是遮罩标签；等值验收不得把遮罩当成用户填的值。 */
+    /** 密码框的原始值不进入 probe；显示遮罩不是可验收的输入值。 */
     @Test
     fun valueEqualsNeverMatchesTheMaskedPasswordField() {
         val verdict = evaluate(
-            FakeProbe(emptyMap(), editable = listOf(MASKED_EDITABLE_LABEL)),
+            FakeProbe(emptyMap()),
             "value_equals",
             value = MASKED_EDITABLE_LABEL,
         )

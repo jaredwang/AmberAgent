@@ -27,8 +27,11 @@ val novelModule = module {
             gate = get(),
             workspaceRoot = NovelWorkspaceProjectRepository.defaultRoot(androidContext().filesDir),
             cancelBackgroundWork = {
-                androidx.work.WorkManager.getInstance(androidContext())
-                    .cancelAllWorkByTag(NovelWorkspaceGhostwriteController.WORK_TAG)
+                // Cold-start journal recovery runs before WorkManager can resume jobs.
+                if (androidx.work.WorkManager.isInitialized()) {
+                    androidx.work.WorkManager.getInstance(androidContext())
+                        .cancelAllWorkByTag(NovelWorkspaceGhostwriteController.WORK_TAG)
+                }
             },
         )
     }

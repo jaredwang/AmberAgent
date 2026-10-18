@@ -49,6 +49,33 @@ class ChatInputStateTest {
     }
 
     @Test
+    fun editingAttachmentOnlyMessage_keepsNewlyTypedTextAndOriginalAttachment() {
+        val state = ChatInputState()
+        val image = UIMessagePart.Image("file:///tmp/original.png")
+        state.editingMessage = Uuid.random()
+        state.setContents(listOf(image))
+
+        state.setMessageText("Please explain this image")
+
+        val parts = state.getContents()
+        assertEquals(listOf(UIMessagePart.Text("Please explain this image")), parts.filterIsInstance<UIMessagePart.Text>())
+        assertEquals(listOf(image), parts.filterIsInstance<UIMessagePart.Image>())
+    }
+
+    @Test
+    fun editingMessageWithSeveralTextParts_updatesTheLastTextAndPreservesReadingOrder() {
+        val state = ChatInputState()
+        val firstText = UIMessagePart.Text("earlier text")
+        val image = UIMessagePart.Image("file:///tmp/original.png")
+        state.editingMessage = Uuid.random()
+        state.setContents(listOf(firstText, image, UIMessagePart.Text("last text")))
+
+        state.setMessageText("edited last text")
+
+        assertEquals(listOf(firstText, image, UIMessagePart.Text("edited last text")), state.getContents())
+    }
+
+    @Test
     fun attachmentImport_tracksReadyPartAndMetadata() {
         val state = ChatInputState()
         state.bindToConversation("conversation-a")
@@ -180,5 +207,40 @@ class ChatInputStateTest {
         assertEquals(listOf(Uri.parse(part.url)), files)
         assertTrue(state.messageContent.isEmpty())
         assertTrue(state.attachmentImports.isEmpty())
+    }
+
+    @Test
+    fun replacingContentsRemovesReadyImportsFromThePreviousDraft() {
+        val state = ChatInputState().apply { bindToConversation("conversation-a") }
+        val import = state.beginAttachmentImport(
+            "conversation-a", Uri.parse("content://picker/previous.pdf"), "previous.pdf",
+            "application/pdf", ChatInputAttachmentKind.DOCUMENT,
+        )!!
+        val previous = UIMessagePart.Document("file:///tmp/previous.pdf", "previous.pdf")
+        assertTrue(state.completeAttachmentImport("conversation-a", import.id, previous, 12L))
+
+        state.editingMessage = Uuid.random()
+        state.setContents(listOf(UIMessagePart.Text("historical message")))
+
+        assertTrue("Only attachments in the replacement draft may retain visible import chips", state.attachmentImports.isEmpty())
+        assertEquals(listOf(UIMessagePart.Text("historical message")), state.getContents())
+    }
+
+    @Test
+    fun replacingContentsRejectsAnImportThatBelongedToThePreviousDraft() {
+        val state = ChatInputState().apply { bindToConversation("conversation-a") }
+        val import = state.beginAttachmentImport(
+            "conversation-a", Uri.parse("content://picker/late.pdf"), "late.pdf",
+            "application/pdf", ChatInputAttachmentKind.DOCUMENT,
+        )!!
+
+        state.editingMessage = Uuid.random()
+        state.setContents(listOf(UIMessagePart.Text("historical message")))
+
+        assertFalse(state.completeAttachmentImport(
+            "conversation-a", import.id,
+            UIMessagePart.Document("file:///tmp/late.pdf", "late.pdf"), 12L,
+        ))
+        assertEquals(listOf(UIMessagePart.Text("historical message")), state.getContents())
     }
 }

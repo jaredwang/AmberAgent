@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -59,6 +60,9 @@ class InProcessAgentRunner(
     private val runnerScope = scope
     private val snapshots = ConcurrentHashMap<AgentRunId, MutableStateFlow<AgentRunSnapshot>>()
     private val jobs = ConcurrentHashMap<AgentRunId, Job>()
+    // Unlike the gate-approved owner map, this tracks every activation from
+    // launch through Job completion so a handoff also waits for gate/cleanup work.
+    private val activationJobs = mutableMapOf<AgentRunId, MutableSet<Job>>()
 
     /**
      * Cancel intents recorded while no activation job was registered for the
@@ -359,6 +363,17 @@ class InProcessAgentRunner(
                 trimCompletedSnapshots()
             }
         }
+        synchronized(activationJobs) {
+            activationJobs.getOrPut(runId) { mutableSetOf() }.add(job)
+        }
+        job.invokeOnCompletion {
+            synchronized(activationJobs) {
+                activationJobs[runId]?.let { activations ->
+                    activations.remove(job)
+                    if (activations.isEmpty()) activationJobs.remove(runId)
+                }
+            }
+        }
         job.start()
 
         return Result.success(handle)
@@ -410,6 +425,13 @@ class InProcessAgentRunner(
                 )
             }
         }
+    }
+
+    override suspend fun awaitRunSettled(runId: AgentRunId) {
+        val pending = synchronized(activationJobs) {
+            activationJobs[runId]?.toList().orEmpty()
+        }
+        pending.joinAll()
     }
 
     override suspend fun listUnfinishedRuns(): List<AgentRunSnapshot> {

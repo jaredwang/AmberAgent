@@ -7,9 +7,18 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import app.amber.feature.task.AgentTaskStore
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -107,6 +116,91 @@ class AgentCronManagerConcurrencyTest {
 
             assertEquals(manualRequest.id, activeWork(task.id).id)
         }
+    }
+
+    @Test
+    fun `replacement execution waits for the stopped task cleanup before preparing`() = runTest {
+        val entered = CompletableDeferred<Unit>()
+        val cleanupEntered = CompletableDeferred<Unit>()
+        val releaseCleanup = CompletableDeferred<Unit>()
+        val previous = launch {
+            manager.withTaskExecution("same-task") {
+                try {
+                    entered.complete(Unit)
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) {
+                        cleanupEntered.complete(Unit)
+                        releaseCleanup.await()
+                    }
+                }
+            }
+        }
+        entered.await()
+        previous.cancel()
+        cleanupEntered.await()
+        var replacementPrepared = false
+        val replacement = launch {
+            manager.withTaskExecution("same-task") { replacementPrepared = true }
+        }
+
+        runCurrent()
+        val preparedBeforeCleanupFinished = replacementPrepared
+        releaseCleanup.complete(Unit)
+        previous.join()
+        replacement.join()
+
+        assertFalse("A manual REPLACE must wait for its previous owner to stop", preparedBeforeCleanupFinished)
+        assertTrue(replacementPrepared)
+    }
+
+    @Test
+    fun `unrelated tasks may execute while another task is running`() = runTest {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val first = launch {
+            manager.withTaskExecution("first-task") {
+                entered.complete(Unit)
+                release.await()
+            }
+        }
+        entered.await()
+        var otherTaskPrepared = false
+        val other = launch {
+            manager.withTaskExecution("other-task") { otherTaskPrepared = true }
+        }
+
+        runCurrent()
+        val preparedIndependently = otherTaskPrepared
+        release.complete(Unit)
+        first.join()
+        other.join()
+
+        assertTrue(preparedIndependently)
+    }
+
+    @Test
+    fun `cancelled replacement waiting for its task never prepares a run`() = runTest {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val first = launch {
+            manager.withTaskExecution("same-task") {
+                entered.complete(Unit)
+                release.await()
+            }
+        }
+        entered.await()
+        var replacementPrepared = false
+        val replacement = launch {
+            manager.withTaskExecution("same-task") { replacementPrepared = true }
+        }
+
+        runCurrent()
+        replacement.cancelAndJoin()
+        release.complete(Unit)
+        first.join()
+
+        assertFalse(replacementPrepared)
     }
 
     private fun activeWork(taskId: String): WorkInfo {

@@ -9,6 +9,7 @@ import app.amber.ai.ui.isStreamArgsReplace
 import app.amber.ai.util.HttpException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -48,6 +49,30 @@ class ResponseAPIStreamReconcileTest {
             parse(event)?.let { accumulator.append(reconciler.reconcile(it)) }
         }
         return accumulator.snapshot().last()
+    }
+
+    @Test
+    fun `encrypted reasoning without visible summary survives snapshot and replay once`() {
+        val final = """{"type":"response.completed","response":{"id":"resp_1","output":[{"type":"reasoning","id":"rs_1","encrypted_content":"opaque","summary":[]}]}}"""
+        val assistant = accumulate(
+            """{"type":"response.output_item.added","item":{"type":"reasoning","id":"rs_1"}}""",
+            """{"type":"response.output_item.done","item":{"type":"reasoning","id":"rs_1","encrypted_content":"opaque"}}""",
+            final,
+        )
+        assertEquals(1, assistant.parts.filterIsInstance<UIMessagePart.Reasoning>().size)
+        val replay = api.buildMessages(listOf(assistant)).single().jsonObject
+        assertEquals("reasoning", replay.getValue("type").jsonPrimitive.content)
+        assertEquals("rs_1", replay.getValue("id").jsonPrimitive.content)
+        assertEquals("opaque", replay.getValue("encrypted_content").jsonPrimitive.content)
+    }
+
+    @Test
+    fun `final only encrypted reasoning without visible summary is replayable`() {
+        val assistant = accumulate(
+            """{"type":"response.completed","response":{"id":"resp_1","output":[{"type":"reasoning","id":"rs_1","encrypted_content":"opaque","summary":[]}]}}""",
+        )
+        val replay = api.buildMessages(listOf(assistant)).single().jsonObject
+        assertEquals("opaque", replay.getValue("encrypted_content").jsonPrimitive.content)
     }
 
     // ==================== 事件 JSON ====================

@@ -13,11 +13,8 @@ import androidx.work.WorkerParameters
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import app.amber.ai.ui.UIMessagePart
@@ -25,11 +22,15 @@ import app.amber.agent.CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID
 import app.amber.agent.R
 import app.amber.agent.RouteActivity
 import app.amber.core.service.ChatService
+import app.amber.core.agent.runtime.RunStatus
 import app.amber.core.utils.appLocale
 import app.amber.core.utils.sendNotification
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
+
+internal fun cronForegroundNotificationId(taskId: String): Int = taskId.hashCode()
+internal fun cronResultNotificationId(taskId: String): Int = taskId.hashCode() xor Int.MIN_VALUE
 
 class AgentCronWorker(
     appContext: Context,
@@ -39,6 +40,10 @@ class AgentCronWorker(
         val taskId = inputData.getString(KEY_TASK_ID) ?: return Result.failure()
         val manualRun = inputData.getBoolean(KEY_MANUAL_RUN, false)
         val manager = get<AgentCronManager>()
+        return manager.withTaskExecution(taskId) { executeTask(taskId, manualRun, manager) }
+    }
+
+    private suspend fun executeTask(taskId: String, manualRun: Boolean, manager: AgentCronManager): Result {
         val task = manager.prepareTriggeredRun(taskId, id, manual = manualRun) ?: return Result.success()
         if (!manager.markRunStarted(taskId, id)) return Result.success()
         return try {
@@ -54,18 +59,17 @@ class AgentCronWorker(
                 append(task.prompt)
             }
             val chatService = get<ChatService>()
-            coroutineScope {
-                val completion = async {
-                    withTimeout(CRON_GENERATION_TIMEOUT_MS) {
-                        chatService.generationDoneFlow.first { it == conversationId }
-                    }
-                }
-                chatService.sendMessage(
+            val result = withTimeout(CRON_GENERATION_TIMEOUT_MS) {
+                chatService.startTaskMessage(
                     conversationId = conversationId,
                     content = listOf(UIMessagePart.Text(prompt)),
-                    answer = true,
+                ).awaitTerminal()
+            }
+            if (result.status != RunStatus.COMPLETED) {
+                throw IllegalStateException(
+                    result.error?.message ?: "Cron generation ended ${result.status}",
+                    result.error,
                 )
-                completion.await()
             }
             if (manager.markRunCompleted(taskId, id)) {
                 sendCronNotification(task, success = true)
@@ -120,7 +124,7 @@ class AgentCronWorker(
         }
         applicationContext.sendNotification(
             channelId = CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID,
-            notificationId = task.id.hashCode(),
+            notificationId = cronResultNotificationId(task.id),
         ) {
             this.title = title
             this.content = content
@@ -136,7 +140,7 @@ class AgentCronWorker(
 
     private fun createForegroundInfo(task: AgentCronTask): ForegroundInfo {
         val notification = buildRunningNotification(task)
-        val id = task.id.hashCode()
+        val id = cronForegroundNotificationId(task.id)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ForegroundInfo(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {

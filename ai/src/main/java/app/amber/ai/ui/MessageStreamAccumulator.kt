@@ -144,6 +144,8 @@ class MessageStreamAccumulator(
             val identity = deltaPart.streamIdentity()
             val target = if (identity != null) {
                 imageParts.lastOrNull { it.streamIdentity() == identity }
+            } else if (deltaPart.isCompleteStreamImage()) {
+                null
             } else {
                 // 无 identity 的图只允许并入"本 delta 之前"就存在的图
                 // （承接上一 chunk 的流式分片）；同一 delta 里刚创建的
@@ -166,14 +168,16 @@ class MessageStreamAccumulator(
             if (deltaPart.reasoning.isEmpty() && deltaPart.metadata == null) return
 
             val lastPart = parts.lastOrNull()
-            if (lastPart is MutablePart.Reasoning) {
+            if (lastPart is MutablePart.Reasoning &&
+                lastPart.metadata.reasoningBlockId() == deltaPart.metadata.reasoningBlockId()
+            ) {
                 lastPart.reasoning.append(deltaPart.reasoning)
                 if (deltaPart.reasoning.isNotEmpty()) {
                     lastPart.finishedAt = deltaPart.finishedAt
                 } else if (deltaPart.finishedAt != null) {
                     lastPart.finishedAt = deltaPart.finishedAt
                 }
-                lastPart.metadata = deltaPart.metadata ?: lastPart.metadata
+                lastPart.metadata = mergeReasoningMetadata(lastPart.metadata, deltaPart.metadata)
             } else {
                 parts += MutablePart.Reasoning(
                     reasoning = StringBuilder(deltaPart.reasoning),
@@ -331,6 +335,10 @@ private fun List<UIMessagePart>.coalesceStreamParts(): List<UIMessagePart> {
                 if (part.reasoning.isBlank()) {
                     if (part.hasExplicitReasoningContentField()) {
                         pendingExplicitEmptyReasoning = pendingExplicitEmptyReasoning ?: part
+                    } else if (!part.metadata.isNullOrEmpty()) {
+                        flushText()
+                        flushExplicitEmptyReasoning()
+                        result += part
                     }
                 } else {
                     flushText()

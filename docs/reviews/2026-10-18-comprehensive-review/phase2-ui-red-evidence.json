@@ -1,0 +1,149 @@
+[
+  {
+    "path": "feature/novel-workspace/build/test-results/testDebugUnitTest/TEST-app.amber.feature.novelworkspace.NovelWorkspaceExportSnapshotTest.xml",
+    "tests": 2,
+    "failures": 2,
+    "cases": [
+      {
+        "name": "zip takes one snapshot before compression and allows owner writes during output",
+        "failure": "org.junit.ComparisonFailure: expected:<[\u65e7]\u7248\u540e\u7eed\u3002> but was:<[\u65b0]\u7248\u540e\u7eed\u3002>"
+      },
+      {
+        "name": "book export waits for an owner transaction instead of reading its half written tree",
+        "failure": "java.lang.AssertionError: book export must wait for the owner transaction"
+      }
+    ]
+  },
+  {
+    "path": "feature/novel-workspace/build/test-results/testDebugUnitTest/TEST-app.amber.feature.novelworkspace.NovelWorkspaceReviewRegressionTest.xml",
+    "tests": 1,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "planned foreshadowing remains in the brief until explicitly resolved",
+        "failure": "java.lang.AssertionError: the catalog's unresolved planned node must also constrain generation"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.agent.data.sync.SyncRestoreStartupWiringTest.xml",
+    "tests": 1,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "file restore recovery completes before workers and eager data consumers start",
+        "failure": "java.lang.AssertionError: Register dependencies before resolving the restore owner"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.core.service.ChatDispatchActivationTest.xml",
+    "tests": 4,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "ordinary approval resume waits for its activation before accepting another pause",
+        "failure": "java.lang.AssertionError: The old WAITING_USER snapshot is not the resumed activation"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.tools.ScreenAutomationAcceptanceTest.xml",
+    "tests": 8,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "listCollectionDoesNotCountSyntheticRowWrappersAsAdditionalItems",
+        "failure": "java.lang.AssertionError: expected:<[First row, Second row]> but was:<[First row, First row]>"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.ui.pages.chat.TimelineImagePrefetchTest.xml",
+    "tests": 5,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "prefetchesOnlyTheSelectedMessageVariant",
+        "failure": "java.lang.AssertionError: expected:<[https://example.com/selected.png, https://example.com/selected-inline.png]> but was:<[https://example.com/first.png, https://example.com/selected.png, https://example.com/selected-inline.png, https://example.com/last.png]>"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.core.service.ChatTaskRunTest.xml",
+    "tests": 6,
+    "failures": 0,
+    "cases": []
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.reminder.ReminderOwnerTest.xml",
+    "tests": 11,
+    "failures": 3,
+    "cases": [
+      {
+        "name": "delayed schedule after deletion cannot recreate an alarm",
+        "failure": "java.lang.AssertionError: expected:<CANCELLED> but was:<EXACT>"
+      },
+      {
+        "name": "delayed disabled snapshot cannot cancel a newly enabled reminder",
+        "failure": "java.lang.AssertionError: expected:<EXACT> but was:<CANCELLED>"
+      },
+      {
+        "name": "delayed older snapshot cannot replace the current durable alarm",
+        "failure": "org.junit.ComparisonFailure: expected:<reminder-1:[2]> but was:<reminder-1:[1]>"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.board.hotlist.deepread.DeepReadNotifierTest.xml",
+    "tests": 2,
+    "failures": 2,
+    "cases": [
+      {
+        "name": "failure notice survives WorkManager foreground notification removal",
+        "failure": "java.lang.AssertionError: failure must remain after foreground cleanup expected:<1> but was:<0>"
+      },
+      {
+        "name": "completion notice survives WorkManager foreground notification removal",
+        "failure": "java.lang.AssertionError: completion must remain after foreground cleanup expected:<1> but was:<0>"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.ui.components.message.ChatDocumentOpenTest.xml",
+    "tests": 1,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "httpsDocumentAcceptedFromMiniAppOpensWithoutTreatingItAsALocalFile",
+        "failure": "java.lang.IllegalArgumentException: Uri lacks 'file' scheme: https://example.com/report.pdf"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.novel.workspace.NovelWorkspaceForeshadowingWritesTest.xml",
+    "tests": 2,
+    "failures": 2,
+    "cases": [
+      {
+        "name": "approved model creation becomes an open foreshadowing node with host identity",
+        "failure": "java.lang.AssertionError: an approved foreshadowing write must enter the story graph"
+      },
+      {
+        "name": "approved payoff changes only foreshadowing status while keeping host identity",
+        "failure": "org.junit.ComparisonFailure: expected:<[resolved]> but was:<[open]>"
+      }
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.ui.hooks.ChatInputStateTest.xml",
+    "tests": 10,
+    "failures": 1,
+    "cases": [
+      {
+        "name": "editingAttachmentOnlyMessage_keepsNewlyTypedTextAndOriginalAttachment",
+        "failure": "java.lang.AssertionError: expected:<[Text(text=Please explain this image, metadata=null)]> but was:<[]>"
+      }
+    ]
+  }
+]

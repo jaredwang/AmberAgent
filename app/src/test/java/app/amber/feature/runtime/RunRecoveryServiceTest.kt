@@ -1,6 +1,7 @@
 package app.amber.feature.runtime
 
 import app.amber.ai.core.MessageRole
+import app.amber.ai.core.Tool
 import app.amber.ai.ui.ToolApprovalState
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
@@ -8,6 +9,7 @@ import app.amber.core.model.Conversation
 import app.amber.core.model.AMBER_AGENT_ID
 import app.amber.core.model.MessageNode
 import app.amber.feature.tools.ToolEffectClass
+import app.amber.feature.tools.effectClass
 import app.amber.core.sync.core.SyncRestoreWriteGate
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -75,6 +77,29 @@ class RunRecoveryServiceTest : DurableRuntimeTestBase() {
         assertEquals("run_1", runTerminalStore.unfinished().single().runId)
         assertEquals(ToolEffectStatus.OUTCOME_UNKNOWN, ledger.get(effect.effectId)!!.status)
         assertEquals("interrupted_mid_execution", ledger.get(effect.effectId)!!.errorCategory)
+    }
+
+    @Test
+    fun interruptedScreenAndCommandActionsUseTheirRealClassificationDuringRecovery() = runBlocking {
+        val actions = listOf("screen_click", "terminal_execute").map { name ->
+            val runId = "run_$name"
+            runTerminalStore.begin(runId, Uuid.random().toString(), null)
+            val tool = Tool(name = name, description = name, execute = { emptyList() })
+            val input = if (name == "screen_click") """{"x":100,"y":200}""" else """{"command":"echo hello >> result.txt"}"""
+            val effect = ledger.prepare(
+                runId = runId, turnId = 0, toolCallId = "call_$name", toolName = name,
+                input = input, effectClass = tool.effectClass(input),
+            )
+            ledger.markStarted(effect.effectId, approvalDigest(runId, effect.toolCallId, effect.argsDigest))
+            effect
+        }
+
+        recoveryService().recover()
+
+        actions.forEach { effect ->
+            assertEquals(effect.toolName, ToolEffectStatus.OUTCOME_UNKNOWN, ledger.get(effect.effectId)!!.status)
+            assertEquals(effect.toolName, RunTerminalState.OUTCOME_UNKNOWN, runTerminalStore.get(requireNotNull(effect.runId))!!.state)
+        }
     }
 
     @Test

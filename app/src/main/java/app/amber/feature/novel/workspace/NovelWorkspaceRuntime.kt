@@ -19,6 +19,7 @@ import app.amber.feature.novelworkspace.NovelWorkspaceJointReviewResult
 import app.amber.feature.novelworkspace.NovelWorkspaceLedger
 import app.amber.feature.novelworkspace.NovelWorkspaceManifest
 import app.amber.feature.novelworkspace.NovelWorkspaceMarkdown
+import app.amber.feature.novelworkspace.NovelWorkspaceNodes
 import app.amber.feature.novelworkspace.NovelWorkspaceBranches
 import app.amber.feature.novelworkspace.NovelWorkspacePaths
 import app.amber.feature.novelworkspace.NovelWorkspaceProjectTitle
@@ -1238,8 +1239,8 @@ class NovelWorkspaceRuntime(private val kernel: RunKernel) {
     }
 
     /**
-     * Identity stays host-owned (matches iOS): the model's front matter is discarded,
-     * only its body is kept; an existing file's front matter is re-rendered verbatim.
+     * Identity stays host-owned: chapters/plot keep their front matter, while a
+     * foreshadowing node may update its open/resolved state through the author gate.
      * New protected files get host-synthesized identity from the path.
      */
     private fun mergedContent(store: NovelWorkspaceStore, entry: NovelWorkspaceWriteEntry): String {
@@ -1247,11 +1248,39 @@ class NovelWorkspaceRuntime(private val kernel: RunKernel) {
         // fields empty → bare body (a leading `---` thematic break is not front matter).
         val body = parsedNew.body
         val existing = store.read(entry.path)
+        val segments = entry.path.split('/')
+        if (segments.getOrNull(2) == "plot" && segments.getOrNull(3) == "foreshadowing") {
+            return mergedForeshadowingContent(entry.path, existing, parsedNew)
+        }
         if (existing != null) return NovelWorkspaceMarkdown.withBody(existing, body)
         return NovelWorkspaceMarkdown.render(
             fields = synthesizedFields(entry.path, parsedNew.fields["title"]),
             body = body,
         )
+    }
+
+    private fun mergedForeshadowingContent(
+        path: String,
+        existing: String?,
+        incoming: NovelWorkspaceMarkdown.ParsedFile,
+    ): String {
+        val currentStatus = existing?.let(NovelWorkspaceMarkdown::parseFile)?.fields?.get("status")
+            ?.trim()?.takeIf { it.isNotEmpty() }
+        val requestedStatus = incoming.fields["status"]?.trim()?.takeIf { it.isNotEmpty() }
+            ?.lowercase(Locale.ROOT)
+        if (requestedStatus != null && requestedStatus != NovelWorkspaceNodes.STATUS_OPEN &&
+            requestedStatus != NovelWorkspaceNodes.STATUS_RESOLVED &&
+            !requestedStatus.equals(currentStatus, ignoreCase = true)
+        ) throw NovelWorkspaceIoError("伏笔状态只能更新为 open 或 resolved")
+        val content = if (existing == null) {
+            NovelWorkspaceMarkdown.render(synthesizedFields(path, incoming.fields["title"]), body = incoming.body)
+        } else {
+            NovelWorkspaceMarkdown.withBody(existing, incoming.body)
+        }
+        return NovelWorkspaceMarkdown.withFields(content, mapOf(
+            "kind" to NovelWorkspaceNodes.KIND_FORESHADOWING,
+            "status" to (requestedStatus ?: currentStatus ?: NovelWorkspaceNodes.STATUS_OPEN),
+        ))
     }
 
     private fun synthesizedFields(path: String, modelTitle: String?): List<Pair<String, String>> {

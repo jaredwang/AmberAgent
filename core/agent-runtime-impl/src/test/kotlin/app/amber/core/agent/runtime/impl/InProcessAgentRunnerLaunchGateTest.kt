@@ -20,14 +20,20 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -535,5 +541,168 @@ class InProcessAgentRunnerLaunchGateTest {
         val snapshot = harness.runner.observe(runId).value
         assertEquals(RunStatus.COMPLETED, snapshot.status)
         assertEquals(FakeArtifact("ok"), snapshot.artifact)
+    }
+
+    @Test
+    fun `settlement includes a cancelled activation before its launch gate starts`() = runTest {
+        val store = RecordingEventStore()
+        val releaseRecovery = CompletableDeferred<Unit>()
+        val harness = runnerWithAgent(
+            store,
+            backgroundScope,
+            awaitColdStartRecovery = { withContext(NonCancellable) { releaseRecovery.await() } },
+        )
+        val handle = harness.runner.launch(descriptor.id, FakeInput("v")).getOrThrow()
+        harness.runner.cancel(handle.runId)
+        val settlement = async { harness.runner.awaitRunSettled(handle.runId) }
+
+        runCurrent()
+        val settledBeforeGateFinished = settlement.isCompleted
+        releaseRecovery.complete(Unit)
+        settlement.await()
+
+        assertFalse(settledBeforeGateFinished)
+        assertEquals(0, harness.invocations.get())
+        assertEquals(RunStatus.CANCELLED, harness.runner.observe(handle.runId).value.status)
+    }
+
+    @Test
+    fun `settlement waits for handler finally and durable cancellation after the fast cancelled snapshot`() = runTest {
+        val releaseCleanup = CompletableDeferred<Unit>()
+        val releaseDurableCancel = CompletableDeferred<Unit>()
+        val store = object : RecordingEventStore() {
+            override suspend fun transitionRun(
+                runId: AgentRunId,
+                expected: Set<RunStatus>,
+                to: RunStatus,
+                reason: String?,
+            ): RunTransitionResult {
+                if (to == RunStatus.CANCELLED) releaseDurableCancel.await()
+                return super.transitionRun(runId, expected, to, reason)
+            }
+        }
+        val harness = runnerWithAgent(store, backgroundScope, onInvoke = {
+            try {
+                awaitCancellation()
+            } finally {
+                withContext(NonCancellable) { releaseCleanup.await() }
+            }
+        })
+        val handle = harness.runner.launch(descriptor.id, FakeInput("v")).getOrThrow()
+        runCurrent()
+        harness.runner.cancel(handle.runId)
+        val settlement = async { harness.runner.awaitRunSettled(handle.runId) }
+
+        runCurrent()
+        val snapshotAfterFastCancel = harness.runner.observe(handle.runId).value.status
+        val durableBeforeCleanup = store.runs.getValue(handle.runId.value).status
+        val settledBeforeCleanup = settlement.isCompleted
+        releaseCleanup.complete(Unit)
+        runCurrent()
+        val settledBeforeDurableCancel = settlement.isCompleted
+        releaseDurableCancel.complete(Unit)
+        settlement.await()
+
+        assertEquals(RunStatus.CANCELLED, snapshotAfterFastCancel)
+        assertEquals(RunStatus.RUNNING, durableBeforeCleanup)
+        assertFalse(settledBeforeCleanup)
+        assertFalse(settledBeforeDurableCancel)
+        assertEquals(RunStatus.CANCELLED, store.runs.getValue(handle.runId.value).status)
+    }
+
+    @Test
+    fun `settlement follows the current approval resume under the same run id`() = runTest {
+        val store = RecordingEventStore()
+        val runId = AgentRunId("settle-resumed-run")
+        val releaseCleanup = CompletableDeferred<Unit>()
+        val harness = runnerWithAgent(store, backgroundScope, onInvoke = { invocation ->
+            if (invocation == 1) {
+                store.transitionRun(runId, RunStatus.LIVE_STATES, RunStatus.WAITING_USER, null)
+                FakeArtifact("paused")
+            } else {
+                try {
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) { releaseCleanup.await() }
+                }
+            }
+        })
+        harness.runner.launch(descriptor.id, FakeInput("first"), requestedRunId = runId).getOrThrow()
+        runCurrent()
+        harness.runner.awaitRunSettled(runId)
+        assertEquals(RunStatus.WAITING_USER, harness.runner.observe(runId).value.status)
+        harness.runner.launch(descriptor.id, FakeInput("resume"), requestedRunId = runId).getOrThrow()
+        runCurrent()
+        harness.runner.cancel(runId)
+        val settlement = async { harness.runner.awaitRunSettled(runId) }
+
+        runCurrent()
+        val returnedBeforeResumedCleanup = settlement.isCompleted
+        releaseCleanup.complete(Unit)
+        settlement.await()
+
+        assertFalse(returnedBeforeResumedCleanup)
+        assertEquals(2, harness.invocations.get())
+        assertEquals(RunStatus.CANCELLED, store.runs.getValue(runId.value).status)
+    }
+
+    @Test
+    fun `settlement captures current activations without following a later same run resume`() = runTest {
+        val store = RecordingEventStore()
+        val runId = AgentRunId("settle-current-activation")
+        val releasePrevious = CompletableDeferred<Unit>()
+        val harness = runnerWithAgent(store, backgroundScope, onInvoke = { invocation ->
+            if (invocation == 1) {
+                store.transitionRun(runId, RunStatus.LIVE_STATES, RunStatus.WAITING_USER, null)
+                releasePrevious.await()
+                FakeArtifact("previous")
+            } else {
+                awaitCancellation()
+            }
+        })
+        harness.runner.launch(descriptor.id, FakeInput("first"), requestedRunId = runId).getOrThrow()
+        runCurrent()
+        val settlement = async { harness.runner.awaitRunSettled(runId) }
+        runCurrent()
+        harness.runner.launch(descriptor.id, FakeInput("resume"), requestedRunId = runId).getOrThrow()
+        runCurrent()
+
+        releasePrevious.complete(Unit)
+        runCurrent()
+        val returnedWhileSuccessorActive = settlement.isCompleted
+        val successorStatus = harness.runner.observe(runId).value.status
+        harness.runner.cancel(runId)
+        settlement.await()
+        harness.runner.awaitRunSettled(runId)
+
+        assertTrue("A dispatch handoff must not join an activation launched after its boundary", returnedWhileSuccessorActive)
+        assertEquals(RunStatus.RUNNING, successorStatus)
+        assertEquals(2, harness.invocations.get())
+    }
+
+    @Test
+    fun `settling one run does not wait for an unrelated running agent`() = runTest {
+        val store = RecordingEventStore()
+        val releaseCleanup = CompletableDeferred<Unit>()
+        val harness = runnerWithAgent(store, backgroundScope, onInvoke = { invocation ->
+            try {
+                awaitCancellation()
+            } finally {
+                if (invocation == 1) withContext(NonCancellable) { releaseCleanup.await() }
+            }
+        })
+        val target = harness.runner.launch(descriptor.id, FakeInput("target")).getOrThrow()
+        val unrelated = harness.runner.launch(descriptor.id, FakeInput("other")).getOrThrow()
+        runCurrent()
+        harness.runner.cancel(target.runId)
+        val settlement = async { harness.runner.awaitRunSettled(target.runId) }
+        runCurrent()
+        releaseCleanup.complete(Unit)
+        settlement.await()
+        val unrelatedStatus = harness.runner.observe(unrelated.runId).value.status
+        harness.runner.cancel(unrelated.runId)
+        harness.runner.awaitRunSettled(unrelated.runId)
+
+        assertEquals(RunStatus.RUNNING, unrelatedStatus)
     }
 }

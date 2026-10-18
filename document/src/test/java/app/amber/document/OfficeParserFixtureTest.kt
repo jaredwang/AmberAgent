@@ -37,11 +37,41 @@ class OfficeParserFixtureTest {
     }
 
     @Test
+    fun docxReadsContentControlParagraphsAndTablesInOrderWithoutDuplicates() {
+        val file = zipFixture(
+            "word/document.xml" to """
+                <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+                  <w:p><w:r><w:t>Before</w:t></w:r></w:p>
+                  <w:sdt><w:sdtPr><w:alias w:val="Template content"/></w:sdtPr><w:sdtContent>
+                    <w:p><w:r><w:t>Controlled</w:t></w:r></w:p>
+                    <w:sdt><w:sdtPr/><w:sdtContent>
+                      <w:p><w:r><w:t>Nested</w:t></w:r></w:p>
+                    </w:sdtContent></w:sdt>
+                    <w:tbl><w:tr>
+                      <w:tc><w:p><w:r><w:t>Header</w:t></w:r></w:p></w:tc>
+                      <w:tc><w:p><w:r><w:t>Value</w:t></w:r></w:p></w:tc>
+                    </w:tr></w:tbl>
+                  </w:sdtContent></w:sdt>
+                  <w:p><w:r><w:t>After</w:t></w:r></w:p>
+                </w:body></w:document>
+            """.trimIndent(),
+        )
+
+        val text = DocxParser.parse(file)
+
+        assertEquals(
+            listOf("Before", "Controlled", "Nested", "Header", "Value", "After"),
+            Regex("Before|Controlled|Nested|Header|Value|After").findAll(text).map { it.value }.toList(),
+        )
+        assertTrue(text, text.contains("| Header | Value |"))
+    }
+
+    @Test
     fun pptxUsesPresentationSlideOrderAndReadsTable() {
         val file = zipFixture(
             "ppt/presentation.xml" to """
                 <p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-                  <p:sldIdLst><p:sldId r:id="rId1"/><p:sldId r:id="rId2"/></p:sldIdLst>
+                  <p:sldIdLst><p:sldId id="256" r:id="rId1"/><p:sldId id="257" r:id="rId2"/></p:sldIdLst>
                 </p:presentation>
             """.trimIndent(),
             "ppt/_rels/presentation.xml.rels" to """
@@ -90,6 +120,39 @@ class OfficeParserFixtureTest {
     }
 
     @Test
+    fun pptxUsesRelationshipNamespaceRegardlessOfAttributeOrder() {
+        for (attributes in listOf("id=\"256\" r:id=\"rId1\"", "r:id=\"rId1\" id=\"256\"")) {
+            val file = zipFixture(
+                "ppt/presentation.xml" to """
+                    <p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldIdLst><p:sldId $attributes/></p:sldIdLst></p:presentation>
+                """.trimIndent(),
+                "ppt/_rels/presentation.xml.rels" to """
+                    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Target="slides/slide2.xml" Type="slide"/></Relationships>
+                """.trimIndent(),
+                "ppt/slides/slide1.xml" to slideXml("Unreferenced"),
+                "ppt/slides/slide2.xml" to slideXml("Referenced"),
+            )
+            val text = PptxParser.parse(file)
+            assertTrue(text, text.contains("Referenced"))
+            assertTrue("Unreferenced slides must not be imported: $text", !text.contains("Unreferenced"))
+        }
+    }
+
+    @Test
+    fun pptxFallbackSortsSlideBasenamesNumerically() {
+        val file = zipFixture(
+            "ppt/slides/slide10.xml" to slideXml("Ten"),
+            "ppt/slides/slide2.xml" to slideXml("Two"),
+            "ppt/slides/slide1.xml" to slideXml("One"),
+        )
+
+        val text = PptxParser.parse(file)
+
+        assertTrue(text, text.indexOf("One") < text.indexOf("Two"))
+        assertTrue(text, text.indexOf("Two") < text.indexOf("Ten"))
+    }
+
+    @Test
     fun epubUsesSpineOrder() {
         val file = zipFixture(
             "META-INF/container.xml" to """
@@ -110,6 +173,59 @@ class OfficeParserFixtureTest {
         val truncated = EpubParser.parse(file, maxChars = 5)
         assertTrue(truncated, truncated.contains("[TRUNCATED: EPUB text exceeds 5 characters]"))
     }
+
+    @Test
+    fun epubPreservesWhitespaceBetweenInlineElements() {
+        val file = epubFixture("<p>Hello<span> </span>world <em>with</em> <strong>space</strong>.</p>")
+
+        assertEquals("Hello world *with* **space**.", EpubParser.parse(file))
+    }
+
+    @Test
+    fun epubPreservesXhtmlNamedAndXmlEntities() {
+        val file = epubFixture(
+            "<p>caf&eacute; &amp; &lt;tea&gt; &quot;quoted&quot; &apos;apostrophe&apos; tea&nbsp;time&hellip; &#20013;&#x6587;</p>",
+        )
+
+        assertEquals("café & <tea> \"quoted\" 'apostrophe' tea\u00a0time… 中文", EpubParser.parse(file))
+    }
+
+    @Test
+    fun epubIgnoresSourceIndentationBetweenBlocks() {
+        val file = epubFixture(
+            """
+
+                  <h2>Heading</h2>
+                  <p>First <em>line</em>.</p>
+                  <p>Second.</p>
+
+            """.trimIndent(),
+        )
+
+        assertEquals("## Heading\n\nFirst *line*.\n\nSecond.", EpubParser.parse(file))
+    }
+
+    private fun epubFixture(body: String): File = zipFixture(
+        "META-INF/container.xml" to """
+            <container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OPS/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>
+        """.trimIndent(),
+        "OPS/package.opf" to """
+            <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="book-id">
+              <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Fixture</dc:title><dc:language>en</dc:language><dc:identifier id="book-id">fixture</dc:identifier></metadata>
+              <manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest>
+              <spine><itemref idref="chapter"/></spine>
+            </package>
+        """.trimIndent(),
+        "OPS/chapter.xhtml" to """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title></head><body>$body</body></html>
+        """.trimIndent(),
+    )
+
+    private fun slideXml(text: String): String = """
+        <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:p><a:r><a:t>$text</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>
+    """.trimIndent()
 
     private fun zipFixture(vararg entries: Pair<String, String>): File {
         val file = File.createTempFile("office-parser-fixture-", ".zip")

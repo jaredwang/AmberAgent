@@ -30,6 +30,9 @@ class JevDecisionCoordinator(
     private val cache = HashMap<String, CacheEntry>()
 
     @Volatile
+    private var configurationRevision = 0L
+
+    @Volatile
     private var authPaused = false
 
     @Volatile
@@ -38,7 +41,15 @@ class JevDecisionCoordinator(
     private var consecutiveTransientFailures = 0
 
     @Synchronized
-    private fun bumpTransientFailures(): Int = ++consecutiveTransientFailures
+    private fun recordTransientFailure(requestRevision: Long): Boolean {
+        if (requestRevision != configurationRevision) return false
+        if (++consecutiveTransientFailures >= JevLimits.COOLDOWN_AFTER_CONSECUTIVE_FAILURES) {
+            cooldownUntil = clock() + JevLimits.COOLDOWN_MS
+            consecutiveTransientFailures = 0
+            return false
+        }
+        return true
+    }
 
     @Synchronized
     private fun resetTransientFailures() {
@@ -53,7 +64,9 @@ class JevDecisionCoordinator(
     )
 
     /** Key 变化或收紧范围时失效缓存并解除认证暂停（由设置页调用）。 */
+    @Synchronized
     fun onCredentialOrScopeChanged() {
+        configurationRevision++
         synchronized(cache) { cache.clear() }
         authPaused = false
     }
@@ -76,6 +89,7 @@ class JevDecisionCoordinator(
         cacheAnchor: String? = null,
         assets: Map<String, JevImageAsset> = emptyMap(),
     ): JevDecision {
+        val requestRevision = configurationRevision
         if (config.mode == JevMode.OFF) return JevDecision.Skipped(JevSkipReason.OFF)
         if (!config.allowedScopes.containsAll(requiredScopes)) {
             return skipped(purpose, config, JevSkipReason.SCOPE_NOT_ALLOWED)
@@ -130,6 +144,9 @@ class JevDecisionCoordinator(
                 }
             }
             if (cached != null) {
+                if (requestRevision != configurationRevision) {
+                    return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                }
                 metrics.record(
                     metric(purpose, config, JevMetricEntry.OUTCOME_CACHE_HIT, 0, bodyBytes, cached.usage, cached.model),
                 )
@@ -166,6 +183,10 @@ class JevDecisionCoordinator(
         }
         try {
             while (true) {
+                // 排队和重试期间撤回授权后，不再发送旧配置下的业务数据。
+                if (requestRevision != configurationRevision) {
+                    return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                }
                 if (clock() >= deadline) {
                     lastFailure = JevDecision.Failed(JevFailureReason.TIMEOUT)
                     break
@@ -185,15 +206,24 @@ class JevDecisionCoordinator(
                 } catch (e: CancellationException) {
                     throw e
                 }
+                if (requestRevision != configurationRevision) {
+                    return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                }
                 when (result) {
                     is JevCallResult.Success -> {
-                        resetTransientFailures()
-                        if (cacheKey != null) {
-                            synchronized(cache) {
-                                if (cache.size >= JevLimits.CACHE_MAX_ENTRIES) {
-                                    cache.remove(cache.keys.first())
+                        synchronized(this) {
+                            // 与配置变更共用锁，避免旧响应在 clear 后重新填回缓存。
+                            if (requestRevision != configurationRevision) {
+                                return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                            }
+                            resetTransientFailures()
+                            if (cacheKey != null) {
+                                synchronized(cache) {
+                                    if (cache.size >= JevLimits.CACHE_MAX_ENTRIES) {
+                                        cache.remove(cache.keys.first())
+                                    }
+                                    cache[cacheKey] = CacheEntry(result.answers, result.usage, result.model, clock())
                                 }
-                                cache[cacheKey] = CacheEntry(result.answers, result.usage, result.model, clock())
                             }
                         }
                         val outcome = if (config.mode == JevMode.ACTIVE) {
@@ -212,7 +242,12 @@ class JevDecisionCoordinator(
                     }
                     is JevCallResult.HttpError -> when {
                         result.code == 401 -> {
-                            authPaused = true
+                            synchronized(this) {
+                                if (requestRevision != configurationRevision) {
+                                    return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                                }
+                                authPaused = true
+                            }
                             lastFailure = JevDecision.Failed(JevFailureReason.AUTH, result.bodySnippet)
                             break
                         }
@@ -233,7 +268,7 @@ class JevDecisionCoordinator(
                             break
                         }
                         else -> {
-                            if (!retryTransientOrBreak(attempts, deadline)) {
+                            if (!retryTransientOrBreak(attempts, deadline, requestRevision)) {
                                 lastFailure = JevDecision.Failed(JevFailureReason.SERVER_ERROR, result.bodySnippet)
                                 break
                             }
@@ -244,7 +279,7 @@ class JevDecisionCoordinator(
                             lastFailure = JevDecision.Failed(JevFailureReason.TIMEOUT)
                             break
                         }
-                        if (!retryTransientOrBreak(attempts, deadline)) {
+                        if (!retryTransientOrBreak(attempts, deadline, requestRevision)) {
                             lastFailure = JevDecision.Failed(JevFailureReason.NETWORK, result.message)
                             break
                         }
@@ -262,16 +297,16 @@ class JevDecisionCoordinator(
             globalInflight.release()
         }
 
-        return failed(purpose, config, lastFailure, startedAt, bodyBytes)
+        return if (requestRevision != configurationRevision) {
+            skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+        } else {
+            failed(purpose, config, lastFailure, startedAt, bodyBytes)
+        }
     }
 
     /** 暂时性失败：预算与剩余时间内重试一次；连续 3 次进入 60s 冷却。 */
-    private suspend fun retryTransientOrBreak(attempts: Int, deadline: Long): Boolean {
-        if (bumpTransientFailures() >= JevLimits.COOLDOWN_AFTER_CONSECUTIVE_FAILURES) {
-            cooldownUntil = clock() + JevLimits.COOLDOWN_MS
-            resetTransientFailures()
-            return false
-        }
+    private suspend fun retryTransientOrBreak(attempts: Int, deadline: Long, requestRevision: Long): Boolean {
+        if (!recordTransientFailure(requestRevision)) return false
         if (attempts > JevLimits.TRANSIENT_RETRY_LIMIT) return false
         val remaining = deadline - clock()
         if (remaining <= JevLimits.RETRY_BACKOFF_MS) return false
@@ -285,6 +320,7 @@ class JevDecisionCoordinator(
         baseUrl: String? = null,
         model: String? = null,
     ): JevConnectionTestResult {
+        val requestRevision = configurationRevision
         val apiKey = apiKeyProvider()
         if (apiKey.isNullOrBlank()) return JevConnectionTestResult(keyMissing = true)
         val testModel = model?.takeIf { it.isNotBlank() } ?: jevConnectionTestModelFor(apiMode)
@@ -312,19 +348,28 @@ class JevDecisionCoordinator(
         } catch (e: Exception) {
             return JevConnectionTestResult(error = e.message ?: e.javaClass.simpleName)
         }
+        if (requestRevision != configurationRevision) {
+            return JevConnectionTestResult(error = "configuration changed")
+        }
         return when (result) {
             is JevCallResult.Success -> {
                 val probability = (result.answers["prime"] as? JevAnswer.Noul)?.probability
                 if (probability == null) {
                     JevConnectionTestResult(error = "unexpected answer shape")
                 } else {
-                    authPaused = false
-                    resetTransientFailures()
-                    JevConnectionTestResult(
-                        ok = true,
-                        model = result.model ?: testModel,
-                        latencyMs = clock() - startedAt,
-                    )
+                    synchronized(this) {
+                        if (requestRevision != configurationRevision) {
+                            JevConnectionTestResult(error = "configuration changed")
+                        } else {
+                            authPaused = false
+                            resetTransientFailures()
+                            JevConnectionTestResult(
+                                ok = true,
+                                model = result.model ?: testModel,
+                                latencyMs = clock() - startedAt,
+                            )
+                        }
+                    }
                 }
             }
             is JevCallResult.HttpError -> JevConnectionTestResult(

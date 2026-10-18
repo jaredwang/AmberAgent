@@ -35,6 +35,16 @@ class TwoPaneLayoutTest {
     }
 
     @Test
+    fun chatCentresInAReadingColumnOnlyWhenThePaneIsWider() {
+        assertEquals(0f, chatReadingGutter(411.dp).value, 0.01f)
+        assertEquals(0f, chatReadingGutter(760.dp).value, 0.01f)
+        // Portrait tablet, single pane.
+        assertEquals(20f, chatReadingGutter(800.dp).value, 0.01f)
+        // 1280dp landscape tablet: 1280 - 384 list - hairline ≈ 895dp detail.
+        assertEquals(67.5f, chatReadingGutter(895.dp).value, 0.01f)
+    }
+
+    @Test
     fun homeAloneGetsAnEmptyDetailPane() {
         assertEquals(TwoPaneSlots(listIndex = 0, detailIndex = null), slotsOf(listOf(Screen.SessionHome)))
     }

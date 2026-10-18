@@ -92,47 +92,16 @@ class ReminderScheduler(
     private val scheduled = ConcurrentHashMap<String, ScheduledMarker>()
 
     suspend fun schedule(snapshot: ReminderSnapshot): ReminderScheduleResult = mutex.withLock {
-        if (snapshot.isCorrupt || !snapshot.enabled || snapshot.nextFireAtEpochMs == null) {
-            operations.cancel(snapshot.id)
-            scheduled.remove(snapshot.id)
-            return@withLock ReminderScheduleResult(
-                snapshot.id,
-                snapshot.fireKey(),
-                ReminderSchedulePrecision.CANCELLED,
-                "提醒已停用或记录损坏",
-            )
-        }
-        val key = snapshot.fireKey() ?: return@withLock ReminderScheduleResult(
-            snapshot.id, null, ReminderSchedulePrecision.CANCELLED, "提醒没有下次触发时间",
-        )
-        val precision = if (exactAlarmAllowed()) {
-            ReminderSchedulePrecision.EXACT
-        } else {
-            ReminderSchedulePrecision.APPROXIMATE
-        }
-        val marker = ScheduledMarker(key, precision)
-        if (scheduled[snapshot.id] != marker) {
-            val request = ReminderAlarmRequest(snapshot.id, key, snapshot.nextFireAtEpochMs)
-            when (precision) {
-                ReminderSchedulePrecision.EXACT -> operations.scheduleExact(request)
-                ReminderSchedulePrecision.APPROXIMATE -> operations.scheduleApproximate(request)
-                ReminderSchedulePrecision.CANCELLED -> Unit
-            }
-            scheduled[snapshot.id] = marker
-        }
-        ReminderScheduleResult(
-            snapshot.id,
-            key,
-            precision,
-            if (precision == ReminderSchedulePrecision.EXACT) "按精确时间提醒" else "精确闹钟权限不可用，将在近似时间提醒",
-        )
+        // Store mutations complete before their callers can enter this lock. A
+        // delayed caller must not replace a newer alarm with its older snapshot.
+        scheduleLocked(snapshot.id)
     }
 
     suspend fun rescheduleAll(): List<ReminderScheduleResult> = mutex.withLock {
         store.list().map { snapshot ->
-            // Keep one lock/transaction boundary for the all-record operation. The inner
+            // Keep one owner lock for the all-record operation. The inner
             // implementation avoids recursive Mutex acquisition.
-            scheduleLocked(snapshot)
+            scheduleLocked(snapshot.id)
         }
     }
 
@@ -143,11 +112,17 @@ class ReminderScheduler(
         }
     }
 
-    private fun scheduleLocked(snapshot: ReminderSnapshot): ReminderScheduleResult {
-        if (snapshot.isCorrupt || !snapshot.enabled || snapshot.nextFireAtEpochMs == null) {
-            operations.cancel(snapshot.id)
-            scheduled.remove(snapshot.id)
-            return ReminderScheduleResult(snapshot.id, snapshot.fireKey(), ReminderSchedulePrecision.CANCELLED, "提醒已停用或记录损坏")
+    private fun scheduleLocked(id: String): ReminderScheduleResult {
+        val snapshot = store.read(id)
+        if (snapshot == null || snapshot.isCorrupt || !snapshot.enabled || snapshot.nextFireAtEpochMs == null) {
+            operations.cancel(id)
+            scheduled.remove(id)
+            return ReminderScheduleResult(
+                id,
+                snapshot?.fireKey(),
+                ReminderSchedulePrecision.CANCELLED,
+                if (snapshot == null) "提醒已删除" else "提醒已停用或记录损坏",
+            )
         }
         val key = snapshot.fireKey() ?: return ReminderScheduleResult(snapshot.id, null, ReminderSchedulePrecision.CANCELLED, "提醒没有下次触发时间")
         val precision = if (exactAlarmAllowed()) ReminderSchedulePrecision.EXACT else ReminderSchedulePrecision.APPROXIMATE

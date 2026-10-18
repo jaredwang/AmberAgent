@@ -349,10 +349,7 @@ private fun MiniAppWebView(
     val sendGate = remember(settingsStore, capabilityFlags, capabilityPermissionStore) {
         createRunnerSendGate(settingsStore, capabilityFlags, capabilityPermissionStore)
     }
-    val background = MaterialTheme.colorScheme.background
-    val foreground = MaterialTheme.colorScheme.onBackground
-    val primary = MaterialTheme.colorScheme.primary
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val themeProvider = rememberMiniAppThemeProvider()
     var webViewRef by remember(app.id) { mutableStateOf<WebView?>(null) }
     var pageReady by remember(app.id, reloadKey) { mutableStateOf(false) }
     var bridgeRef by remember(app.id) { mutableStateOf<MiniAppBridge?>(null) }
@@ -529,14 +526,7 @@ private fun MiniAppWebView(
                         launchApp = { targetAppId ->
                             navController.navigate(Screen.MiniAppRunner(targetAppId))
                         },
-                        themeProvider = {
-                            MiniAppTheme(
-                                dark = isDark,
-                                background = "#${background.toArgb().toUInt().toString(16).takeLast(6)}",
-                                foreground = "#${foreground.toArgb().toUInt().toString(16).takeLast(6)}",
-                                primary = "#${primary.toArgb().toUInt().toString(16).takeLast(6)}",
-                            )
-                        },
+                        themeProvider = themeProvider,
                         conversationWriter = conversationWriter,
                         workspaceWriter = workspaceWriter,
                         sendGate = sendGate,
@@ -568,6 +558,25 @@ private fun MiniAppWebView(
             bridgeRef = null
             webViewRef?.destroy()
             webViewRef = null
+        }
+    }
+}
+
+/** The bridge retains this provider for the lifetime of its WebView. */
+@Composable
+internal fun rememberMiniAppThemeProvider(): () -> MiniAppTheme {
+    val background = MaterialTheme.colorScheme.background
+    val foreground = MaterialTheme.colorScheme.onBackground
+    val primary = MaterialTheme.colorScheme.primary
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return remember {
+        {
+            MiniAppTheme(
+                dark = isDark,
+                background = "#${background.toArgb().toUInt().toString(16).takeLast(6)}",
+                foreground = "#${foreground.toArgb().toUInt().toString(16).takeLast(6)}",
+                primary = "#${primary.toArgb().toUInt().toString(16).takeLast(6)}",
+            )
         }
     }
 }

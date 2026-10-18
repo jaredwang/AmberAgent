@@ -341,10 +341,45 @@ mod tests {
     }
 
     #[test]
+    fn block_latex_uses_code_ranges_after_inline_replacement() {
+        assert_eq!(preprocess(r"\(a\) `\[x\]`"), r"$a$ `\[x\]`");
+        assert_eq!(preprocess(r"\(a\) `x`\[b\]"), r"$a$ `x`$$b$$");
+    }
+
+    #[test]
+    fn tilde_fence_preserves_urls_and_latex_but_converts_outside() {
+        let input = r"\(before\) example.com
+~~~text
+example.com \(inline\) \[block\]
+~~~
+\[after\] example.org/path.";
+        let expected = r"$before$ [example.com](https://example.com)
+~~~text
+example.com \(inline\) \[block\]
+~~~
+$$after$$ [example.org/path](https://example.org/path).";
+        assert_eq!(preprocess(input), expected);
+    }
+
+    #[test]
     fn linkify_bare_url() {
         let s = "visit example.com today";
         let out = preprocess(s);
         assert_eq!(out, "visit [example.com](https://example.com) today");
+    }
+
+    #[test]
+    fn linkify_does_not_truncate_longer_tlds() {
+        let input = "example.company example.infox";
+        assert_eq!(preprocess(input), input);
+    }
+
+    #[test]
+    fn linkify_supported_tld_and_path_keep_trailing_punctuation() {
+        assert_eq!(
+            preprocess("example.com, example.info/path."),
+            "[example.com](https://example.com), [example.info/path](https://example.info/path)."
+        );
     }
 
     #[test]

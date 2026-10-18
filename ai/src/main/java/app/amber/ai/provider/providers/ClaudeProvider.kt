@@ -38,6 +38,7 @@ import okhttp3.Response
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
+import kotlin.uuid.Uuid
 
 private const val TAG = "ClaudeProvider"
 private const val ANTHROPIC_VERSION = "2023-06-01"
@@ -136,6 +137,7 @@ class ClaudeProvider(
         Log.i(TAG, "streamText: model=${params.model.modelId}, messages=${messages.size}, stream=true")
 
         val terminationGuard = StreamTerminationGuard(StreamProtocol.CLAUDE)
+        val streamScope = Uuid.random().toString()
         val listener = object : EventSourceListener() {
             override fun onEvent(
                 eventSource: EventSource,
@@ -164,7 +166,7 @@ class ClaudeProvider(
             ) {
                 terminationGuard.observe(type, data)
                 logStreamEvent(type, data)
-                when (val signal = messagesAdapter.decodeStreamEvent(type, id, data)) {
+                when (val signal = messagesAdapter.decodeStreamEvent(type, id, data, streamScope)) {
                     is AnthropicStreamSignal.Emit -> {
                         // Blocking send provides backpressure instead of dropping token deltas.
                         if (trySendBlocking(signal.chunk).isFailure) eventSource.cancel()

@@ -163,6 +163,9 @@ class NovelTurnLauncherTest {
             finish(runId, RunStatus.CANCELLED)
         }
 
+        override suspend fun awaitRunSettled(runId: AgentRunId): Unit =
+            error("This launcher fake models snapshots, not asynchronous execution cleanup")
+
         override suspend fun listUnfinishedRuns(): List<AgentRunSnapshot> = snapshots.values
             .map { it.value }
             .filter { !it.status.isTerminal }

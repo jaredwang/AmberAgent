@@ -8,6 +8,19 @@ fun String.replaceRegexes(
     regexes: List<AssistantRegex>,
     scope: AssistantAffectScope,
     visual: Boolean = false
+): String = replaceRegexes(regexes, scope, visual) { input, patterns, replacements, jvmFallback ->
+    if (RegexNativeSwitch.isEnabled()) {
+        RegexNativeSwitch.applyOrNull(input, patterns, replacements, jvmFallback)
+    } else {
+        null
+    }
+}
+
+internal fun String.replaceRegexes(
+    regexes: List<AssistantRegex>,
+    scope: AssistantAffectScope,
+    visual: Boolean,
+    nativeApply: (String, Array<String>, Array<String>, () -> String) -> String?,
 ): String {
     if (regexes.isEmpty()) return this
 
@@ -21,12 +34,12 @@ fun String.replaceRegexes(
     // output without throwing — fallback can't detect it. When the preflight
     // flags any JVM-only rule we route the whole batch to JVM to preserve
     // per-rule semantic parity. See `RegexNativeSwitch` class KDoc.
-    if (RegexNativeSwitch.isEnabled() && !program.containsJvmOnlySyntax) {
-        RegexNativeSwitch.applyOrNull(
-            input = this,
-            findPatterns = program.nativePatterns,
-            replacements = program.nativeReplacements,
-            jvmFallback = { program.applyJvm(this) },
+    if (!program.containsJvmOnlySyntax) {
+        nativeApply(
+            this,
+            program.nativePatterns,
+            program.nativeReplacements,
+            { program.applyJvm(this) },
         )?.let { return it }
     }
 

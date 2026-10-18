@@ -1,0 +1,353 @@
+{
+  "baseline_head": "d983c0b782c6eedce7c826f62003aa26973cc17c",
+  "original_wip_excluded": [
+    "app/hs_err_pid14804.log",
+    "app/replay_pid14804.log",
+    "app/src/main/java/app/amber/feature/ui/adaptive/TwoPaneScene.kt",
+    "app/src/main/java/app/amber/feature/ui/components/ai/ChatInputComposers.kt",
+    "app/src/main/java/app/amber/feature/ui/pages/setting/ThemeLibrarySection.kt",
+    "app/src/main/java/app/amber/feature/ui/theme/ThemePackTransfer.kt",
+    "app/src/main/java/app/amber/feature/ui/theme/ThemePackageManager.kt",
+    "app/src/test/java/app/amber/feature/ui/adaptive/TwoPaneLayoutTest.kt",
+    "app/src/test/java/app/amber/feature/ui/pages/setting/ThemeCardColumnsTest.kt",
+    "app/src/test/java/app/amber/feature/ui/theme/ThemePackTransferTest.kt",
+    "app/src/test/java/app/amber/feature/ui/theme/ThemePackageManagerTest.kt"
+  ],
+  "task_files": [
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/AnthropicMessagesAdapter.kt",
+      "status": "modified",
+      "sha256": "4d23581bdcc4e708f59c2d91e5dea8103705384dfdee53f850846ad93b638fcb"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/ClaudeProvider.kt",
+      "status": "modified",
+      "sha256": "f9fdc354cb706a42ab06a0daa50bcecb5f78b56695da624c850928d56bf28d4f"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/GeminiGenerateContentAdapter.kt",
+      "status": "modified",
+      "sha256": "5a0ca84050fce8b9db6328e07affdd04b6b21990602475e38db72c5183e7a18e"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/openai/ResponseAPI.kt",
+      "status": "modified",
+      "sha256": "b14b0d948d4b385ee6f2d658c9460bc705732fe9fe1d2604e57b4771cc70d1d1"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/openai/ResponseStreamReconciler.kt",
+      "status": "modified",
+      "sha256": "5133f9277d7329c699749a8ac0416ba9aefaf333eee7e5c996a467fdd4dca799"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/ui/Message.kt",
+      "status": "modified",
+      "sha256": "5370a5fc0538bf147278b4ca776a87b0ef061c17164a9ded6772dc65851433db"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/ui/MessageStreamAccumulator.kt",
+      "status": "modified",
+      "sha256": "60fad8ba92447d40f35814d7f199eaa77db67e192dab19128d499a0227713fd3"
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/ui/ReasoningMetadata.kt",
+      "status": "modified",
+      "sha256": "8c06add92df63cd2410ce3bb4cc75e3315805f1f6cf3c30878ba4c4334c61769"
+    },
+    {
+      "path": "ai/src/test/java/app/amber/ai/provider/providers/ProviderStreamRoundTripRegressionTest.kt",
+      "status": "new",
+      "sha256": "e9657bdb115e5f83a3c9017554e80d1962d52039460fccf91726bdce47928b67"
+    },
+    {
+      "path": "ai/src/test/java/app/amber/ai/provider/providers/openai/ResponseAPIStreamReconcileTest.kt",
+      "status": "modified",
+      "sha256": "d8afdf57764f40b360158467fd03264fd0bc5a87e98e97705e669021cf0b99dc"
+    },
+    {
+      "path": "app/src/main/java/app/amber/agent/AmberAgentApp.kt",
+      "status": "modified",
+      "sha256": "ea71c549c8b3ff17183cf6223c28592df474d8ce2c5c61e209921d358c03d3d5"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/automation/AmberAccessibilityService.kt",
+      "status": "modified",
+      "sha256": "7cef83e33035d00b7c3ce0f8b3be709bdeb5ef8584c50438702dd0dc910924ae"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/context/TokenBudgetFitter.kt",
+      "status": "modified",
+      "sha256": "ff877417db1a50ce24c04edf9b5217b88a71063294509ec1d490f0803d40159b"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/di/NovelModule.kt",
+      "status": "modified",
+      "sha256": "6e43afd0ef0a4c66e497e54a9ed64426301f83bb903c5679aa7c8bd4004aed1b"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/memory/recall/MemoryRecallStore.kt",
+      "status": "modified",
+      "sha256": "5784f321ad559f9e8236d24c76d864d57a142376e5804474eaa54c1134b1f9c2"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/memory/store/MemoryRepository.kt",
+      "status": "modified",
+      "sha256": "affb56cdc462322864bc5c7b5330ffab717bc09ebe4c743196287e60cdea655c"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/service/ChatRunLifecycle.kt",
+      "status": "new",
+      "sha256": "ca83a7c3ad5bf18f9ad4e2488238301ea736a7e09c0fc2f4cda947559825c596"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/service/ChatService.kt",
+      "status": "modified",
+      "sha256": "d0ca795b3fcd710b48878f95995871a9813f835d6147e4e2aa9c8328b120f1d6"
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt",
+      "status": "modified",
+      "sha256": "da4efa81a3349996538f33b771bea97380763d9959f51623ce555a4b29b22767"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadNotifier.kt",
+      "status": "modified",
+      "sha256": "2c42bddf252c9f090ae0b57aefedf68f5d4b50937e34b49606bf288604dbda9a"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/cron/AgentCronManager.kt",
+      "status": "modified",
+      "sha256": "9aed9f0a5216734f70740e1a2cdb605c7f2ff70c86691a4bd6cd0caae493ddf5"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/cron/AgentCronWorker.kt",
+      "status": "modified",
+      "sha256": "bc81bf19d2fcd66caf9b18a22047935d021fb4a78d8ba7f2f9a4fbd171787319"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/novel/workspace/NovelWorkspaceRuntime.kt",
+      "status": "modified",
+      "sha256": "cf78c3ea43a6a442e041fc39e398eb5ffd80c20d3172f442f2db610192b7bf3e"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/reminder/ReminderScheduler.kt",
+      "status": "modified",
+      "sha256": "d0538a009cf0ec647ea6745caf449924757a84aa01fc5c63bf4231ca4bbff1bd"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/tools/ScreenAutomationTools.kt",
+      "status": "modified",
+      "sha256": "f003dd93cfdd028397e254e4ae0f70b6473d37b6bdd925d5f369cb7f13f73e58"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ChatInput.kt",
+      "status": "modified",
+      "sha256": "fa0acfe3286deb2e53bd80a1e450e75e6558cc56b8d9cd6b9d8eac869f88493c"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ChatInputSubmissionOwner.kt",
+      "status": "new",
+      "sha256": "d7fa27e3bf65e8400950ddf77b740d64d0b82f197843d9b59db45b8a1571e026"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/message/ChatMessageMessagePartsBlock.kt",
+      "status": "modified",
+      "sha256": "fc43190f5d71c79a2b330d086a894bf3002f47b980a541d7ec6d65cfc8299bfe"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/hooks/ChatInputState.kt",
+      "status": "modified",
+      "sha256": "4911bba95a16783ad077a968acda1767749798c859b284adc2281a6bec54e8fe"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/chat/ChatPage.kt",
+      "status": "modified",
+      "sha256": "8d545062aa65a9648089058e5fe26fb6fc109a77a46c14be8de93ddbd66b0e92"
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/chat/TimelineImagePrefetch.kt",
+      "status": "modified",
+      "sha256": "4b2b02b3e592522250f66f168063bba2fb7774e3ecd17cc54121df33a0cde1cf"
+    },
+    {
+      "path": "app/src/test/java/app/amber/agent/data/context/TokenBudgetFitterTest.kt",
+      "status": "modified",
+      "sha256": "2bc6a21eb9f74a3ac0b4d6863f08028b0fec80db8519f41cf81bc06b0c341ece"
+    },
+    {
+      "path": "app/src/test/java/app/amber/agent/data/sync/SyncArchiveManagerIntegrationTest.kt",
+      "status": "modified",
+      "sha256": "8f27da93e0e4ab19776a0e770b3a8d51e45083a51ca1d3a9a86cfe0fd8ebcaf7"
+    },
+    {
+      "path": "app/src/test/java/app/amber/agent/data/sync/SyncRestoreStartupWiringTest.kt",
+      "status": "new",
+      "sha256": "15a0c7d1d1b7d487e589e04666c7e2902b89b637f5307076750e64919cdc87d1"
+    },
+    {
+      "path": "app/src/test/java/app/amber/agent/ui/pages/chat/KernelRunObserveTest.kt",
+      "status": "modified",
+      "sha256": "e8df2218223cb87e244e55453b3cbd359b99068c74996c974724162b8cacb920"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/ai/DefaultRunKernelTest.kt",
+      "status": "modified",
+      "sha256": "23d2104daf047d877beca93a62e124b4594b237e320ffbf3a5f2afaa82f4097b"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/memory/recall/MemoryRecallProfileGateTest.kt",
+      "status": "new",
+      "sha256": "403e2a340041e2bf431fcf4527a0e23abb72b3306ed686d43f0333f725f7f833"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/memory/store/MemoryLifecycleTest.kt",
+      "status": "modified",
+      "sha256": "31b498a93bf8b0b826913461f90d426f36e4701ce689dab4a4c2875c733f35c1"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/service/ChatDispatchActivationTest.kt",
+      "status": "new",
+      "sha256": "419166337db23896f73a5cee2e617c2869c5a79e72cb484b6cf3f1f235d5d0e0"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/service/ChatDispatchHandoffTest.kt",
+      "status": "new",
+      "sha256": "c52413f8cb7d9daf1c85ac3830c2437acc4502f3a1cac27b043832406000b6ac"
+    },
+    {
+      "path": "app/src/test/java/app/amber/core/service/ChatTaskRunTest.kt",
+      "status": "new",
+      "sha256": "2feb9da81f9a5826baf5ef78ac9922152123a043b9777652f247502b3c3b9031"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/board/hotlist/deepread/DeepReadNotifierTest.kt",
+      "status": "new",
+      "sha256": "359ef90bd0fa552a808c4a9ac169a7b6bbdae10cf8922a295a626b4057aa12ab"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/cron/AgentCronManagerConcurrencyTest.kt",
+      "status": "modified",
+      "sha256": "cc9021299c7bbae8837776be27ce491f90191540a67b7e0d184a36e380b9c3d2"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/cron/AgentCronNotificationTest.kt",
+      "status": "new",
+      "sha256": "a5a2be3e28ccabd291612654dd9010e7547c7cd6e183d230777a84c056ec0ff1"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/novel/workspace/NovelTurnLauncherTest.kt",
+      "status": "modified",
+      "sha256": "d32f69baa49847c1cfd056f24b2b4e77d9c6f06b1f55d169858e24f95d27865b"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/novel/workspace/NovelWorkspaceForeshadowingWritesTest.kt",
+      "status": "new",
+      "sha256": "6a39344766d74df1ffd02003c295e553c8100fea52d6b72526ce56d64e4ba4c4"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/reminder/ReminderOwnerTest.kt",
+      "status": "modified",
+      "sha256": "5de7c749c759550bc3edd8579c50fda5f104d49b80df4f0a5a614de412efde52"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/runtime/RunRecoveryServiceTest.kt",
+      "status": "modified",
+      "sha256": "130e61940e911e32b57c31f26331538d3ac9c630b0c3925b3663402c7d88060c"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/tools/ScreenAutomationAcceptanceTest.kt",
+      "status": "new",
+      "sha256": "9311f400d9ad92c52f93fb485e78297315b6b7e512962dd73d87ee5a77d981b9"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/tools/ScreenExpectationTest.kt",
+      "status": "modified",
+      "sha256": "eabfa9b9429f34e78cc86348889f6b3614c1f4860d25713e765c616a4acc50c6"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/ui/components/ai/ChatInputSubmissionOwnerTest.kt",
+      "status": "new",
+      "sha256": "e381976f9002d9c6abeb88c19fc7fd145206f220b3950c82c523c487e9773dfd"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/ui/components/message/ChatDocumentOpenTest.kt",
+      "status": "new",
+      "sha256": "b76ab77f05c41c3eb9f7103688562abf86e161b1db29fdeb5437619012032eaf"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/ui/hooks/ChatInputStateTest.kt",
+      "status": "modified",
+      "sha256": "619f7fafe1de5b60b92375b08e917c4faa1ab71c9ae6cbbf12309fa8fd4c53e4"
+    },
+    {
+      "path": "app/src/test/java/app/amber/feature/ui/pages/chat/TimelineImagePrefetchTest.kt",
+      "status": "modified",
+      "sha256": "191617d9a22a40fe717bec794c15b0aacc2cb7c604e65189c280eb0a977e5b79"
+    },
+    {
+      "path": "core/agent-runtime-impl/src/main/kotlin/app/amber/core/agent/runtime/impl/InProcessAgentRunner.kt",
+      "status": "modified",
+      "sha256": "adfb8e5878c99b7220d4fdcaaae1b3a83e12937d85bd6d5c5d00e2c0cfdafc7d"
+    },
+    {
+      "path": "core/agent-runtime-impl/src/test/kotlin/app/amber/core/agent/runtime/impl/InProcessAgentRunnerLaunchGateTest.kt",
+      "status": "modified",
+      "sha256": "7efd39b06c154b340985ad866b0c30d41b53ecdda4fca6cb3cdb3d9344aa580e"
+    },
+    {
+      "path": "core/agent-runtime/src/main/kotlin/app/amber/core/agent/runtime/AgentRunner.kt",
+      "status": "modified",
+      "sha256": "7d117aebee08861d3f130f27c50e92081e9d6769e6f8d33b8e7d71b23e345e5f"
+    },
+    {
+      "path": "core/automation/api/src/main/kotlin/app/amber/core/automation/AccessibilityController.kt",
+      "status": "modified",
+      "sha256": "c2207e65bb8719bd5217be6e262644751c35f1d4a96c88444b13cea39f9dec4a"
+    },
+    {
+      "path": "document/src/main/java/app/amber/document/PptxParser.kt",
+      "status": "modified",
+      "sha256": "ccc295a176051e541a5886f6227c899d77d658b21f275ba2484a3f2160c44d40"
+    },
+    {
+      "path": "document/src/test/java/app/amber/document/OfficeParserFixtureTest.kt",
+      "status": "modified",
+      "sha256": "663d45450a8754047e169d2b9636dc26d2bf1591534769a1b8cb2128f55c977e"
+    },
+    {
+      "path": "feature/novel-workspace/src/main/kotlin/app/amber/feature/novelworkspace/NovelWorkspaceBookExport.kt",
+      "status": "modified",
+      "sha256": "19d0207d3240ee31e62da25f8f1823fd4d3414b39efb96ac855cf96e26716560"
+    },
+    {
+      "path": "feature/novel-workspace/src/main/kotlin/app/amber/feature/novelworkspace/NovelWorkspaceExchange.kt",
+      "status": "modified",
+      "sha256": "f8dcea41bb695c1839d9e9467cca66437ee27038cc7bd59abb911eccb3914790"
+    },
+    {
+      "path": "feature/novel-workspace/src/main/kotlin/app/amber/feature/novelworkspace/NovelWorkspaceNodes.kt",
+      "status": "modified",
+      "sha256": "f33ebc9c46aefc7657fd116ef212e041bafe9738d71f6a75258f29c134b17760"
+    },
+    {
+      "path": "feature/novel-workspace/src/test/kotlin/app/amber/feature/novelworkspace/NovelWorkspaceExportSnapshotTest.kt",
+      "status": "new",
+      "sha256": "7b5a3db7b9e252bc80ad372cc15e38e5471aa40bc7ccb26b4f608c3b793a1373"
+    },
+    {
+      "path": "feature/novel-workspace/src/test/kotlin/app/amber/feature/novelworkspace/NovelWorkspaceReviewRegressionTest.kt",
+      "status": "new",
+      "sha256": "619b9da1f45e49583f3c39f6c1d538492a4edfb056e531856927167d5431a9e9"
+    },
+    {
+      "path": "feature/tools/api/src/main/kotlin/app/amber/feature/tools/ToolRegistry.kt",
+      "status": "modified",
+      "sha256": "07bd7ed94fb7fc423d442f9d13be7ffc67c984b7ebe726604cfc95384a4db510"
+    },
+    {
+      "path": "feature/tools/api/src/test/kotlin/app/amber/feature/tools/ExternalActionEffectPolicyTest.kt",
+      "status": "new",
+      "sha256": "c339da80b337e78b4e11397194454eae77614869c847bcdfc3e004a223626513"
+    }
+  ]
+}

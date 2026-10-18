@@ -892,6 +892,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         val swipe = Tool(
             name = "screen_swipe",
             description = "swipe the screen",
+            needsApproval = true,
+            allowsAutoApproval = false,
             execute = {
                 executions.incrementAndGet()
                 listOf(UIMessagePart.Text("swiped"))
@@ -914,6 +916,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
                 messages = listOf(UIMessage.user("一直滑到底")),
                 tools = listOf(swipe),
                 terminals = terminals,
+                // Authorize the action so this test reaches the duplicate-call guard.
+                autoApproveHighRiskTools = true,
             ),
         ).toList()
 
@@ -928,6 +932,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         val click = Tool(
             name = "screen_click",
             description = "click the screen",
+            needsApproval = true,
+            allowsAutoApproval = false,
             execute = {
                 executions.incrementAndGet()
                 listOf(UIMessagePart.Text("clicked"))
@@ -954,6 +960,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
                 messages = listOf(UIMessage.user("点两下")),
                 tools = listOf(click),
                 terminals = terminals,
+                // Approval and same-batch duplicate suppression are separate boundaries.
+                autoApproveHighRiskTools = true,
             ),
         ).toList()
 
@@ -1551,6 +1559,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         val shell = Tool(
             name = "terminal_execute",
             description = "shell side effect",
+            needsApproval = true,
+            allowsAutoApproval = false,
             execute = {
                 executions.incrementAndGet()
                 listOf(UIMessagePart.Text("""{"status":"ok"}"""))
@@ -1568,6 +1578,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
                 messages = listOf(UIMessage.user("跑一下命令")),
                 tools = listOf(shell),
                 executionPolicy = app.amber.feature.runtime.ExecutionPolicy(allowShell = false),
+                // Even an approved shell call must be denied by the narrowed session policy.
+                autoApproveHighRiskTools = true,
             ),
         ).toList()
 

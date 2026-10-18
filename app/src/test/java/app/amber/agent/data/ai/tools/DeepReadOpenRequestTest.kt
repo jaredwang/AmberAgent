@@ -41,4 +41,22 @@ class DeepReadOpenRequestTest {
 
         assertNull(event)
     }
+
+    @Test
+    fun differentCaseSensitiveUrlPathsKeepSeparateCacheIdentities() {
+        val first = createDeepReadOpenEvent("Article", "https://example.com/Articles/Foo")
+        val second = createDeepReadOpenEvent("Article", "https://example.com/Articles/foo")
+
+        assertNotEquals(first.topicId, second.topicId)
+        assertEquals("https://example.com/Articles/Foo", first.sourceUrl)
+        assertEquals("https://example.com/Articles/foo", second.sourceUrl)
+    }
+
+    @Test
+    fun differentCaseSensitiveUrlQueryValuesKeepSeparateCacheIdentities() {
+        val first = createDeepReadOpenEvent("Article", "https://example.com/article?token=AbC")
+        val second = createDeepReadOpenEvent("Article", "https://example.com/article?token=abc")
+
+        assertNotEquals(first.topicId, second.topicId)
+    }
 }

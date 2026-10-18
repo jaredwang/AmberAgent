@@ -147,6 +147,7 @@ import app.amber.core.service.PendingUserMessageMode
 import app.amber.core.service.previewText
 import app.amber.feature.ui.adaptive.LocalTwoPaneLayout
 import app.amber.feature.ui.components.ai.ChatInput
+import app.amber.feature.ui.components.ai.ChatInputSubmissionOwner
 import app.amber.feature.ui.components.ai.SubAgentStatusDock
 import app.amber.core.repository.ConversationRepository
 import app.amber.feature.ui.components.ai.SandboxActivitySheet
@@ -759,6 +760,7 @@ private fun ChatPageContent(
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
     val context = LocalContext.current
+    val inputSubmissionOwner = remember(inputState) { ChatInputSubmissionOwner(inputState) }
     val filesManager: FilesManager = koinInject()
     val conversationRepository: ConversationRepository = koinInject()
     val chatProvidersForMenu = setting.providers.filter { provider ->
@@ -876,13 +878,8 @@ private fun ChatPageContent(
             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
             return
         }
-        val accepted = vm.handleMessageEdit(
-            parts = parts,
-            messageId = inputState.editingMessage!!,
-            regenerate = regenerate,
-        )
-        if (accepted) {
-            inputState.clearInput()
+        inputSubmissionOwner.confirmEdit(regenerate) { submittedParts, messageId, shouldRegenerate ->
+            vm.handleMessageEdit(submittedParts, messageId, shouldRegenerate)
         }
     }
 
@@ -1065,6 +1062,7 @@ private fun ChatPageContent(
                         }
                     }
                     ChatInput(
+                    submissionOwner = inputSubmissionOwner,
                     aboveComposerContent = {
                         SubAgentStatusDock(
                             currentConversationId = conversation.id,
@@ -1134,17 +1132,17 @@ private fun ChatPageContent(
                         queuePanelOpen = true
                     },
                     suggestionFillPulseKey = suggestionFillPulseKey,
-                    onSendClick = { queueMode, parts ->
-                        val canRouteWithoutChatModel = !inputState.isEditing() && canSendWithoutChatModel(parts)
+                    onSendClick = { queueMode, parts, editingMessage ->
+                        val canRouteWithoutChatModel = editingMessage == null && canSendWithoutChatModel(parts)
                         if (configurationIssue != null && !canRouteWithoutChatModel) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
-                            return@ChatInput
+                            return@ChatInput false
                         }
-                        val accepted = if (inputState.isEditing()) {
+                        if (editingMessage != null) {
                             // P8-01: 发送键 = 默认动作「保存并重新生成」
                             vm.handleMessageEdit(
                                 parts = parts,
-                                messageId = inputState.editingMessage!!,
+                                messageId = editingMessage,
                                 regenerate = true,
                             )
                         } else {
@@ -1153,21 +1151,18 @@ private fun ChatPageContent(
                                 queueMode = queueMode,
                             )
                         }
-                        if (accepted) {
-                            inputState.clearInput()
-                        }
                     },
-                    onLongSendClick = { queueMode, parts ->
-                        val canRouteWithoutChatModel = !inputState.isEditing() && canSendWithoutChatModel(parts)
+                    onLongSendClick = { queueMode, parts, editingMessage ->
+                        val canRouteWithoutChatModel = editingMessage == null && canSendWithoutChatModel(parts)
                         if (configurationIssue != null && !canRouteWithoutChatModel) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
-                            return@ChatInput
+                            return@ChatInput false
                         }
-                        val accepted = if (inputState.isEditing()) {
+                        if (editingMessage != null) {
                             // P8-01: 编辑态长按发送同样走默认动作「保存并重新生成」
                             vm.handleMessageEdit(
                                 parts = parts,
-                                messageId = inputState.editingMessage!!,
+                                messageId = editingMessage,
                                 regenerate = true,
                             )
                         } else {
@@ -1176,9 +1171,6 @@ private fun ChatPageContent(
                                 answer = loadingJob != null && queueMode == PendingUserMessageMode.STEER,
                                 queueMode = queueMode,
                             )
-                        }
-                        if (accepted) {
-                            inputState.clearInput()
                         }
                     },
                     onCompactContext = {
@@ -1396,11 +1388,12 @@ private fun ChatPageContent(
                         if (configurationIssue != null && !canSendWithoutChatModel(parts)) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
                         } else {
-                            inputState.editingMessage = null
-                            vm.handleMessageSend(
-                                content = parts,
-                                queueMode = PendingUserMessageMode.FOLLOWUP,
-                            )
+                            inputSubmissionOwner.sendWidgetAction(parts) { actionParts ->
+                                vm.handleMessageSend(
+                                    content = actionParts,
+                                    queueMode = PendingUserMessageMode.FOLLOWUP,
+                                )
+                            }
                         }
                     }
                 },

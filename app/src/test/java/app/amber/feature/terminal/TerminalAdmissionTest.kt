@@ -1,0 +1,205 @@
+package app.amber.feature.terminal
+
+import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.amber.core.infra.AppScope
+import app.amber.core.settings.prefs.AgentPrefs
+import app.amber.core.settings.prefs.ChatPrefs
+import app.amber.core.settings.prefs.ExtensionPrefs
+import app.amber.core.settings.prefs.ProviderPrefs
+import app.amber.core.settings.prefs.SearchPrefs
+import app.amber.core.settings.prefs.SettingsAggregator
+import app.amber.core.settings.prefs.UIPrefs
+import app.amber.core.settings.secret.SecretCipher
+import app.amber.core.settings.secret.SecretRedactor
+import app.amber.core.settings.secret.SecretStore
+import app.amber.core.settings.secret.SecretStoreBackend
+import app.amber.core.settings.ssh.SshProfileStore
+import app.amber.feature.runtime.AgentToolActivityStore
+import app.amber.feature.task.AgentTaskStore
+import app.amber.feature.workspace.WorkspaceManager
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = Application::class)
+class TerminalAdmissionTest {
+    private lateinit var context: Context
+    private lateinit var testRoot: File
+    private lateinit var appScope: AppScope
+    private lateinit var settingsStore: SettingsAggregator
+    private lateinit var sshProfiles: SshProfileStore
+
+    @Before
+    fun setUp() = runBlocking {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        val base: Context = RuntimeEnvironment.getApplication()
+        testRoot = File(base.cacheDir, "terminal-admission-${System.nanoTime()}").apply { mkdirs() }
+        context = object : ContextWrapper(base) {
+            override fun getFilesDir(): File = File(testRoot, "files").apply { mkdirs() }
+            override fun getCacheDir(): File = File(testRoot, "cache").apply { mkdirs() }
+        }
+        appScope = AppScope()
+        val dataStore = PreferenceDataStoreFactory.create(scope = appScope) {
+            File(testRoot, "settings.preferences_pb")
+        }
+        val secrets = SecretStore(
+            backend = object : SecretStoreBackend {
+                private val values = mutableMapOf<String, String>()
+                override fun get(key: String): String? = values[key]
+                override fun put(key: String, value: String) { values[key] = value }
+                override fun remove(key: String) { values.remove(key) }
+                override fun keys(): Set<String> = values.keys.toSet()
+            },
+            cipher = object : SecretCipher {
+                override fun encrypt(plaintext: String): String = "enc:$plaintext"
+                override fun decrypt(stored: String): String? = stored.removePrefix("enc:")
+            },
+        )
+        settingsStore = SettingsAggregator(
+            dataStore = dataStore,
+            uiPrefs = UIPrefs(dataStore, appScope),
+            searchPrefs = SearchPrefs(dataStore, appScope, secrets),
+            agentPrefs = AgentPrefs(dataStore, appScope),
+            providerPrefs = ProviderPrefs(dataStore, appScope, secrets),
+            chatPrefs = ChatPrefs(dataStore, appScope, secrets),
+            extensionPrefs = ExtensionPrefs(dataStore, appScope, secrets),
+            scope = appScope,
+            secretRedactor = SecretRedactor(secrets),
+        )
+        sshProfiles = SshProfileStore(dataStore, secrets)
+        withTimeout(5_000) { settingsStore.settingsFlow.first { !it.init } }
+        settingsStore.update { it.copy(agentRuntime = it.agentRuntime.copy(terminalMaxConcurrentJobs = 1)) }
+    }
+
+    @After
+    fun tearDown() = runBlocking {
+        if (::appScope.isInitialized) {
+            appScope.cancel()
+            appScope.coroutineContext[Job]?.join()
+        }
+        if (::testRoot.isInitialized) testRoot.deleteRecursively()
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `cancel during task store startup releases admitted slot and install owner`() = runBlocking {
+        val loader = QueuedDispatcher()
+        val tasks = AgentTaskStore(context, Json, loadDispatcher = loader)
+        val runtime = runtime(tasks)
+        val admission = launch(Dispatchers.Default) {
+            runtime.startJob("pkg install test", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+        }
+        val abandonedId = withTimeout(5_000) {
+            while (admittedIds(runtime).isEmpty()) delay(1)
+            admittedIds(runtime).single()
+        }
+
+        // The real TaskStore has not loaded, so no backend can have been started.
+        assertFalse(loader.isEmpty())
+        admission.cancelAndJoin()
+        loader.runAll()
+        tasks.awaitReady()
+
+        val next = runtime.startJob("pkg install next", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+
+        assertAdmittedToBackend(next)
+        assertFalse("Cancelled admission must not retain a running slot", abandonedId in admittedIds(runtime))
+        assertTrue("No task was registered before cancellation", tasks.read(abandonedId) == null)
+    }
+
+    @Test
+    fun `task snapshot write failure releases admitted slot and install owner`() = runBlocking {
+        val tasks = AgentTaskStore(context, Json)
+        tasks.awaitReady()
+        val taskDir = File(context.filesDir, "amberagent/tasks")
+        assertTrue(taskDir.delete())
+        taskDir.writeText("blocks the real snapshot parent directory")
+        val runtime = runtime(tasks)
+
+        val failure = runCatching {
+            runtime.startJob("pkg install test", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+        }.exceptionOrNull()
+
+        assertTrue("Expected the real task snapshot write to fail", failure is IOException)
+        assertTrue(taskDir.delete())
+        assertTrue(taskDir.mkdirs())
+        val next = runtime.startJob("pkg install next", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+
+        assertAdmittedToBackend(next)
+        assertEquals("Only the next backend should have a terminal task", 1, tasks.list(type = "terminal").size)
+    }
+
+    @Test
+    fun `successful admission reaches selected backend and releases failed install owner`() = runBlocking {
+        val tasks = AgentTaskStore(context, Json)
+        val runtime = runtime(tasks)
+
+        val first = runtime.startJob("pkg install first", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+        val next = runtime.startJob("pkg install next", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL, isInstall = true)
+
+        assertAdmittedToBackend(first)
+        assertAdmittedToBackend(next)
+        assertEquals(2, tasks.list(type = "terminal").size)
+    }
+
+    private fun runtime(tasks: AgentTaskStore) = TerminalRuntime(
+        context = context,
+        appScope = appScope,
+        workspaceManager = WorkspaceManager(context),
+        alpineRuntimeInstaller = AlpineRuntimeInstaller(context),
+        activityStore = AgentToolActivityStore(),
+        settingsStore = settingsStore,
+        agentTaskStore = tasks,
+        sshProfileStore = sshProfiles,
+        sshClient = SshClient(),
+    )
+
+    private fun assertAdmittedToBackend(snapshot: TerminalJobSnapshot) {
+        assertEquals(TerminalJobStatus.FAILED, snapshot.status)
+        assertEquals("Termux is not installed.", snapshot.error)
+    }
+
+    private fun admittedIds(runtime: TerminalRuntime): Set<String> {
+        val field = TerminalRuntime::class.java.getDeclaredField("jobs").apply { isAccessible = true }
+        val jobs = field.get(runtime) as Map<*, *>
+        return jobs.keys.map { it as String }.toSet()
+    }
+
+    private class QueuedDispatcher : CoroutineDispatcher() {
+        private val queue = ConcurrentLinkedQueue<Runnable>()
+        override fun dispatch(context: CoroutineContext, block: Runnable) { queue.add(block) }
+        fun isEmpty(): Boolean = queue.isEmpty()
+        fun runAll() {
+            while (true) (queue.poll() ?: return).run()
+        }
+    }
+}

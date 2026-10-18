@@ -1,0 +1,60 @@
+[
+  {
+    "suite": {
+      "name": "app.amber.ai.provider.providers.GoogleThinkingRequestTest",
+      "tests": "8",
+      "skipped": "0",
+      "failures": "6",
+      "errors": "0",
+      "timestamp": "2026-10-18T00:33:23.932Z",
+      "hostname": "duguangdeMacBook-Pro.local",
+      "time": "0.462"
+    },
+    "cases": [
+      {
+        "name": "completeMapsProOffToItsLowestSupportedLevel",
+        "failure": [
+          "java.lang.Exception: Failed to get response: 400 {\"error\":{\"message\":\"Unsupported thinking configuration for gemini-3.1-pro-preview\"}}"
+        ]
+      },
+      {
+        "name": "legalNeighboringModelOptionsKeepTheirValues",
+        "failure": []
+      },
+      {
+        "name": "streamMapsOriginalProMediumToSupportedLevel",
+        "failure": [
+          "java.lang.Exception: Unknown error: 400"
+        ]
+      },
+      {
+        "name": "completeCapsFlashBudgetAtItsPublishedMaximum",
+        "failure": [
+          "java.lang.Exception: Failed to get response: 400 {\"error\":{\"message\":\"Unsupported thinking configuration for gemini-2.5-flash\"}}"
+        ]
+      },
+      {
+        "name": "automaticAndCodeAssistOffKeepDynamicThinkingConfiguration",
+        "failure": []
+      },
+      {
+        "name": "streamCapsFlashBudgetAtItsPublishedMaximum",
+        "failure": [
+          "java.lang.Exception: Unknown error: 400"
+        ]
+      },
+      {
+        "name": "streamMapsProOffToItsLowestSupportedLevel",
+        "failure": [
+          "java.lang.Exception: Unknown error: 400"
+        ]
+      },
+      {
+        "name": "completeMapsOriginalProMediumToSupportedLevel",
+        "failure": [
+          "java.lang.Exception: Failed to get response: 400 {\"error\":{\"message\":\"Unsupported thinking configuration for gemini-3-pro-preview\"}}"
+        ]
+      }
+    ]
+  }
+]

@@ -18,6 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
@@ -41,6 +42,7 @@ import app.amber.core.files.FilesManager
 import app.amber.core.files.SkillManager
 import app.amber.feature.cron.AgentCronManager
 import app.amber.feature.reminder.ReminderScheduler
+import app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridge
 import app.amber.feature.chat.impl.ChatEventProjector
 import app.amber.feature.runtime.ColdStartRuntimeRecoveryGate
 import app.amber.core.settings.prefs.SettingsAggregator
@@ -48,6 +50,7 @@ import app.amber.core.settings.prefs.SettingsProviderRescue
 import app.amber.core.settings.secret.SettingsSecretMigrator
 import app.amber.core.nativepath.NativePathBootstrap
 import app.amber.core.memory.dream.MemoryDreamScheduler
+import app.amber.core.sync.core.SyncArchiveManager
 import app.amber.feature.board.collector.NotificationSignalCollector
 import app.amber.feature.board.hotlist.HotListScheduler
 import app.amber.feature.board.worker.BoardScheduler
@@ -79,8 +82,16 @@ class AmberAgentApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@AmberAgentApp)
-            workManagerFactory()
             modules(appModule, chatModule, memoryModule, iCloudModule, webMountModule, agentRuntimeModule, agentInfraModule, boardModule, workspaceModule, novelModule, viewModelModule, dataSourceModule, repositoryModule, jevModule)
+            if (SyncArchiveManager.hasInterruptedFileRestore(this@AmberAgentApp)) {
+                // Eager singletons start after this block; workers must also wait
+                // until files match the last committed database snapshot.
+                koin.get<NovelWorkspaceRestoreBridge>()
+                runBlocking(Dispatchers.IO) {
+                    koin.get<SyncArchiveManager>().recoverInterruptedRestore()
+                }
+            }
+            workManagerFactory()
         }
         this.createNotificationChannel()
 

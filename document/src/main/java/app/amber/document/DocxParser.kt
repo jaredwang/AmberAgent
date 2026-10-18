@@ -47,20 +47,29 @@ object DocxParser {
         val parser = newParser(input)
         val output = StringBuilder()
         val counters = mutableMapOf<String, Int>()
-        var bodyDepth = -1
+        val blockContainerDepths = ArrayDeque<Int>()
 
         while (parser.eventType != XmlPullParser.END_DOCUMENT) {
             when (parser.eventType) {
                 XmlPullParser.START_TAG -> when (parser.localName()) {
-                    "body" -> bodyDepth = parser.depth
-                    "p" -> if (bodyDepth >= 0 && parser.depth == bodyDepth + 1) {
+                    "body" -> blockContainerDepths.addLast(parser.depth)
+                    // A block-level SDT adds its wrapper between the parent and sdtContent.
+                    "sdtContent" -> if (blockContainerDepths.lastOrNull() == parser.depth - 2) {
+                        blockContainerDepths.addLast(parser.depth)
+                    }
+                    "p" -> if (blockContainerDepths.lastOrNull() == parser.depth - 1) {
                         appendParagraph(parser, output, numbering, counters)
                     }
-                    "tbl" -> if (bodyDepth >= 0 && parser.depth == bodyDepth + 1) {
+                    "tbl" -> if (blockContainerDepths.lastOrNull() == parser.depth - 1) {
                         appendTable(parser, output)
                     }
                 }
-                XmlPullParser.END_TAG -> if (parser.localName() == "body") bodyDepth = -1
+                XmlPullParser.END_TAG -> when (parser.localName()) {
+                    "body" -> blockContainerDepths.clear()
+                    "sdtContent" -> if (blockContainerDepths.lastOrNull() == parser.depth) {
+                        blockContainerDepths.removeLast()
+                    }
+                }
             }
             parser.next()
         }

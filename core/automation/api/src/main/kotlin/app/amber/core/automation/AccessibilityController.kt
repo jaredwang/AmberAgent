@@ -73,6 +73,10 @@ data class ScreenNode(
     val editable: Boolean,
     val scrollable: Boolean,
     val enabled: Boolean,
+    /** Actual, untruncated text of a non-password editable node; never its hint or display label. */
+    val editableValue: String? = null,
+    /** False when the display label was synthesized from descendants or a resource id. */
+    val hasOwnLabel: Boolean = true,
 )
 
 data class ScreenSnapshot(

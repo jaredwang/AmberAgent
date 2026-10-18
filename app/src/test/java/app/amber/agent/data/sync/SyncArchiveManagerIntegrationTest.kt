@@ -417,6 +417,91 @@ class SyncArchiveManagerIntegrationTest {
     }
 
     @Test
+    fun startupRecoveryRollsBackUncommittedFilesWithoutAnotherArchiveRestore() = runBlocking {
+        val previousUpload = mapOf("old.txt" to "before restore".toByteArray())
+        val previousNovel = nativeNovelFiles()
+        database.managedFileDao().insert(managedFile("old.txt", previousUpload.getValue("old.txt").size.toLong()))
+        val journalRoot = File(context.cacheDir, "sync-restore-file-journal").apply { mkdirs() }
+        writeFiles(File(journalRoot, "backup/${FileFolders.UPLOAD}"), previousUpload)
+        writeFiles(File(journalRoot, "backup/${NovelWorkspaceProjectRepository.RELATIVE_ROOT}"), previousNovel)
+        File(journalRoot, "roots").writeText("${FileFolders.UPLOAD}\n${NovelWorkspaceProjectRepository.RELATIVE_ROOT}")
+        File(journalRoot, "token").writeText("uncommitted-startup-import")
+        File(journalRoot, "state").writeText("files_replaced")
+        writeFiles(File(context.filesDir, FileFolders.UPLOAD), mapOf("partial.txt" to "partial import".toByteArray()))
+        writeFiles(novelRoot(), mapOf("partial-project/project.md" to "partial novel".toByteArray()))
+        val repository = NovelWorkspaceProjectRepository(novelRoot())
+        var pausedBackgroundWork = 0
+        assertTrue(SyncArchiveManager.hasInterruptedFileRestore(context))
+
+        NovelWorkspaceRestoreBridge(restoreWriteGate, novelRoot()) { pausedBackgroundWork++ }.use {
+            manager.recoverInterruptedRestore()
+        }
+
+        assertFiles(File(context.filesDir, FileFolders.UPLOAD), previousUpload)
+        assertFiles(novelRoot(), previousNovel)
+        assertEquals(listOf("${FileFolders.UPLOAD}/old.txt"), database.managedFileDao().listByFolder(FileFolders.UPLOAD).first().map { it.relativePath })
+        assertTrue(repository.allowsAutomaticMigration())
+        assertEquals(1, pausedBackgroundWork)
+        assertFalse(restoreWriteGate.isRestoring())
+        assertFalse(SyncArchiveManager.hasInterruptedFileRestore(context))
+    }
+
+    @Test
+    fun startupRecoveryKeepsCommittedFilesAndDatabaseAndRebuildsDerivedFts() = runBlocking {
+        val importedUpload = mapOf("imported.txt" to "committed import".toByteArray())
+        writeFiles(File(context.filesDir, FileFolders.UPLOAD), importedUpload)
+        database.managedFileDao().insert(managedFile("imported.txt", importedUpload.getValue("imported.txt").size.toLong()))
+        val journalRoot = File(context.cacheDir, "sync-restore-file-journal").apply { mkdirs() }
+        writeFiles(File(journalRoot, "backup/${FileFolders.UPLOAD}"), mapOf("old.txt" to "old local data".toByteArray()))
+        File(journalRoot, "roots").writeText(FileFolders.UPLOAD)
+        File(journalRoot, "token").writeText("committed-startup-import")
+        // A crash can happen after SQLite commits but before the journal phase is written.
+        File(journalRoot, "state").writeText("files_replaced")
+        writeCommittedRestoreMarker("committed-startup-import")
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT INTO conversation_title_fts(title, conversation_id, update_at) VALUES (?, ?, ?)",
+            arrayOf("stale pre-restore title", "deleted-conversation", "1"),
+        )
+
+        manager.recoverInterruptedRestore()
+
+        assertFiles(File(context.filesDir, FileFolders.UPLOAD), importedUpload)
+        assertEquals(listOf("${FileFolders.UPLOAD}/imported.txt"), database.managedFileDao().listByFolder(FileFolders.UPLOAD).first().map { it.relativePath })
+        database.openHelper.writableDatabase.query("SELECT COUNT(*) FROM conversation_title_fts").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(0, it.getInt(0))
+        }
+        database.openHelper.writableDatabase.query("SELECT COUNT(*) FROM amber_sync_restore_marker").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(0, it.getInt(0))
+        }
+        assertFalse(journalRoot.exists())
+    }
+
+    @Test
+    fun startupRecoveryAdoptsCommittedNativeNovelSnapshotThroughExistingBridge() = runBlocking {
+        val importedNovel = nativeNovelFiles()
+        writeFiles(novelRoot(), importedNovel)
+        val journalRoot = File(context.cacheDir, "sync-restore-file-journal").apply { mkdirs() }
+        writeFiles(File(journalRoot, "backup/${NovelWorkspaceProjectRepository.RELATIVE_ROOT}"), mapOf("old-project/project.md" to "old novel".toByteArray()))
+        File(journalRoot, "roots").writeText(NovelWorkspaceProjectRepository.RELATIVE_ROOT)
+        File(journalRoot, "token").writeText("committed-native-startup-import")
+        File(journalRoot, "state").writeText("data_committed")
+        writeCommittedRestoreMarker("committed-native-startup-import")
+        val repository = NovelWorkspaceProjectRepository(novelRoot())
+
+        NovelWorkspaceRestoreBridge(restoreWriteGate, novelRoot()) {}.use {
+            manager.recoverInterruptedRestore()
+        }
+
+        assertFalse(repository.allowsAutomaticMigration())
+        val marker = File(novelRoot(), ".native-restored")
+        assertTrue(marker.isFile)
+        assertFiles(novelRoot(), importedNovel + (".native-restored" to marker.readBytes()))
+        assertFalse(journalRoot.exists())
+    }
+
+    @Test
     fun nativeJournalRollbackBeforeConfigurationRestorePreservesAutomaticMigrationPolicy() = runBlocking {
         val archive = manager.createArchive(
             SyncExportRequest(mode = SyncMode.STANDARD, passphrase = "test-passphrase"),
@@ -869,6 +954,17 @@ class SyncArchiveManagerIntegrationTest {
         } finally {
             grokAuthStore.clear(providerId)
         }
+    }
+
+    private fun writeCommittedRestoreMarker(token: String) {
+        database.openHelper.writableDatabase.execSQL(
+            "CREATE TABLE IF NOT EXISTS amber_sync_restore_marker " +
+                "(id INTEGER PRIMARY KEY CHECK (id = 1), token TEXT NOT NULL)",
+        )
+        database.openHelper.writableDatabase.execSQL(
+            "INSERT OR REPLACE INTO amber_sync_restore_marker(id, token) VALUES (1, ?)",
+            arrayOf(token),
+        )
     }
 
     private fun recreateFtsTables() {

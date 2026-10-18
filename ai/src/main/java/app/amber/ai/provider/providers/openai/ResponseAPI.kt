@@ -952,7 +952,10 @@ class ResponseAPI(
                                         reasoning = jsonObject["delta"]?.jsonPrimitive?.contentOrNull
                                             ?: "",
                                         createdAt = Clock.System.now(),
-                                        finishedAt = null
+                                        finishedAt = null,
+                                        metadata = jsonObject["item_id"]?.jsonPrimitive?.contentOrNull?.let { itemId ->
+                                            buildJsonObject { put("reasoning_id", itemId) }
+                                        },
                                     )
                                 )
                             ),
@@ -1228,6 +1231,15 @@ class ResponseAPI(
                     val reasoningId = output["id"]?.jsonPrimitiveOrNull?.content
                     val encryptedContent = output["encrypted_content"]?.jsonPrimitiveOrNull?.content
                     val summary = output["summary"]?.jsonArrayOrNull.orEmpty()
+                    if (summary.isEmpty() && encryptedContent != null) {
+                        parts.add(UIMessagePart.Reasoning(
+                            reasoning = "",
+                            metadata = buildJsonObject {
+                                put("encrypted_content", encryptedContent)
+                                reasoningId?.let { put("reasoning_id", it) }
+                            },
+                        ))
+                    }
                     summary.mapNotNull { it.jsonObjectOrNull }.forEach { part ->
                         val partType = part["type"]?.jsonPrimitiveOrNull?.content ?: return@forEach
                         when (partType) {

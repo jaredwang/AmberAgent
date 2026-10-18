@@ -201,6 +201,7 @@ class LocalFolderSyncProviderUploadTest {
         val names = fakeFolder.docs.values.map { it.displayName }
         assertEquals(listOf(snapshotArchiveName(result.snapshotId), snapshotSidecarName(result.snapshotId)), names)
         assertTrue(names.none { it.endsWith(".tmp") })
+        assertEquals(listOf("root:", "root:"), fakeFolder.createParentIds)
     }
 
     @Test
@@ -211,6 +212,10 @@ class LocalFolderSyncProviderUploadTest {
 
         // sidecar 发布失败必须让上传整体失败。
         assertNotNull("sidecar 发布失败时上传必须抛错", error)
+        assertEquals("必须真正进入归档和 sidecar 的两次发布", 2, fakeFolder.renameTargets.size)
+        assertTrue(fakeFolder.renameTargets[0].endsWith(SNAPSHOT_ARCHIVE_SUFFIX))
+        assertTrue(fakeFolder.renameTargets[1].endsWith(SNAPSHOT_SIDECAR_SUFFIX))
+        assertEquals(listOf("root:", "root:"), fakeFolder.createParentIds)
 
         // 归档已 rename 为最终名 → 回滚删除，不留无 sidecar 的孤儿归档。
         assertTrue(
@@ -229,6 +234,8 @@ class LocalFolderSyncProviderUploadTest {
         data class Doc(val id: String, var displayName: String, val mimeType: String)
 
         val docs = LinkedHashMap<String, Doc>()
+        val createParentIds = mutableListOf<String>()
+        val renameTargets = mutableListOf<String>()
         /** true 时把文档改名为 *.snapshot.json 抛 FileNotFoundException。 */
         var failSidecarRename = false
         private val backingDir = File.createTempFile("fake-saf-", "").apply { delete(); mkdirs() }
@@ -275,6 +282,13 @@ class LocalFolderSyncProviderUploadTest {
             val extrasNonNull = extras ?: return null
             return when (method) {
                 METHOD_CREATE_DOCUMENT -> {
+                    val parentUri = extrasNonNull.getParcelable<Uri>(EXTRA_URI)
+                        ?: error("缺少 create 父文档 uri")
+                    // 真实 DocumentsProvider 以 getDocumentId 读取父节点，单独的
+                    // tree URI 不能作为 createDocument 的 parentDocumentUri。
+                    val parentId = DocumentsContract.getDocumentId(parentUri)
+                    createParentIds += parentId
+                    assertEquals("createDocument 必须指向所选树的根文档", "root:", parentId)
                     val id = createDocument(
                         extrasNonNull.getString(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty(),
                         extrasNonNull.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty(),
@@ -286,6 +300,7 @@ class LocalFolderSyncProviderUploadTest {
                         ?.let { documentIdFrom(it) } ?: error("缺少 rename 文档 uri")
                     val displayName =
                         extrasNonNull.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty()
+                    renameTargets += displayName
                     if (failSidecarRename && displayName.endsWith(SNAPSHOT_SIDECAR_SUFFIX)) {
                         throw FileNotFoundException("模拟 sidecar 重命名失败")
                     }

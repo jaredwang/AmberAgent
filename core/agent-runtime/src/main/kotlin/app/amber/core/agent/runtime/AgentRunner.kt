@@ -17,6 +17,16 @@ interface AgentRunner {
 
     fun observe(runId: AgentRunId): StateFlow<AgentRunSnapshot>
     fun cancel(runId: AgentRunId)
+
+    /**
+     * Wait for the in-process activations registered for this run at the time
+     * of this call, including launch gates and handler cleanup. A terminal
+     * snapshot is an earlier signal; callers handing ownership to replacement
+     * work need this completion barrier. Later activations, such as a new
+     * approval resume under the same run id, are outside this boundary.
+     */
+    suspend fun awaitRunSettled(runId: AgentRunId)
+
     suspend fun listUnfinishedRuns(): List<AgentRunSnapshot>
 }
 

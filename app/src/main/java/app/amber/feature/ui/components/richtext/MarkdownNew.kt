@@ -165,6 +165,9 @@ private fun generateMarkdownHtmlJvm(preprocessed: String): String {
     return HtmlGenerator(preprocessed, tree, flavour).generateHtml()
 }
 
+@androidx.annotation.VisibleForTesting
+internal fun generateMarkdownHtmlForTest(content: String): String = generateMarkdownHtml(content)
+
 // ---- Main composable ----
 
 @Composable

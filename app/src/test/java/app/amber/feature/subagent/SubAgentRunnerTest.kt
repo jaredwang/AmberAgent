@@ -6,6 +6,7 @@ import app.amber.ai.provider.Model
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
+import app.amber.ai.ui.ToolApprovalState
 import app.amber.core.ai.GenerationChunk
 import app.amber.core.ai.GenerationTerminal
 import app.amber.core.ai.GenerationRunSession
@@ -69,6 +70,53 @@ class SubAgentRunnerTest {
 
         assertEquals(SubAgentRunStatus.FAILED, result.status)
         assertTrue(result.error.contains("network unavailable"))
+    }
+
+    @Test
+    fun approvalRequestedDuringReportRetryKeepsTheSubagentPaused() = runBlocking {
+        var calls = 0
+        var actionExecutions = 0
+        val pendingTool = UIMessagePart.Tool(
+            toolCallId = "report-retry-sensitive-call",
+            toolName = "file_write",
+            input = "{}",
+            approvalState = ToolApprovalState.Pending,
+        )
+        val kernel = object : RunKernel {
+            override fun run(session: GenerationRunSession): Flow<GenerationChunk> = flow {
+                calls++
+                if (calls == 1) {
+                    emit(GenerationChunk.Messages(session.messages + UIMessage.assistant(visibleAnswer)))
+                } else {
+                    emit(GenerationChunk.Messages(session.messages + UIMessage(
+                        role = MessageRole.ASSISTANT,
+                        parts = listOf(pendingTool),
+                    )))
+                    session.onTerminal?.invoke(GenerationTerminal.WaitingUser)
+                }
+            }
+        }
+        val liveText = MutableStateFlow("")
+        val result = GenerationSubAgentRunner(kernel).run(
+            settings = settings(),
+            definition = definition(toolAllowlist = setOf("file_write")),
+            task = task(),
+            tools = listOf(Tool(
+                name = "file_write",
+                description = "Write a file after approval",
+                parameters = { app.amber.ai.core.InputSchema.Obj(properties = kotlinx.serialization.json.buildJsonObject {}) },
+                needsApproval = true,
+                execute = { actionExecutions++; emptyList() },
+            )),
+            liveText = liveText,
+            liveParts = MutableStateFlow(emptyList()),
+        )
+
+        assertEquals(2, calls)
+        assertEquals(SubAgentRunStatus.APPROVAL_REQUIRED, result.status)
+        assertTrue(result.summary.contains("file_write"))
+        assertEquals(visibleAnswer, liveText.value)
+        assertEquals(0, actionExecutions)
     }
 
     @Test

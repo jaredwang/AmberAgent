@@ -72,6 +72,24 @@ internal fun isTwoPaneWindow(widthDp: Float, heightDp: Float): Boolean =
 internal fun twoPaneListWidth(availableWidth: Dp): Dp =
     (availableWidth * 0.3f).coerceIn(360.dp, 400.dp)
 
+/**
+ * Chat reading column. On a portrait tablet or beside the session list the chat pane runs
+ * 800–900dp, and lines that long are hard to follow, so the timeline and composer centre in it.
+ */
+internal val ChatReadingWidth = 760.dp
+
+/** Extra space on each side of the reading column; zero on phones. */
+internal fun chatReadingGutter(paneWidth: Dp): Dp =
+    ((paneWidth - ChatReadingWidth) / 2).coerceAtLeast(0.dp)
+
+/** The chat's pane: the detail pane beside the list, else the whole window. */
+@Composable
+internal fun currentChatPaneWidth(): Dp {
+    LocalTwoPaneLayout.current?.let { return it.detailWidth }
+    val width = LocalWindowInfo.current.containerSize.width
+    return with(LocalDensity.current) { width.toDp() }
+}
+
 internal data class TwoPaneSlots(val listIndex: Int, val detailIndex: Int?)
 
 /** The last list entry pairs with the top entry only when everything above the list is detail. */

@@ -20,13 +20,20 @@ object NovelWorkspaceExchange {
     private const val MAX_WORKSPACE_BYTES = 100L * 1024 * 1024
 
     fun exportZip(projectDirectory: File, output: OutputStream) {
-        val store = NovelWorkspaceStore(projectDirectory)
-        val ledger = NovelWorkspaceLedger.load(projectDirectory)
+        val files = NovelWorkspaceRestoreBoundary.write {
+            val store = NovelWorkspaceStore(projectDirectory)
+            val ledger = NovelWorkspaceLedger.load(projectDirectory)
+            store.list().mapNotNull { path ->
+                val content = store.read(path) ?: return@mapNotNull null
+                NovelWorkspaceFile(path, exportContent(path, content, store, ledger))
+            }
+        }
+        // Only snapshot collection shares the owner's transaction boundary. A slow
+        // destination or zip compression must not hold up manuscript commits.
         ZipOutputStream(output).use { zip ->
-            for (path in store.list()) {
-                val content = store.read(path) ?: continue
-                zip.putNextEntry(ZipEntry(path))
-                zip.write(exportContent(path, content, store, ledger).toByteArray(Charsets.UTF_8))
+            for (file in files) {
+                zip.putNextEntry(ZipEntry(file.path))
+                zip.write(file.content.toByteArray(Charsets.UTF_8))
                 zip.closeEntry()
             }
         }

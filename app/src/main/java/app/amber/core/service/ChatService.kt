@@ -11,7 +11,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import app.amber.core.recap.isRecapEligible
+import app.amber.core.agent.runtime.AgentRunHandle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -1004,6 +1006,43 @@ class ChatService(
         return true
     }
 
+    /** Admit one fresh task message and bind its launch to the background owner. */
+    internal suspend fun startTaskMessage(
+        conversationId: Uuid,
+        content: List<UIMessagePart>,
+    ): ChatTaskRun = admitChatTaskRun {
+        require(!content.isEmptyInputMessage()) { "Task message cannot be empty" }
+        val runner = requireNotNull(agentRunner) { "Agent runtime is unavailable" }
+        coldStartRecoveryGate?.awaitReady()
+        val session = getOrCreateSession(conversationId)
+        ensureFullConversationLoaded(conversationId)
+        val durableOwner = if (useDurableRuntime()) {
+            runTerminalStore?.activeForConversation(conversationId.toString())
+        } else {
+            null
+        }
+        check(
+            !session.isGenerating && session.pendingUserMessages.value.isEmpty() &&
+                !session.state.value.hasPendingOrUnexecutedTools() && durableOwner == null
+        ) { "The task conversation already has running or pending work" }
+        val message = PendingUserMessage(
+            id = Uuid.random().toString(),
+            parts = userInputPreprocessor.process(content),
+        )
+        val launchedRun = CompletableDeferred<AgentRunHandle>()
+        val dispatchJob = checkNotNull(
+            launchViaKernel(conversationId, firstMessage = message, firstRunLaunch = launchedRun)
+        ) { "Chat generation did not start" }
+        ChatTaskRun(
+            launchedRun,
+            runner,
+            dispatchJob,
+            awaitDispatchHandoff = { runId -> awaitChatRunDispatchHandoff(session, activeKernelRuns, runId) },
+        ) { runId ->
+            stopGeneration(conversationId, runId.value)
+        }
+    }
+
     private val activeKernelRuns =
         MutableStateFlow<Map<Uuid, app.amber.core.agent.runtime.AgentRunId>>(emptyMap())
 
@@ -1060,8 +1099,9 @@ class ChatService(
         messageRange: ClosedRange<Int>? = null,
         expectedPausedRunId: app.amber.core.agent.runtime.AgentRunId? = null,
         expectedRestoreEpoch: Long? = restoreWriteGate?.currentEpoch(),
-    ) {
-        val runner = agentRunner ?: return
+        firstRunLaunch: CompletableDeferred<AgentRunHandle>? = null,
+    ): Job? {
+        val runner = agentRunner ?: return null
         val session = getOrCreateSession(conversationId)
         if (session.isGenerating) {
             // Same guard as the legacy loop: a running turn absorbs new
@@ -1084,7 +1124,7 @@ class ChatService(
                     )
                 }
             }
-            return
+            return null
         }
         val job = appScope.launch(restoreWriteContext(expectedRestoreEpoch)) {
             runKernelDispatchLoop(
@@ -1095,9 +1135,11 @@ class ChatService(
                 resumeFirst = resumeWithoutNewMessage,
                 messageRange = messageRange,
                 expectedPausedRunId = expectedPausedRunId,
+                firstRunLaunch = firstRunLaunch,
             )
         }
         session.setJob(job)
+        return job
     }
 
     /**
@@ -1120,6 +1162,7 @@ class ChatService(
         resumeFirst: Boolean = false,
         messageRange: ClosedRange<Int>? = null,
         expectedPausedRunId: app.amber.core.agent.runtime.AgentRunId? = null,
+        firstRunLaunch: CompletableDeferred<AgentRunHandle>? = null,
     ) {
         var pendingResume = resumeFirst
         var pendingRange = messageRange
@@ -1128,7 +1171,10 @@ class ChatService(
         } else {
             firstMessage ?: session.dequeueNextPendingUserMessageDurably(conversationId)
         }
+        var pendingTaskLaunch = firstRunLaunch
         while (pendingResume || nextMessage != null) {
+            val taskLaunch = pendingTaskLaunch
+            pendingTaskLaunch = null
             try {
                 if (pendingResume) {
                     pendingResume = false
@@ -1139,11 +1185,13 @@ class ChatService(
                     if (lastNode != null) {
                         dispatchKernelTurn(
                             conversationId = conversationId,
+                            session = session,
                             runner = runner,
                             messageNodeId = lastNode.id,
                             userMessageText = "",
                             messageRange = range,
                             expectedPausedRunId = expectedPausedRunId,
+                            taskLaunch = taskLaunch,
                         )
                     }
                     _generationDoneFlow.emit(conversationId)
@@ -1174,12 +1222,14 @@ class ChatService(
                     if (dispatchMessage.answer) {
                         dispatchKernelTurn(
                             conversationId = conversationId,
+                            session = session,
                             runner = runner,
                             messageNodeId = userNode.id,
                             userMessageText = dispatchMessage.previewText(
                                 maxChars = 4000,
                                 copy = PendingUserMessageDisplayCopy.from(context),
                             ),
+                            taskLaunch = taskLaunch,
                         )
                         _generationDoneFlow.emit(conversationId)
                     }
@@ -1188,12 +1238,15 @@ class ChatService(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                taskLaunch?.completeExceptionally(e)
                 e.printStackTrace()
                 addError(
                     e,
                     conversationId,
                     title = context.getString(R.string.error_title_send_message),
                 )
+            } finally {
+                taskLaunch?.completeExceptionally(IllegalStateException("Chat generation did not start"))
             }
 
             val conversation = getConversationFlow(conversationId).value
@@ -1212,11 +1265,13 @@ class ChatService(
      */
     private suspend fun dispatchKernelTurn(
         conversationId: Uuid,
+        session: ConversationSession,
         runner: app.amber.core.agent.runtime.AgentRunner,
         messageNodeId: Uuid,
         userMessageText: String,
         messageRange: ClosedRange<Int>? = null,
         expectedPausedRunId: app.amber.core.agent.runtime.AgentRunId? = null,
+        taskLaunch: CompletableDeferred<AgentRunHandle>? = null,
     ) {
         try {
             coldStartRecoveryGate?.awaitReady()
@@ -1322,6 +1377,7 @@ class ChatService(
                     requestedRunId = resumeRunId,
                 )
             }.getOrElse { e ->
+                taskLaunch?.completeExceptionally(e)
                 addError(e, conversationId, title = "Kernel dispatch failed")
                 return
             }
@@ -1338,22 +1394,9 @@ class ChatService(
                 // user-paused set in the same breath it re-registers as active.
                 pausedForUserConversations.update { it - conversationId }
             }
+            taskLaunch?.complete(handle)
             val snapshots = runner.observe(handle.runId)
-            if (expectedPausedRunId != null && preLaunchSnapshot != null) {
-                // The runner replaces its immutable snapshot only after this
-                // launch clears the gate. Reference identity avoids relying
-                // on wall-clock timestamps when a resumed run pauses again.
-                snapshots.first { snapshot ->
-                    snapshot !== preLaunchSnapshot || snapshot.status.isTerminal
-                }
-            }
-            val endedSnapshot = snapshots.first { snapshot ->
-                // Keep waiting through live states; a terminal outcome OR a
-                // persisted pause (approval / server-cancel pending) ends
-                // this turn's wait — the paused run resumes via its own
-                // entry points under the same runId.
-                snapshot.status.isTerminal || snapshot.status.isPause
-            }
+            val endedSnapshot = awaitChatRunDispatchEnd(snapshots, preLaunchSnapshot)
             if (endedSnapshot.status.isPause) {
                 pauseRecorded = true
                 pausedForUserConversations.update { it + conversationId }
@@ -1371,9 +1414,9 @@ class ChatService(
                 pausedForUserConversations.update { it - conversationId }
             }
             activeRunId?.let { runId ->
-                activeKernelRuns.update { current ->
-                    if (current[conversationId] == runId) current - conversationId else current
-                }
+                clearChatRunOnDispatchCompletion(
+                    session, activeKernelRuns, runId, session.getJob() ?: coroutineContext[Job]!!,
+                )
             }
         }
     }

@@ -78,6 +78,27 @@ class SyncArchiveManager(
         get() = SyncCrypto(nativeEnabled = nativePathPrefs.flow.value.syncCrypto)
     private val redactor = SyncRedactor(json)
 
+    /** Complete interrupted file/DB recovery before startup opens data consumers. */
+    suspend fun recoverInterruptedRestore() = withContext(Dispatchers.IO) {
+        val journalRoot = File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).canonicalFile
+        if (!journalRoot.exists()) return@withContext
+        val roots = File(journalRoot, FILE_RESTORE_ROOTS)
+            .takeIf { it.isFile }
+            ?.readLines()
+            .orEmpty()
+            .filter { it in SYNC_FILE_ROOTS }
+            .toSet()
+        if (restoreWriteGate == null) {
+            recoverInterruptedFileRestore()
+        } else {
+            val adoptedRoots = if (committedFileRestoreToken(journalRoot) != null) roots else emptySet()
+            restoreWriteGate.withRestore(
+                affectedFileRoots = roots,
+                adoptedFileRoots = adoptedRoots,
+            ) { recoverInterruptedFileRestore() }
+        }
+    }
+
     suspend fun createArchive(request: SyncExportRequest): ByteArray = withContext(Dispatchers.IO) {
         val archive = createArchiveFile(request)
         try {
@@ -1253,6 +1274,9 @@ class SyncArchiveManager(
     )
 
     companion object {
+        fun hasInterruptedFileRestore(context: Context): Boolean =
+            File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).exists()
+
         private const val MAX_MANIFEST_ENTRY_BYTES = 1024 * 1024
         private const val MAX_CONFIG_ENTRY_BYTES = 8 * 1024 * 1024
         private const val MAX_PAYLOAD_ENTRY_BYTES = 1024L * 1024 * 1024

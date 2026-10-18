@@ -869,7 +869,48 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
         // Result lands → the delivered message is persisted (no silent loss).
         fakeRunner.gate!!.complete(SubAgentResult(status = SubAgentRunStatus.COMPLETED, summary = "done"))
         awaitTerminal(manager, threadId)
-        assertEquals(ThreadDeliveryState.PERSISTED.name, store.getMessage(messageId)!!.deliveryState)
+        awaitMessageDeliveryState(store, messageId, ThreadDeliveryState.PERSISTED)
+        assertEquals(listOf("steer me"), fakeRunner.receivedSteerMessages.toList())
+    }
+
+    @Test
+    fun unreadLiveMessageStaysQueuedAndReachesTheNextFollowupExactlyOnce() = runBlocking {
+        val manager = manager()
+        fakeRunner.gate = CompletableDeferred()
+        fakeRunner.consumeSteerBeforeReturn = false
+        val started = manager.start(
+            parentConversationId = conversationId,
+            input = startInput("Finish the final answer without another tool boundary"),
+            parentTools = parentTools(),
+            parentRunId = "parent_run_1",
+        )
+        val threadId = started["run_id"]!!.jsonPrimitive.content
+        awaitLive(threadId)
+        val sent = manager.sendMessage(threadId, "This arrived during the final answer")
+        val messageId = sent["message_id"]!!.jsonPrimitive.content
+        val store = RoomThreadGraphStore(database.threadGraphDao())
+        assertEquals("delivered", sent["delivery_state"]?.jsonPrimitive?.contentOrNull)
+
+        fakeRunner.gate!!.complete(SubAgentResult(status = SubAgentRunStatus.COMPLETED, summary = "done"))
+        awaitTerminal(manager, threadId)
+        awaitDurableTaskSnapshot(threadId, AgentTaskStatus.COMPLETED)
+        assertEquals(emptyList<String>(), fakeRunner.receivedSteerMessages.toList())
+        assertEquals(ThreadDeliveryState.QUEUED.name, store.getMessage(messageId)?.deliveryState)
+
+        fakeRunner.gate = null
+        fakeRunner.consumeSteerBeforeReturn = true
+        manager.followup(
+            parentConversationId = conversationId,
+            threadId = threadId,
+            input = buildJsonObject {
+                put("task", buildJsonObject { put("objective", "Pick up the unread message") })
+            },
+            parentTools = parentTools(),
+            parentRunId = "parent_run_1",
+        )
+        awaitTerminal(manager, threadId)
+        awaitMessageDeliveryState(store, messageId, ThreadDeliveryState.PERSISTED)
+        assertEquals(listOf("This arrived during the final answer"), fakeRunner.receivedSteerMessages.toList())
     }
 
     @Test
@@ -1160,7 +1201,9 @@ class FakeSubAgentRunner : SubAgentRunner {
     )
 
     val calls = CopyOnWriteArrayList<CapturedCall>()
+    val receivedSteerMessages = CopyOnWriteArrayList<String>()
     var gate: CompletableDeferred<SubAgentResult>? = null
+    var consumeSteerBeforeReturn: Boolean = true
     var emitVisibleText: Boolean = true
     var emitToolOnlyPart: Boolean = false
     var nextResult: SubAgentResult =
@@ -1201,7 +1244,9 @@ class FakeSubAgentRunner : SubAgentRunner {
             liveText.value = "fake answer: ${task.objective}"
         }
         val g = gate
-        return if (g != null) g.await() else nextResult
+        val result = if (g != null) g.await() else nextResult
+        if (consumeSteerBeforeReturn) receivedSteerMessages += consumeSteerMessages().map { it.toText() }
+        return result
     }
 
     fun releaseAll() {

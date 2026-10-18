@@ -99,6 +99,26 @@ class MemoryRecallSemanticTest {
     }
 
     @Test
+    fun pinnedSelectedByRerankConsumesOnlyOneRecallSlot() = runTest {
+        val pinned = record(id = 1, content = "pinned keeper", pinned = true)
+        val normal = record(id = 2, content = "normal note about plants")
+        val reranker = FakeReranker(MemorySemanticResult(rankedIds = listOf(1, 2), applied = true))
+        val store = MemoryRecallStore(FakeRepo(listOf(pinned, normal)), reranker)
+        val baseSettings = settings()
+        val limitedSettings = baseSettings.copy(
+            agentRuntime = baseSettings.agentRuntime.copy(
+                memoryRecall = baseSettings.agentRuntime.memoryRecall.copy(maxItems = 2),
+            ),
+        )
+        val messages = listOf(userMessage("plants"))
+
+        assertEquals(listOf(1, 2), store.recall(limitedSettings, messages).map { it.id })
+        val prompt = store.buildPrompt(limitedSettings, messages)
+        assertEquals(1, Regex(Regex.escape(pinned.content)).findAll(prompt).count())
+        assertTrue(normal.content in prompt)
+    }
+
+    @Test
     fun notAppliedFallsBackToBaselineAndTouchesBaselineSelection() = runTest {
         val hit = record(id = 1, content = "vegetarian preference")
         // SHORT_TERM + 零词面：基线过滤会丢弃（CORE scope 的记忆 always-eligible 必注入）

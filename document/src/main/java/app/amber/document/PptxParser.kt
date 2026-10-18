@@ -71,7 +71,7 @@ object PptxParser {
         return zip.entries().asSequence()
             .map { it.name }
             .filter { it.matches(Regex("ppt/slides/slide\\d+\\.xml")) }
-            .sortedBy { it.substringAfter("slide").substringBefore(".xml").toIntOrNull() ?: 0 }
+            .sortedBy { it.substringAfterLast('/').removePrefix("slide").removeSuffix(".xml").toIntOrNull() ?: 0 }
             .toList()
     }
 
@@ -80,7 +80,10 @@ object PptxParser {
         val ids = mutableListOf<String>()
         while (parser.eventType != XmlPullParser.END_DOCUMENT) {
             if (parser.eventType == XmlPullParser.START_TAG && parser.localName() == "sldId") {
-                parser.attribute("id")?.let(ids::add)
+                parser.getAttributeValue(
+                    "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+                    "id",
+                )?.let(ids::add)
             }
             parser.next()
         }

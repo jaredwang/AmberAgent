@@ -348,6 +348,84 @@ mod tests {
         );
     }
 
+    #[test]
+    fn html_preserves_bare_url_in_tilde_fence() {
+        let html = render_to_html(
+            "<div>raw block</div>\n\n~~~text\nhttps://example.com/path\n~~~\n",
+        );
+        assert!(
+            html.contains("<code class=\"language-text\">https://example.com/path\n</code>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_preserves_bare_url_in_indented_code() {
+        let html = render_to_html("<div>raw block</div>\n\n    https://example.com/path\n");
+        assert!(
+            html.contains("<pre><code>https://example.com/path\n</code></pre>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_preserves_bare_url_in_unclosed_fence() {
+        let html = render_to_html("<div>raw block</div>\n\n```text\nhttps://example.com/path\n");
+        assert!(
+            html.contains("<code class=\"language-text\">https://example.com/path\n</code>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_preserves_bare_url_in_code_span_with_inner_backtick() {
+        let html = render_to_html(
+            "<div>raw block</div>\n\n``code ` https://example.com/path``",
+        );
+        assert!(
+            html.contains("<code>code ` https://example.com/path</code>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_preserves_dangerous_scheme_literal_in_code() {
+        let html = render_to_html(
+            "<div>raw block</div>\n\n```text\nhref=\"javascript:alert(1)\"\n```\n",
+        );
+        assert!(
+            html.contains("<code class=\"language-text\">href=\"javascript:alert(1)\"\n</code>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_preserves_dangerous_scheme_literal_in_text() {
+        let html = render_to_html("<div>raw block</div>\n\nhref=\"javascript:alert(1)\"");
+        assert!(
+            html.contains("<p>href=\"javascript:alert(1)\"</p>"),
+            "got: {html}"
+        );
+    }
+
+    #[test]
+    fn html_sanitizes_markdown_link_and_image_destinations() {
+        let html = render_to_html("[click](javascript:alert(1))\n\n![image](javascript:alert(1))");
+        assert!(html.contains("<a href=\"#\">click</a>"), "got: {html}");
+        assert!(html.contains("<img src=\"#\""), "got: {html}");
+        assert!(!html.contains("javascript:"), "got: {html}");
+    }
+
+    #[test]
+    fn html_sanitizes_raw_html_href_and_src() {
+        let html = render_to_html(
+            "<div><a href=\"javascript:alert(1)\">click</a><img src=\"javascript:alert(1)\"></div>",
+        );
+        assert!(html.contains("<a href=\"#\">click</a>"), "got: {html}");
+        assert!(html.contains("<img src=\"#\">"), "got: {html}");
+        assert!(!html.contains("javascript:"), "got: {html}");
+    }
+
     /// useSafeLinks=true in JetBrains strips dangerous schemes. Round 1 P1 fix.
     #[test]
     fn html_strips_javascript_href() {

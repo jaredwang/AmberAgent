@@ -1,0 +1,27 @@
+{
+  "app": {
+    "tests": 227,
+    "failures": 3,
+    "errors": 0,
+    "skipped": 0,
+    "failed": [
+      "result id is stable and distinct from the foreground id",
+      "success result remains after WorkManager removes the foreground notification",
+      "failure result remains after WorkManager removes the foreground notification"
+    ]
+  },
+  "feature/novel-workspace": {
+    "tests": 158,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "failed": []
+  },
+  "feature/novel": {
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "failed": []
+  }
+}

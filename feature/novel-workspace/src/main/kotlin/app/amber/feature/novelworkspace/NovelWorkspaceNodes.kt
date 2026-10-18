@@ -78,7 +78,7 @@ object NovelWorkspaceNodes {
     /** Foreshadowing without an explicit `resolved` status counts as still open. */
     fun openForeshadowing(nodes: List<NovelWorkspaceNode>): List<NovelWorkspaceNode> = nodes
         .filter { it.nodeKind == KIND_FORESHADOWING }
-        .filter { it.status == null || it.status.equals(STATUS_OPEN, ignoreCase = true) }
+        .filterNot { it.status.equals(STATUS_RESOLVED, ignoreCase = true) }
 
     /**
      * Entities named in [text] plus one relation hop outward — the chapter's subgraph.
