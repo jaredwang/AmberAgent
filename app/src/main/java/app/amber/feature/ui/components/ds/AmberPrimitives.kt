@@ -1,5 +1,6 @@
 package app.amber.feature.ui.components.ds
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -56,6 +57,17 @@ import app.amber.feature.ui.theme.LocalThemeDesign
  * (oc-amber.css §6.1 + design §6.2). All read [LocalAmberTokens] / [LocalAmberType]; never a raw hex.
  */
 
+/**
+ * Shared timings for high-frequency controls (segmented options, press scale).
+ * Instant feedback 100–140ms with a strong ease-out; default springs settle too slowly.
+ */
+internal object AmberFeedback {
+    const val PressMs = 100
+    const val PressDownMs = 50
+    const val OptionMs = 140
+    val EaseOut = CubicBezierEasing(0.23f, 1f, 0.32f, 1f)
+}
+
 /** Press feedback: scale(.975) on press. Add to every tappable control (design §5 `.pressable`). */
 @Composable
 fun Modifier.pressable(
@@ -65,7 +77,14 @@ fun Modifier.pressable(
 ): Modifier {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.975f else 1f, label = "pressable")
+    val scale by animateFloatAsState(
+        if (pressed) 0.975f else 1f,
+        animationSpec = tween(
+            durationMillis = if (pressed) AmberFeedback.PressDownMs else AmberFeedback.PressMs,
+            easing = AmberFeedback.EaseOut,
+        ),
+        label = "pressable",
+    )
     return this
         .graphicsLayer { scaleX = scale; scaleY = scale }
         .clickable(
