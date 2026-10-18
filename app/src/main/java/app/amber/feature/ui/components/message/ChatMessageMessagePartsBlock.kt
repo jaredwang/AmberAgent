@@ -604,11 +604,14 @@ internal fun MessagePartsBlock(
                             onClick = {
                                 val intent = Intent(Intent.ACTION_VIEW)
                                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                intent.data = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    part.url.toUri().toFile()
-                                )
+                                val uri = part.url.toUri()
+                                intent.data = if (uri.scheme == "file") {
+                                    FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        uri.toFile(),
+                                    )
+                                } else uri
                                 val chooserIndent = Intent.createChooser(intent, null)
                                 context.startActivity(chooserIndent)
                             },

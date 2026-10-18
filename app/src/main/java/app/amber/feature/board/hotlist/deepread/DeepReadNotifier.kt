@@ -78,7 +78,7 @@ class DeepReadNotifier(
     ) {
         context.sendNotification(
             channelId = DEEP_READ_NOTIFICATION_CHANNEL_ID,
-            notificationId = notificationId(topicId),
+            notificationId = resultNotificationId(topicId),
         ) {
             this.title = context.getString(
                 if (complete) R.string.deep_read_notification_completed_title
@@ -103,7 +103,7 @@ class DeepReadNotifier(
     ) {
         context.sendNotification(
             channelId = DEEP_READ_NOTIFICATION_CHANNEL_ID,
-            notificationId = notificationId(topicId),
+            notificationId = resultNotificationId(topicId),
         ) {
             this.title = context.getString(R.string.deep_read_notification_failed_title)
             content = reason.ifBlank { title }.take(160)
@@ -146,5 +146,9 @@ class DeepReadNotifier(
         const val EXTRA_FROM_HISTORY = "deepReadFromHistory"
 
         fun notificationId(topicId: String): Int = 9100 + (topicId.hashCode() and 0x0fffffff)
+
+        // WorkManager cancels its ForegroundInfo ID after doWork returns. Terminal
+        // notices need their own ID so that cleanup cannot remove the result too.
+        private fun resultNotificationId(topicId: String): Int = notificationId(topicId) xor (1 shl 30)
     }
 }

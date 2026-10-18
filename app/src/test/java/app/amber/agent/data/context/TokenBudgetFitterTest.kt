@@ -33,7 +33,7 @@ class TokenBudgetFitterTest {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    // window 8000 → hard budget = max(8000 - 4096, 4000) = 4000 tokens
+    // window 8000 minus the default 4096 output reserve leaves 3904 input tokens.
     private val model = Model(modelId = "fit-model", contextWindowTokens = 8_000)
 
     private fun user(text: String) = UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text(text)))
@@ -243,6 +243,52 @@ class TokenBudgetFitterTest {
             fail("expected ContextTooLargeException for Claude multimodal over budget")
         } catch (e: ContextTooLargeException) {
             assertNotNull(e.receipt)
+        }
+    }
+
+    @Test
+    fun hardBudgetHonorsTheActualRemainderOfAKnownModelWindow() {
+        assertEquals(2_048, TokenBudgetFitter.hardBudgetTokens(model.copy(contextWindowTokens = 4_096), 2_048))
+        assertEquals(1_000, TokenBudgetFitter.hardBudgetTokens(model.copy(contextWindowTokens = 128_000), 127_000))
+    }
+
+    @Test
+    fun knownWindowRejectsCurrentInputThatExceedsTheRemainderAfterOutputReserve() {
+        val messages = listOf(user("x".repeat(12_000)))
+        val actualBudget = 2_048
+        val estimate = TokenBudgetFitter.estimateTokens(messages)
+        assertTrue(estimate > actualBudget)
+        assertTrue("reproduces the old 4000-token floor bypass", estimate < 4_000)
+
+        try {
+            TokenBudgetFitter.fit(
+                messages = messages,
+                tools = emptyList(),
+                model = model.copy(contextWindowTokens = 4_096),
+                provider = ProviderSetting.OpenAI(),
+                maxTokens = 2_048,
+                json = json,
+            )
+            fail("expected ContextTooLargeException for input plus output beyond the model window")
+        } catch (error: ContextTooLargeException) {
+            assertEquals(actualBudget, error.receipt.budgetTokens)
+        }
+    }
+
+    @Test
+    fun minimumPositiveWindowReportsContextTooLargeInsteadOfAnInvalidCoerceRange() {
+        try {
+            TokenBudgetFitter.fit(
+                messages = listOf(user("hello")),
+                tools = emptyList(),
+                model = model.copy(contextWindowTokens = 1),
+                provider = ProviderSetting.OpenAI(),
+                maxTokens = 1,
+                json = json,
+            )
+            fail("expected ContextTooLargeException when the window has no input capacity")
+        } catch (error: ContextTooLargeException) {
+            assertEquals(0, error.receipt.budgetTokens)
         }
     }
 }

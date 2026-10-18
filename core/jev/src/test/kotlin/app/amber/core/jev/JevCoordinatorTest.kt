@@ -1,6 +1,9 @@
 package app.amber.core.jev
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -512,6 +515,183 @@ class JevDecisionCoordinatorTest {
         assertTrue(first is JevDecision.Evaluated && !first.fromCache)
         assertTrue(second is JevDecision.Evaluated && second.fromCache)
         assertEquals(1, transport.requests.size)
+    }
+
+    @Test
+    fun queuedRequestDoesNotSendAfterCredentialOrScopeChange() = runTest {
+        val firstResponse = CompletableDeferred<Unit>()
+        val requests = mutableListOf<JevHttpRequest>()
+        val transport = JevTransport { request ->
+            requests += request
+            if (requests.size == 1) firstResponse.await()
+            noulSuccess("q1" to 0.9)
+        }
+        val coordinator = JevDecisionCoordinator(JevClient(transport), { "key" })
+        suspend fun decide() = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, "queued-memory", taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        val first = async { decide() }
+        runCurrent()
+        val queued = async { decide() }
+        runCurrent()
+        assertEquals(1, requests.size)
+
+        coordinator.onCredentialOrScopeChanged()
+        firstResponse.complete(Unit)
+        first.await()
+        val obsolete = queued.await()
+
+        assertEquals("a queued memory request must not send after scope revocation", 1, requests.size)
+        assertTrue(obsolete !is JevDecision.Evaluated)
+    }
+
+    @Test
+    fun retryDoesNotSendAfterCredentialOrScopeChange() = runTest {
+        var requests = 0
+        lateinit var coordinator: JevDecisionCoordinator
+        val transport = JevTransport {
+            requests++
+            if (requests == 1) {
+                coordinator.onCredentialOrScopeChanged()
+                JevTransportResponse.Failure("socket reset")
+            } else {
+                noulSuccess("q1" to 0.9)
+            }
+        }
+        coordinator = JevDecisionCoordinator(JevClient(transport), { "key" })
+
+        val decision = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, "retry-memory", taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+
+        assertEquals("scope revocation must also prevent a retry", 1, requests)
+        assertTrue(decision !is JevDecision.Evaluated)
+    }
+
+    @Test
+    fun lateUnauthorizedResponseFromOldKeyDoesNotPauseNewKey() = runTest {
+        var key = "old-key"
+        val oldResponse = CompletableDeferred<Unit>()
+        val requests = mutableListOf<JevHttpRequest>()
+        val transport = JevTransport { request ->
+            requests += request
+            if (request.apiKey == "old-key") {
+                oldResponse.await()
+                httpError(401)
+            } else {
+                noulSuccess("q1" to 0.9)
+            }
+        }
+        val coordinator = JevDecisionCoordinator(JevClient(transport), { key })
+        suspend fun decide() = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        val old = async { decide() }
+        runCurrent()
+        key = "new-key"
+        coordinator.onCredentialOrScopeChanged()
+        oldResponse.complete(Unit)
+        old.await()
+
+        val current = decide()
+
+        assertTrue("an old 401 must not pause the replacement key", current is JevDecision.Evaluated)
+        assertTrue(!coordinator.statusSnapshot().authPaused)
+        assertEquals(listOf("old-key", "new-key"), requests.map { it.apiKey })
+    }
+
+    @Test
+    fun lateSuccessCannotRepopulateCacheAfterCredentialOrScopeChange() = runTest {
+        val oldResponse = CompletableDeferred<Unit>()
+        var requests = 0
+        val transport = JevTransport {
+            requests++
+            if (requests == 1) {
+                oldResponse.await()
+                noulSuccess("q1" to 0.9)
+            } else {
+                noulSuccess("q1" to 0.1)
+            }
+        }
+        val coordinator = JevDecisionCoordinator(JevClient(transport), { "key" })
+        suspend fun decide() = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY), cacheAnchor = "same-memory",
+        )
+        val old = async { decide() }
+        runCurrent()
+        coordinator.onCredentialOrScopeChanged()
+        oldResponse.complete(Unit)
+        old.await()
+
+        val current = decide()
+
+        assertEquals("invalidated requests must not refill the cleared cache", 2, requests)
+        assertTrue(current is JevDecision.Evaluated && !current.fromCache)
+        assertEquals(JevAnswer.Noul(0.1), (current as JevDecision.Evaluated).answers["q1"])
+    }
+
+    @Test
+    fun lateTransientResponseCannotStartCooldownAfterCredentialOrScopeChange() = runTest {
+        val oldResponse = CompletableDeferred<Unit>()
+        var requests = 0
+        val transport = JevTransport {
+            when (++requests) {
+                1, 2 -> JevTransportResponse.Failure("socket reset")
+                3 -> {
+                    oldResponse.await()
+                    JevTransportResponse.Failure("old endpoint failed")
+                }
+                else -> noulSuccess("q1" to 0.9)
+            }
+        }
+        val coordinator = JevDecisionCoordinator(JevClient(transport), { "key" })
+        suspend fun decide() = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(decide() is JevDecision.Failed)
+        val old = async { decide() }
+        runCurrent()
+        coordinator.onCredentialOrScopeChanged()
+        oldResponse.complete(Unit)
+        old.await()
+
+        assertEquals(0L, coordinator.statusSnapshot().cooldownRemainingMs)
+        assertTrue("an obsolete failure must not cool down the current configuration", decide() is JevDecision.Evaluated)
+        assertEquals(4, requests)
+    }
+
+    @Test
+    fun lateConnectionTestCannotClearCurrentKeyAuthenticationPause() = runTest {
+        val oldResponse = CompletableDeferred<Unit>()
+        var key = "old-key"
+        val transport = JevTransport { request ->
+            if (request.apiKey == "old-key") {
+                oldResponse.await()
+                noulSuccess("prime" to 0.99)
+            } else {
+                httpError(401)
+            }
+        }
+        val coordinator = JevDecisionCoordinator(JevClient(transport), { key })
+        val old = async { coordinator.connectionTest() }
+        runCurrent()
+        key = "new-key"
+        coordinator.onCredentialOrScopeChanged()
+        val current = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(current is JevDecision.Failed && current.reason == JevFailureReason.AUTH)
+        oldResponse.complete(Unit)
+        val obsolete = old.await()
+
+        assertTrue("a connection test of an old key cannot validate the replacement key", !obsolete.ok)
+        assertTrue(coordinator.statusSnapshot().authPaused)
     }
 
     @Test

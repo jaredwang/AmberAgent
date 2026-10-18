@@ -90,6 +90,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.dokar.sonner.ToastType
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -228,8 +229,9 @@ private fun attachmentWasTruncated(content: String): Boolean =
     "[TRUNCATED:" in content
 
 @Composable
-fun ChatInput(
+internal fun ChatInput(
     state: ChatInputState,
+    submissionOwner: ChatInputSubmissionOwner,
     loading: Boolean,
     conversation: Conversation,
     contextCompacts: List<app.amber.core.context.ConversationCompact> = emptyList(),
@@ -255,8 +257,8 @@ fun ChatInput(
     onUpdateSettings: (Settings) -> Unit,
     onUpdateSearchService: (Int) -> Unit,
     onCancelClick: () -> Unit,
-    onSendClick: (PendingUserMessageMode, List<UIMessagePart>) -> Unit,
-    onLongSendClick: (PendingUserMessageMode, List<UIMessagePart>) -> Unit,
+    onSendClick: (PendingUserMessageMode, List<UIMessagePart>, Uuid?) -> Boolean,
+    onLongSendClick: (PendingUserMessageMode, List<UIMessagePart>, Uuid?) -> Boolean,
     onOpenQueue: () -> Unit = {},
     onCompactContext: () -> Unit = {},
 ) {
@@ -303,6 +305,7 @@ fun ChatInput(
             // before IME starts its own inset animation. Starting both in the
             // same frame makes the keyboard close look low-FPS on real devices.
             delay(PostSendKeyboardHideDelayMillis)
+            if (!state.isEmpty() || state.isEditing() || state.hasUnresolvedAttachmentImports()) return@launch
             focusManager.clearFocus(force = true)
             keyboardController?.hide()
         }
@@ -320,6 +323,35 @@ fun ChatInput(
         return true
     }
 
+    fun prepareSend(onSubmit: (List<UIMessagePart>, Uuid?) -> Boolean) {
+        ChatSendTransitionTracker.start(
+            conversationId = conversation.id.toString(),
+            preSendLatestMessageId = conversation.currentMessages.lastOrNull()?.id?.toString(),
+        )
+        // Capture the clicked draft before this callback returns, then allow validation to suspend.
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            val accepted = submissionOwner.submit(
+                conversationId = conversation.id.toString(),
+                validate = { parts ->
+                    val blockingIssue = withContext(Dispatchers.IO) {
+                        ImageAttachmentValidator.firstBlockingIssueForSend(
+                            parts = parts,
+                            settings = settings,
+                            providerCatalog = providerCatalog,
+                            strings = attachmentStrings,
+                        )
+                    }
+                    if (blockingIssue != null) {
+                        toaster.show(blockingIssue.message, type = ToastType.Error)
+                    }
+                    blockingIssue == null
+                },
+                send = onSubmit,
+            )
+            if (accepted) hideKeyboardAfterSend()
+        }
+    }
+
     fun sendMessage() {
         if (loading && state.isEmpty()) {
             focusManager.clearFocus(force = true)
@@ -328,26 +360,8 @@ fun ChatInput(
         } else if (showUnresolvedAttachmentImport()) {
             return
         } else {
-            ChatSendTransitionTracker.start(
-                conversationId = conversation.id.toString(),
-                preSendLatestMessageId = conversation.currentMessages.lastOrNull()?.id?.toString(),
-            )
-            coroutineScope.launch {
-                val parts = state.getContents()
-                val blockingIssue = withContext(Dispatchers.IO) {
-                    ImageAttachmentValidator.firstBlockingIssueForSend(
-                        parts = parts,
-                        settings = settings,
-                        providerCatalog = providerCatalog,
-                        strings = attachmentStrings,
-                    )
-                }
-                if (blockingIssue != null) {
-                    toaster.show(blockingIssue.message, type = ToastType.Error)
-                } else {
-                    onSendClick(PendingUserMessageMode.FOLLOWUP, parts)
-                    hideKeyboardAfterSend()
-                }
+            prepareSend { parts, editingMessage ->
+                onSendClick(PendingUserMessageMode.FOLLOWUP, parts, editingMessage)
             }
         }
     }
@@ -361,26 +375,8 @@ fun ChatInput(
             return
         } else {
             val queueMode = if (loading) PendingUserMessageMode.STEER else PendingUserMessageMode.FOLLOWUP
-            ChatSendTransitionTracker.start(
-                conversationId = conversation.id.toString(),
-                preSendLatestMessageId = conversation.currentMessages.lastOrNull()?.id?.toString(),
-            )
-            coroutineScope.launch {
-                val parts = state.getContents()
-                val blockingIssue = withContext(Dispatchers.IO) {
-                    ImageAttachmentValidator.firstBlockingIssueForSend(
-                        parts = parts,
-                        settings = settings,
-                        providerCatalog = providerCatalog,
-                        strings = attachmentStrings,
-                    )
-                }
-                if (blockingIssue != null) {
-                    toaster.show(blockingIssue.message, type = ToastType.Error)
-                } else {
-                    onLongSendClick(queueMode, parts)
-                    hideKeyboardAfterSend()
-                }
+            prepareSend { parts, editingMessage ->
+                onLongSendClick(queueMode, parts, editingMessage)
             }
         }
     }

@@ -399,7 +399,7 @@ class MemoryLifecycleTest {
         val target = dao.seed("用户偏好中文简洁回复", kind = MemoryKind.USER)
         candidateDAO.seed(id = "cand-1", reason = "confirms memory #${target.id}: 用户重申")
 
-        val record = repo.acceptCandidate("cand-1")
+        val record = requireNotNull(repo.acceptCandidate("cand-1"))
 
         val row = dao.rows.getValue(target.id)
         assertEquals(target.id, record.id)
@@ -421,7 +421,7 @@ class MemoryLifecycleTest {
             content = "用户仍然偏好中文简洁回复",
         )
 
-        val record = repo.acceptCandidate("cand-2")
+        val record = requireNotNull(repo.acceptCandidate("cand-2"))
 
         // An archived target cannot be reinforced in place — the fact returns
         // as a brand-new live record instead of an invisible +1 on a dead row.
@@ -443,12 +443,73 @@ class MemoryLifecycleTest {
             content = "新版本事实",
         )
 
-        val record = repo.acceptCandidate("cand-3")
+        val record = requireNotNull(repo.acceptCandidate("cand-3"))
 
         assertNotEquals(target.id, record.id)
         assertEquals("新版本事实", record.content)
         assertEquals(listOf(target.id), record.supersedesIds)
         assertTrue(dao.rows.getValue(target.id).archived)
         assertEquals("accepted", candidateDAO.rows.getValue("cand-3").status)
+    }
+
+    @Test
+    fun `accepting an invalidation after its target was deleted does not recreate a memory`() = runBlocking {
+        val dao = FakeMemoryDAO()
+        val candidateDAO = FakeCandidateDAO()
+        val eventDAO = FakeEventDAO()
+        val repo = repository(dao, candidateDAO, eventDAO)
+        val target = dao.seed("用户住在旧地址", kind = MemoryKind.USER)
+        candidateDAO.seed(
+            id = "deleted-target",
+            reason = "invalidates memory #${target.id}: 用户已经搬走",
+            content = "用户住在旧地址",
+        )
+        repo.deleteMemory(target.id)
+
+        val record = repo.acceptCandidate("deleted-target")
+
+        assertTrue("an invalidated fact must not return to active recall", dao.rows.isEmpty())
+        assertNull(record)
+        assertEquals("accepted", candidateDAO.rows.getValue("deleted-target").status)
+        val event = eventDAO.events.single { it.eventType == "candidate_accepted" }
+        assertNull(event.memoryId)
+    }
+
+    @Test
+    fun `accepting an invalidation archives its live target without a replacement`() = runBlocking {
+        val dao = FakeMemoryDAO()
+        val candidateDAO = FakeCandidateDAO()
+        val repo = repository(dao, candidateDAO)
+        val target = dao.seed("用户住在旧地址", kind = MemoryKind.USER)
+        candidateDAO.seed(
+            id = "live-target",
+            reason = "invalidates memory #${target.id}: 用户已经搬走",
+        )
+
+        val record = requireNotNull(repo.acceptCandidate("live-target"))
+
+        assertEquals(target.id, record.id)
+        assertTrue(dao.rows.getValue(target.id).archived)
+        assertEquals(1, dao.rows.size)
+        assertEquals("accepted", candidateDAO.rows.getValue("live-target").status)
+    }
+
+    @Test
+    fun `accepting an invalidation keeps an already archived target archived`() = runBlocking {
+        val dao = FakeMemoryDAO()
+        val candidateDAO = FakeCandidateDAO()
+        val repo = repository(dao, candidateDAO)
+        val target = dao.seed("用户住在旧地址", kind = MemoryKind.USER, archived = true)
+        candidateDAO.seed(
+            id = "archived-target",
+            reason = "invalidates memory #${target.id}: 用户已经搬走",
+        )
+
+        val record = requireNotNull(repo.acceptCandidate("archived-target"))
+
+        assertEquals(target.id, record.id)
+        assertTrue(dao.rows.getValue(target.id).archived)
+        assertEquals(1, dao.rows.size)
+        assertEquals("accepted", candidateDAO.rows.getValue("archived-target").status)
     }
 }

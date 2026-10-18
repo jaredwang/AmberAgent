@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -274,7 +276,7 @@ internal fun TextInputRow(
         if (slashPanelMounted) {
             androidx.compose.ui.window.Popup(
                 properties = androidx.compose.ui.window.PopupProperties(focusable = false),
-                popupPositionProvider = inputPanelPopupPositionProvider(),
+                popupPositionProvider = rememberInputPanelPopupPositionProvider(),
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = slashVisible,
@@ -387,7 +389,7 @@ internal fun TextInputRow(
         if (mentionPanelMounted) {
             androidx.compose.ui.window.Popup(
                 properties = androidx.compose.ui.window.PopupProperties(focusable = false),
-                popupPositionProvider = inputPanelPopupPositionProvider(),
+                popupPositionProvider = rememberInputPanelPopupPositionProvider(),
             ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = mentionVisible,
@@ -532,7 +534,25 @@ internal fun TextInputRow(
     }
 }
 
+/**
+ * Beside the session list the chat is the window's trailing pane, so panels centre over that pane
+ * instead of the whole window.
+ */
+@Composable
+private fun rememberInputPanelPopupPositionProvider(): androidx.compose.ui.window.PopupPositionProvider {
+    val twoPane = app.amber.feature.ui.adaptive.LocalTwoPaneLayout.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val layoutDirection = androidx.compose.ui.platform.LocalLayoutDirection.current
+    val endInsetPx = WindowInsets.safeDrawing.let {
+        if (layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr) it.getRight(density, layoutDirection)
+        else it.getLeft(density, layoutDirection)
+    }
+    val paneCenterFromEndPx = twoPane?.let { endInsetPx + with(density) { it.detailWidth.roundToPx() } / 2 }
+    return remember(paneCenterFromEndPx) { inputPanelPopupPositionProvider(paneCenterFromEndPx) }
+}
+
 private fun inputPanelPopupPositionProvider(
+    paneCenterFromEndPx: Int?,
     gapPx: Int = 8,
 ): androidx.compose.ui.window.PopupPositionProvider = object : androidx.compose.ui.window.PopupPositionProvider {
     override fun calculatePosition(
@@ -541,10 +561,30 @@ private fun inputPanelPopupPositionProvider(
         layoutDirection: androidx.compose.ui.unit.LayoutDirection,
         popupContentSize: androidx.compose.ui.unit.IntSize,
     ): androidx.compose.ui.unit.IntOffset {
-        val x = ((windowSize.width - popupContentSize.width) / 2).coerceAtLeast(0)
+        val x = when {
+            paneCenterFromEndPx == null -> (windowSize.width - popupContentSize.width) / 2
+            layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ->
+                windowSize.width - paneCenterFromEndPx - popupContentSize.width / 2
+            else -> paneCenterFromEndPx - popupContentSize.width / 2
+        }.coerceAtLeast(0)
         val y = (anchorBounds.top - popupContentSize.height - gapPx).coerceAtLeast(0)
         return androidx.compose.ui.unit.IntOffset(x, y)
     }
+}
+
+/**
+ * Composer-wide panel: the composer insets its pill 16dp from each edge of the pane, or of the
+ * reading column when the pane is wider than it.
+ */
+@Composable
+private fun inputPanelWidth(): androidx.compose.ui.unit.Dp {
+    val readingWidth = app.amber.feature.ui.adaptive.ChatReadingWidth
+    app.amber.feature.ui.adaptive.LocalTwoPaneLayout.current?.let {
+        return minOf(it.detailWidth, readingWidth) - 32.dp
+    }
+    val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    // Phone: unchanged legacy width.
+    return if (screenWidth > readingWidth) readingWidth - 32.dp else screenWidth - 24.dp
 }
 
 @Composable
@@ -556,11 +596,11 @@ private fun SlashCommandPanel(
     val workspace = workspaceColors()
     val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
     // V3: panel 宽度跟 composer 一致 — screen 宽减去 24dp (composer 父级 horizontal padding 12dp 左右)
-    val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    val panelWidth = inputPanelWidth()
     val panelShape = RoundedCornerShape(14.dp)
     Surface(
         modifier = Modifier
-            .width(screenWidth - 24.dp)
+            .width(panelWidth)
             .shadow(
                 elevation = 8.dp,
                 shape = panelShape,
@@ -948,11 +988,11 @@ private fun MentionPanel(
 ) {
     val workspace = workspaceColors()
     val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    val panelWidth = inputPanelWidth()
     val panelShape = RoundedCornerShape(14.dp)
     Surface(
         modifier = Modifier
-            .width(screenWidth - 24.dp)
+            .width(panelWidth)
             .shadow(
                 elevation = 8.dp,
                 shape = panelShape,

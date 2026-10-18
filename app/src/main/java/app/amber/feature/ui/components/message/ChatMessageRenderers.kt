@@ -18,8 +18,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -182,7 +185,7 @@ internal fun AssistantMarkdownBlockOrWidgets(
     }
 
     if (!canRenderWidget && content.looksLikeMiniAppJsonPayload()) {
-        MiniAppJsonPreview(
+        MiniAppStreamingCard(
             content = content,
             streaming = streaming,
             copy = generativeWidgetCopy,
@@ -235,6 +238,13 @@ internal fun AssistantMarkdownBlockOrWidgets(
                 // historical Text segment on every recompose, which reads as the
                 // whole reply "blinking" instead of just the tail growing.
                 val segmentStreaming = streaming && index == lastSegmentIdx
+                var slotSawStreaming by remember { mutableStateOf(false) }
+                if (segmentStreaming ||
+                    segment is GenerativeWidgetSegment.Loading ||
+                    segment is GenerativeWidgetSegment.TaskUiStreaming
+                ) {
+                    slotSawStreaming = true
+                }
                 when (segment) {
                     is GenerativeWidgetSegment.Text -> MarkdownBlock(
                         content = segment.content,
@@ -251,8 +261,22 @@ internal fun AssistantMarkdownBlockOrWidgets(
 
                     is GenerativeWidgetSegment.Widget -> GenerativeWidgetCard(
                         widget = segment,
+                        isStreaming = segmentStreaming || (slotSawStreaming && streaming),
                         onAction = onGenerativeWidgetAction,
                     )
+
+                    is GenerativeWidgetSegment.TaskUi -> IntelligentUiCard(
+                        document = segment.document,
+                        cardKey = "msg-task-ui-$index-${segment.document.id}",
+                        isStreaming = segmentStreaming,
+                        wasStreaming = slotSawStreaming,
+                        onActionPrompt = onGenerativeWidgetAction,
+                    )
+
+                    is GenerativeWidgetSegment.TaskUiStreaming -> IntelligentUiStreamingPreviewCard(
+                        preview = segment.preview,
+                    )
+
                     GenerativeWidgetSegment.Loading -> GenerativeWidgetLoading()
                 }
             }
@@ -260,57 +284,7 @@ internal fun AssistantMarkdownBlockOrWidgets(
     }
 }
 
-@Composable
-private fun MiniAppJsonPreview(
-    content: String,
-    streaming: Boolean,
-    copy: GenerativeWidgetCopy,
-    modifier: Modifier = Modifier,
-) {
-    val scrollState = rememberScrollState()
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    val previewText = remember(content) {
-        content.trim().removeSurroundingMiniAppFence()
-    }
-
-    LaunchedEffect(previewText.length, streaming) {
-        if (streaming) {
-            scrollState.scrollTo(scrollState.maxValue)
-        }
-    }
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(220.dp),
-        shape = RoundedCornerShape(8.dp),
-        color = chatTheme.widgetCanvas.takeIf { it.isSpecified } ?: chatTheme.surface,
-        contentColor = chatTheme.inkSoft,
-        border = BorderStroke(1.dp, chatTheme.surfaceEdge),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = if (streaming) copy.miniAppGenerating else copy.miniAppJsonTitle,
-                style = MaterialTheme.typography.labelMedium,
-                color = chatTheme.accent,
-            )
-            Text(
-                text = previewText,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(scrollState),
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = JetbrainsMono),
-                color = chatTheme.inkSoft,
-            )
-        }
-    }
-}
-
-private fun String.looksLikeMiniAppJsonPayload(): Boolean {
+internal fun String.looksLikeMiniAppJsonPayload(): Boolean {
     val text = trimStart()
     if (!text.startsWith("{") && !text.startsWith("```")) return false
 
@@ -321,16 +295,6 @@ private fun String.looksLikeMiniAppJsonPayload(): Boolean {
     if ("\"permissions\"" in text) score++
     if ("\"category\"" in text) score++
     return score >= 3
-}
-
-private fun String.removeSurroundingMiniAppFence(): String {
-    val trimmed = trim()
-    if (!trimmed.startsWith("```")) return trimmed
-    val firstLineEnd = trimmed.indexOf('\n')
-    if (firstLineEnd < 0) return trimmed.removePrefix("```").trimStart()
-    val body = trimmed.substring(firstLineEnd + 1)
-    val endFence = body.lastIndexOf("```")
-    return if (endFence >= 0) body.substring(0, endFence).trim() else body.trim()
 }
 
 @Composable
@@ -358,7 +322,10 @@ internal fun ReasoningWidgetRescue(
                 copy = generativeWidgetCopy,
             )
                 .filter { segment ->
-                    segment is GenerativeWidgetSegment.Widget || segment is GenerativeWidgetSegment.Loading
+                    segment is GenerativeWidgetSegment.Widget ||
+                        segment is GenerativeWidgetSegment.TaskUi ||
+                        segment is GenerativeWidgetSegment.TaskUiStreaming ||
+                        segment is GenerativeWidgetSegment.Loading
                 }
         }
     }
@@ -375,7 +342,20 @@ internal fun ReasoningWidgetRescue(
                 when (segment) {
                     is GenerativeWidgetSegment.Widget -> GenerativeWidgetCard(
                         widget = segment,
+                        isStreaming = streaming,
                         onAction = onGenerativeWidgetAction,
+                    )
+
+                    is GenerativeWidgetSegment.TaskUi -> IntelligentUiCard(
+                        document = segment.document,
+                        cardKey = "rescue-task-ui-$index-${segment.document.id}",
+                        isStreaming = streaming,
+                        wasStreaming = streaming,
+                        onActionPrompt = onGenerativeWidgetAction,
+                    )
+
+                    is GenerativeWidgetSegment.TaskUiStreaming -> IntelligentUiStreamingPreviewCard(
+                        preview = segment.preview,
                     )
 
                     GenerativeWidgetSegment.Loading -> GenerativeWidgetLoading()
@@ -387,7 +367,7 @@ internal fun ReasoningWidgetRescue(
 }
 
 internal fun String.reasoningWidgetSource(): String? {
-    val marker = Regex("""(?m)^[ \t]*```[ \t]*(?:show-widget|widget|generative-ui)[^\r\n]*""")
+    val marker = Regex("""(?m)^[ \t]*```[ \t]*(?:show-widget|widget|generative-ui|task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)[^\r\n]*""")
     val match = marker.findAll(this).lastOrNull() ?: return null
     return substring(match.range.first).take(24_000)
 }

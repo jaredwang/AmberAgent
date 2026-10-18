@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,14 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import app.amber.agent.R
 import app.amber.core.settings.DisplaySetting
 import app.amber.core.utils.navigateToChatPage
 import app.amber.feature.ui.components.ui.workspaceColors
-import app.amber.feature.ui.components.ui.WorkspaceStatusPill
-import app.amber.feature.ui.components.ui.WorkspaceTone
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.context.LocalToaster
 import app.amber.feature.ui.theme.ThemePackage
@@ -65,6 +65,25 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import java.io.File
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import app.amber.core.settings.themeRgb
+import app.amber.feature.ui.theme.AmberBase
+import app.amber.feature.ui.theme.AmberTokens
+import app.amber.feature.ui.theme.ThemePackageApplier
+import app.amber.feature.ui.theme.ThemePackageValidation
+import app.amber.feature.ui.theme.ThemePackageValidator
+import app.amber.feature.ui.theme.baseTokens
+import app.amber.feature.ui.theme.buildAmberTokens
+import app.amber.feature.ui.theme.themePackPaperTokens
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Lucide
 
 /**
  * P8-09 — 主题设置区接入：主题库区块（导出当前主题 / 导入主题包 + preview /
@@ -209,69 +228,95 @@ fun ThemeLibrarySection(
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SettingCardGroup(
-            title = stringResource(R.string.setting_theme_library_ai_title),
-        ) {
-            rawItem {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Text(stringResource(R.string.setting_theme_library_ai_desc))
-                    OutlinedTextField(
-                        value = themeRequest,
-                        onValueChange = { themeRequest = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(stringResource(R.string.setting_theme_library_ai_request_hint)) },
-                        minLines = 3,
-                        maxLines = 5,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = { openThemeChat(R.string.setting_theme_library_generate_prompt) },
-                            enabled = themeRequest.isNotBlank(),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.setting_theme_library_generate_and_try_on))
-                        }
-                        OutlinedButton(
-                            onClick = { openThemeChat(R.string.setting_theme_library_modify_prompt) },
-                            enabled = themeRequest.isNotBlank(),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(stringResource(R.string.setting_theme_library_modify_and_try_on))
-                        }
-                    }
-                }
+        // Theme cards (iOS parity): built-ins first, then imported packs; tap a card to apply.
+        SettingSectionTitle(
+            text = stringResource(R.string.setting_theme_library_title),
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        val warmActive = displaySetting.amberBaseFamily == "WARM" &&
+            displaySetting.appliedThemePackageId == null &&
+            displaySetting.themePack == null &&
+            displaySetting.accentColor.equals(SIT_TERRACOTTA_ACCENT_HEX, ignoreCase = true)
+        val cards = buildList {
+            add(
+                ThemeCardModel(
+                    key = "builtin:WARM",
+                    name = stringResource(R.string.setting_theme_library_builtin_warm),
+                    preview = themeCardPreviewTokens(DisplaySetting(accentColor = SIT_TERRACOTTA_ACCENT_HEX)),
+                    selected = warmActive,
+                    onApply = { manager.applyBuiltin("WARM") },
+                ),
+            )
+            ThemePackTransfer.builtinPackIds.forEach { id ->
+                val document = requireNotNull(ThemePackTransfer.builtin(id))
+                add(
+                    ThemeCardModel(
+                        key = id,
+                        name = stringResource(
+                            if (id == "pi-steel") R.string.setting_theme_library_builtin_pi
+                            else R.string.setting_theme_library_builtin_notion,
+                        ),
+                        preview = themeCardPreviewTokens(
+                            ThemePackageApplier.applyTokens(ThemePackTransfer.asPackage(document), DisplaySetting()),
+                        ),
+                        selected = displaySetting.appliedThemePackageId == id,
+                        onApply = { manager.applyBuiltinPack(id) },
+                    ),
+                )
+            }
+            importedPackages.forEach { entity ->
+                val pkg = (ThemePackageValidator.validateJson(entity.json) as? ThemePackageValidation.Valid)?.themePackage
+                add(
+                    ThemeCardModel(
+                        key = entity.id,
+                        name = entity.name,
+                        preview = themeCardPreviewTokens(
+                            pkg?.let { ThemePackageApplier.applyTokens(it, DisplaySetting()) } ?: DisplaySetting(),
+                        ),
+                        selected = displaySetting.appliedThemePackageId == entity.id,
+                        onApply = { manager.apply(entity.id) },
+                        onRemove = { scope.launch { manager.remove(entity.id) } },
+                    ),
+                )
             }
         }
-
-        SettingCardGroup(
-            title = stringResource(R.string.setting_theme_library_title),
-        ) {
-            item(
-                headlineContent = { Text(stringResource(R.string.setting_theme_library_export_current_title)) },
-                supportingContent = { Text(stringResource(R.string.setting_theme_library_export_current_desc)) },
-                trailingContent = {
-                    TextButton(onClick = exportCurrent) {
-                        Text(stringResource(R.string.export_title), color = workspace.ink)
-                    }
-                },
-            )
-            item(
-                headlineContent = { Text(stringResource(R.string.setting_theme_library_import_title)) },
-                supportingContent = { Text(stringResource(R.string.setting_theme_library_import_desc)) },
-                trailingContent = {
-                    TextButton(onClick = { importLauncher.launch(arrayOf("application/json", "text/plain")) }) {
-                        Text(stringResource(R.string.setting_theme_library_import_action), color = workspace.ink)
-                    }
-                },
-            )
-
+        // Cards keep their phone proportions: wider windows (unfolded, tablet) add columns
+        // instead of stretching each miniature page.
+        BoxWithConstraints {
+        val columns = themeCardColumns(maxWidth)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        cards.chunked(columns).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(ThemeCardSpacing)) {
+                row.forEach { card ->
+                    ThemeCard(
+                        card = card,
+                        onClick = {
+                            scope.launch {
+                                applyMessage = when (card.onApply()) {
+                                    ThemePackageApplyResult.Applied,
+                                    ThemePackageApplyResult.AlreadyApplied,
+                                    -> null
+                                    ThemePackageApplyResult.Reverted -> context.getString(R.string.setting_theme_library_apply_reverted_error)
+                                    else -> context.getString(R.string.setting_theme_library_apply_error)
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
         }
-
+        }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = { importLauncher.launch(arrayOf("application/json", "text/plain")) }) {
+                Text(stringResource(R.string.setting_theme_library_import_title), color = LocalAmberTokens.current.accent)
+            }
+            TextButton(onClick = exportCurrent) {
+                Text(stringResource(R.string.setting_theme_library_export_current_title), color = workspace.muted)
+            }
+        }
         activeTryOn?.let { preview ->
             SettingCardGroup(
                 title = stringResource(R.string.setting_theme_library_import_preview),
@@ -319,107 +364,44 @@ fun ThemeLibrarySection(
         }
 
         SettingCardGroup(
-            title = stringResource(R.string.setting_theme_library_builtin_desc),
+            title = stringResource(R.string.setting_theme_library_ai_title),
         ) {
-            listOf(
-                "WARM" to R.string.setting_theme_library_builtin_warm,
-                "SAGE" to R.string.setting_theme_library_builtin_sage,
-            ).forEach { (family, labelRes) ->
-                val active = displaySetting.amberBaseFamily == family &&
-                    displaySetting.appliedThemePackageId == null &&
-                    (family != "WARM" || displaySetting.accentColor.equals(SIT_TERRACOTTA_ACCENT_HEX, ignoreCase = true))
-                item(
-                    headlineContent = { Text(stringResource(labelRes)) },
-                    trailingContent = {
-                        TextButton(
-                            onClick = {
-                                scope.launch {
-                                    applyMessage = when (manager.applyBuiltin(family)) {
-                                        ThemePackageApplyResult.Applied,
-                                        ThemePackageApplyResult.AlreadyApplied,
-                                        -> null
-                                        ThemePackageApplyResult.Reverted -> context.getString(R.string.setting_theme_library_apply_reverted_error)
-                                        else -> context.getString(R.string.setting_theme_library_apply_error)
-                                    }
-                                }
-                            },
+            rawItem {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(stringResource(R.string.setting_theme_library_ai_desc))
+                    OutlinedTextField(
+                        value = themeRequest,
+                        onValueChange = { themeRequest = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(stringResource(R.string.setting_theme_library_ai_request_hint)) },
+                        minLines = 3,
+                        maxLines = 5,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { openThemeChat(R.string.setting_theme_library_generate_prompt) },
+                            enabled = themeRequest.isNotBlank(),
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Text(
-                                stringResource(
-                                    if (active) {
-                                        R.string.setting_theme_library_active
-                                    } else {
-                                        R.string.setting_theme_library_apply
-                                    },
-                                ),
-                                color = if (active) workspace.faint else workspace.ink,
-                            )
+                            Text(stringResource(R.string.setting_theme_library_generate_and_try_on))
                         }
-                    },
-                )
-            }
-
-        }
-
-        SettingCardGroup(
-            title = stringResource(R.string.setting_theme_library_import_title),
-        ) {
-            importedPackages.forEach { entity ->
-                val applied = displaySetting.appliedThemePackageId == entity.id
-                item(
-                    headlineContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(entity.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            if (applied) BuiltinActiveTag()
+                        OutlinedButton(
+                            onClick = { openThemeChat(R.string.setting_theme_library_modify_prompt) },
+                            enabled = themeRequest.isNotBlank(),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(stringResource(R.string.setting_theme_library_modify_and_try_on))
                         }
-                    },
-                    supportingContent = {
-                        Text(stringResource(R.string.setting_theme_library_imported_detail, entity.id))
-                    },
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            TextButton(
-                                onClick = {
-                                    scope.launch {
-                                        applyMessage = when (manager.apply(entity.id)) {
-                                            ThemePackageApplyResult.Applied,
-                                            ThemePackageApplyResult.AlreadyApplied,
-                                            -> null
-                                            ThemePackageApplyResult.Reverted -> context.getString(R.string.setting_theme_library_apply_reverted_error)
-                                            else -> context.getString(R.string.setting_theme_library_apply_error)
-                                        }
-                                    }
-                                },
-                            ) {
-                                Text(
-                                    stringResource(
-                                        if (applied) {
-                                            R.string.setting_theme_library_active
-                                        } else {
-                                            R.string.setting_theme_library_apply
-                                        },
-                                    ),
-                                    color = if (applied) workspace.faint else workspace.ink,
-                                )
-                            }
-                            TextButton(
-                                onClick = {
-                                    scope.launch { manager.remove(entity.id) }
-                                },
-                            ) {
-                                Text(stringResource(R.string.setting_theme_library_remove), color = workspace.faint)
-                            }
-                        }
-                    },
-                )
-            }
-            if (importedPackages.isEmpty()) {
-                item(
-                    headlineContent = { Text(stringResource(R.string.setting_theme_library_empty_title)) },
-                    supportingContent = { Text(stringResource(R.string.setting_theme_library_empty_desc)) },
-                )
+                    }
+                }
             }
         }
+
     }
 
 }
@@ -506,10 +488,130 @@ private fun ThemePackageTokenPreview(displaySetting: DisplaySetting) {
     }
 }
 
+private val ThemeCardSpacing = 12.dp
+
+/** Two columns on phones; one more per ~180dp of width, up to four on unfolded and tablet screens. */
+internal fun themeCardColumns(width: Dp): Int =
+    ((width + ThemeCardSpacing) / (180.dp + ThemeCardSpacing)).toInt().coerceIn(2, 4)
+
+private class ThemeCardModel(
+    val key: String,
+    val name: String,
+    val preview: AmberTokens,
+    val selected: Boolean,
+    val onApply: suspend () -> ThemePackageApplyResult,
+    val onRemove: (() -> Unit)? = null,
+)
+
+/** Previews always use the theme's light recipe, like iOS, so a card reads the same in dark mode. */
+private fun themeCardPreviewTokens(display: DisplaySetting): AmberTokens {
+    val pack = display.themePack
+    val base = pack?.let { themePackPaperTokens(it.paper, isDark = false) }
+        ?: baseTokens(if (display.amberBaseFamily == "SAGE") AmberBase.SAGE else AmberBase.LIGHT)
+    val accentRgb = themeRgb(pack?.accentHex ?: display.accentColor)
+        ?: runCatching { android.graphics.Color.parseColor(display.accentColor) and 0xFFFFFF }.getOrNull()
+        ?: (SIT_TERRACOTTA_ACCENT_HEX.drop(1).toInt(16))
+    return buildAmberTokens(base, Color(0xFF000000L or accentRgb.toLong()), pack?.design)
+}
+
+/** A miniature page of the theme above its name; the outline marks the theme in use. */
 @Composable
-private fun BuiltinActiveTag() {
-    WorkspaceStatusPill(
-        text = stringResource(R.string.setting_theme_library_active),
-        tone = WorkspaceTone.Accent,
+private fun ThemeCard(
+    card: ThemeCardModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val current = LocalAmberTokens.current
+    val preview = card.preview
+    val shape = RoundedCornerShape(18.dp)
+    val selectedLabel = stringResource(R.string.setting_theme_library_active)
+    Column(
+        modifier = modifier
+            .clip(shape)
+            // Always 2dp so selecting a card does not shift its size.
+            .border(2.dp, if (card.selected) current.accent else preview.line, shape)
+            .clickable(onClick = onClick)
+            .semantics {
+                selected = card.selected
+                if (card.selected) stateDescription = selectedLabel
+            },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+                .background(preview.bg)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(14.dp).clip(CircleShape).background(preview.accent))
+                Box(
+                    Modifier
+                        .padding(start = 8.dp)
+                        .size(width = 56.dp, height = 6.dp)
+                        .clip(CircleShape)
+                        .background(preview.ink2),
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                PreviewBar(preview.ink3, 0.72f)
+                PreviewBar(preview.ink3, 0.52f)
+                Box(
+                    Modifier
+                        .padding(top = 3.dp)
+                        .size(width = 44.dp, height = 15.dp)
+                        .clip(CircleShape)
+                        .background(preview.accent),
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .background(preview.surface)
+                .padding(start = 14.dp, end = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                card.name,
+                modifier = Modifier.weight(1f),
+                color = preview.ink,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            when {
+                card.selected -> Box(
+                    Modifier.size(24.dp).clip(CircleShape).background(current.accent),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Lucide.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = current.accentInk,
+                    )
+                }
+                card.onRemove != null -> TextButton(onClick = card.onRemove) {
+                    Text(stringResource(R.string.setting_theme_library_remove), color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreviewBar(color: Color, fraction: Float) {
+    Box(
+        Modifier
+            .fillMaxWidth(fraction)
+            .height(6.dp)
+            .clip(CircleShape)
+            .background(color),
     )
 }

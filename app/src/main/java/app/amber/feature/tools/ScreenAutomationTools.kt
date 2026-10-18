@@ -381,10 +381,7 @@ class ScreenAutomationTools(
                     y = input.requiredFloat("y"),
                     label = "screen_click"
                 )
-                val absenceTarget = absenceTargetOf(input)
-                val targetVisibleBefore = absenceTarget
-                    ?.let { service.findTextNodes(it, maxNodes = 200).isNotEmpty() }
-                    ?: false
+                val targetVisibleBefore = wasAbsenceTargetVisible(service, input)
                 val ok = service.tap(point.x, point.y)
                 verifiedResult(service, input, ok, targetVisibleBefore)
             }
@@ -415,10 +412,7 @@ class ScreenAutomationTools(
                     y = input.requiredFloat("y"),
                     label = "screen_long_click"
                 )
-                val absenceTarget = absenceTargetOf(input)
-                val targetVisibleBefore = absenceTarget
-                    ?.let { service.findTextNodes(it, maxNodes = 200).isNotEmpty() }
-                    ?: false
+                val targetVisibleBefore = wasAbsenceTargetVisible(service, input)
                 val ok = service.longPress(
                     x = point.x,
                     y = point.y,
@@ -838,7 +832,7 @@ class ScreenAutomationTools(
                     val targetVisibleBefore = if (expectationStep?.string("kind") == "absent") {
                         val absentTarget = expectationStep.string("target").orEmpty()
                         absentTarget.isNotBlank() &&
-                            service.findTextNodes(absentTarget, maxNodes = 200).isNotEmpty()
+                            snapshot.nodes.any { it.hasOwnLabel && it.label == absentTarget }
                     } else {
                         false
                     }
@@ -958,8 +952,7 @@ class ScreenAutomationTools(
                     }
                     val container = containers.single()
                     val rows = snapshot.nodes
-                        .filter { it.ref != container.ref && it.label.isNotBlank() }
-                        .filter { it.bottom > container.top && it.top < container.bottom }
+                        .filter { it.ref.startsWith("${container.ref}/") && it.hasOwnLabel && it.label.isNotBlank() }
                         .sortedWith(compareBy({ it.top }, { it.left }))
                     // 行身份 = 文本 + 位置。同一资源 id 会被所有行共享，不能用它判断重复。
                     fun rowKey(node: app.amber.core.automation.ScreenNode): String =
@@ -1213,11 +1206,16 @@ class ScreenAutomationTools(
     }
 
     /** 动作前目标是否可见；只有 absent 需要，其它 kind 不额外读树。 */
-    private fun ScreenAutomationTools.absenceTargetOf(input: JsonElement): String? =
-        (input.jsonObject["expectation"] as? kotlinx.serialization.json.JsonObject)
+    private suspend fun wasAbsenceTargetVisible(service: AccessibilityController, input: JsonElement): Boolean {
+        val target = (input.jsonObject["expectation"] as? kotlinx.serialization.json.JsonObject)
             ?.takeIf { it.string("kind") == "absent" }
             ?.string("target")
             ?.takeIf { it.isNotBlank() }
+            ?: return false
+        return withContext(Dispatchers.Main.immediate) {
+            AccessibilityExpectationProbe(service).matchingTexts(target).isNotEmpty()
+        }
+    }
 
     /** expectation 的形状；四类条件都在动作后的新界面上判定。 */
     private fun expectationProp() = buildJsonObject {
@@ -1325,7 +1323,7 @@ internal data class ExpectationVerdict(
  */
 internal interface ScreenExpectationProbe {
     fun matchingTexts(query: String): List<ProbeTextMatch>
-    fun editableLabels(): List<String>
+    fun editableValues(): List<String>
 }
 
 internal data class ProbeTextMatch(val enabled: Boolean)
@@ -1335,16 +1333,17 @@ private class AccessibilityExpectationProbe(
     private val service: AccessibilityController,
 ) : ScreenExpectationProbe {
     override fun matchingTexts(query: String): List<ProbeTextMatch> =
-        service.findTextNodes(query, maxNodes = 200).map { ProbeTextMatch(enabled = it.enabled) }
+        service.captureScreenSnapshot()?.nodes.orEmpty()
+            .filter { it.hasOwnLabel && it.label == query }
+            .map { ProbeTextMatch(enabled = it.enabled) }
 
-    override fun editableLabels(): List<String> =
+    override fun editableValues(): List<String> =
         service.captureScreenSnapshot()?.nodes
-            ?.filter { node -> node.editable && node.label.isNotBlank() }
-            ?.map { it.label }
+            ?.mapNotNull { it.editableValue }
             .orEmpty()
 }
 
-/** 快照对 password 节点返回的遮罩标签；等值验收必须排除它。 */
+/** 密码节点的展示遮罩；其 editableValue 为空，不进入等值验收。 */
 internal const val MASKED_EDITABLE_LABEL = "[password]"
 
 /**
@@ -1401,8 +1400,7 @@ internal fun evaluateScreenExpectation(
     "value_equals" -> when {
         value.isBlank() -> ExpectationVerdict(kind, false, "missing_value")
         else -> {
-            val matching = probe.editableLabels()
-                .filter { it != MASKED_EDITABLE_LABEL }
+            val matching = probe.editableValues()
                 .filter { it == value }
             when {
                 matching.size == 1 -> ExpectationVerdict(kind, true, "value_equals")

@@ -40,6 +40,7 @@ internal class ResponseStreamReconciler {
     private val streamedTools = LinkedHashMap<String, StreamedTool>()
 
     private var hasStreamedReasoning = false
+    private val streamedReasoningIds = mutableSetOf<String>()
 
     private class StreamedTool(val id: String) {
         val args = StringBuilder()
@@ -79,8 +80,11 @@ internal class ResponseStreamReconciler {
 
                 is UIMessagePart.Tool -> trackTool(part)
 
-                is UIMessagePart.Reasoning -> if (part.reasoning.isNotEmpty()) {
-                    hasStreamedReasoning = true
+                is UIMessagePart.Reasoning -> {
+                    if (part.reasoning.isNotEmpty()) hasStreamedReasoning = true
+                    val reasoningId = part.metadata?.get("reasoning_id")?.jsonPrimitiveOrNull?.contentOrNull
+                        ?: chunkId
+                    if (reasoningId.isNotBlank()) streamedReasoningIds += reasoningId
                 }
 
                 else -> {}
@@ -112,13 +116,19 @@ internal class ResponseStreamReconciler {
 
         reconcileText(chunkId, message)?.let { parts += it }
 
-        // reasoning 正常经 reasoning delta 事件累积; 只有完全没流过 reasoning 时
-        // 才接收 final-only 的 summary, 否则会重复
-        if (!hasStreamedReasoning) {
-            message.parts.filterIsInstance<UIMessagePart.Reasoning>()
-                .filter { it.reasoning.isNotBlank() }
-                .forEach { parts += it }
-        }
+        // Track opaque items as well as visible summaries so final-only encrypted
+        // reasoning survives without duplicating items already delivered by delta.
+        message.parts.filterIsInstance<UIMessagePart.Reasoning>()
+            .filter { it.reasoning.isNotBlank() || !it.metadata.isNullOrEmpty() }
+            .filter { part ->
+                val id = part.metadata?.get("reasoning_id")?.jsonPrimitiveOrNull?.contentOrNull
+                if (id != null) id !in streamedReasoningIds else !hasStreamedReasoning
+            }
+            .forEach { part ->
+                parts += part
+                part.metadata?.get("reasoning_id")?.jsonPrimitiveOrNull?.contentOrNull
+                    ?.let(streamedReasoningIds::add)
+            }
 
         parts += reconcileTools(message)
 

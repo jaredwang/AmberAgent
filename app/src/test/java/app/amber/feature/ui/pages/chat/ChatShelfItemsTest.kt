@@ -65,6 +65,34 @@ class ChatShelfItemsTest {
     }
 
     @Test
+    fun `collects openable show-widget HTML cards from assistant text and respects setting toggle`() {
+        val widgetFence = """
+            这里是架构说明：
+            ```show-widget
+            {"title":"系统架构图","widget_code":"<svg viewBox=\"0 0 200 100\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"180\" height=\"80\"/></svg>"}
+            ```
+        """.trimIndent()
+        val node = MessageNode(
+            messages = listOf(
+                UIMessage(
+                    role = MessageRole.ASSISTANT,
+                    parts = listOf(UIMessagePart.Text(widgetFence)),
+                ),
+            ),
+        )
+        val conversation = Conversation(assistantId = Uuid.random(), messageNodes = listOf(node))
+
+        val enabledItems = conversation.collectShelfItems()
+        assertEquals(listOf(ShelfItemKind.HTML), enabledItems.map { it.kind })
+        assertEquals(listOf("系统架构图"), enabledItems.map { it.label })
+        assertEquals(node.id, enabledItems[0].nodeId)
+
+        val disabledItems = conversation.collectShelfItems(
+            generativeUiSetting = app.amber.core.settings.GenerativeUiSetting(enabled = false),
+        )
+        assertEquals(emptyList<ShelfItem>(), disabledItems)
+    }
+    @Test
     fun `collects video parts as VIDEO and markdown images from text`() {
         val video = MessageNode(
             messages = listOf(

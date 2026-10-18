@@ -8,13 +8,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
@@ -33,7 +31,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -46,7 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Transition
@@ -75,7 +71,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
@@ -150,12 +145,13 @@ import app.amber.core.service.PendingUserMessage
 import app.amber.core.service.PendingUserMessageDisplayCopy
 import app.amber.core.service.PendingUserMessageMode
 import app.amber.core.service.previewText
+import app.amber.feature.ui.adaptive.LocalTwoPaneLayout
 import app.amber.feature.ui.components.ai.ChatInput
+import app.amber.feature.ui.components.ai.ChatInputSubmissionOwner
 import app.amber.feature.ui.components.ai.SubAgentStatusDock
 import app.amber.core.repository.ConversationRepository
 import app.amber.feature.ui.components.ai.SandboxActivitySheet
 import app.amber.feature.ui.components.ai.TopModelMenu
-import app.amber.feature.ui.components.ds.BlinkingCursor
 import app.amber.feature.ui.components.ds.amberCanvas
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
@@ -278,12 +274,8 @@ fun ChatPage(
     val globalErrors by vm.globalErrors.collectAsStateWithLifecycle()
     val outcomeUnknown by vm.outcomeUnknown.collectAsStateWithLifecycle()
 
-    val windowAdaptiveInfo = currentWindowDpSize()
-    val compactTwoPane =
-        windowAdaptiveInfo.width >= 720.dp &&
-            windowAdaptiveInfo.height >= 450.dp
-    val isBigScreen =
-        compactTwoPane || windowAdaptiveInfo.width >= 1100.dp
+    // Beside the session list the list is the way back, so the header drops its back arrow.
+    val isBigScreen = LocalTwoPaneLayout.current != null
 
     val inputState = vm.inputState
     var anchorNodeId by remember(id, messageId, toolCallId) { mutableStateOf<Uuid?>(null) }
@@ -768,6 +760,7 @@ private fun ChatPageContent(
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
     val context = LocalContext.current
+    val inputSubmissionOwner = remember(inputState) { ChatInputSubmissionOwner(inputState) }
     val filesManager: FilesManager = koinInject()
     val conversationRepository: ConversationRepository = koinInject()
     val chatProvidersForMenu = setting.providers.filter { provider ->
@@ -885,13 +878,8 @@ private fun ChatPageContent(
             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
             return
         }
-        val accepted = vm.handleMessageEdit(
-            parts = parts,
-            messageId = inputState.editingMessage!!,
-            regenerate = regenerate,
-        )
-        if (accepted) {
-            inputState.clearInput()
+        inputSubmissionOwner.confirmEdit(regenerate) { submittedParts, messageId, shouldRegenerate ->
+            vm.handleMessageEdit(submittedParts, messageId, shouldRegenerate)
         }
     }
 
@@ -1074,6 +1062,7 @@ private fun ChatPageContent(
                         }
                     }
                     ChatInput(
+                    submissionOwner = inputSubmissionOwner,
                     aboveComposerContent = {
                         SubAgentStatusDock(
                             currentConversationId = conversation.id,
@@ -1143,17 +1132,17 @@ private fun ChatPageContent(
                         queuePanelOpen = true
                     },
                     suggestionFillPulseKey = suggestionFillPulseKey,
-                    onSendClick = { queueMode, parts ->
-                        val canRouteWithoutChatModel = !inputState.isEditing() && canSendWithoutChatModel(parts)
+                    onSendClick = { queueMode, parts, editingMessage ->
+                        val canRouteWithoutChatModel = editingMessage == null && canSendWithoutChatModel(parts)
                         if (configurationIssue != null && !canRouteWithoutChatModel) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
-                            return@ChatInput
+                            return@ChatInput false
                         }
-                        val accepted = if (inputState.isEditing()) {
+                        if (editingMessage != null) {
                             // P8-01: 发送键 = 默认动作「保存并重新生成」
                             vm.handleMessageEdit(
                                 parts = parts,
-                                messageId = inputState.editingMessage!!,
+                                messageId = editingMessage,
                                 regenerate = true,
                             )
                         } else {
@@ -1162,21 +1151,18 @@ private fun ChatPageContent(
                                 queueMode = queueMode,
                             )
                         }
-                        if (accepted) {
-                            inputState.clearInput()
-                        }
                     },
-                    onLongSendClick = { queueMode, parts ->
-                        val canRouteWithoutChatModel = !inputState.isEditing() && canSendWithoutChatModel(parts)
+                    onLongSendClick = { queueMode, parts, editingMessage ->
+                        val canRouteWithoutChatModel = editingMessage == null && canSendWithoutChatModel(parts)
                         if (configurationIssue != null && !canRouteWithoutChatModel) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
-                            return@ChatInput
+                            return@ChatInput false
                         }
-                        val accepted = if (inputState.isEditing()) {
+                        if (editingMessage != null) {
                             // P8-01: 编辑态长按发送同样走默认动作「保存并重新生成」
                             vm.handleMessageEdit(
                                 parts = parts,
-                                messageId = inputState.editingMessage!!,
+                                messageId = editingMessage,
                                 regenerate = true,
                             )
                         } else {
@@ -1185,9 +1171,6 @@ private fun ChatPageContent(
                                 answer = loadingJob != null && queueMode == PendingUserMessageMode.STEER,
                                 queueMode = queueMode,
                             )
-                        }
-                        if (accepted) {
-                            inputState.clearInput()
                         }
                     },
                     onCompactContext = {
@@ -1405,11 +1388,12 @@ private fun ChatPageContent(
                         if (configurationIssue != null && !canSendWithoutChatModel(parts)) {
                             toaster.show(context.getString(configurationIssue.messageRes), type = ToastType.Error)
                         } else {
-                            inputState.editingMessage = null
-                            vm.handleMessageSend(
-                                content = parts,
-                                queueMode = PendingUserMessageMode.FOLLOWUP,
-                            )
+                            inputSubmissionOwner.sendWidgetAction(parts) { actionParts ->
+                                vm.handleMessageSend(
+                                    content = actionParts,
+                                    queueMode = PendingUserMessageMode.FOLLOWUP,
+                                )
+                            }
                         }
                     }
                 },
@@ -1461,84 +1445,26 @@ private fun ChatPageContent(
             // 401/慢响应时整屏空白看着像卡死. 改成 isEmpty 时 hero 一直保留 (loading 时 hero 上叠
             // 半透蒙层 spinner 反馈), 直到第一个 chunk 落 (messageNodes 非空) 再切到 ChatList.
             if (conversation.messageNodes.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                ) {
-                    val nick = setting.displaySetting.userNickname.trim()
-                    val heroText = if (nick.isNotEmpty()) {
-                        stringResource(R.string.chat_page_hero_greeting_with_name, nick)
-                    } else {
-                        stringResource(R.string.chat_page_hero_greeting)
-                    }
-                    val chatTheme = LocalChatTheme.current
-                    val amberTokens = LocalAmberTokens.current
-                    val heroDim = if (loadingJob != null) 0.45f else 1f
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.amber_wordmark),
-                                contentDescription = "Amber",
-                                modifier = Modifier.size(width = 118.dp, height = 30.dp),
-                                tint = amberTokens.ink.copy(alpha = heroDim),
-                            )
-                            BlinkingCursor(
-                                width = 8.dp,
-                                height = 18.dp,
-                                modifier = Modifier,
-                            )
-                        }
-                        Text(
-                            text = heroText,
-                            modifier = Modifier
-                                .padding(top = 16.dp)
-                                .widthIn(max = 288.dp),
-                            color = chatTheme.ink.copy(alpha = heroDim),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            letterSpacing = (-0.24).sp,
-                            lineHeight = 29.sp,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        )
-                    }
-                    val imeVisible = WindowInsets.isImeVisible
-                    val inputHasContent = inputState.textContent.text.isNotEmpty() ||
-                        inputState.messageContent.isNotEmpty() ||
-                        inputState.attachmentImports.isNotEmpty()
-                    if (loadingJob == null && !imeVisible && !inputHasContent) {
-                        EmptyChatSuggestions(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(horizontal = 16.dp)
-                                .padding(bottom = 16.dp),
-                            onSelect = { suggestion ->
-                                inputState.setMessageText(suggestion)
-                                suggestionFillPulseKey += 1
-                            },
-                        )
-                    }
-                    if (loadingJob != null) {
-                        // 上叠 spinner 给 "loading && empty" 中间态一个反馈
-                        androidx.compose.material3.CircularProgressIndicator(
-                            color = chatTheme.accent,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(top = 120.dp)
-                                .size(28.dp),
-                        )
-                    }
+                val startSuggestions by rememberChatStartSuggestions(vm, setting)
+                val nick = setting.displaySetting.userNickname.trim()
+                val heroText = if (nick.isNotEmpty()) {
+                    stringResource(R.string.chat_page_hero_greeting_with_name, nick)
+                } else {
+                    stringResource(R.string.chat_page_hero_greeting)
                 }
+                val inputHasContent = inputState.textContent.text.isNotEmpty() ||
+                    inputState.messageContent.isNotEmpty() || inputState.attachmentImports.isNotEmpty()
+                ChatEmptyContent(
+                    heroText = heroText,
+                    generatedSuggestions = startSuggestions,
+                    loading = loadingJob != null,
+                    showSuggestions = loadingJob == null && !WindowInsets.isImeVisible && !inputHasContent,
+                    onSelect = { suggestion ->
+                        inputState.setMessageText(suggestion)
+                        suggestionFillPulseKey += 1
+                    },
+                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                )
             }
             }  // end timeline fade Box
             }  // end if (!initialized) else branch (ChatList + hero)
@@ -1800,60 +1726,20 @@ private fun ChatShelfPanelHost(
                 .distinctUntilChanged { old, new -> old.first == new.first && old.second === new.second }
         }
         val refreshKey by refreshKeyFlow.collectAsStateWithLifecycle(initialValue = null)
-        val items by produceState<List<ShelfItem>?>(initialValue = null, refreshKey) {
+        val settings by vm.settings.collectAsStateWithLifecycle()
+        val generativeUiSetting = settings.agentRuntime.generativeUi
+        val items by produceState<List<ShelfItem>?>(initialValue = null, refreshKey, generativeUiSetting) {
             // Streaming replaces the newest message every flush; let bursts settle first.
             if (value != null) delay(400)
             value = runCatching {
                 val full = vm.loadFullConversation()
-                withContext(Dispatchers.Default) { full.collectShelfItems() }
+                withContext(Dispatchers.Default) { full.collectShelfItems(generativeUiSetting) }
             }.getOrElse { error ->
                 if (error is kotlinx.coroutines.CancellationException) throw error
                 value.orEmpty()
             }
         }
         ChatShelfPanelContent(items = items, onOpen = onOpen)
-    }
-}
-
-@Composable
-private fun EmptyChatSuggestions(
-    modifier: Modifier = Modifier,
-    onSelect: (String) -> Unit,
-) {
-    val tokens = LocalAmberTokens.current
-    val suggestions = listOf(
-        stringResource(R.string.amber_redesign_suggestion_board),
-        stringResource(R.string.amber_redesign_suggestion_reply),
-        stringResource(R.string.amber_redesign_suggestion_concept),
-    )
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        suggestions.forEach { suggestion ->
-            Surface(
-                onClick = { onSelect(suggestion) },
-                modifier = Modifier.heightIn(min = 40.dp),
-                shape = CircleShape,
-                color = Color.Transparent,
-                contentColor = tokens.ink2,
-                border = BorderStroke(1.dp, tokens.accent.copy(alpha = 0.10f)),
-                tonalElevation = 0.dp,
-            ) {
-                Box(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = suggestion,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = tokens.ink2,
-                    )
-                }
-            }
-        }
     }
 }
 

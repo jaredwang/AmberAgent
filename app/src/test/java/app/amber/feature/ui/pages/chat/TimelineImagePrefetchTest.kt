@@ -38,6 +38,35 @@ class TimelineImagePrefetchTest {
     }
 
     @Test
+    fun prefetchesOnlyTheSelectedMessageVariant() {
+        val first = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(UIMessagePart.Image("https://example.com/first.png")),
+        )
+        val selected = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(
+                UIMessagePart.Image("https://example.com/selected.png"),
+                UIMessagePart.Text("![selected](https://example.com/selected-inline.png)"),
+            ),
+        )
+        val last = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(UIMessagePart.Text("![hidden](https://example.com/last.png)")),
+        )
+        val variants = MessageNode(messages = listOf(first, selected, last), selectIndex = 1)
+
+        assertEquals(
+            listOf("https://example.com/selected.png", "https://example.com/selected-inline.png"),
+            variants.prefetchImageUrls(),
+        )
+        assertEquals(
+            listOf("https://example.com/first.png"),
+            variants.copy(selectIndex = 0).prefetchImageUrls(),
+        )
+    }
+
+    @Test
     fun skipsInlineDataUrls() {
         val urls = node(
             UIMessagePart.Image("data:image/png;base64,AAAA"),

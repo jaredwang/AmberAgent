@@ -1,0 +1,60 @@
+{
+  "status": "WIP snapshot; follow-up repairs and phase reviews incomplete",
+  "executed_at_utc": "2026-10-18T01:03:41.634933+00:00",
+  "command": "./gradlew :ai:testDebugUnitTest --tests 'app.amber.ai.provider.providers.GoogleThinkingRequestTest' :core:jev:testDebugUnitTest :core:agent-runtime-impl:testDebugUnitTest :document:testDebugUnitTest --continue",
+  "gradle_exit_code": 1,
+  "results": [
+    {
+      "module": "ai",
+      "task": "testDebugUnitTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": []
+    },
+    {
+      "module": "core/jev",
+      "task": "testDebugUnitTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": []
+    },
+    {
+      "module": "core/agent-runtime-impl",
+      "task": "testDebugUnitTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": []
+    },
+    {
+      "module": "document",
+      "task": "testDebugUnitTest",
+      "tests": 12,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "failed_cases": [
+        {
+          "suite": "app.amber.document.OfficeParserFixtureTest",
+          "test": "epubPreservesXhtmlNamedAndXmlEntities",
+          "type": "org.junit.ComparisonFailure",
+          "message": "org.junit.ComparisonFailure: expected:<caf[é & <tea> \"quoted\" 'apostrophe' tea time…] 中文> but was:<caf[ & <tea> \"quoted\" 'apostrophe' teatime] 中文>"
+        },
+        {
+          "suite": "app.amber.document.OfficeParserFixtureTest",
+          "test": "epubIgnoresSourceIndentationBetweenBlocks",
+          "type": "org.junit.ComparisonFailure",
+          "message": "org.junit.ComparisonFailure: expected:<[## Heading\n\nFirst *line*.\n\nSecond.]> but was:<[No readable content found in EPUB file]>"
+        }
+      ]
+    }
+  ],
+  "local_log": "/tmp/amber-review-push-checks.log",
+  "app_followup_red_interrupted_before_test_execution": true,
+  "full_build_of_current_tree_completed": false
+}

@@ -51,7 +51,7 @@ object NovelWorkspaceBookExport {
     }
 
     /** One branch's book; chapters ascend by the ordinal encoded in their file names. */
-    fun read(projectDirectory: File, branchSlug: String? = null): Book {
+    fun read(projectDirectory: File, branchSlug: String? = null): Book = NovelWorkspaceRestoreBoundary.write {
         val store = NovelWorkspaceStore(projectDirectory)
         val manifest = NovelWorkspaceManifest.parse(store.read(NovelWorkspacePaths.MANIFEST) ?: "")
         val branch = branchSlug?.takeIf { it.isNotBlank() } ?: manifest.mainBranch
@@ -68,7 +68,7 @@ object NovelWorkspaceBookExport {
                 )
             }
             .sortedBy { it.ordinal }
-        return Book(NovelWorkspaceProjectTitle.read(store), chapters)
+        Book(NovelWorkspaceProjectTitle.read(store), chapters)
     }
 
     fun txt(book: Book, locale: Locale = Locale.CHINESE): ByteArray = buildString {

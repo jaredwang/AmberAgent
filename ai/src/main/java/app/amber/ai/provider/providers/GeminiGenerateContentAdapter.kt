@@ -211,13 +211,16 @@ internal class GeminiGenerateContentAdapter(
     ): JsonObject = buildJsonObject {
         put("includeThoughts", true)
         val gemini3 = ModelRegistry.GEMINI_3_SERIES.match(params.model.modelId)
+        // Pro has no minimal level; original 3 Pro also rejects medium.
+        val gemini3Pro = ModelRegistry.GEMINI_3_PRO.match(params.model.modelId)
+        val gemini31Pro = ModelRegistry.GEMINI_3_1_PRO_PREVIEW.match(params.model.modelId)
         val gemini25Pro = params.model.modelId.contains(
             Regex("2\\.5.*pro", RegexOption.IGNORE_CASE),
         )
         when (params.reasoningLevel) {
             ReasoningLevel.AUTO -> Unit
             ReasoningLevel.OFF -> when {
-                gemini3 && !codeAssistTransport -> put("thinkingLevel", "minimal")
+                gemini3 && !codeAssistTransport -> put("thinkingLevel", if (gemini3Pro) "low" else "minimal")
                 !gemini3 && !gemini25Pro -> {
                     put("thinkingBudget", 0)
                     put("includeThoughts", false)
@@ -229,12 +232,18 @@ internal class GeminiGenerateContentAdapter(
                     "thinkingLevel",
                     when (params.reasoningLevel) {
                         ReasoningLevel.LOW -> "low"
-                        ReasoningLevel.MEDIUM -> "medium"
+                        ReasoningLevel.MEDIUM -> if (gemini3Pro && !gemini31Pro) "high" else "medium"
                         else -> "high"
                     },
                 )
             } else {
-                put("thinkingBudget", params.reasoningLevel.budgetTokens)
+                val requestedBudget = params.reasoningLevel.budgetTokens
+                val budget = if (ModelRegistry.GEMINI_2_5_FLASH.match(params.model.modelId)) {
+                    requestedBudget.coerceAtMost(24_576)
+                } else {
+                    requestedBudget
+                }
+                put("thinkingBudget", budget)
             }
         }
     }
@@ -337,6 +346,9 @@ internal class GeminiGenerateContentAdapter(
         }
 
         is UIMessagePart.Image -> {
+            require(!part.url.startsWith("https://", ignoreCase = true) && !part.url.startsWith("http://", ignoreCase = true)) {
+                "Remote images must be resolved before Gemini request encoding"
+            }
             val encoded = part.encodeBase64(withPrefix = false).getOrThrow()
             buildJsonObject {
                 put("inlineData", buildJsonObject {
@@ -445,6 +457,7 @@ internal class GeminiStreamDecoder(
 ) {
     private val generatedIdPrefix = "gemini-call-${Uuid.random().toString().take(8)}"
     private var generatedIdOrdinal = 0
+    private var toolIndex = 0
 
     fun decode(data: String): GeminiStreamSignal {
         val payload = adapter.unwrap(json.parseToJsonElement(data).jsonObject)
@@ -491,9 +504,8 @@ internal class GeminiStreamDecoder(
     }
 
     private fun UIMessage.withIndexedTools(): UIMessage {
-        var index = 0
         return copy(parts = parts.map { part ->
-            if (part is UIMessagePart.Tool) part.withStreamToolIndex(index++) else part
+            if (part is UIMessagePart.Tool) part.withStreamToolIndex(toolIndex++) else part
         })
     }
 }

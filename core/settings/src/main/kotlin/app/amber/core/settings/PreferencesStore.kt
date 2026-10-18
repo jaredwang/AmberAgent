@@ -681,7 +681,7 @@ val AMBER_AGENT_LOCAL_TOOLS = listOf(
     LocalToolOption.ICloudDrive,
 )
 
-val AMBER_AGENT_REQUIRED_SKILLS = setOf("skill-creator", "会议准备", "监控文档")
+val AMBER_AGENT_REQUIRED_SKILLS = setOf("skill-creator", "amber-ui-design", "会议准备", "监控文档")
 
 val AMBER_AGENT_TOOL_PROFILE = MainAgentToolProfile.FULL
 

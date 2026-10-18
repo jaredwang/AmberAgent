@@ -23,6 +23,15 @@ sealed interface GenerativeWidgetSegment {
         val specJson: String? = null,
     ) : GenerativeWidgetSegment
 
+    data class TaskUi(
+        val document: IntelligentUiDocument,
+        val complete: Boolean = true,
+    ) : GenerativeWidgetSegment
+
+    data class TaskUiStreaming(
+        val preview: IntelligentUiStreamingPreview,
+    ) : GenerativeWidgetSegment
+
     data object Loading : GenerativeWidgetSegment
 }
 
@@ -36,7 +45,10 @@ data class GenerativeWidgetAction(
 }
 
 object GenerativeWidgetParser {
-    private val markerRegex = Regex("""(?m)^[ \t]*```[ \t]*(?:show-widget|widget|generative-ui)[^\r\n]*\r?\n""")
+    private val markerRegex = Regex(
+        """(?m)^[ \t]*```[ \t]*(show-widget|widget|generative-ui|task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)[^\r\n]*\r?\n""",
+        RegexOption.IGNORE_CASE,
+    )
     private val renderableTagRegex = Regex(
         """<\s*(?:svg|div|section|article|table|ul|ol|p|figure|main|aside|header|footer)\b""",
         RegexOption.IGNORE_CASE,
@@ -52,7 +64,26 @@ object GenerativeWidgetParser {
         "todo",
     )
     private val json = Json { ignoreUnknownKeys = true }
-    private val partialFenceEndRegex = Regex("""(?m)^[ \t]*`{3}[ \t]*(?:show-widget|widget|generative-ui)[^\r\n]*$""")
+    private val partialFenceEndRegex = Regex(
+        """(?m)^[ \t]*`{3}[ \t]*(?:show-widget|widget|generative-ui|task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)[^\r\n]*$""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private fun isTaskUiFenceTag(tag: String?): Boolean {
+        val lower = tag?.trim()?.lowercase() ?: return false
+        return lower == "task-ui" ||
+            lower == "task_ui" ||
+            lower == "intelligent-ui" ||
+            lower == "intelligent_ui" ||
+            lower == "adaptive-ui"
+    }
+
+    private fun looksLikeTaskUiJsonFragment(fragment: String): Boolean {
+        val sample = fragment.take(2_048)
+        return Regex(""""(?:renderer|kind|task_type|taskType)"\s*:\s*"(?:task-ui|task_ui|intelligent-ui|decision|form|explore|study)"""").containsMatchIn(sample) ||
+            "\"flashcards\"" in sample ||
+            "\"quiz\"" in sample
+    }
 
     // Finds the LAST partial fence — if the model emits two ```show-widget markers
     // the last one is the incomplete streaming fence. Also tolerates trailing CRLF/whitespace.
@@ -77,7 +108,7 @@ object GenerativeWidgetParser {
         content: String,
         copy: GenerativeWidgetCopy = GenerativeWidgetCopy.DEFAULT,
     ): Boolean = parse(content, streaming = false, copy = copy)
-        .any { it is GenerativeWidgetSegment.Widget }
+        .any { it is GenerativeWidgetSegment.Widget || it is GenerativeWidgetSegment.TaskUi }
 
     fun widgetQualityIssue(
         content: String,
@@ -85,13 +116,33 @@ object GenerativeWidgetParser {
         copy: GenerativeWidgetCopy = GenerativeWidgetCopy.DEFAULT,
     ): String? {
         if (!requirement.required) return null
-        val widgets = parse(content, streaming = false, copy = copy)
-            .filterIsInstance<GenerativeWidgetSegment.Widget>()
+        val parsedSegments = parse(content, streaming = false, copy = copy)
+        if (requirement.expectTaskUi) {
+            if (parsedSegments.any { it is GenerativeWidgetSegment.TaskUi }) return null
+            val widgets = parsedSegments.filterIsInstance<GenerativeWidgetSegment.Widget>()
+            return if (widgets.isNotEmpty()) {
+                "expected task-ui interactive card, got show-widget renderer \"${widgets.last().renderer}\""
+            } else {
+                "missing required task-ui"
+            }
+        }
+        if (!requirement.expectSlides && !requirement.expectFullHtmlDeck &&
+            parsedSegments.any { it is GenerativeWidgetSegment.TaskUi }
+        ) {
+            return null
+        }
+        val widgets = parsedSegments.filterIsInstance<GenerativeWidgetSegment.Widget>()
         if (widgets.isEmpty()) return "missing required show-widget"
         val issues = widgets.mapNotNull { widgetQualityIssue(it, requirement) }
         if (issues.size < widgets.size) return null
         return issues.lastOrNull() ?: "missing required show-widget"
     }
+
+    fun split(
+        content: String,
+        isStreaming: Boolean = false,
+        copy: GenerativeWidgetCopy = GenerativeWidgetCopy.DEFAULT,
+    ): List<GenerativeWidgetSegment> = parse(content = content, streaming = isStreaming, copy = copy)
 
     fun parse(
         content: String,
@@ -105,13 +156,20 @@ object GenerativeWidgetParser {
         while (cursor < content.length) {
             val marker = markerRegex.find(content, cursor) ?: break
             foundWidgetMarker = true
+            val isTaskUiFence = isTaskUiFenceTag(marker.groupValues.getOrNull(1))
             appendTextSegment(segments, content.substring(cursor, marker.range.first))
 
             val afterMarker = marker.range.last + 1
             val jsonStart = content.indexOf('{', afterMarker)
             if (jsonStart == -1 || jsonStart > afterMarker + 80) {
                 if (streaming) {
-                    segments += GenerativeWidgetSegment.Loading
+                    segments += if (isTaskUiFence) {
+                        GenerativeWidgetSegment.TaskUiStreaming(
+                            IntelligentUiStreamingPreview(kind = null, title = null, subtitle = null),
+                        )
+                    } else {
+                        GenerativeWidgetSegment.Loading
+                    }
                     return segments
                 }
                 val widgetFragment = content.substring(marker.range.first)
@@ -124,6 +182,14 @@ object GenerativeWidgetParser {
             val jsonEnd = findJsonEnd(content, jsonStart)
             if (jsonEnd >= 0) {
                 val jsonText = content.substring(jsonStart, jsonEnd + 1)
+                if (isTaskUiFence) {
+                    val taskDoc = IntelligentUiParser.parseDocument(jsonText, copy)
+                    if (taskDoc != null) {
+                        segments += GenerativeWidgetSegment.TaskUi(document = taskDoc, complete = true)
+                        cursor = skipTrailingFence(content, jsonEnd + 1)
+                        continue
+                    }
+                }
                 val widget = parseWidgetJson(jsonText, copy)
                 if (widget != null) {
                     segments += widget.copy(complete = true)
@@ -131,6 +197,16 @@ object GenerativeWidgetParser {
                 } else {
                     val fallbackEnd = skipTrailingFence(content, jsonEnd + 1)
                     val widgetFragment = content.substring(marker.range.first, fallbackEnd)
+                    val fallbackTaskDoc = if (!looksLikeFullHtmlWidgetFragment(widgetFragment)) {
+                        IntelligentUiParser.parseDocument(jsonText, copy)
+                    } else {
+                        null
+                    }
+                    if (fallbackTaskDoc != null) {
+                        segments += GenerativeWidgetSegment.TaskUi(document = fallbackTaskDoc, complete = true)
+                        cursor = fallbackEnd
+                        continue
+                    }
                     if (streaming && looksLikeFullHtmlWidgetFragment(widgetFragment)) {
                         segments += GenerativeWidgetSegment.Loading
                         return segments
@@ -144,7 +220,14 @@ object GenerativeWidgetParser {
             }
 
             if (streaming) {
-                val partial = parsePartialWidget(content.substring(jsonStart), copy)
+                val partialJson = content.substring(jsonStart)
+                if (isTaskUiFence || looksLikeTaskUiJsonFragment(partialJson)) {
+                    segments += GenerativeWidgetSegment.TaskUiStreaming(
+                        IntelligentUiParser.parseStreamingPreview(partialJson),
+                    )
+                    return segments
+                }
+                val partial = parsePartialWidget(partialJson, copy)
                 if (partial != null) {
                     segments += partial
                 } else {
@@ -162,8 +245,16 @@ object GenerativeWidgetParser {
 
         val trailing = content.substring(cursor)
         if (streaming && !foundWidgetMarker && hasPartialWidgetFenceAtEnd(trailing)) {
-            appendTextSegment(segments, trailing.substringBefore(partialFenceMatch(trailing)!!))
-            segments += GenerativeWidgetSegment.Loading
+            val match = partialFenceMatch(trailing)!!
+            appendTextSegment(segments, trailing.substringBefore(match))
+            val isTaskFence = Regex("""(?i)`{3}[ \t]*(?:task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)""").containsMatchIn(match)
+            segments += if (isTaskFence) {
+                GenerativeWidgetSegment.TaskUiStreaming(
+                    IntelligentUiStreamingPreview(kind = null, title = null, subtitle = null),
+                )
+            } else {
+                GenerativeWidgetSegment.Loading
+            }
             return segments
         }
         appendTextSegment(segments, trailing)

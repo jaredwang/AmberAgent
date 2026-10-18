@@ -135,7 +135,11 @@ internal fun MessageNode.chatMessageVirtualizationPrewarmTexts(
                         scope = AssistantAffectScope.ASSISTANT,
                     )
                 }
-                .takeUnless(GenerativeWidgetParser::containsWidgetFence)
+                .takeUnless {
+                    GenerativeWidgetParser.containsWidgetFence(it) ||
+                        GenerativeWidgetParser.containsFullHtmlDeckPayload(it) ||
+                        it.looksLikeMiniAppJsonPayload()
+                }
                 ?.takeIf(::shouldVirtualizeMarkdownContent)
         }
 }
@@ -190,7 +194,10 @@ internal fun buildChatMessageVirtualItems(
                             regexes = assistant.orEmpty(),
                             scope = AssistantAffectScope.ASSISTANT,
                         )
-                        if (GenerativeWidgetParser.containsWidgetFence(content)) {
+                        if (GenerativeWidgetParser.containsWidgetFence(content) ||
+                            GenerativeWidgetParser.containsFullHtmlDeckPayload(content) ||
+                            content.looksLikeMiniAppJsonPayload()
+                        ) {
                             add(ChatMessageVirtualItem.Content(block, keyBase))
                             return@fastForEachIndexed
                         }

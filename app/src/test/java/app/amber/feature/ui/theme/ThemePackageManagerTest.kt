@@ -98,6 +98,29 @@ class ThemePackageManagerTest {
     }
 
     @Test
+    fun `Pi preset applies its whole recipe and terracotta clears it again`() = runTest {
+        val initial = customDisplay()
+        val store = FakeThemeSettingsStore(Settings(displaySetting = initial))
+        val manager = ThemePackageManager(dao = db.themePackageDao(), settingsStore = store)
+
+        assertEquals(ThemePackageApplyResult.Applied, manager.applyBuiltinPack("pi-steel"))
+        val applied = store.current.displaySetting
+        assertEquals("pi-steel", applied.appliedThemePackageId)
+        assertEquals("pi", applied.themePack?.paper)
+        assertEquals("#6B8CAD", applied.accentColor)
+        assertEquals(initial.chatFontFamily, applied.chatFontFamily)
+        assertEquals(initial.fontSizeRatio, applied.fontSizeRatio)
+        // Built-ins are never stored in the library, so they can never be removed.
+        assertNull(db.themePackageDao().getById("pi-steel"))
+        assertEquals(ThemePackageApplyResult.AlreadyApplied, manager.applyBuiltinPack("pi-steel"))
+        assertEquals("pi-steel", manager.recipe().id)
+
+        assertEquals(ThemePackageApplyResult.Applied, manager.applyBuiltin("WARM"))
+        assertNull(store.current.displaySetting.themePack)
+        assertNull(store.current.displaySetting.appliedThemePackageId)
+    }
+
+    @Test
     fun `prepare apply export round-trips the current custom theme`() = runTest {
         val initial = customDisplay()
         val store = FakeThemeSettingsStore(Settings(displaySetting = initial))

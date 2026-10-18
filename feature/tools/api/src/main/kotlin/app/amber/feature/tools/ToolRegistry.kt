@@ -615,7 +615,18 @@ internal fun Tool.category(): String = when {
     else -> "utility"
 }
 
+// These operations have external effects, but their names do not contain the
+// generic write verbs below. A lost result must not make recovery repeat them.
+private val EXTERNAL_ACTION_TOOLS = setOf(
+    "screen_click", "screen_long_click", "screen_swipe", "screen_input_text",
+    "screen_tap_text", "screen_back", "screen_home", "screen_open_app",
+    "screen_open_url", "screen_scroll_until", "screen_collect_list",
+    "terminal_execute", "terminal_job_start", "terminal_session_exec", "terminal_workspace_flush",
+    "call_phone", "intent_open",
+)
+
 private fun Tool.mutatesState(): Boolean {
+    if (name in EXTERNAL_ACTION_TOOLS) return true
     if (name == "memory_tool") return true
     if (name == "deep_read_open") return true
     if (name == "run_plan_update") return false

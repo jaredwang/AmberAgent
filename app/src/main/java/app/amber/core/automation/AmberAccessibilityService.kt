@@ -421,9 +421,11 @@ class AmberAccessibilityService : AccessibilityService(), AccessibilityControlle
         val included = visible && isValidScreenBounds(bounds, displayBounds)
         val record = runCatching {
             val password = node.isPassword
+            val text = if (password) "" else node.text?.toString().orEmpty()
             ScreenNodeRecord(
                 ref = ref,
-                rawText = if (password) "" else node.text?.toString().orEmpty().ifBlank { node.hintText?.toString().orEmpty() },
+                rawText = if (password) "" else text.ifBlank { node.hintText?.toString().orEmpty() },
+                editableValue = text.takeIf { node.isEditable && !password },
                 rawContentDescription = if (password) "" else node.contentDescription?.toString().orEmpty(),
                 viewId = node.viewIdResourceName.orEmpty(),
                 className = node.className?.toString().orEmpty(),
@@ -487,6 +489,8 @@ class AmberAccessibilityService : AccessibilityService(), AccessibilityControlle
         editable = editable,
         scrollable = scrollable,
         enabled = enabled,
+        editableValue = editableValue,
+        hasOwnLabel = rawText.isNotBlank() || rawContentDescription.isNotBlank(),
     )
 
     private fun hashScreenSnapshot(
@@ -507,6 +511,7 @@ class AmberAccessibilityService : AccessibilityService(), AccessibilityControlle
         records.forEach { record ->
             field(record.ref)
             field(record.rawText)
+            field(record.editableValue.orEmpty())
             field(record.rawContentDescription)
             field(record.viewId)
             field(record.className)
@@ -978,6 +983,7 @@ private class ScreenTraversalState {
 private class ScreenNodeRecord(
     val ref: String,
     val rawText: String,
+    val editableValue: String?,
     val rawContentDescription: String,
     val viewId: String,
     val className: String,

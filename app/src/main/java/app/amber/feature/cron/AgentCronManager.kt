@@ -31,6 +31,7 @@ import app.amber.feature.task.AgentTaskStore
 import app.amber.feature.task.toQueueState
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
 import kotlin.uuid.Uuid
 
@@ -43,6 +44,7 @@ class AgentCronManager(
 ) {
     private val workManager = WorkManager.getInstance(context)
     private val mutationMutex = Mutex()
+    private val executionMutexes = ConcurrentHashMap<String, Mutex>()
 
     val tasksFlow: Flow<List<AgentCronTask>> = context.agentCronDataStore.data
         .map { preferences ->
@@ -51,6 +53,10 @@ class AgentCronManager(
         .distinctUntilChanged()
 
     suspend fun listTasks(): List<AgentCronTask> = tasksFlow.first()
+
+    // WorkManager REPLACE cancels without awaiting the previous owner's cleanup.
+    internal suspend fun <T> withTaskExecution(taskId: String, block: suspend () -> T): T =
+        executionMutexes.computeIfAbsent(taskId) { Mutex() }.withLock { block() }
 
     suspend fun listTasksSnapshot(): List<AgentCronTask> = withContext(Dispatchers.IO) {
         val fileTasks = decodeFromBackingFile()

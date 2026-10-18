@@ -82,7 +82,7 @@ internal fun TimelineImagePrefetch(
  */
 internal fun MessageNode.prefetchImageUrls(): List<String> {
     val urls = ArrayList<String>()
-    messages.forEach { message ->
+    messages.getOrNull(selectIndex)?.let { message ->
         message.parts.forEach { part ->
             when (part) {
                 is UIMessagePart.Image -> urls += part.url

@@ -18,6 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
@@ -41,6 +42,7 @@ import app.amber.core.files.FilesManager
 import app.amber.core.files.SkillManager
 import app.amber.feature.cron.AgentCronManager
 import app.amber.feature.reminder.ReminderScheduler
+import app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridge
 import app.amber.feature.chat.impl.ChatEventProjector
 import app.amber.feature.runtime.ColdStartRuntimeRecoveryGate
 import app.amber.core.settings.prefs.SettingsAggregator
@@ -48,6 +50,7 @@ import app.amber.core.settings.prefs.SettingsProviderRescue
 import app.amber.core.settings.secret.SettingsSecretMigrator
 import app.amber.core.nativepath.NativePathBootstrap
 import app.amber.core.memory.dream.MemoryDreamScheduler
+import app.amber.core.sync.core.SyncArchiveManager
 import app.amber.feature.board.collector.NotificationSignalCollector
 import app.amber.feature.board.hotlist.HotListScheduler
 import app.amber.feature.board.worker.BoardScheduler
@@ -79,8 +82,16 @@ class AmberAgentApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@AmberAgentApp)
-            workManagerFactory()
             modules(appModule, chatModule, memoryModule, iCloudModule, webMountModule, agentRuntimeModule, agentInfraModule, boardModule, workspaceModule, novelModule, viewModelModule, dataSourceModule, repositoryModule, jevModule)
+            if (SyncArchiveManager.hasInterruptedFileRestore(this@AmberAgentApp)) {
+                // Eager singletons start after this block; workers must also wait
+                // until files match the last committed database snapshot.
+                koin.get<NovelWorkspaceRestoreBridge>()
+                runBlocking(Dispatchers.IO) {
+                    koin.get<SyncArchiveManager>().recoverInterruptedRestore()
+                }
+            }
+            workManagerFactory()
         }
         this.createNotificationChannel()
 
@@ -97,14 +108,18 @@ class AmberAgentApp : Application() {
         syncManagedFiles()
 
         recoverInterruptedAgentRuns()
-        recoverInterruptedNovelJobs()
+        if (StandaloneSurfaces.allowsNovel) {
+            recoverInterruptedNovelJobs()
+        }
 
-        // 任务气泡驱动循环：agent 任务（含 GUI 操控）运行中悬浮展示输出
-        runCatching { get<app.amber.feature.bubble.AgentTaskBubbleController>().start() }
-            .onFailure { Log.w(TAG, "start task bubble controller failed", it) }
+        if (StandaloneSurfaces.allowsAgentFeatures) {
+            // 任务气泡驱动循环：agent 任务（含 GUI 操控）运行中悬浮展示输出
+            runCatching { get<app.amber.feature.bubble.AgentTaskBubbleController>().start() }
+                .onFailure { Log.w(TAG, "start task bubble controller failed", it) }
 
-        // install bundled agent skills
-        installBuiltinSkills()
+            // install bundled agent skills
+            installBuiltinSkills()
+        }
 
         // Init remote config
         get<FirebaseRemoteConfig>().apply {
@@ -127,23 +142,31 @@ class AmberAgentApp : Application() {
                 runCatching { Firebase.crashlytics.recordException(it) }
             }
 
-        // Reschedule persisted mobile cron tasks after app startup.
-        rescheduleCronTasks()
-        // Reminder owner is durable and must be reattached after every process start.
-        rescheduleReminders()
+        if (StandaloneSurfaces.allowsAgentFeatures) {
+            // Reschedule persisted mobile cron tasks after app startup.
+            rescheduleCronTasks()
+            // Reminder owner is durable and must be reattached after every process start.
+            rescheduleReminders()
+        }
 
         // Migrate the persisted shape before cached-settings rescue can write it back.
         migrateAndRescueSettings()
 
-        // Keep Daydream background review aligned with memory settings.
-        syncMemoryDreamTasks()
+        seedStandaloneDefaults()
 
-        // Start Today Board notification collector if enabled.
-        startBoardNotificationCollector()
+        if (StandaloneSurfaces.allowsAgentFeatures) {
+            // Keep Daydream background review aligned with memory settings.
+            syncMemoryDreamTasks()
+        }
 
-        // Sync Today Board scheduler with settings + foreground-compensation hook.
-        syncTodayBoardScheduler()
-        syncHotListScheduler()
+        if (StandaloneSurfaces.allowsBoard) {
+            // Start Today Board notification collector if enabled.
+            startBoardNotificationCollector()
+
+            // Sync Today Board scheduler with settings + foreground-compensation hook.
+            syncTodayBoardScheduler()
+            syncHotListScheduler()
+        }
 
         // Attach best-effort app-level cleanup for singleton services that own process lifecycle observers.
         registerChatServiceCleanup()
@@ -152,6 +175,32 @@ class AmberAgentApp : Application() {
         incrementLaunchCount()
 
         // Composer.setDiagnosticStackTraceMode(ComposeStackTraceMode.Auto)
+    }
+
+    /**
+     * The standalone deep-read app IS the board — seed `todayBoard.enabled` on
+     * first launch so its home surface, manual refresh and schedulers all work
+     * without a settings detour. One-shot: a later user toggle is respected.
+     */
+    private fun seedStandaloneDefaults() {
+        if (StandaloneSurfaces.current != StandaloneSurfaces.DEEP_READ) return
+        val prefs = getSharedPreferences("standalone_defaults", MODE_PRIVATE)
+        if (prefs.getBoolean("board_enabled_seeded", false)) return
+        get<AppScope>().launch(Dispatchers.IO) {
+            runCatching {
+                val store = get<SettingsAggregator>()
+                store.settingsFlow.first { !it.init }
+                store.update { current ->
+                    current.copy(
+                        agentRuntime = current.agentRuntime.copy(
+                            todayBoard = current.agentRuntime.todayBoard.copy(enabled = true),
+                        ),
+                    )
+                }
+            }.onSuccess {
+                prefs.edit().putBoolean("board_enabled_seeded", true).apply()
+            }.onFailure { Log.e(TAG, "standalone board seed failed", it) }
+        }
     }
 
     private fun registerChatServiceCleanup() {

@@ -82,6 +82,9 @@ class KernelRunObserveTest {
 
         override fun cancel(runId: AgentRunId) {}
 
+        override suspend fun awaitRunSettled(runId: AgentRunId): Unit =
+            error("This observation-only fake does not launch execution jobs")
+
         override suspend fun listUnfinishedRuns(): List<AgentRunSnapshot> = emptyList()
     }
 

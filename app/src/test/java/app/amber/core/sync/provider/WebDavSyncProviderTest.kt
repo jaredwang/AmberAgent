@@ -29,6 +29,7 @@ import app.amber.core.sync.core.DeviceBoundBackupKey
 import app.amber.core.sync.core.SyncCrypto
 import app.amber.core.sync.core.SyncExportRequest
 import app.amber.core.sync.core.SyncMode
+import app.amber.core.sync.webdav.WebDavException
 import app.amber.core.utils.JsonInstant
 import app.amber.feature.webmount.oauth.WebMountOAuthTokenStore
 import io.ktor.client.HttpClient
@@ -399,6 +400,74 @@ class WebDavSyncProviderTest {
         assertEquals(2, deletes.size)
     }
 
+    @Test
+    fun `deleteSnapshot reports sidecar deletion failure after deleting archive`() = runBlocking {
+        val archivePath = "amber_agent_backups/snap-1.amberbackup"
+        val sidecarPath = "amber_agent_backups/snap-1.snapshot.json"
+        seedSnapshot("snap-1")
+        server.deleteFailures[sidecarPath] = HttpStatusCode.InternalServerError
+
+        val error = runCatching { provider().deleteSnapshot("snap-1") }.exceptionOrNull()
+
+        assertTrue("sidecar DELETE 失败必须让删除快照失败，实际：$error", error is WebDavException)
+        assertEquals(500, (error as WebDavException).statusCode)
+        assertEquals("delete failed for $sidecarPath", error.responseBody)
+        assertFalse(server.files.containsKey(archivePath))
+        assertTrue(server.files.containsKey(sidecarPath))
+        assertEquals(listOf("snap-1"), provider().listSnapshots().map { it.snapshotId })
+    }
+
+    @Test
+    fun `deleteSnapshot retry removes remaining sidecar when archive is already missing`() = runBlocking {
+        val archivePath = "amber_agent_backups/snap-1.amberbackup"
+        val sidecarPath = "amber_agent_backups/snap-1.snapshot.json"
+        seedSnapshot("snap-1")
+        server.deleteFailures[sidecarPath] = HttpStatusCode.InternalServerError
+        val syncProvider = provider()
+
+        // 首次删除留下真实的部分完成状态；本测试单独验证恢复后的重试。
+        runCatching { syncProvider.deleteSnapshot("snap-1") }
+        assertFalse(server.files.containsKey(archivePath))
+        assertTrue(server.files.containsKey(sidecarPath))
+        server.deleteFailures.remove(sidecarPath)
+
+        syncProvider.deleteSnapshot("snap-1")
+
+        assertTrue(server.files.isEmpty())
+        assertTrue(syncProvider.listSnapshots().isEmpty())
+        val deletePaths = server.requests.filter { it.method == HttpMethod.Delete }
+            .map { it.url.encodedPath.trimStart('/') }
+        assertEquals(listOf(archivePath, sidecarPath, archivePath, sidecarPath), deletePaths)
+    }
+
+    @Test
+    fun `deleteSnapshot preserves sidecar and propagates archive deletion failure`() = runBlocking {
+        val archivePath = "amber_agent_backups/snap-1.amberbackup"
+        val sidecarPath = "amber_agent_backups/snap-1.snapshot.json"
+        seedSnapshot("snap-1")
+        server.deleteFailures[archivePath] = HttpStatusCode.InternalServerError
+
+        val error = runCatching { provider().deleteSnapshot("snap-1") }.exceptionOrNull()
+
+        assertTrue("归档 DELETE 失败必须原样上抛，实际：$error", error is WebDavException)
+        assertEquals(500, (error as WebDavException).statusCode)
+        assertEquals("delete failed for $archivePath", error.responseBody)
+        assertTrue(server.files.containsKey(archivePath))
+        assertTrue(server.files.containsKey(sidecarPath))
+        val deletePaths = server.requests.filter { it.method == HttpMethod.Delete }
+            .map { it.url.encodedPath.trimStart('/') }
+        assertEquals(listOf(archivePath), deletePaths)
+        assertEquals(listOf("snap-1"), provider().listSnapshots().map { it.snapshotId })
+    }
+
+    private fun seedSnapshot(snapshotId: String) {
+        server.files["amber_agent_backups/${snapshotArchiveName(snapshotId)}"] = ByteArray(4) { 0 }
+        server.files["amber_agent_backups/${snapshotSidecarName(snapshotId)}"] = encodeSnapshotManifest(
+            JsonInstant,
+            SyncSnapshotManifest(snapshotId = snapshotId, createdAt = 42L),
+        ).toByteArray()
+    }
+
     private fun decodeBasicAuth(header: String): Pair<String, String> {
         val decoded = java.util.Base64.getDecoder()
             .decode(header.removePrefix("Basic ").trim())
@@ -413,6 +482,8 @@ class WebDavSyncProviderTest {
         val requests = mutableListOf<HttpRequestData>()
         /** true 时 sidecar 的 MOVE publish 以 500 失败（归档已发布、sidecar 未发布）。 */
         var failSidecarPublish = false
+        /** 按完整文件路径注入 DELETE 错误；错误不能删除对应资源。 */
+        val deleteFailures = mutableMapOf<String, HttpStatusCode>()
 
         suspend fun handle(scope: MockRequestHandleScope, request: HttpRequestData): HttpResponseData {
             requests += request
@@ -447,8 +518,12 @@ class WebDavSyncProviderTest {
                     }
                 }
                 HttpMethod.Delete -> {
-                    files.remove(path)
-                    scope.respond("", HttpStatusCode.NoContent)
+                    val failure = deleteFailures[path]
+                    when {
+                        failure != null -> scope.respond("delete failed for $path", failure)
+                        files.remove(path) != null -> scope.respond("", HttpStatusCode.NoContent)
+                        else -> scope.respond("", HttpStatusCode.NotFound)
+                    }
                 }
                 else -> scope.respond("", HttpStatusCode.MethodNotAllowed)
             }

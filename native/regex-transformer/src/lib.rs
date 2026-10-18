@@ -184,6 +184,19 @@ mod tests {
     }
 
     #[test]
+    fn numeric_capture_followed_by_letters_uses_one_rust_group_name() {
+        // Kotlin's Java replacement produces `foobar`. The production
+        // Kotlin preflight must keep this rule on the JVM.
+        assert_eq!(apply_pure("foo", &[("(foo)", "$1bar")]), "");
+    }
+
+    #[test]
+    fn backslash_replacement_is_literal_in_rust() {
+        // Java drops this escaping backslash and emits `x` instead.
+        assert_eq!(apply_pure("foo", &[("foo", r"\x")]), r"\x");
+    }
+
+    #[test]
     fn sequential_rules_apply_in_order() {
         // Each rule applied to the accumulator from the previous step.
         assert_eq!(

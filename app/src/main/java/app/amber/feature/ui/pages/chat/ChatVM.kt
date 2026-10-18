@@ -58,6 +58,7 @@ import app.amber.core.repository.ConversationRepository
 import app.amber.core.repository.FavoriteRepository
 import app.amber.core.service.ChatError
 import app.amber.core.service.ChatService
+import app.amber.core.service.ChatStartSuggestionGenerator
 import app.amber.core.service.ConversationTimelineLoadState
 import app.amber.core.service.PendingUserMessage
 import app.amber.core.service.PendingUserMessageMode
@@ -92,7 +93,18 @@ class ChatVM(
     private val regenerateMessageOrchestrator: RegenerateMessageOrchestrator,
     private val branchMessageOrchestrator: BranchMessageOrchestrator,
     private val conversationDraftStore: ConversationDraftStore,
+    private val startSuggestionGenerator: ChatStartSuggestionGenerator,
 ) : ViewModel() {
+    suspend fun generateStartSuggestions(settings: Settings, locale: java.util.Locale): List<String> =
+        try {
+            startSuggestionGenerator.generate(settings, locale)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.w(TAG, "Could not generate conversation starters", error)
+            emptyList()
+        }
+
     private val _conversationId: Uuid = Uuid.parse(id)
     val conversation: StateFlow<Conversation> = chatService.getConversationFlow(_conversationId)
     val timelineLoadState: StateFlow<ConversationTimelineLoadState> =
@@ -112,6 +124,7 @@ class ChatVM(
 
     // 聊天输入状态 - 保存在 ViewModel 中避免 TransactionTooLargeException
     val inputState = ChatInputState()
+    private val hostDraftComposer = HostDraftComposer(id, conversationDraftStore, inputState)
 
     // 异步任务 (从ChatService获取，响应式)
     val conversationJob: StateFlow<Job?> =
@@ -211,11 +224,7 @@ class ChatVM(
             chatService.refreshOutcomeUnknown()
             // P3-03: restore a MiniApp-hosted composer draft (host.sendToConversation)
             // into the input box so the user can review it before sending.
-            if (inputState.isEmpty()) {
-                conversationDraftStore.load(_conversationId.toString())?.let { draft ->
-                    inputState.setContents(draft.toParts())
-                }
-            }
+            hostDraftComposer.refresh()
         }
 
         // 记住对话ID, 方便下次启动恢复
@@ -225,11 +234,12 @@ class ChatVM(
     /** Called only while this conversation page enters composition. */
     fun onChatVisible() {
         viewModelScope.launch {
+            chatService.initializeConversation(_conversationId)
+            hostDraftComposer.refresh()
             val settings = settingsStore.settingsFlow.filterNot { it.init }.first()
             if (!settings.agentRuntime.autoApproveHighRiskToolCalls) return@launch
             // Reuse ChatService's per-conversation init mutex so a visible
             // page cannot resume against an initialization-era snapshot.
-            chatService.initializeConversation(_conversationId)
             chatService.resumePendingToolsWithCurrentApprovalSettings(_conversationId)
         }
     }
@@ -352,7 +362,9 @@ class ChatVM(
         // P3-03: once anything is actually sent, a MiniApp-hosted composer
         // draft is consumed and must not come back on the next open.
         if (accepted) {
-            viewModelScope.launch { conversationDraftStore.clear(_conversationId.toString()) }
+            hostDraftComposer.acceptedSendDraftId()?.let { draftId ->
+                viewModelScope.launch { hostDraftComposer.consume(draftId) }
+            }
         }
         return accepted
     }

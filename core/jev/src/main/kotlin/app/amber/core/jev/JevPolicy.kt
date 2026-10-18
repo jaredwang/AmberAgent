@@ -27,6 +27,8 @@ data class JevPolicy(
     val screenReadOnlyThreshold: Double = 0.8,
     /** SCREEN_AUTOMATION：DONE 核验低于此值 handback。 */
     val screenDoneVerifiedThreshold: Double = 0.85,
+    /** TOOL_RESULT_RETENTION：保留概率达到此值才跳过压缩清空。 */
+    val toolResultRetentionKeepProbability: Double = 0.7,
     /** Automatic approval may only be tightened to manual approval. */
     val autoApprovalRiskThreshold: Double = 0.8,
     /** Continue once when an unverified final reply claims completion. */

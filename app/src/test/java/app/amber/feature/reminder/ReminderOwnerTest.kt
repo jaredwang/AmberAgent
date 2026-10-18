@@ -97,6 +97,52 @@ class ReminderOwnerTest {
     }
 
     @Test
+    fun `delayed older snapshot cannot replace the current durable alarm`() = runTest {
+        val operations = RecordingAlarmOperations()
+        val store = ReminderStore(Files.createTempDirectory("reminder-delayed-schedule").toFile(), json)
+        val scheduler = ReminderScheduler(store, operations, exactAlarmAllowed = { true })
+        val older = store.upsert(reminder())
+        val current = store.upsert(older.copy(nextFireAtEpochMs = 2L))
+        scheduler.schedule(current)
+
+        val delayed = scheduler.schedule(older)
+
+        assertEquals(current.fireKey(), operations.active[current.id]?.fireKey)
+        assertEquals(current.fireKey(), delayed.fireKey)
+        assertTrue(decideReminderDelivery(store.read(current.id), operations.active[current.id]?.fireKey).commit)
+    }
+
+    @Test
+    fun `delayed disabled snapshot cannot cancel a newly enabled reminder`() = runTest {
+        val operations = RecordingAlarmOperations()
+        val store = ReminderStore(Files.createTempDirectory("reminder-delayed-disable").toFile(), json)
+        val scheduler = ReminderScheduler(store, operations, exactAlarmAllowed = { true })
+        val disabled = store.upsert(reminder().copy(enabled = false))
+        val current = store.upsert(disabled.copy(enabled = true, nextFireAtEpochMs = 2L))
+        scheduler.schedule(current)
+
+        val delayed = scheduler.schedule(disabled)
+
+        assertEquals(ReminderSchedulePrecision.EXACT, delayed.precision)
+        assertEquals(current.fireKey(), operations.active[current.id]?.fireKey)
+    }
+
+    @Test
+    fun `delayed schedule after deletion cannot recreate an alarm`() = runTest {
+        val operations = RecordingAlarmOperations()
+        val store = ReminderStore(Files.createTempDirectory("reminder-delayed-delete").toFile(), json)
+        val scheduler = ReminderScheduler(store, operations, exactAlarmAllowed = { true })
+        val deleted = store.upsert(reminder())
+        scheduler.schedule(deleted)
+        store.remove(deleted.id)
+
+        val delayed = scheduler.schedule(deleted)
+
+        assertEquals(ReminderSchedulePrecision.CANCELLED, delayed.precision)
+        assertNull(operations.active[deleted.id])
+    }
+
+    @Test
     fun `receiver decision only accepts current fire key and requests notify plus reschedule`() {
         val snapshot = reminder()
         assertEquals(
@@ -134,8 +180,18 @@ class ReminderOwnerTest {
         val exact = mutableListOf<ReminderAlarmRequest>()
         val approximate = mutableListOf<ReminderAlarmRequest>()
         val cancelled = mutableListOf<String>()
-        override fun scheduleExact(request: ReminderAlarmRequest) { exact += request }
-        override fun scheduleApproximate(request: ReminderAlarmRequest) { approximate += request }
-        override fun cancel(reminderId: String) { cancelled += reminderId }
+        val active = mutableMapOf<String, ReminderAlarmRequest>()
+        override fun scheduleExact(request: ReminderAlarmRequest) {
+            exact += request
+            active[request.reminderId] = request
+        }
+        override fun scheduleApproximate(request: ReminderAlarmRequest) {
+            approximate += request
+            active[request.reminderId] = request
+        }
+        override fun cancel(reminderId: String) {
+            cancelled += reminderId
+            active.remove(reminderId)
+        }
     }
 }

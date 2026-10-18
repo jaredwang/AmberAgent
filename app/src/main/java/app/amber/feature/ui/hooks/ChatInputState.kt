@@ -131,6 +131,9 @@ class ChatInputState {
                 val editedTextIndex = originalParts.indexOfLast { it is UIMessagePart.Text }
                 val remainingAttachments = messageContent.toMutableList()
                 val merged = mutableListOf<UIMessagePart>()
+                if (editedTextIndex < 0 && text.isNotBlank()) {
+                    merged.add(UIMessagePart.Text(text))
+                }
 
                 originalParts.forEachIndexed { index, part ->
                     when {

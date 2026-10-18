@@ -104,14 +104,16 @@ data class UIMessage(
                             acc
                         } else {
                             val lastPart = acc.lastOrNull()
-                            if (lastPart is UIMessagePart.Reasoning) {
+                            if (lastPart is UIMessagePart.Reasoning &&
+                                lastPart.metadata.reasoningBlockId() == deltaPart.metadata.reasoningBlockId()
+                            ) {
                                 // Append to the last Reasoning part
                                 acc.dropLast(1) + UIMessagePart.Reasoning(
                                     reasoning = lastPart.reasoning + deltaPart.reasoning,
                                     createdAt = lastPart.createdAt,
                                     finishedAt = null,
                                 ).also {
-                                    it.metadata = deltaPart.metadata ?: lastPart.metadata
+                                    it.metadata = mergeReasoningMetadata(lastPart.metadata, deltaPart.metadata)
                                 }
                             } else {
                                 // Create new Reasoning part
@@ -188,7 +190,7 @@ data class UIMessage(
             is UIMessagePart.Video -> part.url.isNotBlank()
             is UIMessagePart.Audio -> part.url.isNotBlank()
             is UIMessagePart.Document -> part.url.isNotBlank()
-            is UIMessagePart.Reasoning -> part.reasoning.isNotBlank()
+            is UIMessagePart.Reasoning -> part.reasoning.isNotBlank() || part.hasReasoningReplayMetadata()
             else -> true
         }
     }
@@ -521,12 +523,18 @@ private const val OPENAI_IMAGE_CALL_ID_METADATA_KEY = "openai_image_call_id"
 internal fun UIMessagePart.Image.streamIdentity(): String? =
     metadata?.get(OPENAI_IMAGE_CALL_ID_METADATA_KEY)?.jsonPrimitive?.contentOrNull
 
+internal fun UIMessagePart.Image.isCompleteStreamImage(): Boolean =
+    url.startsWith("data:") || url.startsWith("https://", ignoreCase = true) ||
+        url.startsWith("http://", ignoreCase = true)
+
 internal fun UIMessagePart.Image.findImageMergeTarget(
     images: List<UIMessagePart.Image>,
 ): UIMessagePart.Image? {
     val identity = streamIdentity()
     return if (identity != null) {
         images.lastOrNull { it.streamIdentity() == identity }
+    } else if (isCompleteStreamImage()) {
+        null
     } else {
         images.lastOrNull()?.takeIf { it.streamIdentity() == null }
     }
@@ -536,7 +544,7 @@ internal fun UIMessagePart.Image.streamImageData(): String =
     if (url.startsWith("data:")) url.substringAfter(',', missingDelimiterValue = "") else url
 
 internal fun UIMessagePart.Image.asStreamImage(): UIMessagePart.Image =
-    if (url.startsWith("data:")) this else copy(url = "data:image/png;base64,$url")
+    if (isCompleteStreamImage()) this else copy(url = "data:image/png;base64,$url")
 
 // public: UI 层用它做 tool 卡片的稳定 Compose key (toolCallId 为空时的回退)
 fun UIMessagePart.Tool.streamToolIndex(): Int? =

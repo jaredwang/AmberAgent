@@ -43,7 +43,6 @@ object TokenBudgetFitter {
 
     private const val DEFAULT_CONTEXT_WINDOW_TOKENS = 128_000
     private const val DEFAULT_OUTPUT_RESERVE_TOKENS = 4_096
-    private const val MIN_HARD_BUDGET_TOKENS = 4_000
     // ContextFootprintEstimator counts multimodal parts at 4_500 weighted
     // chars (≈1125 tokens). Provider-specific deltas below.
     private const val BASE_MULTIMODAL_WEIGHTED_CHARS = 4_500
@@ -164,8 +163,8 @@ object TokenBudgetFitter {
     fun hardBudgetTokens(model: Model, maxTokens: Int?): Int {
         val contextWindow = model.contextWindowTokens?.takeIf { it > 0 }
             ?: DEFAULT_CONTEXT_WINDOW_TOKENS
-        val outputReserve = (maxTokens ?: DEFAULT_OUTPUT_RESERVE_TOKENS).coerceIn(1, contextWindow - 1)
-        return (contextWindow - outputReserve).coerceAtLeast(MIN_HARD_BUDGET_TOKENS)
+        val outputReserve = (maxTokens ?: DEFAULT_OUTPUT_RESERVE_TOKENS).coerceIn(1, contextWindow)
+        return contextWindow - outputReserve
     }
 
     /**

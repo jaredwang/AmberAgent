@@ -14,6 +14,7 @@ import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessageChoice
 import app.amber.ai.ui.UIMessagePart
 import app.amber.ai.ui.withStreamToolIndex
+import app.amber.ai.ui.withStreamReasoningId
 import app.amber.ai.util.encodeBase64
 import app.amber.ai.util.json
 import app.amber.ai.util.mergeCustomBody
@@ -32,6 +33,11 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlin.time.Clock
+
+private val CLAUDE_MODEL_VERSION = Regex(
+    """claude(?:[-_.](?:opus|sonnet|haiku))*[-_.](\d+)(?:[-_.](\d{1,2})(?!\d))?""",
+    RegexOption.IGNORE_CASE,
+)
 
 /** Anthropic Messages wire mapping. It has no HTTP, storage, tool execution, or UI ownership. */
 internal class AnthropicMessagesAdapter(
@@ -66,9 +72,9 @@ internal class AnthropicMessagesAdapter(
             }
             encodeThinking(params)?.let { thinking ->
                 put("thinking", thinking)
-                if (params.reasoningLevel !in setOf(ReasoningLevel.OFF, ReasoningLevel.AUTO)) {
+                thinkingEffort(params)?.let { effort ->
                     put("output_config", buildJsonObject {
-                        put("effort", params.reasoningLevel.effort)
+                        put("effort", effort)
                     })
                 }
             }
@@ -122,7 +128,12 @@ internal class AnthropicMessagesAdapter(
         )
     }
 
-    fun decodeStreamEvent(eventName: String?, eventId: String?, data: String): AnthropicStreamSignal {
+    fun decodeStreamEvent(
+        eventName: String?,
+        eventId: String?,
+        data: String,
+        streamScope: String = "",
+    ): AnthropicStreamSignal {
         if (data == "[DONE]") return AnthropicStreamSignal.Ignore
         val payload = codec.parseToJsonElement(data).jsonObject
         return when (eventName ?: payload.string("type")) {
@@ -142,8 +153,8 @@ internal class AnthropicMessagesAdapter(
                 )
             }
 
-            "content_block_start" -> streamContent(payload, eventId, "content_block")
-            "content_block_delta" -> streamContent(payload, eventId, "delta")
+            "content_block_start" -> streamContent(payload, eventId, "content_block", streamScope)
+            "content_block_delta" -> streamContent(payload, eventId, "delta", streamScope)
             "message_delta" -> emitStreamChunk(
                 id = eventId.orEmpty(),
                 model = "",
@@ -162,11 +173,16 @@ internal class AnthropicMessagesAdapter(
         payload: JsonObject,
         eventId: String?,
         field: String,
+        streamScope: String,
     ): AnthropicStreamSignal {
         val block = payload[field] as? JsonObject ?: return AnthropicStreamSignal.Ignore
         val index = payload["index"]?.jsonPrimitiveOrNull?.intOrNull
         val part = decodeBlock(block)?.let { decoded ->
-            if (decoded is UIMessagePart.Tool && index != null) decoded.withStreamToolIndex(index) else decoded
+            when {
+                decoded is UIMessagePart.Tool && index != null -> decoded.withStreamToolIndex(index)
+                decoded is UIMessagePart.Reasoning && index != null -> decoded.withStreamReasoningId("$streamScope:$index")
+                else -> decoded
+            }
         } ?: return AnthropicStreamSignal.Ignore
         return emitStreamChunk(
             id = eventId.orEmpty(),
@@ -229,11 +245,42 @@ internal class AnthropicMessagesAdapter(
         return buildJsonObject {
             if (params.reasoningLevel == ReasoningLevel.OFF) {
                 put("type", "disabled")
+            } else if (usesManualThinking(params.model.modelId)) {
+                // Claude <= 4.5 rejects adaptive. Its manual budget includes thinking
+                // tokens in max_tokens and must leave at least one output token.
+                val maxTokens = params.maxTokens ?: 64_000
+                require(maxTokens > 1_024) {
+                    "Claude extended thinking requires max_tokens greater than 1024"
+                }
+                val requestedBudget = params.reasoningLevel.budgetTokens.takeIf { it > 0 }
+                    ?: ReasoningLevel.HIGH.budgetTokens
+                put("type", "enabled")
+                put("budget_tokens", requestedBudget.coerceIn(1_024, maxTokens - 1))
             } else {
                 put("type", "adaptive")
                 put("display", "summarized")
             }
         }
+    }
+
+    private fun usesManualThinking(modelId: String): Boolean = claudeVersion(modelId)?.let { (major, minor) ->
+        major < 4 || major == 4 && minor <= 5
+    } ?: false
+
+    private fun thinkingEffort(params: TextGenerationParams): String? {
+        val level = params.reasoningLevel
+        if (level == ReasoningLevel.OFF || level == ReasoningLevel.AUTO) return null
+        val version = claudeVersion(params.model.modelId)
+        if (usesManualThinking(params.model.modelId)) {
+            // Opus 4.5 is the only manual-thinking family with effort support.
+            if (version != (4 to 5) || !params.model.modelId.contains("opus", ignoreCase = true)) return null
+            return if (level == ReasoningLevel.XHIGH || level == ReasoningLevel.MAX) "high" else level.effort
+        }
+        return if (version == (4 to 6) && level == ReasoningLevel.XHIGH) "high" else level.effort
+    }
+
+    private fun claudeVersion(modelId: String): Pair<Int, Int>? = CLAUDE_MODEL_VERSION.find(modelId)?.let {
+        it.groupValues[1].toInt() to (it.groupValues[2].toIntOrNull() ?: 0)
     }
 
     private fun assistantTurns(message: UIMessage): List<JsonObject> = buildList {
@@ -269,13 +316,18 @@ internal class AnthropicMessagesAdapter(
         }
 
         is UIMessagePart.Image -> {
-            val encoded = part.encodeBase64(withPrefix = false).getOrThrow()
             buildJsonObject {
                 put("type", "image")
                 put("source", buildJsonObject {
-                    put("type", "base64")
-                    put("media_type", encoded.mimeType)
-                    put("data", encoded.base64)
+                    if (part.url.startsWith("https://", ignoreCase = true) || part.url.startsWith("http://", ignoreCase = true)) {
+                        put("type", "url")
+                        put("url", part.url)
+                    } else {
+                        val encoded = part.encodeBase64(withPrefix = false).getOrThrow()
+                        put("type", "base64")
+                        put("media_type", encoded.mimeType)
+                        put("data", encoded.base64)
+                    }
                 })
             }
         }
@@ -291,9 +343,7 @@ internal class AnthropicMessagesAdapter(
                 buildJsonObject {
                     put("type", "thinking")
                     put("thinking", part.reasoning)
-                    part.metadata?.forEach { (key, value) ->
-                        if (key != "redacted_thinking_data") put(key, value)
-                    }
+                    part.metadata?.get("signature")?.let { put("signature", it) }
                 }
             }
         }

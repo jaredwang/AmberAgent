@@ -630,7 +630,8 @@ open class MemoryRepository(
         candidateDAO.update(candidate.copy(updatedAt = System.currentTimeMillis()).toEntity())
     }
 
-    suspend fun acceptCandidate(id: String): MemoryRecord = withMemoryWriter {
+    /** Null means an invalidation was already satisfied because its target was deleted. */
+    suspend fun acceptCandidate(id: String): MemoryRecord? = withMemoryWriter {
         val db = appDatabase
         if (db != null) {
             db.withTransaction { acceptCandidateInternal(id) }
@@ -639,7 +640,7 @@ open class MemoryRepository(
         }
     }
 
-    private suspend fun acceptCandidateInternal(id: String): MemoryRecord {
+    private suspend fun acceptCandidateInternal(id: String): MemoryRecord? {
             val candidate = candidateDAO.getCandidateById(id)?.toCandidate()
                 ?: error("Memory candidate #$id not found")
             check(candidate.status == MemoryCandidateStatus.PENDING) {
@@ -667,16 +668,7 @@ open class MemoryRepository(
                 } else {
                     // The target is gone or already archived — the invalidation
                     // outcome holds without a new record.
-                    intentTarget?.toRecord() ?: addMemoryInternal(
-                        scope = candidate.scope,
-                        kind = candidate.kind,
-                        content = candidate.content,
-                        assistantId = bucketForScope(candidate.scope),
-                        sourceConversationId = candidate.sourceConversationId,
-                        sourceMessageIds = candidate.sourceMessageIds,
-                        expiresAt = candidate.expiresAt,
-                        confidence = candidate.confidence,
-                    )
+                    intentTarget?.toRecord()
                 }
 
                 "confirms" -> {
@@ -731,7 +723,7 @@ open class MemoryRepository(
             MemoryEvent(
                 type = MemoryEventType.CANDIDATE_ACCEPTED,
                 conversationId = candidate.sourceConversationId,
-                memoryId = record.id,
+                memoryId = record?.id,
                 candidateId = candidate.id,
                 message = "Candidate accepted.",
             ).toEntity()

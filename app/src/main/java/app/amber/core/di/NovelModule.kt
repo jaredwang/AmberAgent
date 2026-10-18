@@ -8,6 +8,7 @@ import app.amber.feature.novel.workspace.NovelWorkspaceGhostwriteController
 import app.amber.feature.novel.workspace.NovelWorkspaceGhostwriteCoordinator
 import app.amber.feature.novel.workspace.NovelWorkspaceMigrationService
 import app.amber.feature.novel.workspace.NovelWorkspaceRuntime
+import app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridge
 import app.amber.feature.novelworkspace.NovelWorkspaceProjectRepository
 import app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModel
 import app.amber.feature.ui.pages.novel.NovelProjectsViewModel
@@ -21,6 +22,19 @@ import org.koin.dsl.module
  * repository + one-way migrator) so old-format books can still be read and converted.
  */
 val novelModule = module {
+    single(createdAtStart = true) {
+        NovelWorkspaceRestoreBridge(
+            gate = get(),
+            workspaceRoot = NovelWorkspaceProjectRepository.defaultRoot(androidContext().filesDir),
+            cancelBackgroundWork = {
+                // Cold-start journal recovery runs before WorkManager can resume jobs.
+                if (androidx.work.WorkManager.isInitialized()) {
+                    androidx.work.WorkManager.getInstance(androidContext())
+                        .cancelAllWorkByTag(NovelWorkspaceGhostwriteController.WORK_TAG)
+                }
+            },
+        )
+    }
     single<NovelProjectPersisting> {
         NovelFileProjectRepository(
             rootDirectory = NovelFileProjectRepository.defaultRoot(androidContext().filesDir),
@@ -54,6 +68,7 @@ val novelModule = module {
             workspaceMigrationService = get(),
             legacyRepository = get(),
             context = androidContext(),
+            restoreBridge = get(),
         )
     }
 
@@ -68,6 +83,7 @@ val novelModule = module {
             context = androidContext(),
             requestedFocus = parameters.getOrNull<app.amber.feature.novelworkspace.NovelWorkspaceFocus>()
                 ?: app.amber.feature.novelworkspace.NovelWorkspaceFocus(),
+            restoreBridge = get(),
         )
     }
 }

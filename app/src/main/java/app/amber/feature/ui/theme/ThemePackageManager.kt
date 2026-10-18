@@ -292,6 +292,30 @@ class ThemePackageManager(
         }
     }
 
+    /** Pi / Notion presets: applied like a library pack but never stored, so never removable. */
+    suspend fun applyBuiltinPack(id: String): ThemePackageApplyResult {
+        require(id in ThemePackTransfer.builtinPackIds) { "未知的内置主题：$id" }
+        val pkg = ThemePackTransfer.asPackage(requireNotNull(ThemePackTransfer.builtin(id)))
+        return withThemeWrite {
+            val preparedAtStart = currentTryOn()
+            val result = when (val write = writeDisplaySetting { current ->
+                ThemePackageApplier.applyTokens(pkg, current).copy(appliedThemePackageId = pkg.id)
+            }) {
+                is ThemeSettingsWriteResult.Applied -> if (write.previous == write.applied) {
+                    ThemePackageApplyResult.AlreadyApplied
+                } else {
+                    ThemePackageApplyResult.Applied
+                }
+                ThemeSettingsWriteResult.Invalidated -> error("Unexpected try-on invalidation")
+                ThemeSettingsWriteResult.Reverted -> ThemePackageApplyResult.Reverted
+            }
+            if (result == ThemePackageApplyResult.Applied || result == ThemePackageApplyResult.AlreadyApplied) {
+                preparedAtStart?.let(::clearTryOnIfCurrent)
+            }
+            result
+        }
+    }
+
     /** 从主题库移除导入包（`builtin:` 条目不在库中，天然不可移除）。 */
     suspend fun remove(packageId: String): Boolean {
         return withThemeWrite {

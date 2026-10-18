@@ -118,4 +118,17 @@ class GenerationPromptsTest {
         assertTrue(prompt.contains("native actions are welcome"))
         assertTrue(prompt.contains("avoid plan/tool detours"))
     }
+
+    @Test
+    fun generativeUiPromptIncludesTaskUiProtocolAndRoutingBoundaries() {
+        val prompt = buildGenerativeUiPrompt(GenerativeUiSetting())
+
+        assertTrue(prompt.contains("```task-ui"))
+        assertTrue(prompt.contains("\"kind\":\"decision|form|explore|study\""))
+        assertTrue(prompt.contains("flashcard_deck"))
+        assertTrue(prompt.contains("quiz_item"))
+        assertTrue(prompt.contains("score_summary"))
+        assertTrue(prompt.contains("value_field_id"))
+        assertTrue(prompt.contains("Do NOT use `full_html` PPT covers or MiniApp for flashcards or quizzes."))
+    }
 }

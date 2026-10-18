@@ -1,6 +1,7 @@
 package app.amber.core.jev
 
 import app.amber.ai.provider.Model
+import app.amber.ai.provider.ModelAbility
 import app.amber.ai.provider.OpenAIBrand
 import app.amber.ai.provider.ProviderSetting
 import app.amber.core.settings.Settings
@@ -68,12 +69,15 @@ class JevCouncilPoolRankerTest {
         return Settings(chatModelId = m3, providers = listOf(provider))
     }
 
-    private fun councilInput(objective: String = "analyze the screenshot for layout issues") = buildJsonObject {
+    private fun councilInput(
+        objective: String = "analyze the screenshot for layout issues",
+        context: String = "a mobile screenshot was captured",
+    ) = buildJsonObject {
         put(
             "task",
             buildJsonObject {
                 put("objective", objective)
-                put("context", "a mobile screenshot was captured")
+                put("context", context)
             },
         )
     }
@@ -104,6 +108,59 @@ class JevCouncilPoolRankerTest {
             .rank(councilInput(), settings, settings.agentRuntime.modelCouncil)
         assertEquals(1, transport.calls)
         assertEquals(listOf(ids[1], ids[2]), ranked)
+    }
+
+    private fun suitablePoolTransport(settings: Settings): ScriptedTransport {
+        val ids = app.amber.feature.modelcouncil.ModelCouncilValidator
+            .defaultPoolModelIds(settings, settings.agentRuntime.modelCouncil)
+        val answers = ids.joinToString(",") { """"$it":{"type":"noul","noul":0.9}""" }
+        return ScriptedTransport("""{"model":"jev-test","answers":{$answers}}""")
+    }
+
+    @Test
+    fun objectiveBeyondCachePrefixIsEvaluatedAgain() = runTest {
+        val settings = settingsWithModels()
+        val transport = suitablePoolTransport(settings)
+        val ranker = JevCouncilPoolRanker(runtime(transport, JevMode.ACTIVE))
+        val prefix = "shared task background ".repeat(20)
+        val first = councilInput(objective = prefix + "Review image layout.")
+        val second = councilInput(objective = prefix + "Prove the mathematical result.")
+
+        ranker.rank(first, settings, settings.agentRuntime.modelCouncil)
+        ranker.rank(first, settings, settings.agentRuntime.modelCouncil)
+        assertEquals("identical routing inputs should still use the cache", 1, transport.calls)
+        ranker.rank(second, settings, settings.agentRuntime.modelCouncil)
+
+        assertEquals("the objective sent to Jev changed after character 300", 2, transport.calls)
+    }
+
+    @Test
+    fun contextBeyondCachePrefixIsEvaluatedAgain() = runTest {
+        val settings = settingsWithModels()
+        val transport = suitablePoolTransport(settings)
+        val ranker = JevCouncilPoolRanker(runtime(transport, JevMode.ACTIVE))
+        val prefix = "shared context ".repeat(20)
+
+        ranker.rank(councilInput(context = prefix + "Images are required."), settings, settings.agentRuntime.modelCouncil)
+        ranker.rank(councilInput(context = prefix + "Long code reasoning is required."), settings, settings.agentRuntime.modelCouncil)
+
+        assertEquals("the context sent to Jev changed after character 200", 2, transport.calls)
+    }
+
+    @Test
+    fun changedModelCapabilitiesWithSameIdsAreEvaluatedAgain() = runTest {
+        val settings = settingsWithModels()
+        val transport = suitablePoolTransport(settings)
+        val ranker = JevCouncilPoolRanker(runtime(transport, JevMode.ACTIVE))
+        val provider = settings.providers.single() as ProviderSetting.OpenAI
+        val changed = settings.copy(providers = listOf(provider.copy(models = provider.models.map { model ->
+            model.copy(abilities = listOf(ModelAbility.REASONING), contextWindowTokens = 200_000)
+        })))
+
+        ranker.rank(councilInput(), settings, settings.agentRuntime.modelCouncil)
+        ranker.rank(councilInput(), changed, changed.agentRuntime.modelCouncil)
+
+        assertEquals("same model ids do not imply unchanged routing metadata", 2, transport.calls)
     }
 
     @Test

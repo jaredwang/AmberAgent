@@ -1,0 +1,29 @@
+[
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.cron.AgentCronManagerConcurrencyTest.xml",
+    "tests": 5,
+    "failures": 2,
+    "failed": [
+      "cancelled replacement waiting for its task never prepares a run",
+      "replacement execution waits for the stopped task cleanup before preparing"
+    ]
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.feature.cron.AgentCronNotificationTest.xml",
+    "tests": 3,
+    "failures": 0,
+    "failed": []
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.core.service.ChatDispatchActivationTest.xml",
+    "tests": 4,
+    "failures": 0,
+    "failed": []
+  },
+  {
+    "path": "app/build/test-results/testFullDebugUnitTest/TEST-app.amber.core.service.ChatTaskRunTest.xml",
+    "tests": 7,
+    "failures": 0,
+    "failed": []
+  }
+]

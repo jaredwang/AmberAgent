@@ -1,0 +1,10 @@
+[
+  {
+    "suite": "app.amber.core.service.ChatTaskRunTest",
+    "tests": 8,
+    "failures": 1,
+    "failed": [
+      "cancel waits for actual run cleanup after stop returns and cancelled snapshot is visible"
+    ]
+  }
+]

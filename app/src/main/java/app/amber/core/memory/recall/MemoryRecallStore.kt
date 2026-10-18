@@ -33,6 +33,8 @@ class MemoryRecallStore(
         locale: Locale = Locale.ENGLISH,
         runKey: String? = null,
     ): String {
+        val scopes = enabledScopes(settings)
+        if (scopes.isEmpty()) return ""
         val selections = recallSelections(settings, messages, runKey)
         val records = selections.map { it.record }
         val touchNow = System.currentTimeMillis()
@@ -49,9 +51,15 @@ class MemoryRecallStore(
         val now = System.currentTimeMillis()
         val userProfile = profileStore?.get()?.takeIf { profile ->
             val activeIds = memoryRepository.getAllRecords()
-                .filterNot { it.archived }
+                .filter { !it.archived && it.scope in scopes && (it.expiresAt?.let { expiry -> expiry > now } != false) }
                 .mapTo(HashSet()) { it.id }
-            profile.isFresh(now, activeIds)
+            // A mixed profile can contain facts from disabled or inactive
+            // sources. Source-less legacy profiles require every scope.
+            profile.isFresh(now, activeIds) && if (profile.sourceMemoryIds.isEmpty()) {
+                scopes.size == MemoryScope.entries.size
+            } else {
+                profile.sourceMemoryIds.all { it in activeIds }
+            }
         }
         return MemoryPromptBuilder.buildMemoryContext(
             records = records,
@@ -77,11 +85,7 @@ class MemoryRecallStore(
         messages: List<UIMessage>,
         runKey: String? = null,
     ): List<MemoryRecallSelection> {
-        val scopes = buildSet {
-            if (settings.agentRuntime.enableCoreMemory) add(MemoryScope.CORE)
-            if (settings.agentRuntime.enableShortTermMemory) add(MemoryScope.SHORT_TERM)
-            if (settings.agentRuntime.enableLongTermMemory) add(MemoryScope.LONG_TERM)
-        }
+        val scopes = enabledScopes(settings)
         if (scopes.isEmpty()) return emptyList()
 
         val now = System.currentTimeMillis()
@@ -111,6 +115,12 @@ class MemoryRecallStore(
         val pinnedFirst = candidates.filter { it.record.pinned }.mapNotNull { selectionById[it.record.id] }
         val ordered = rankedIds.mapNotNull { selectionById[it] }
         return budgeted(pinnedFirst.distinctBy { it.record.id } + ordered, settings)
+    }
+
+    private fun enabledScopes(settings: Settings): Set<MemoryScope> = buildSet {
+        if (settings.agentRuntime.enableCoreMemory) add(MemoryScope.CORE)
+        if (settings.agentRuntime.enableShortTermMemory) add(MemoryScope.SHORT_TERM)
+        if (settings.agentRuntime.enableLongTermMemory) add(MemoryScope.LONG_TERM)
     }
 
     companion object {

@@ -85,6 +85,11 @@ class KoinGraphVerifyTest {
             definition<app.amber.feature.novelworkspace.NovelWorkspaceProjectRepository>(
                 java.io.File::class,
             ),
+            // NovelModule computes the restore root from androidContext().filesDir;
+            // only the restore gate is requested from the graph.
+            definition<app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridge>(
+                java.io.File::class,
+            ),
             // AgentInfraModule builds this from Context; verifier reflects its
             // File primary constructor even though Koin never resolves File.
             definition<app.amber.feature.reminder.ReminderStore>(

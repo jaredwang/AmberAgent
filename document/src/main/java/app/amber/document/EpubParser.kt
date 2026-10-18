@@ -1,5 +1,6 @@
 package app.amber.document
 
+import android.text.Html
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
@@ -126,7 +127,17 @@ object EpubParser {
                 }
                 XmlPullParser.TEXT, XmlPullParser.CDSECT -> if (inBody) {
                     val text = parser.text.orEmpty().replace(Regex("\\s+"), " ")
-                    if (text.isNotBlank()) result.append(text)
+                    if (text.isNotBlank() || (result.isNotEmpty() && !result.last().isWhitespace())) {
+                        result.append(text)
+                    }
+                }
+                XmlPullParser.ENTITY_REF -> if (inBody) {
+                    // Resolve XHTML entities locally; external DTD loading stays disabled.
+                    val text = parser.text ?: Html.fromHtml(
+                        "&${parser.name};",
+                        Html.FROM_HTML_MODE_LEGACY,
+                    ).toString()
+                    result.append(text.replace(Regex("\\s+"), " "))
                 }
                 XmlPullParser.END_TAG -> {
                     val tag = parser.localName().lowercase()
@@ -146,7 +157,7 @@ object EpubParser {
                     }
                 }
             }
-            parser.next()
+            parser.nextToken()
         }
 
         result.toString().replace(Regex("\\n{3,}"), "\n\n").trim()

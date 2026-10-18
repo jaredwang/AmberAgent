@@ -1,0 +1,108 @@
+[
+  {
+    "suite": {
+      "name": "app.amber.core.jev.JevDecisionCoordinatorTest",
+      "tests": "18",
+      "skipped": "0",
+      "failures": "4",
+      "errors": "0",
+      "timestamp": "2026-10-18T00:37:03.129Z",
+      "hostname": "duguangdeMacBook-Pro.local",
+      "time": "1.039"
+    },
+    "cases": [
+      {
+        "name": "threeConsecutiveTransientFailuresEnterCooldown",
+        "failures": []
+      },
+      {
+        "name": "rateLimitWithoutRetryAfterFails",
+        "failures": []
+      },
+      {
+        "name": "transientFailureRetriesOnceThenSucceeds",
+        "failures": []
+      },
+      {
+        "name": "queuedRequestDoesNotSendAfterCredentialOrScopeChange",
+        "failures": [
+          {
+            "message": "java.lang.AssertionError: a queued memory request must not send after scope revocation expected:<1> but was:<2>",
+            "type": "java.lang.AssertionError"
+          }
+        ]
+      },
+      {
+        "name": "vercelConnectionTestDefaultsModelAndHitsDecisionEndpoint",
+        "failures": []
+      },
+      {
+        "name": "cacheIsPartitionedByApiModeAndEndpoint",
+        "failures": []
+      },
+      {
+        "name": "perRunBudgetExhaustsAfterLimit",
+        "failures": []
+      },
+      {
+        "name": "deadlineExpiryFailsWithTimeout",
+        "failures": []
+      },
+      {
+        "name": "lateSuccessCannotRepopulateCacheAfterCredentialOrScopeChange",
+        "failures": [
+          {
+            "message": "java.lang.AssertionError: invalidated requests must not refill the cleared cache expected:<2> but was:<1>",
+            "type": "java.lang.AssertionError"
+          }
+        ]
+      },
+      {
+        "name": "offModeShortCircuitsWithoutNetworkOrMetrics",
+        "failures": []
+      },
+      {
+        "name": "authErrorPausesUntilConnectionTestResets",
+        "failures": []
+      },
+      {
+        "name": "missingScopeSkips",
+        "failures": []
+      },
+      {
+        "name": "decodeFailureIsTerminalWithoutRetry",
+        "failures": []
+      },
+      {
+        "name": "successIsEvaluatedAndCached",
+        "failures": []
+      },
+      {
+        "name": "lateUnauthorizedResponseFromOldKeyDoesNotPauseNewKey",
+        "failures": [
+          {
+            "message": "java.lang.AssertionError: an old 401 must not pause the replacement key",
+            "type": "java.lang.AssertionError"
+          }
+        ]
+      },
+      {
+        "name": "vercelModeWithoutModelSkipsNoModel",
+        "failures": []
+      },
+      {
+        "name": "oversizedStateSkipsWithoutNetwork",
+        "failures": []
+      },
+      {
+        "name": "retryDoesNotSendAfterCredentialOrScopeChange",
+        "failures": [
+          {
+            "message": "java.lang.AssertionError: scope revocation must also prevent a retry expected:<1> but was:<2>",
+            "type": "java.lang.AssertionError"
+          }
+        ]
+      }
+    ]
+  }
+]

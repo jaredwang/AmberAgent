@@ -39,6 +39,13 @@ enum class VisualRoute {
     SLIDES,
 
     /**
+     * Strong interactive task card signal (study flashcards/quiz, multi-option
+     * decision card, structured form, or live parameter explorer) — emit a
+     * native `task-ui` JSON block.
+     */
+    TASK_UI,
+
+    /**
      * Visual intent detected but neither side has a clean signal ("画一只猫",
      * "make me a picture of X"). Give the model the routing criteria and let
      * it decide — including asking the user a clarifying question when truly
@@ -54,6 +61,7 @@ data class GenerativeUiWidgetRequirement(
     val required: Boolean,
     val expectSlides: Boolean = false,
     val expectFullHtmlDeck: Boolean = false,
+    val expectTaskUi: Boolean = false,
 ) {
     companion object {
         val None = GenerativeUiWidgetRequirement(required = false)
@@ -121,6 +129,20 @@ object GenerativeUiPlanner {
                     appendLine("Keep slide content concise; each slide is one idea.")
                 }
 
+                VisualRoute.TASK_UI -> {
+                    if (toolMediated) {
+                        appendLine("The user asked for an interactive task card (`task-ui`) but also requested tools, skills, subagents, files, or external context.")
+                        appendLine("Use the requested tool/skill/subagent first. Do NOT create a widget for routing, progress, plan, or status summaries.")
+                        appendLine("After the real tool/skill/subagent result exists, emit one `task-ui` fenced JSON block as the final interactive card.")
+                    } else {
+                        appendLine("The user asked for an interactive task card (study flashcards/quiz, decision comparison, structured form, or live parameter calculator). Emit one `task-ui` fenced JSON block directly in visible content.")
+                        appendLine("Start with one short sentence, then output the ```task-ui block immediately.")
+                    }
+                    appendLine("Use `\"kind\":\"study\"` with `flashcard_deck` / `flashcard` (`front`, `back`, `hint`), `quiz_item` (`title`, `options`, `correct_option` or `correct_index`, `explanation`), and `score_summary` for flashcards and quizzes. Do NOT use `full_html` PPT covers or MiniApp for study flashcards or quizzes.")
+                    appendLine("Use `\"kind\":\"explore\"` with `slider` / `number_stepper` / `segmented` inputs and bind output `metric` / `progress` / `step_progress` / `bar_chart` / `line_chart` nodes via `\"value_field_id\"` for live recalculation.")
+                    appendLine("Use `\"kind\":\"decision\"` with `option_card`, `recommendation_hero`, and `pros_cons` for trade-off choices, or `\"kind\":\"form\"` with validation rules (`required`, `min`, `max`, `pattern`) for structured inputs.")
+                }
+
                 VisualRoute.AMBIGUOUS_VISUAL -> {
                     appendLine("The user wants a visual but didn't specify the medium. Pick ONE of:")
                     if (hasImageGenTool) {
@@ -128,6 +150,7 @@ object GenerativeUiPlanner {
                     }
                     appendLine("  2. Emit a show-widget SVG for diagrams, charts, schematics, simple icons, line-art logos.")
                     appendLine("  3. Emit a show-widget renderer for slides if multi-slide presentation is the right form.")
+                    appendLine("  4. Emit a `task-ui` block if the user wants an interactive decision card, form, parameter explorer, or study flashcards/quiz.")
                     appendLine("Use the subject and any style cues in the request to decide. If genuinely 50/50, ask once: \"Would you like a vector sketch (precise, editable) or a generated image (rich texture, more realistic)?\"")
                     if (toolMediated) {
                         appendLine("If the user delegated to a tool/skill/subagent in the same message, run that first and only emit a visual when the visual itself is the final artifact.")
@@ -138,7 +161,7 @@ object GenerativeUiPlanner {
                     appendLine("Answer in normal Markdown. Do NOT create a widget unless the user explicitly asks for a visual.")
                 }
             }
-            appendLine("Never put show-widget JSON, SVG, HTML, renderer/spec, or widget code in hidden reasoning/thinking content.")
+            appendLine("Never put show-widget or task-ui JSON, SVG, HTML, renderer/spec, or widget code in hidden reasoning/thinking content.")
             appendLine("Avoid decorative widgets, oversized hero layouts, repeated prose inside the graphic, and visuals that duplicate the surrounding answer.")
         }
     }
@@ -176,6 +199,11 @@ object GenerativeUiPlanner {
                 GenerativeUiWidgetRequirement(required = true)
             }
 
+            VisualRoute.TASK_UI -> GenerativeUiWidgetRequirement(
+                required = true,
+                expectTaskUi = true,
+            )
+
             else -> GenerativeUiWidgetRequirement.None
         }
     }
@@ -191,7 +219,7 @@ object GenerativeUiPlanner {
     /**
      * Layered classification:
      *  1. Layer 0 — explicit slash-command escape hatch (the QuickMessage
-     *     templates prefix `[ROUTE:image]` / `[ROUTE:diagram]` / `[ROUTE:slides]`).
+     *     templates prefix `[ROUTE:image]` / `[ROUTE:diagram]` / `[ROUTE:slides]` / `[ROUTE:task-ui]`).
      *  2. Layer 1 — strong-signal keyword match on either side.
      *  3. Layer 2 — style-modifier regex ("油画风格", "in the style of X").
      *  4. Layer 3 — visual verb detected but no clear medium → AMBIGUOUS_VISUAL.
@@ -206,6 +234,7 @@ object GenerativeUiPlanner {
             "[route:svg]" in lower -> return VisualRoute.DIAGRAM_WIDGET
             "[route:diagram]" in lower -> return VisualRoute.DIAGRAM_WIDGET
             "[route:slides]" in lower -> return VisualRoute.SLIDES
+            "[route:task-ui]" in lower || "[route:task_ui]" in lower || "[route:intelligent-ui]" in lower -> return VisualRoute.TASK_UI
         }
 
         val imageGenStrong = IMAGE_GEN_STRONG_KEYWORDS.any { it in lower } ||
@@ -219,6 +248,8 @@ object GenerativeUiPlanner {
         val slidesStrong = SLIDES_STRONG_KEYWORDS.any { it in lower } ||
             SLIDES_STRONG_REGEX.containsMatchIn(lower) ||
             guizangDeckStrong
+        val taskUiStrong = TASK_UI_STRONG_KEYWORDS.any { it in lower } ||
+            TASK_UI_STRONG_REGEX.containsMatchIn(lower)
 
         // Slides win over diagram/image when explicitly named — "5 张幻灯片"
         // means a deck, not an SVG diagram, even if a diagram word slipped
@@ -226,7 +257,8 @@ object GenerativeUiPlanner {
         // requests, image-gen still wins if a paint-style word is present
         // ("油画风格的演示稿" reads as a single art piece).
         if (guizangDeckStrong) return VisualRoute.SLIDES
-        if (slidesStrong && !imageGenStrong) return VisualRoute.SLIDES
+        if (slidesStrong && !imageGenStrong && !taskUiStrong) return VisualRoute.SLIDES
+        if (taskUiStrong && !imageGenStrong && !diagramStrong) return VisualRoute.TASK_UI
 
         return when {
             // Both diagram + image hit → diagram word almost always names
@@ -254,7 +286,7 @@ object GenerativeUiPlanner {
     }
 
     /**
-     * Remove the `[ROUTE:image]` / `[ROUTE:svg]` / `[ROUTE:diagram]` / `[ROUTE:slides]` tags
+     * Remove the `[ROUTE:image]` / `[ROUTE:svg]` / `[ROUTE:diagram]` / `[ROUTE:slides]` / `[ROUTE:task-ui]` tags
      * (and any single trailing newline) from text before rendering it in the
      * UI. The Planner / classifyRoute still sees the raw text, but user
      * message bubbles shouldn't expose this routing metadata to the reader.
@@ -263,7 +295,7 @@ object GenerativeUiPlanner {
         ROUTE_TAG_REGEX.replace(text, "")
 
     private val ROUTE_TAG_REGEX = Regex(
-        """\[ROUTE:(?:image|svg|diagram|slides)\]\n?""",
+        """\[ROUTE:(?:image|svg|diagram|slides|task-ui|task_ui|intelligent-ui)\]\n?""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -393,6 +425,24 @@ object GenerativeUiPlanner {
     )
     private val SLIDES_STRONG_REGEX = Regex(
         """\b(slide\s*deck|presentation\s+deck|powerpoint)\b""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
+     * Strong interactive task-card terms (study flashcards / quiz, decision cards,
+     * interactive forms, parameter explorers) that should emit a native `task-ui`
+     * block instead of SVG/full_html or MiniApp.
+     */
+    private val TASK_UI_STRONG_KEYWORDS = listOf(
+        "闪卡", "记忆卡", "背诵卡", "单词卡", "复习卡", "刷题卡", "测验卡", "自测卡",
+        "出几道题", "做几道题", "出道选择题", "出几道选择题", "互动测验", "交互测验", "随堂测验", "小测验",
+        "task-ui", "task_ui", "intelligent-ui", "智能交互卡", "原生交互卡", "决策卡", "对比决策卡",
+        "交互表单", "互动表单", "参数测算卡", "参数探索卡",
+        "flashcard", "flashcards", "flash card", "study card", "quiz card",
+        "interactive quiz", "practice quiz",
+    )
+    private val TASK_UI_STRONG_REGEX = Regex(
+        """\b(flash\s*cards?|quiz\s+cards?|interactive\s+quiz|practice\s+quiz|study\s+cards?|task[-_]ui)\b""",
         RegexOption.IGNORE_CASE,
     )
 
