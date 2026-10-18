@@ -3852,4 +3852,5 @@
   <string name="deepread_accent_ink">Тушь</string>
 
   <string name="newsroom_seal_desc">Печать: %1$s</string>
+  <string name="deep_read_sources_unavailable">Не удалось получить доступные для чтения источники. Проверьте сеть и ссылку на оригинал или включите поисковую службу в настройках и повторите попытку.</string>
 </resources>

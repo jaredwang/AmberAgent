@@ -2,6 +2,7 @@ package app.amber.review
 
 import android.app.Application
 import androidx.room.Room
+import app.amber.agent.R
 import app.amber.agent.data.db.AppDatabase
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.ModelAbility
@@ -80,7 +81,8 @@ class DeepReadMetadataTest {
         val model = Model(modelId = "test", abilities = listOf(ModelAbility.TOOL))
         val settingsValue = Settings(chatModelId = model.id,
             providers = listOf(ProviderSetting.OpenAI(models = listOf(model))),
-            searchServices = emptyList(), searchEnabledServiceIds = emptyList())
+            searchServices = emptyList(), searchEnabledServiceIds = emptyList(),
+            searchBuiltinDuckDuckGoEnabled = false, searchBuiltinBingEnabled = false)
         val settings = ReflectionFixture.allocate<SettingsAggregator>()
         ReflectionFixture.set(settings, "_settingsFlow", MutableStateFlow(settingsValue))
         val manager = ReflectionFixture.allocate<DeepReadAgentRunManager>()
@@ -91,7 +93,9 @@ class DeepReadMetadataTest {
         // No search services or topic seeds: actual prefetch returns empty without network.
         ReflectionFixture.set(manager, "sourcePrefetcher", DeepReadSourcePrefetcher(settings, repository, OkHttpClient()))
 
-        assertTrue(manager.run("topic", "Topic", force = true).isFailure)
+        val result = manager.run("topic", "Topic", force = true)
+        assertTrue(result.isFailure)
+        assertEquals(RuntimeEnvironment.getApplication().getString(R.string.deep_read_sources_unavailable), result.exceptionOrNull()?.message)
 
         val persisted = database.hotListDao().getDeepRead("topic")!!
         assertTrue(persisted.pinned)

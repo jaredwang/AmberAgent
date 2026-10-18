@@ -3912,4 +3912,5 @@ My task:</string>
   <string name="newsroom_seal_desc">Seal: %1$s</string>
   <string name="setting_provider_page_grok_oauth_waiting_note">Waiting for Grok authorization. Complete sign-in in your browser.</string>
   <string name="setting_provider_page_grok_oauth_waiting">Waiting for Grok authorization…</string>
+  <string name="deep_read_sources_unavailable">No readable sources were found. Check the network and source link, or enable a search service in Settings and retry.</string>
 </resources>

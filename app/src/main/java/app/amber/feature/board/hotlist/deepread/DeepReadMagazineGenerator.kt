@@ -454,7 +454,8 @@ internal class DeepReadMagazineGenerator(
     ): DeepReadOutput {
         var current = writer.currentOutput()
         stages.forEach { stage ->
-            if (current.statusOf(stage) != DeepReadSectionStatus.READY) {
+            val status = current.statusOf(stage)
+            if (status != DeepReadSectionStatus.READY && status != DeepReadSectionStatus.FAILED) {
                 current = writer.markFailed(stage, message)
             }
         }

@@ -2,6 +2,7 @@ package app.amber.feature.board.hotlist.deepread
 
 import android.app.Application
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.amber.agent.R
 import app.amber.ai.core.MessageRole
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.ModelAbility
@@ -80,7 +81,15 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Protocol
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -110,12 +119,16 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
         repository = HotListRepository(database.hotListDao(), json, gate)
         settingsStore = createSettingsStore()
         withTimeout(10_000) { settingsStore.settingsFlow.first { !it.init } }
+        assertTrue("Agent search must be enabled in fresh settings", settingsStore.settingsFlow.value.enableWebSearch)
         settingsStore.update { Settings(
             providers = listOf(ProviderSetting.OpenAI(models = listOf(model))),
             chatModelId = model.id,
             systemPrompt = "Parent prompt must not reach the hidden DeepRead run",
+            enableWebSearch = false,
             searchServices = emptyList(),
             searchEnabledServiceIds = emptyList(),
+            searchBuiltinDuckDuckGoEnabled = false,
+            searchBuiltinBingEnabled = false,
             agentRuntime = AgentRuntimeSetting(
                 agentSoulMarkdown = "",
                 enableRecentChatsReference = false,
@@ -151,6 +164,53 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
     }
 
     @Test
+    fun `URL sources are fetched when search services are disabled`() = runBlocking {
+        val articleUrl = "https://93.184.215.14/deepread-fixture"
+        val body = "LINK_BODY: This article provides independently verified facts, a detailed timeline and source context. ".repeat(8)
+        val client = OkHttpClient.Builder().addInterceptor { chain ->
+            Response.Builder().request(chain.request()).protocol(Protocol.HTTP_1_1).code(200).message("OK")
+                .body("<html><body><article><p>$body</p></article></body></html>".toResponseBody("text/html".toMediaType()))
+                .build()
+        }.build()
+
+        val sources = DeepReadSourcePrefetcher(settingsStore, repository, client).collect(
+            topicId = "url-only-fixture", topicTitle = TITLE, seedUrl = articleUrl, locale = Locale.ENGLISH,
+        )
+
+        assertEquals(1, sources.size)
+        assertEquals(articleUrl, sources.single().url)
+        assertTrue(sources.single().evidenceText.contains("LINK_BODY"))
+    }
+
+    @Test
+    fun `DeepRead collects builtin search results without a configured service`() = runBlocking {
+        settingsStore.update { it.copy(searchBuiltinDuckDuckGoEnabled = true) }
+        withTimeout(10_000) { settingsStore.settingsFlow.first { it.searchBuiltinDuckDuckGoEnabled } }
+        val articleUrl = "https://93.184.215.14/builtin-search-fixture"
+        val body = "SEARCH_BODY: The linked report supplies independently verified details, context and an event timeline. ".repeat(8)
+        val requestedHosts = CopyOnWriteArrayList<String>()
+        val client = OkHttpClient.Builder().addInterceptor { chain ->
+            val request = chain.request()
+            requestedHosts += request.url.host
+            val responseBody = when (request.url.host) {
+                "html.duckduckgo.com" -> """<div class="result"><a class="result__a" href="$articleUrl">Source report</a><div class="result__snippet">$body</div></div>"""
+                "93.184.215.14" -> "<html><body><article><p>$body</p></article></body></html>"
+                else -> "{}"
+            }
+            Response.Builder().request(request).protocol(Protocol.HTTP_1_1).code(200).message("OK")
+                .body(responseBody.toResponseBody("text/html".toMediaType())).build()
+        }.build()
+
+        val sources = DeepReadSourcePrefetcher(settingsStore, repository, client).collect(
+            topicId = "builtin-search-fixture", topicTitle = TITLE, locale = Locale.ENGLISH,
+        )
+
+        assertTrue("DeepRead must use enabled built-in search even without a configured API", "html.duckduckgo.com" in requestedHosts)
+        assertEquals(articleUrl, sources.single().url)
+        assertTrue(sources.single().evidenceText.contains("SEARCH_BODY"))
+    }
+
+    @Test
     fun `manager completes the full magazine after stream IO with real nonstream writer calls`() = runBlocking {
         val gateway = ScriptedGateway(Failure.IO)
         val kernel = recordingKernel(gateway)
@@ -176,6 +236,11 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
         assertTrue(sessions.first().tools.isEmpty())
         assertFalse("Planning is its own nonstream session", sessions.first().settings.streamOutput)
         val overviewSessions = sessions.filter { it.tools.any { tool -> tool.name == WRITERS.first() } }
+        val searchStatus = overviewSessions.first().tools.first { it.name == "search_sources_status" }
+            .execute(buildJsonObject { }).single() as UIMessagePart.Text
+        assertTrue("DeepRead must enable Agent search for its run", json.parseToJsonElement(searchStatus.text)
+            .jsonObject.getValue("enabled").jsonPrimitive.boolean)
+        assertFalse("The run override must not change the saved chat preference", settingsStore.settingsFlow.value.enableWebSearch)
         assertEquals(listOf(true, false), overviewSessions.map { it.settings.streamOutput })
         assertEquals(overviewSessions.first().messages, overviewSessions.last().messages)
         assertEquals(model.id, overviewSessions.first().model.id)
@@ -288,7 +353,10 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
 
         assertTrue(result.isFailure)
         assertEquals(listOf("stream"), gateway.calls.filter { it.writer == WRITERS.first() }.map { it.transport })
-        assertEquals(DeepReadSectionStatus.FAILED, requireNotNull(repository.getFreshDeepRead(TOPIC)).statusOf(DeepReadGenerationStage.OVERVIEW))
+        val saved = requireNotNull(repository.getFreshDeepRead(TOPIC))
+        assertEquals(DeepReadSectionStatus.FAILED, saved.statusOf(DeepReadGenerationStage.OVERVIEW))
+        assertTrue("The reader must retain the timeout reason instead of a generic failure", saved.errorOf(DeepReadGenerationStage.OVERVIEW)
+            .orEmpty().contains(context.getString(R.string.notification_live_status_timed_out)))
     }
 
     @Test

@@ -33,7 +33,7 @@ import app.amber.core.settings.shareSettingsRawFlow
 import kotlin.uuid.Uuid
 
 data class ChatPrefsData(
-    val enableWebSearch: Boolean = false,
+    val enableWebSearch: Boolean = true,
     val favoriteModels: List<Uuid> = emptyList(),
     val chatModelId: Uuid = DEFAULT_AUTO_MODEL_ID,
     val titleModelId: Uuid = DEFAULT_AUTO_MODEL_ID,
@@ -93,7 +93,7 @@ class ChatPrefs(
             it.decodeJsonOrNull<List<CustomHeader>>()
         } ?: emptyList()
         return ChatPrefsData(
-        enableWebSearch = p[PreferencesKeys.ENABLE_WEB_SEARCH] == true,
+        enableWebSearch = p[PreferencesKeys.ENABLE_WEB_SEARCH] != false,
         favoriteModels = p[PreferencesKeys.FAVORITE_MODELS]?.let {
             it.decodeJsonOrNull<List<Uuid>>()
         } ?: emptyList(),

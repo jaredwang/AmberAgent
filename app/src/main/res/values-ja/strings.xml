@@ -3852,4 +3852,5 @@
   <string name="deepread_accent_ink">墨</string>
 
   <string name="newsroom_seal_desc">印章：%1$s</string>
+  <string name="deep_read_sources_unavailable">読み取り可能な情報源が見つかりませんでした。ネットワークと元のリンクを確認するか、設定で検索サービスを有効にしてから再試行してください。</string>
 </resources>
