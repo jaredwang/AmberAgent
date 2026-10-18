@@ -44,6 +44,29 @@ class ThemePackTransferTest {
     }
 
     @Test
+    fun `Pi and Notion presets match the iOS recipes and pass validation`() {
+        val pi = requireNotNull(ThemePackTransfer.builtin("pi-steel"))
+        assertEquals("点阵 · Pi", pi.displayName)
+        assertEquals("pi", pi.paper)
+        assertEquals("#6B8CAD", pi.accentHex)
+        assertEquals("lineGrid", pi.canvasStyle)
+        assertEquals("serifWordmark", pi.brandMark)
+        assertEquals("monospace", pi.chromeTypeface)
+
+        val notion = requireNotNull(ThemePackTransfer.builtin("notion-blue"))
+        assertEquals("Notion · 暖白", notion.displayName)
+        assertEquals("notion", notion.paper)
+        assertEquals("#0075DE", notion.accentHex)
+        assertEquals("flat", notion.canvasStyle)
+
+        ThemePackTransfer.builtinPackIds.forEach { id ->
+            val document = requireNotNull(ThemePackTransfer.builtin(id))
+            assertEquals(id, document.id)
+            assertEquals(emptyList<String>(), ThemePackTransfer.validationIssues(document))
+        }
+    }
+
+    @Test
     fun `new core palette fills portable style slots when provider omits them`() {
         val original = fixture()
         val arguments = ThemePackTransfer.toolPayload(original).toMutableMap().apply {

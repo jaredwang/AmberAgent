@@ -92,9 +92,32 @@ object ThemePackTransfer {
         document = document,
     )
 
+    /** Whole-recipe presets shown beside 点阵 · 陶土 (the default WARM family); same recipes as iOS. */
+    val builtinPackIds = listOf("pi-steel", "notion-blue")
+
     fun builtin(id: String): ThemePackDocument? = when (id) {
         "builtin:WARM" -> export(DisplaySetting()).copy(id = id, displayName = "点阵 · 陶土")
         "builtin:SAGE" -> export(DisplaySetting(amberBaseFamily = "SAGE")).copy(id = id, displayName = "鼠尾草")
+        // Open Design pi-dotgrid: cream draft paper, square grid, serif brand, mono chrome.
+        "pi-steel" -> ThemePackDocument(
+            id = id, displayName = "点阵 · Pi", paper = "pi",
+            accentHex = "#6B8CAD", inkHex = "#FAF9F7",
+            canvasStyle = "lineGrid", brandMark = "serifWordmark",
+            shortcutIconStyle = "phosphorFill", chromeTypeface = "monospace",
+            canvasScope = "shell", bubbleChrome = "standard", glassChrome = "quieter",
+            emptyArt = "character", settingsChrome = true, launchBrand = "none",
+            assetMode = "builtinOnly", immersivePolicy = "hidden",
+        )
+        // Open Design blank-workspace: Notion's warm-white workspace with Notion blue, no grid.
+        "notion-blue" -> ThemePackDocument(
+            id = id, displayName = "Notion · 暖白", paper = "notion",
+            accentHex = "#0075DE", inkHex = "#FFFFFF",
+            canvasStyle = "flat", brandMark = "systemWordmark",
+            shortcutIconStyle = "phosphorFill", chromeTypeface = "system",
+            canvasScope = "homeOnly", bubbleChrome = "standard", glassChrome = "quieter",
+            emptyArt = "none", settingsChrome = false, launchBrand = "none",
+            assetMode = "builtinOnly", immersivePolicy = "hidden",
+        )
         else -> null
     }
 

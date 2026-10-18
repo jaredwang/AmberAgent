@@ -572,12 +572,20 @@ private fun inputPanelPopupPositionProvider(
     }
 }
 
-/** Composer-wide panel: the composer insets its pill 16dp from each pane edge. */
+/**
+ * Composer-wide panel: the composer insets its pill 16dp from each edge of the pane, or of the
+ * reading column when the pane is wider than it.
+ */
 @Composable
-private fun inputPanelWidth(): androidx.compose.ui.unit.Dp =
-    app.amber.feature.ui.adaptive.LocalTwoPaneLayout.current?.let { it.detailWidth - 32.dp }
-        // Phone: unchanged legacy width.
-        ?: (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp - 24.dp)
+private fun inputPanelWidth(): androidx.compose.ui.unit.Dp {
+    val readingWidth = app.amber.feature.ui.adaptive.ChatReadingWidth
+    app.amber.feature.ui.adaptive.LocalTwoPaneLayout.current?.let {
+        return minOf(it.detailWidth, readingWidth) - 32.dp
+    }
+    val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+    // Phone: unchanged legacy width.
+    return if (screenWidth > readingWidth) readingWidth - 32.dp else screenWidth - 24.dp
+}
 
 @Composable
 private fun SlashCommandPanel(
