@@ -36,6 +36,8 @@ const val GROK_OAUTH_AUTHORIZATION_ENDPOINT = "https://auth.x.ai/oauth2/authoriz
 const val GROK_OAUTH_TOKEN_ENDPOINT = "https://auth.x.ai/oauth2/token"
 const val GROK_CLI_PROXY_BASE_URL = "https://cli-chat-proxy.grok.com/v1"
 const val GROK_CLI_PROXY_HOST = "cli-chat-proxy.grok.com"
+// Keep the proxy identity aligned with https://x.ai/cli/stable.
+private const val GROK_CLI_VERSION = "1.0.62"
 const val GROK_OAUTH_REDIRECT_URI = "http://127.0.0.1:8787/callback"
 private const val GROK_OAUTH_SCOPE = "openid profile email offline_access grok-cli:access api:access conversations:read conversations:write"
 private const val PREF_NAME = "grok_web_oauth"
@@ -288,10 +290,10 @@ class GrokOAuthClient(private val httpClient: OkHttpClient, private val authStor
     }.getOrNull()
 }
 
-private fun okhttp3.Request.Builder.grokHeaders() = apply {
-    header("User-Agent", "grok-shell/0.2.101 (android; arm64)")
+internal fun Request.Builder.grokHeaders() = apply {
+    header("User-Agent", "grok-shell/$GROK_CLI_VERSION (android; arm64)")
     header("x-grok-client-identifier", "grok-shell")
-    header("x-grok-client-version", "0.2.101")
+    header("x-grok-client-version", GROK_CLI_VERSION)
     header("x-grok-client-mode", "interactive")
     header("X-XAI-Token-Auth", "xai-grok-cli")
     header("x-authenticateresponse", "authenticate-response")
