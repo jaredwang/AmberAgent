@@ -5,6 +5,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
 import java.io.File
 import java.util.zip.ZipFile
+import java.util.concurrent.CancellationException
 
 /** Reads slide text in the order declared by `presentation.xml`. */
 object PptxParser {
@@ -12,21 +13,29 @@ object PptxParser {
     private const val MAX_XML_BYTES = 8L * 1024 * 1024
     private const val MAX_SLIDES = 1_000
 
-    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = try {
+    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = false)
+
+    /** Returns readable slide text, or empty text when there is none; malformed slides throw. */
+    fun extractText(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = true)
+
+    private fun read(file: File, maxChars: Int, strict: Boolean): String = try {
         ZipFile(file).use { zip ->
             val paths = slideOrder(zip)
-            if (paths.isEmpty()) return "No slides found in PPTX file"
+            if (paths.isEmpty()) return if (strict) "" else "No slides found in PPTX file"
 
             val output = StringBuilder()
             var readableSlides = 0
             var truncated = false
             for (path in paths.take(MAX_SLIDES)) {
                 val entry = zip.getEntry(path) ?: continue
-                val content = runCatching {
+                val content = try {
                     zip.getInputStream(entry).use { input ->
-                        parseSlide(BoundedInputStream(input, MAX_XML_BYTES))
+                        parseSlide(BoundedInputStream(input, MAX_XML_BYTES), strict)
                     }
-                }.getOrNull() ?: continue
+                } catch (error: Throwable) {
+                    if (strict || error is CancellationException) throw error
+                    continue
+                }
                 // Notes are optional metadata. A corrupt notes relationship or
                 // XML must not discard the already-readable slide body.
                 val notes = runCatching {
@@ -37,7 +46,8 @@ object PptxParser {
                             }
                         }
                     }.orEmpty()
-                }.getOrNull().orEmpty()
+                }.onFailure { if (it is CancellationException) throw it }.getOrNull().orEmpty()
+                if (strict && content.isBlank() && notes.isBlank()) continue
                 readableSlides++
                 appendSlide(output, readableSlides, content, notes)
                 if (output.length > maxChars) {
@@ -45,11 +55,13 @@ object PptxParser {
                     break
                 }
             }
-            if (readableSlides == 0) "No readable slides in PPTX file"
-            else if (truncated) limit(output.toString(), maxChars)
+            if (readableSlides == 0) {
+                if (strict) "" else "No readable slides in PPTX file"
+            } else if (truncated) limit(output.toString(), maxChars)
             else output.toString().trim()
         }
     } catch (e: Exception) {
+        if (strict || e is CancellationException) throw e
         "Error parsing PPTX file: ${e.message}"
     }
 
@@ -134,14 +146,14 @@ object PptxParser {
         return parts.joinToString("/")
     }
 
-    private fun parseSlide(input: InputStream): String {
+    private fun parseSlide(input: InputStream, strict: Boolean): String {
         val parser = newParser(input)
         val result = StringBuilder()
         while (parser.eventType != XmlPullParser.END_DOCUMENT) {
             if (parser.eventType == XmlPullParser.START_TAG) {
                 when (parser.localName()) {
                     "sp" -> appendShape(parser, result)
-                    "graphicFrame" -> appendGraphicFrame(parser, result)
+                    "graphicFrame" -> appendGraphicFrame(parser, result, strict)
                 }
             }
             parser.next()
@@ -250,12 +262,12 @@ object PptxParser {
         }
     }
 
-    private fun appendGraphicFrame(parser: XmlPullParser, result: StringBuilder) {
+    private fun appendGraphicFrame(parser: XmlPullParser, result: StringBuilder, strict: Boolean) {
         val frameDepth = parser.depth
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             when (parser.eventType) {
                 XmlPullParser.START_TAG -> if (parser.localName() == "tbl") {
-                    appendTable(parser, result)
+                    appendTable(parser, result, strict)
                 }
                 XmlPullParser.END_TAG -> if (
                     parser.localName() == "graphicFrame" && parser.depth == frameDepth
@@ -264,7 +276,7 @@ object PptxParser {
         }
     }
 
-    private fun appendTable(parser: XmlPullParser, result: StringBuilder) {
+    private fun appendTable(parser: XmlPullParser, result: StringBuilder, strict: Boolean) {
         val tableDepth = parser.depth
         val rows = mutableListOf<List<String>>()
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
@@ -277,7 +289,7 @@ object PptxParser {
                 ) break
             }
         }
-        if (rows.isEmpty()) return
+        if (rows.isEmpty() || (strict && rows.all { row -> row.all { it.isBlank() } })) return
         val columns = rows.maxOf { it.size }
         rows.forEachIndexed { index, row ->
             result.append("| ")

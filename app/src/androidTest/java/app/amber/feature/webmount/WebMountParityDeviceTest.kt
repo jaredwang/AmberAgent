@@ -88,7 +88,9 @@ class WebMountParityDeviceTest {
         }).jsonObject
         assertEquals(false, result["ok"]?.jsonPrimitive?.booleanOrNull)
         assertEquals("0", jsString("document.querySelector('#action-count').dataset.count"))
-        val missingIdentity = handle.callBridge("click", buildJsonObject { put("target", oldRef) }).jsonObject
+        // Opaque refs carry realm/snapshot identity; only legacy numeric refs
+        // require a separate snapshot_id before any target lookup or dispatch.
+        val missingIdentity = handle.callBridge("click", buildJsonObject { put("target", "1") }).jsonObject
         assertEquals(false, missingIdentity["ok"]?.jsonPrimitive?.booleanOrNull)
         assertEquals("missing_snapshot", missingIdentity["error"]?.jsonObject?.get("code")?.jsonPrimitive?.content)
         assertEquals("0", jsString("document.querySelector('#action-count').dataset.count"))

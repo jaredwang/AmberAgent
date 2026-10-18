@@ -103,6 +103,7 @@ class LocalFolderSyncProvider(
         withContext(Dispatchers.IO) {
             val treeUri = treeUri()
             val resolver = context.contentResolver
+            val parentDocumentUri = treeDocumentUri(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
             val archiveFile = tempFile("upload", ".$SYNC_ARCHIVE_EXTENSION")
             val sidecarFile = tempFile("upload", ".json")
             var tempArchiveUri: Uri? = null
@@ -140,7 +141,7 @@ class LocalFolderSyncProvider(
                 // 临时名写入，全部成功后再 publish（renameDocument 到最终名）。
                 tempArchiveUri = DocumentsContract.createDocument(
                     resolver,
-                    treeUri,
+                    parentDocumentUri,
                     "application/vnd.amberagent.backup+zip",
                     "upload-${System.nanoTime()}.tmp",
                 ) ?: error(context.getString(R.string.backup_unavailable))
@@ -149,7 +150,7 @@ class LocalFolderSyncProvider(
                 } ?: error(context.getString(R.string.backup_unavailable))
                 tempSidecarUri = DocumentsContract.createDocument(
                     resolver,
-                    treeUri,
+                    parentDocumentUri,
                     "application/json",
                     "upload-${System.nanoTime()}.tmp",
                 ) ?: error(context.getString(R.string.backup_unavailable))

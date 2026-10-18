@@ -57,10 +57,10 @@ internal class NovelWorkspacePolisher(
         ownerExecutionId: String?,
         locale: Locale,
         fallbackErrorMessage: String,
-    ): NovelWorkspaceGhostwriteCoordinator.GhostwriteChapterResult {
+    ): NovelWorkspaceChapterResult {
         val chinese = locale.language.equals("zh", ignoreCase = true)
         fun failure(zh: String, en: String, retryable: Boolean = false) =
-            NovelWorkspaceGhostwriteCoordinator.GhostwriteChapterResult(
+            NovelWorkspaceChapterResult(
                 commitId = null,
                 error = if (chinese) zh else en,
                 retryable = retryable,
@@ -143,7 +143,7 @@ internal class NovelWorkspacePolisher(
             return failure(generated.message, generated.message, retryable = true)
         }
         val candidate = (generated as NovelWorkspaceRuntime.TurnEvent.Completed).finalText.trim()
-        if (candidate.isBlank()) return NovelWorkspaceGhostwriteCoordinator.GhostwriteChapterResult(commitId = null)
+        if (candidate.isBlank()) return NovelWorkspaceChapterResult(commitId = null)
         val originalHash = sha256Hex(original.body)
         val candidateHash = sha256Hex(candidate)
         if (!stage(NovelWorkspaceGhostwriteStage.Reviewing)) return failure("润色已暂停或取消", "Polishing was paused or cancelled.")
@@ -167,7 +167,7 @@ internal class NovelWorkspacePolisher(
         }
         if (!stage(NovelWorkspaceGhostwriteStage.Committing)) return failure("润色已暂停或取消", "Polishing was paused or cancelled.")
         val commit = try {
-            runtime.commitPolishedChapter(
+            NovelWorkspaceChapterCommits.commitPolishedChapter(
                 projectDirectory, branchId, branchSlug, original.path, candidate,
                 ownerJobId = ownerJobId,
                 ownerExecutionId = ownerExecutionId,
@@ -180,7 +180,7 @@ internal class NovelWorkspacePolisher(
         } catch (error: Exception) {
             return failure(error.message ?: fallbackErrorMessage, error.message ?: fallbackErrorMessage)
         }
-        return NovelWorkspaceGhostwriteCoordinator.GhostwriteChapterResult(commitId = commit.id)
+        return NovelWorkspaceChapterResult(commitId = commit.id)
     }
 
     companion object {

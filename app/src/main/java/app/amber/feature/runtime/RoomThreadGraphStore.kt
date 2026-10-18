@@ -107,6 +107,11 @@ class RoomThreadGraphStore(
             dao.requeueDeliveredMessages(threadId, Instant.now().toEpochMilli())
         }
 
+    override suspend fun requeueUndrainedMessages(threadId: String, messageIds: List<String>): Int =
+        withDurableWrite {
+            dao.requeueUndrainedMessages(threadId, messageIds, Instant.now().toEpochMilli())
+        }
+
     override suspend fun markMessageDelivered(messageId: String) {
         withDurableWrite {
             val message = dao.getMessage(messageId) ?: return@withDurableWrite

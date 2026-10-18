@@ -59,13 +59,8 @@ import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
 /**
- * Agent runtime Koin module — sub-agent dispatch + model council orchestration
- * + session access grant book-keeping.
- *
- * Extracted from AppModule in M1.5 continuation. Focused on the
- * "agent-runs-while-chat-runs" surface: SubAgentManager + ModelCouncilManager
- * are both invoked by ChatService during a single user turn to delegate
- * sub-tasks to alternate models / external CLIs.
+ * Agent registry, per-run event writers, and domain adapters.
+ * Chat adapters read the shared conversation store through ConversationAccess.
  */
 val agentRuntimeModule = module {
     single { SessionAccessGrantStore() }
@@ -79,7 +74,7 @@ val agentRuntimeModule = module {
                 inputClass = ChatTurnInput::class,
                 inputSerializer = ChatTurnInput.serializer(),
                 artifactSerializer = ChatTurnArtifact.serializer(),
-                factory = { ChatTurnAgent(get(), get(), get<app.amber.core.service.ChatService>()) },
+                factory = { ChatTurnAgent(get(), get(), get<app.amber.core.service.ConversationAccess>()) },
             )
             register(
                 descriptor = DeepReadDescriptor.value,
@@ -181,10 +176,8 @@ val agentRuntimeModule = module {
     }
 
     single<AgentRunner> {
-        // Resolve projector lazily inside runScopeFactory: ChatEventProjector
-        // depends on ConversationAccess (= ChatService) which itself depends on
-        // AgentRunner. Eager resolution at AgentRunner construction triggers a
-        // ChatService → AgentRunner → ChatEventProjector → ChatService cycle.
+        // Each run receives its own writer. Projector and turn agents share
+        // ConversationStore through ConversationAccess; neither resolves the service.
         InProcessAgentRunner(
             registry = get(),
             eventStore = get<RoomAgentEventStore>(),
@@ -253,7 +246,20 @@ val agentRuntimeModule = module {
         )
     }
 
-    single { ChatSessionResolverImpl(get(), get(), get(), get()) }
+    single {
+        ChatSessionResolverImpl(
+            context = get(),
+            settingsStore = get(),
+            memoryRepository = get(),
+            templateTransformer = get(),
+            runCoordinator = get(),
+            hooksFactory = get(),
+            conversationStore = get(),
+            pendingMessageQueue = get(),
+            errorStore = get(),
+            toolCatalogFactory = get(),
+        )
+    }
 
     single<app.amber.feature.chat.impl.ChatSessionResolver> { get<ChatSessionResolverImpl>() }
 

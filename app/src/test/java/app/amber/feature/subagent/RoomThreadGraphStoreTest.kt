@@ -110,6 +110,30 @@ class RoomThreadGraphStoreTest : DurableRuntimeTestBase() {
     }
 
     @Test
+    fun requeueUndrainedMessagesChangesOnlySelectedDeliveredIdsInTheSameThread() = runBlocking {
+        val store = RoomThreadGraphStore(database.threadGraphDao())
+        store.upsertNode(node("first"))
+        store.upsertNode(node("other"))
+        suspend fun add(id: String, thread: String, state: ThreadDeliveryState) {
+            store.enqueueMessage(ThreadMessageRecord(
+                messageId = id, threadId = thread, sender = "parent", recipient = "thread:$thread",
+                kind = "message", payload = "same text", payloadDigest = "same digest",
+                deliveryState = state.name, createdAtMs = 1_000, updatedAtMs = 1_000,
+            ))
+        }
+        add("unread", "first", ThreadDeliveryState.DELIVERED)
+        add("consumed", "first", ThreadDeliveryState.DELIVERED)
+        add("historical", "first", ThreadDeliveryState.PERSISTED)
+        add("unrelated", "other", ThreadDeliveryState.DELIVERED)
+
+        assertEquals(1, store.requeueUndrainedMessages("first", listOf("unread", "historical", "unrelated")))
+        assertEquals(ThreadDeliveryState.QUEUED.name, store.getMessage("unread")?.deliveryState)
+        assertEquals(ThreadDeliveryState.DELIVERED.name, store.getMessage("consumed")?.deliveryState)
+        assertEquals(ThreadDeliveryState.PERSISTED.name, store.getMessage("historical")?.deliveryState)
+        assertEquals(ThreadDeliveryState.DELIVERED.name, store.getMessage("unrelated")?.deliveryState)
+    }
+
+    @Test
     fun claimQueuedMessagesIsSingleConsumer() = runBlocking {
         val store = RoomThreadGraphStore(database.threadGraphDao())
         store.upsertNode(node("thread_1"))

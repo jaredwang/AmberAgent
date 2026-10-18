@@ -16,6 +16,8 @@ import app.amber.core.ai.transformers.OutputMessageTransformer
 import app.amber.core.model.AssistantMemory
 import app.amber.core.model.Conversation
 import app.amber.core.settings.Settings
+import app.amber.core.settings.AgentRuntimeSetting
+import org.junit.Assert.assertSame
 import app.amber.feature.runtime.ToolInvocationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -233,6 +235,41 @@ class SubAgentRunnerTest {
         val narrowed = kernel2.sessions.first().executionPolicy
         assertEquals(listOf("example.com"), narrowed.allowedDomains)
         assertEquals(true, narrowed.allowShell)
+    }
+
+    @Test
+    fun firstRunAndReportRetryShareTheIsolatedGenerationSnapshot() = runBlocking {
+        val kernel = SessionCapturingKernel()
+        val parent = settings().copy(agentRuntime = AgentRuntimeSetting(
+            agentSoulMarkdown = "Parent-only soul",
+            enableRecentChatsReference = true,
+            enableCoreMemory = true,
+            enableShortTermMemory = true,
+            enableLongTermMemory = true,
+        ))
+        val child = definition(toolAllowlist = emptySet()).copy(temperature = 0.35f)
+        GenerationSubAgentRunner(kernel).run(
+            settings = parent,
+            definition = child,
+            task = task(),
+            tools = emptyList(),
+            liveText = MutableStateFlow(""),
+            liveParts = MutableStateFlow(emptyList()),
+        )
+        assertEquals(2, kernel.sessions.size)
+        val first = kernel.sessions.first().settings
+        val retry = kernel.sessions.last().settings
+        assertSame(first, retry)
+        assertEquals(child.systemPrompt, first.systemPrompt)
+        assertEquals("", first.agentSoulMarkdown)
+        assertEquals(false, first.enableRecentChatsReference)
+        assertEquals(false, first.memory.enableCoreMemory)
+        assertEquals(false, first.memory.enableShortTermMemory)
+        assertEquals(false, first.memory.enableLongTermMemory)
+        assertEquals(0.35f, first.temperature)
+        assertTrue(kernel.sessions.last().messages.last().toText().contains("Internal supervisor reminder"))
+        assertEquals("Parent prompt", parent.systemPrompt)
+        assertEquals("Parent-only soul", parent.agentRuntime.agentSoulMarkdown)
     }
 
     private fun settings(): Settings {

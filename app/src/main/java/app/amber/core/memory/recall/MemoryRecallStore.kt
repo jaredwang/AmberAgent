@@ -3,6 +3,8 @@ package app.amber.core.memory.recall
 import app.amber.ai.core.MessageRole
 import app.amber.ai.ui.UIMessage
 import app.amber.core.settings.Settings
+import app.amber.core.ai.toMemoryRecallSettings
+import app.amber.core.memory.model.MemoryRecallSettings
 import app.amber.core.jev.MemorySemanticReranker
 import app.amber.core.memory.model.MemoryKind
 import app.amber.core.memory.model.MemoryRecord
@@ -29,6 +31,13 @@ class MemoryRecallStore(
 
     suspend fun buildPrompt(
         settings: Settings,
+        messages: List<UIMessage>,
+        locale: Locale = Locale.ENGLISH,
+        runKey: String? = null,
+    ): String = buildPrompt(settings.toMemoryRecallSettings(), messages, locale, runKey)
+
+    suspend fun buildPrompt(
+        settings: MemoryRecallSettings,
         messages: List<UIMessage>,
         locale: Locale = Locale.ENGLISH,
         runKey: String? = null,
@@ -63,8 +72,8 @@ class MemoryRecallStore(
         }
         return MemoryPromptBuilder.buildMemoryContext(
             records = records,
-            debug = settings.agentRuntime.memoryRecall.debug,
-            debugDetails = if (settings.agentRuntime.memoryRecall.debug) {
+            debug = settings.recall.debug,
+            debugDetails = if (settings.recall.debug) {
                 selections.associate { selection ->
                     selection.record.id to selection.score.toDebugText()
                 }
@@ -76,12 +85,15 @@ class MemoryRecallStore(
         )
     }
 
-    suspend fun recall(settings: Settings, messages: List<UIMessage>, runKey: String? = null): List<MemoryRecord> {
+    suspend fun recall(settings: Settings, messages: List<UIMessage>, runKey: String? = null): List<MemoryRecord> =
+        recall(settings.toMemoryRecallSettings(), messages, runKey)
+
+    suspend fun recall(settings: MemoryRecallSettings, messages: List<UIMessage>, runKey: String? = null): List<MemoryRecord> {
         return recallSelections(settings, messages, runKey).map { it.record }
     }
 
     private suspend fun recallSelections(
-        settings: Settings,
+        settings: MemoryRecallSettings,
         messages: List<UIMessage>,
         runKey: String? = null,
     ): List<MemoryRecallSelection> {
@@ -93,7 +105,7 @@ class MemoryRecallStore(
         if (records.isEmpty()) return emptyList()
         val reranker = semanticReranker ?: return rankRecords(settings, messages, records, now)
 
-        val scored = scoreAll(settings, messages, records, now)
+        val scored = scoreAll(messages, records, now)
         val baseline = budgeted(scored.baselineEligible(), settings)
 
         // 候选独立于词面 >0 过滤：词面/强保留池 + 新近补充——语义召回的价值
@@ -114,13 +126,13 @@ class MemoryRecallStore(
         val selectionById = scored.selections.associateBy { it.record.id }
         val pinnedFirst = candidates.filter { it.record.pinned }.mapNotNull { selectionById[it.record.id] }
         val ordered = rankedIds.mapNotNull { selectionById[it] }
-        return budgeted(pinnedFirst.distinctBy { it.record.id } + ordered, settings)
+        return budgeted((pinnedFirst + ordered).distinctBy { it.record.id }, settings)
     }
 
-    private fun enabledScopes(settings: Settings): Set<MemoryScope> = buildSet {
-        if (settings.agentRuntime.enableCoreMemory) add(MemoryScope.CORE)
-        if (settings.agentRuntime.enableShortTermMemory) add(MemoryScope.SHORT_TERM)
-        if (settings.agentRuntime.enableLongTermMemory) add(MemoryScope.LONG_TERM)
+    private fun enabledScopes(settings: MemoryRecallSettings): Set<MemoryScope> = buildSet {
+        if (settings.enableCoreMemory) add(MemoryScope.CORE)
+        if (settings.enableShortTermMemory) add(MemoryScope.SHORT_TERM)
+        if (settings.enableLongTermMemory) add(MemoryScope.LONG_TERM)
     }
 
     companion object {
@@ -132,12 +144,12 @@ class MemoryRecallStore(
         internal const val SEMANTIC_CANDIDATE_RECENT_POOL = 16
 
         internal fun rankRecords(
-            settings: Settings,
+            settings: MemoryRecallSettings,
             messages: List<UIMessage>,
             records: List<MemoryRecord>,
             now: Long = System.currentTimeMillis(),
         ): List<MemoryRecallSelection> {
-            val scored = scoreAll(settings, messages, records, now)
+            val scored = scoreAll(messages, records, now)
             return budgeted(scored.baselineEligible(), settings)
         }
 
@@ -146,7 +158,6 @@ class MemoryRecallStore(
          * [baselineEligible] 恢复原 rankRecords 的词面过滤语义。
          */
         internal fun scoreAll(
-            settings: Settings,
             messages: List<UIMessage>,
             records: List<MemoryRecord>,
             now: Long = System.currentTimeMillis(),
@@ -166,10 +177,10 @@ class MemoryRecallStore(
 
         internal fun budgeted(
             selections: List<MemoryRecallSelection>,
-            settings: Settings,
+            settings: MemoryRecallSettings,
         ): List<MemoryRecallSelection> {
-            val maxItems = settings.agentRuntime.memoryRecall.maxItems.coerceIn(1, 40)
-            val maxChars = settings.agentRuntime.memoryRecall.maxPromptChars.coerceIn(256, 12_000)
+            val maxItems = settings.recall.maxItems.coerceIn(1, 40)
+            val maxChars = settings.recall.maxPromptChars.coerceIn(256, 12_000)
             return selections.asSequence().takeBudget(maxItems, maxChars).toList()
         }
 

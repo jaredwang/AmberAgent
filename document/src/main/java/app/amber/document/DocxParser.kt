@@ -4,6 +4,8 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.File
 import java.io.InputStream
+import java.io.IOException
+import java.util.concurrent.CancellationException
 import java.util.zip.ZipFile
 
 private data class DocxParagraphProperties(
@@ -22,20 +24,27 @@ object DocxParser {
     private const val DEFAULT_MAX_CHARS = 512_000
     private const val MAX_XML_BYTES = 32L * 1024 * 1024
 
-    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = try {
+    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = false)
+
+    /** Returns only document text; malformed input throws instead of becoming diagnostic text. */
+    fun extractText(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = true)
+
+    private fun read(file: File, maxChars: Int, strict: Boolean): String = try {
         ZipFile(file).use { zip ->
             val document = zip.getEntry("word/document.xml")
-                ?: return "Unable to find document content in DOCX file"
+                ?: if (strict) throw IOException("Unable to find document content in DOCX file")
+                else return "Unable to find document content in DOCX file"
             val numbering = zip.getEntry("word/numbering.xml")?.let { entry ->
                 zip.getInputStream(entry).use { input ->
                     readNumbering(BoundedInputStream(input, MAX_XML_BYTES))
                 }
             }.orEmpty()
             zip.getInputStream(document).use { input ->
-                parseDocumentXml(BoundedInputStream(input, MAX_XML_BYTES), maxChars, numbering)
+                parseDocumentXml(BoundedInputStream(input, MAX_XML_BYTES), maxChars, numbering, strict)
             }
         }
     } catch (e: Exception) {
+        if (strict || e is CancellationException) throw e
         "Error parsing DOCX file: ${e.message}"
     }
 
@@ -43,6 +52,7 @@ object DocxParser {
         input: InputStream,
         maxChars: Int,
         numbering: Map<String, Map<Int, String>>,
+        strict: Boolean,
     ): String = try {
         val parser = newParser(input)
         val output = StringBuilder()
@@ -61,7 +71,7 @@ object DocxParser {
                         appendParagraph(parser, output, numbering, counters)
                     }
                     "tbl" -> if (blockContainerDepths.lastOrNull() == parser.depth - 1) {
-                        appendTable(parser, output)
+                        appendTable(parser, output, strict)
                     }
                 }
                 XmlPullParser.END_TAG -> when (parser.localName()) {
@@ -76,6 +86,7 @@ object DocxParser {
 
         limit(output.toString(), maxChars, "DOCX")
     } catch (e: Exception) {
+        if (strict || e is CancellationException) throw e
         "Error parsing document XML: ${e.message}"
     }
 
@@ -209,7 +220,7 @@ object DocxParser {
         return bold to italic
     }
 
-    private fun appendTable(parser: XmlPullParser, output: StringBuilder) {
+    private fun appendTable(parser: XmlPullParser, output: StringBuilder, strict: Boolean) {
         val tableDepth = parser.depth
         val rows = mutableListOf<List<String>>()
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
@@ -222,7 +233,7 @@ object DocxParser {
                 ) break
             }
         }
-        if (rows.isEmpty()) return
+        if (rows.isEmpty() || (strict && rows.all { row -> row.all { it.isBlank() } })) return
         val columns = rows.maxOf { it.size }
         rows.forEachIndexed { index, row ->
             output.append("| ")

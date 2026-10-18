@@ -27,9 +27,8 @@ import app.amber.ai.ui.limitContext
 import app.amber.agent.AppScope
 import app.amber.feature.prompts.AgentPromptConfigRepository
 import app.amber.core.settings.Settings
-import app.amber.core.settings.findProvider
-import app.amber.core.settings.resolveTaskChatModel
 import app.amber.core.settings.toCompactPolicy
+import app.amber.core.ai.toContextGenerationSettings
 import app.amber.core.model.Conversation
 import app.amber.core.model.MessageNode
 import app.amber.core.utils.applyPlaceholders
@@ -117,7 +116,7 @@ class ConversationContextEngine(
 
     suspend fun prepareContext(
         conversation: Conversation?,
-        settings: Settings,
+        settings: ContextGenerationSettings,
         model: Model,
         messages: List<UIMessage>,
         tools: List<Tool>,
@@ -125,7 +124,7 @@ class ConversationContextEngine(
         promptOverheadTokens: Int = 0,
         jevRunKey: String? = null,
     ): PreparedContext {
-        val policy = settings.agentRuntime.contextCompaction.toCompactPolicy()
+        val policy = settings.policy
         val editResult = if (policy.enabled) {
             val keepRecentMessages = (policy.keepRecentTurns * 2).coerceAtLeast(4)
             PreparedContextEditor.edit(
@@ -177,7 +176,6 @@ class ConversationContextEngine(
                     conversation = conversation,
                     settings = settings,
                     policy = policy,
-                    model = model,
                     reason = "auto_force",
                 )
                 if (result.status == "failed") {
@@ -195,7 +193,6 @@ class ConversationContextEngine(
                         conversation = conversation,
                         settings = settings,
                         policy = policy,
-                        model = model,
                         reason = "auto_precompact",
                     )
                 }
@@ -238,7 +235,6 @@ class ConversationContextEngine(
                 conversation = conversation,
                 settings = settings,
                 policy = fitPolicy,
-                model = model,
                 reason = "auto_fit_model_window",
                 force = true,
             )
@@ -370,6 +366,17 @@ class ConversationContextEngine(
         reason: String = "manual_compact",
         additionalPrompt: String = "",
         force: Boolean = false,
+    ): CompactResult = compactConversation(
+        conversation, settings.toContextGenerationSettings(model), policy, reason, additionalPrompt, force,
+    )
+
+    suspend fun compactConversation(
+        conversation: Conversation,
+        settings: ContextGenerationSettings,
+        policy: CompactPolicy,
+        reason: String = "manual_compact",
+        additionalPrompt: String = "",
+        force: Boolean = false,
     ): CompactResult = withContext(Dispatchers.IO) {
         // Mark this conversation as actively compacting BEFORE the mutex
         // acquire — if another caller already holds the mutex we want the
@@ -388,7 +395,7 @@ class ConversationContextEngine(
         )
         try {
             compactMutex.withLock {
-                compactInternal(conversation, settings, policy, model, reason, additionalPrompt, force)
+                compactInternal(conversation, settings, policy, reason, additionalPrompt, force)
             }
         } finally {
             _compactingConversations.update { it - conversationKey }
@@ -415,19 +422,17 @@ class ConversationContextEngine(
 
     private suspend fun compactInternal(
         conversation: Conversation,
-        settings: Settings,
+        settings: ContextGenerationSettings,
         policy: CompactPolicy,
-        model: Model?,
         reason: String,
         additionalPrompt: String,
         force: Boolean,
     ): CompactResult {
         val conversationKey = conversation.id.toString()
         return runCatching {
-                val compressionModel = model
-                    ?: settings.resolveTaskChatModel(settings.compressModelId)
+                val compressionModel = settings.compressionModel
                     ?: error("No model available for compression")
-                val provider = compressionModel.findProvider(settings.providers)
+                val provider = settings.compressionProvider
                     ?: error("Provider not found")
                 val providerHandler = providerCatalog.text(provider)
                 val activeCompacts = contextRepository.getCompacts(conversation.id)

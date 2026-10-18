@@ -6,6 +6,8 @@ import app.amber.core.di.appModule
 import app.amber.core.di.boardModule
 import app.amber.core.di.chatModule
 import app.amber.core.di.dataSourceModule
+import app.amber.core.di.generationModule
+import app.amber.core.di.toolExecutionModule
 import app.amber.core.di.iCloudModule
 import app.amber.core.di.jevModule
 import app.amber.core.di.memoryModule
@@ -54,6 +56,8 @@ class KoinGraphVerifyTest {
         workspaceModule,
         viewModelModule,
         dataSourceModule,
+        generationModule,
+        toolExecutionModule,
         repositoryModule,
         jevModule,
     )

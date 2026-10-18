@@ -315,6 +315,34 @@ class ChatInputSubmissionOwnerTest {
     }
 
     @Test
+    fun removingAnUntrackedLocalAttachmentDuringValidationPreventsSendingItsDeletedFile() = runTest {
+        val input = input()
+        val file = File.createTempFile("chat-submit-untracked", ".txt").apply { writeText("attachment") }
+        try {
+            val part = UIMessagePart.Document(Uri.fromFile(file).toString(), file.name, "text/plain")
+            input.addFiles(listOf(part))
+            assertTrue(input.attachmentImports.isEmpty())
+            val release = CompletableDeferred<Unit>()
+            var submitted = false
+            val sending = async(start = CoroutineStart.UNDISPATCHED) {
+                ChatInputSubmissionOwner(input).submit(
+                    "conversation-a", validate = { release.await(); true },
+                    send = { _, _ -> submitted = true; true },
+                )
+            }
+            input.messageContent = input.messageContent.filterNot { it == part }
+            assertTrue(input.shouldDeleteFileOnRemove(part))
+            assertTrue(file.delete())
+            release.complete(Unit)
+            assertFalse(sending.await())
+            assertFalse(submitted)
+            assertEquals("first draft", input.textContent.text.toString())
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun acceptedSnapshotConsumesItsAttachmentsWhilePreservingLaterTextAndNewAttachments() = runTest {
         val input = input()
         val submittedFile = File.createTempFile("chat-submit-first", ".txt")

@@ -64,11 +64,12 @@ internal fun MarkdownChapterEditor(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .heightIn(min = 56.dp)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            // Measure actions at their natural width; only the title yields on narrow screens.
+            Box(contentAlignment = Alignment.CenterStart) {
                 NovelQuietButton(
                     text = stringResource(R.string.cancel),
                     onClick = onCancel,
@@ -79,12 +80,12 @@ internal fun MarkdownChapterEditor(
                 stringResource(R.string.novel_edit_chapter),
                 style = type.screenTitle.copy(fontSize = 19.sp),
                 color = workspace.ink,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(2f),
+                modifier = Modifier.weight(1f),
             )
-            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            Box(contentAlignment = Alignment.CenterEnd) {
                 NovelEditorSaveButton(
                     text = if (busy) {
                         stringResource(R.string.novel_saving)

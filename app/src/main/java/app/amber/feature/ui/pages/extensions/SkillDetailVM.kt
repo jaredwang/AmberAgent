@@ -13,6 +13,7 @@ import app.amber.core.ai.mcp.McpImportApplyResult
 import app.amber.core.ai.mcp.McpImportPreparation
 import app.amber.core.ai.mcp.McpImportPreview
 import app.amber.core.ai.mcp.McpImportTransaction
+import app.amber.core.ai.mcp.publishMcpImport
 import app.amber.core.ai.mcp.RealMcpConnectPreflight
 import app.amber.core.ai.mcp.parseMcpServersFromJson
 import app.amber.core.settings.prefs.SettingsAggregator
@@ -278,11 +279,7 @@ class SkillDetailVM(
                 .map { it.commonOptions.name }
                 .toSet()
         },
-        publish = { configs ->
-            settingsStore.update { settings ->
-                settings.copy(mcpServers = settings.mcpServers + configs)
-            }
-        },
+        publish = settingsStore::publishMcpImport,
     )
 
     private companion object {

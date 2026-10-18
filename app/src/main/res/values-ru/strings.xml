@@ -816,7 +816,7 @@
   <string name="setting_agent_memory_context_compaction_desc">Когда длинный разговор приближается к пределу окна модели, старые ходы суммируются без удаления оригиналов.</string>
   <string name="setting_agent_memory_context_compaction_notify_title">Сначала только напоминать</string>
   <string name="setting_agent_memory_context_compaction_notify_desc">Показывать нехватку контекста, но не сжимать его автоматически.</string>
-  <string name="setting_agent_memory_context_compaction_defaults">По умолчанию: предварительное сжатие при 70%%, принудительное при 85%%; защищаются последние 8 ходов / 16 сообщений.</string>
+  <string name="setting_agent_memory_context_compaction_defaults" formatted="false">По умолчанию: предварительное сжатие при 70%, принудительное при 85%; защищаются последние 8 ходов / 16 сообщений.</string>
   <string name="setting_agent_memory_context_mode_section">Mode</string>
   <string name="setting_agent_memory_context_threshold_section">Threshold</string>
   <string name="setting_agent_memory_context_protect_section">Protection</string>

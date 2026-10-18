@@ -1,5 +1,6 @@
 package app.amber.feature.tools
 
+import android.accessibilityservice.AccessibilityService
 import android.app.Application
 import android.graphics.Rect
 import android.view.accessibility.AccessibilityNodeInfo
@@ -12,8 +13,13 @@ import app.amber.core.automation.ScreenCaptureManager
 import app.amber.core.automation.ScreenNode
 import app.amber.core.automation.ScreenSnapshot
 import app.amber.feature.runtime.AgentToolActivityStore
+import app.amber.feature.runtime.ToolActivityStatus
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -144,14 +150,61 @@ class ScreenAutomationAcceptanceTest {
         )
     }
 
+    @Test
+    fun cancellingAnInFlightActionReleasesTheSingleOperationOwner() = runTest {
+        val entered = CompletableDeferred<Unit>()
+        val controller = FakeController(snapshot(emptyList())).apply {
+            onTap = { entered.complete(Unit); awaitCancellation() }
+        }
+        AccessibilityActive.activeController = controller
+        val activities = AgentToolActivityStore()
+        val tools = ScreenAutomationTools(context, ScreenCaptureManager(context), activities)
+        val pending = launch { executeTool("screen_click", """{"x":1,"y":1}""", tools) }
+        entered.await()
+        val activity = activities.sandboxActivity.value
+
+        val concurrent = runCatching { executeTool("screen_click", """{"x":1,"y":1}""", tools) }.exceptionOrNull()
+        assertTrue(concurrent is IllegalStateException)
+        assertEquals(1, controller.tapCalls)
+        assertEquals(activity, activities.sandboxActivity.value)
+
+        pending.cancelAndJoin()
+        assertEquals(ToolActivityStatus.FAILED, activities.sandboxActivity.value?.status)
+        controller.onTap = { true }
+        executeTool("screen_click", """{"x":1,"y":1}""", tools)
+        assertEquals(2, controller.tapCalls)
+        assertEquals(ToolActivityStatus.SUCCEEDED, activities.sandboxActivity.value?.status)
+    }
+
+    @Test
+    fun stoppedRunRejectsCompositeFlowWithoutStoppingAnotherRunOrApprovedSingleActions() = runTest {
+        val controller = FakeController(snapshot(emptyList()))
+        AccessibilityActive.activeController = controller
+        val tools = ScreenAutomationTools(context, ScreenCaptureManager(context), AgentToolActivityStore())
+        assertTrue(executeTool("screen_stop", "{}", tools, "old").getValue("stopped").jsonPrimitive.boolean)
+        assertTrue(executeTool("screen_stop", "{}", tools, "old").getValue("already_stopped").jsonPrimitive.boolean)
+
+        val flow = """{"package_name":"test.target","steps":[{"target":"Next","operation":"click"}]}"""
+        val stopped = runCatching { executeTool("screen_run_flow", flow, tools, "old") }.exceptionOrNull()
+        assertTrue(stopped is IllegalStateException)
+        assertEquals("no_scope", executeTool("screen_run_flow", flow, tools, "new").getValue("status").jsonPrimitive.content)
+        assertFalse(executeTool("screen_status", "{}", tools, "new").getValue("session_stopped").jsonPrimitive.boolean)
+        executeTool("screen_click", """{"x":1,"y":1}""", tools, "old")
+        assertEquals(1, controller.tapCalls)
+    }
+
     private suspend fun clickWithExpectation(controller: FakeController, expectation: String): JsonObject {
         AccessibilityActive.activeController = controller
         return executeTool("screen_click", """{"x":1,"y":1,"expectation":$expectation}""")
     }
 
-    private suspend fun executeTool(name: String, input: String): JsonObject {
-        val tools = ScreenAutomationTools(context, ScreenCaptureManager(context), AgentToolActivityStore())
-        val output = tools.getTools().single { it.name == name }.execute(Json.parseToJsonElement(input))
+    private suspend fun executeTool(
+        name: String,
+        input: String,
+        tools: ScreenAutomationTools = ScreenAutomationTools(context, ScreenCaptureManager(context), AgentToolActivityStore()),
+        runId: String? = null,
+    ): JsonObject {
+        val output = tools.getTools(runId).single { it.name == name }.execute(Json.parseToJsonElement(input))
         return Json.parseToJsonElement((output.single() as UIMessagePart.Text).text).jsonObject
     }
 
@@ -182,11 +235,14 @@ class ScreenAutomationAcceptanceTest {
             setBoundsInScreen(Rect(0, 0, 200, 80))
         }
         return try {
-            val method = AmberAccessibilityService::class.java.getDeclaredMethod(
+            val readerType = Class.forName("app.amber.core.automation.AccessibilityNativeScreen")
+            val reader = readerType.getDeclaredConstructor(AccessibilityService::class.java)
+                .apply { isAccessible = true }.newInstance(serviceController.get())
+            val method = readerType.getDeclaredMethod(
                 "buildScreenSnapshot", AccessibilityNodeInfo::class.java,
                 Int::class.javaPrimitiveType, String::class.java,
             ).apply { isAccessible = true }
-            method.invoke(serviceController.get(), root, 1, "test.target") as ScreenSnapshot
+            method.invoke(reader, root, 1, "test.target") as ScreenSnapshot
         } finally {
             root.recycle()
             serviceController.destroy()
@@ -195,10 +251,15 @@ class ScreenAutomationAcceptanceTest {
 
     private class FakeController(private val observation: ScreenSnapshot) : AccessibilityController {
         var searchMatches: List<AccessibilityTextMatch> = emptyList()
+        var onTap: suspend () -> Boolean = { true }
+        var tapCalls = 0
         override fun captureScreenSnapshot(): ScreenSnapshot = observation
         override fun findTextNodes(query: String, maxNodes: Int): List<AccessibilityTextMatch> =
             searchMatches.filter { it.text.contains(query, ignoreCase = true) }
-        override suspend fun tap(x: Float, y: Float, durationMillis: Long): Boolean = true
+        override suspend fun tap(x: Float, y: Float, durationMillis: Long): Boolean {
+            tapCalls++
+            return onTap()
+        }
         override suspend fun longPress(x: Float, y: Float, durationMillis: Long): Boolean = true
         override suspend fun swipe(fromX: Float, fromY: Float, toX: Float, toY: Float, durationMillis: Long): Boolean = true
         override fun setFocusedText(text: String): Boolean = true

@@ -103,13 +103,14 @@ import org.koin.compose.koinInject
  * records the participant id for routing.
  *
  * On send, the raw text + collected mention target ids are forwarded to
- * [CouncilRoomVM.sendUserMessage]; the manager stores them on the user message
+ * [onSend]; the manager stores them on the user message
  * and PR4 routes them into host actions.
  */
 @Composable
 fun CouncilRoomComposer(
     room: CouncilRoom,
-    vm: CouncilRoomVM,
+    onClose: () -> Unit,
+    onSend: (text: String, mentionTargets: List<String>, attachments: List<UIMessagePart>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tokens = LocalAmberTokens.current
@@ -382,7 +383,7 @@ fun CouncilRoomComposer(
                 // Send — flat circle (46dp); accent fill when there's a draft.
                 // While the council is actively producing output AND the draft is
                 // empty, this flips to a red STOP button that cancels the run
-                // (vm.close keeps the partial discussion). A non-empty draft always
+                // (onClose keeps the partial discussion). A non-empty draft always
                 // sends, so the user can still drop a mid-run interjection.
                 val sendInteraction = remember { MutableInteractionSource() }
                 val armed = textFieldValue.text.isNotBlank() || attachments.isNotEmpty()
@@ -414,7 +415,7 @@ fun CouncilRoomComposer(
                             enabled = showStop || armed,
                         ) {
                             if (showStop) {
-                                vm.close()
+                                onClose()
                                 return@clickable
                             }
                             val text = textFieldValue.text.trim()
@@ -422,7 +423,7 @@ fun CouncilRoomComposer(
                                 val resolved = mentionTargets.filter { pid ->
                                     room.participantById(pid)?.name?.let { "@$it" in text } ?: false
                                 }
-                                vm.sendUserMessage(text, resolved, attachments.toList())
+                                onSend(text, resolved, attachments.toList())
                                 textFieldValue = TextFieldValue("")
                                 mentionTargets.clear()
                                 attachments.clear()

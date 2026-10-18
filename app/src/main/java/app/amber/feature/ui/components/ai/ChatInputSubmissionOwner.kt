@@ -15,10 +15,12 @@ internal class ChatInputSubmissionOwner(private val input: ChatInputState) {
         regenerate: Boolean,
         send: (parts: List<UIMessagePart>, messageId: Uuid, regenerate: Boolean) -> Boolean,
     ): Boolean {
-        val parts = input.getContents()
-        if (parts.isEmptyInputMessage()) return false
-        val accepted = send(parts, input.editingMessage!!, regenerate)
-        if (accepted) input.clearInput()
+        if (input.hasUnresolvedAttachmentImports()) return false
+        val snapshot = input.captureSubmission() ?: return false
+        val messageId = snapshot.editingMessage ?: return false
+        if (snapshot.parts.isEmptyInputMessage()) return false
+        val accepted = send(snapshot.parts, messageId, regenerate)
+        if (accepted) input.consumeAcceptedSubmission(snapshot)
         return accepted
     }
 
@@ -26,7 +28,6 @@ internal class ChatInputSubmissionOwner(private val input: ChatInputState) {
         parts: List<UIMessagePart>,
         send: (List<UIMessagePart>) -> Boolean,
     ): Boolean {
-        input.editingMessage = null
         return send(parts)
     }
 
@@ -37,22 +38,16 @@ internal class ChatInputSubmissionOwner(private val input: ChatInputState) {
     ): Boolean {
         if (inFlight || !input.isCurrentConversation(conversationId)) return false
         currentCoroutineContext().ensureActive()
-        val parts = input.getContents()
-        val editingMessage = input.editingMessage
+        if (input.hasUnresolvedAttachmentImports()) return false
+        val snapshot = input.captureSubmission() ?: return false
         inFlight = true
         return try {
-            if (!validate(parts)) return false
+            if (!validate(snapshot.parts)) return false
             currentCoroutineContext().ensureActive()
-            if (!input.isCurrentConversation(conversationId)) return false
+            if (!input.canSubmitCapturedAttachments(snapshot)) return false
 
-            val accepted = send(parts, editingMessage)
-            // A later draft or attachment import belongs to the user's next submission.
-            if (accepted && input.isCurrentConversation(conversationId) &&
-                input.editingMessage == editingMessage && input.getContents() == parts &&
-                !input.hasUnresolvedAttachmentImports()
-            ) {
-                input.clearInput()
-            }
+            val accepted = send(snapshot.parts, snapshot.editingMessage)
+            if (accepted) input.consumeAcceptedSubmission(snapshot)
             accepted
         } finally {
             inFlight = false

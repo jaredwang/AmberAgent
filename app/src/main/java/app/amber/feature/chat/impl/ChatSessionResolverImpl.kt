@@ -1,6 +1,8 @@
 package app.amber.feature.chat.impl
 
+import android.content.Context
 import android.util.Log
+import app.amber.agent.R
 import app.amber.agent.BuildConfig
 import app.amber.feature.chat.api.ChatTurnInput
 import app.amber.feature.runtime.ToolInvocationContext
@@ -18,15 +20,27 @@ import app.amber.core.ai.transformers.TimeReminderTransformer
 import app.amber.core.settings.getCurrentChatModel
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.repository.MemoryRepository
-import app.amber.core.service.ChatService
+import app.amber.core.service.ChatRunCoordinator
+import app.amber.core.service.ChatRunHooksFactory
+import app.amber.core.service.ChatErrorStore
+import app.amber.core.service.ConversationStore
+import app.amber.core.service.PendingMessageQueue
+import app.amber.core.service.PendingUserMessageDisplayCopy
+import app.amber.core.service.tools.RunToolCatalogFactory
 import kotlinx.coroutines.CancellationException
 import kotlin.uuid.Uuid
 
 class ChatSessionResolverImpl(
+    private val context: Context,
     private val settingsStore: SettingsAggregator,
     private val memoryRepository: MemoryRepository,
     private val templateTransformer: TemplateTransformer,
-    private val chatService: ChatService,
+    private val runCoordinator: ChatRunCoordinator,
+    private val hooksFactory: ChatRunHooksFactory,
+    private val conversationStore: ConversationStore,
+    private val pendingMessageQueue: PendingMessageQueue,
+    private val errorStore: ChatErrorStore,
+    private val toolCatalogFactory: RunToolCatalogFactory,
 ) : ChatSessionResolver {
 
     override suspend fun resolve(
@@ -42,11 +56,18 @@ class ChatSessionResolverImpl(
         // Same source as the legacy loop: the full (window-merged) conversation
         // so long histories are not truncated to the loaded window.
         val loadStartedAt = if (perfEnabled) System.nanoTime() else 0L
-        val conversation = chatService.conversationForGeneration(conversationId)
+        val conversation = try {
+            conversationStore.conversationForGeneration(conversationId)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            errorStore.addError(error, conversationId, title = context.getString(R.string.error_title_send_message))
+            throw error
+        }
         if (perfEnabled) {
             Log.d("AmberChatPerf", "resolve.conversation nodes=${conversation.messageNodes.size} elapsedMs=${(System.nanoTime() - loadStartedAt) / 1_000_000.0}")
         }
-        val hooks = chatService.chatRunHooks(conversationId)
+        val hooks = hooksFactory.create(conversationId, runCoordinator::stopGeneration)
 
         val inputTransformers = listOf(
             TimeReminderTransformer,
@@ -82,12 +103,15 @@ class ChatSessionResolverImpl(
         // sub-agent payloads.
         val executionPolicy = app.amber.feature.runtime.ExecutionPolicy.permissive()
         val toolsStartedAt = if (perfEnabled) System.nanoTime() else 0L
-        val tools = chatService.createKernelRunTools(
+        val tools = toolCatalogFactory.createKernelRunTools(
             settings = settings,
             conversationId = conversationId,
             runId = runId,
             conversation = conversation,
             durablePath = hooks.durable,
+            conversationProvider = { conversationStore.getConversationFlow(conversationId).value },
+            conversationQueueTools = pendingMessageQueue.createTools(conversationId, PendingUserMessageDisplayCopy.from(context)),
+            autoApprovedToolNames = hooks.autoApprovedToolNames,
             events = events,
             executionPolicy = executionPolicy,
         )

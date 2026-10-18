@@ -816,7 +816,7 @@
   <string name="setting_agent_memory_context_compaction_desc">長對話接近模型視窗時，摘要較舊的回合，但不刪除原文。</string>
   <string name="setting_agent_memory_context_compaction_notify_title">僅先提醒</string>
   <string name="setting_agent_memory_context_compaction_notify_desc">顯示上下文壓力，但不要自動壓縮。</string>
-  <string name="setting_agent_memory_context_compaction_defaults">預設：70%% 預壓縮，85%% 強制壓縮，保護最近 8 輪 / 16 則訊息。</string>
+  <string name="setting_agent_memory_context_compaction_defaults" formatted="false">預設：70% 預壓縮，85% 強制壓縮，保護最近 8 輪 / 16 則訊息。</string>
   <string name="setting_agent_memory_context_mode_section">Mode</string>
   <string name="setting_agent_memory_context_threshold_section">Threshold</string>
   <string name="setting_agent_memory_context_protect_section">Protection</string>

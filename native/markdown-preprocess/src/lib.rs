@@ -38,8 +38,8 @@ fn re_block_latex() -> &'static Regex {
 
 fn re_code_block() -> &'static Regex {
     static R: std::sync::OnceLock<Regex> = std::sync::OnceLock::new();
-    // (?s) for the triple-backtick branch; inline ` doesn't span newlines
-    R.get_or_init(|| Regex::new(r"(?s)```.*?```|`[^`\n]*`").unwrap())
+    // (?s) for fenced code; inline ` doesn't span newlines.
+    R.get_or_init(|| Regex::new(r"(?s)```.*?```|~~~.*?~~~|`[^`\n]*`").unwrap())
 }
 
 fn re_bare_url() -> &'static Regex {
@@ -197,6 +197,14 @@ fn linkify_segment(segment: &str) -> String {
                     continue;
                 }
             }
+        }
+        // Rust regex has no lookahead: reject a recognized TLD prefix of a longer hostname.
+        if segment
+            .as_bytes()
+            .get(m.end())
+            .is_some_and(|next| next.is_ascii_alphanumeric() || *next == b'-')
+        {
+            continue;
         }
         // Skip candidates whose start falls inside an explicit link's label/dest.
         if position_in_any_range(m.start(), &skip_ranges) {

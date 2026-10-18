@@ -46,6 +46,7 @@ import app.amber.core.ai.DefaultRunKernel
 import app.amber.core.ai.GenerationChunk
 import app.amber.core.ai.GenerationRetrySetting
 import app.amber.core.ai.GenerationRunSession
+import app.amber.core.ai.toGenerationSettings
 import app.amber.core.ai.GenerationTerminal
 import app.amber.core.context.AgentCapabilitySnapshotBuilder
 import app.amber.core.context.ConversationContextEngine
@@ -1039,7 +1040,7 @@ class ReplayGoldenTest : DurableRuntimeTestBase() {
                 try {
                     kernel.run(
                         GenerationRunSession(
-                            settings = settings,
+                            settings = settings.toGenerationSettings(model),
                             model = model,
                             messages = holder.messages,
                             tools = tools,

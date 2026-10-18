@@ -64,6 +64,9 @@ interface ThreadGraphDAO {
     @Query("UPDATE thread_message SET delivery_state = 'QUEUED', updated_at_ms = :updatedAtMs WHERE thread_id = :threadId AND delivery_state = 'DELIVERED'")
     suspend fun requeueDeliveredMessages(threadId: String, updatedAtMs: Long): Int
 
+    @Query("UPDATE thread_message SET delivery_state = 'QUEUED', updated_at_ms = :updatedAtMs WHERE thread_id = :threadId AND message_id IN (:messageIds) AND delivery_state = 'DELIVERED'")
+    suspend fun requeueUndrainedMessages(threadId: String, messageIds: List<String>, updatedAtMs: Long): Int
+
     @Query("UPDATE thread_message SET delivery_state = :state, updated_at_ms = :updatedAtMs WHERE message_id = :messageId")
     suspend fun updateDeliveryState(messageId: String, state: String, updatedAtMs: Long)
 

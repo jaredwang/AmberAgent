@@ -2,21 +2,12 @@ package app.amber.core.sync.core
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
@@ -39,18 +30,16 @@ import app.amber.agent.data.workspace.ArtifactBackupContentStore
 import app.amber.core.files.FileFolders
 import app.amber.core.files.FilesManager
 import app.amber.feature.novelworkspace.NovelWorkspaceProjectRepository
-import app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundary
 import app.amber.feature.workspace.WorkspaceManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.zip.CRC32
-import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.withContext
+import app.amber.core.sync.core.SyncArchiveCodec.Companion.MAX_CONFIG_ENTRY_BYTES
+import app.amber.core.sync.core.SyncArchiveCodec.Companion.SETTINGS_ENTRY
+import app.amber.core.sync.core.SyncArchiveCodec.Companion.SECRETS_ENTRY
 
 class SyncArchiveManager(
     private val context: Context,
@@ -77,21 +66,19 @@ class SyncArchiveManager(
     private val crypto: SyncCrypto
         get() = SyncCrypto(nativeEnabled = nativePathPrefs.flow.value.syncCrypto)
     private val redactor = SyncRedactor(json)
+    private val codec = SyncArchiveCodec(context, json)
+    private val payloadExporter = SyncPayloadExporter(context, database, json, secretRedactor, codec, workspaceManager)
+    private val fileRestoreJournal = SyncFileRestoreJournal(context.filesDir, context.cacheDir, database)
 
     /** Complete interrupted file/DB recovery before startup opens data consumers. */
     suspend fun recoverInterruptedRestore() = withContext(Dispatchers.IO) {
-        val journalRoot = File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).canonicalFile
+        val journalRoot = fileRestoreJournal.rootDirectory
         if (!journalRoot.exists()) return@withContext
-        val roots = File(journalRoot, FILE_RESTORE_ROOTS)
-            .takeIf { it.isFile }
-            ?.readLines()
-            .orEmpty()
-            .filter { it in SYNC_FILE_ROOTS }
-            .toSet()
+        val roots = fileRestoreJournal.interruptedRoots().toSet()
         if (restoreWriteGate == null) {
             recoverInterruptedFileRestore()
         } else {
-            val adoptedRoots = if (committedFileRestoreToken(journalRoot) != null) roots else emptySet()
+            val adoptedRoots = if (fileRestoreJournal.committedToken() != null) roots else emptySet()
             restoreWriteGate.withRestore(
                 affectedFileRoots = roots,
                 adoptedFileRoots = adoptedRoots,
@@ -128,7 +115,16 @@ class SyncArchiveManager(
         val encryptedPayloadFile = tempSyncFile("payload", ".enc")
         val archiveFile = tempSyncFile("archive", ".$SYNC_ARCHIVE_EXTENSION")
         try {
-            buildPayload(settings, request.mode, payloadFile)
+            payloadExporter.writePayload(settings, request.mode, payloadFile) {
+                SyncSecretSnapshot(
+                    webMountOauth = webMountOAuthTokenStore.exportRawJsonForSync(),
+                    openAICodexOAuth = openAICodexAuthStore.exportRawJsonForSync(),
+                    googleGeminiOAuth = googleGeminiAuthStore.exportRawJsonForSync(),
+                    grokOAuth = grokAuthStore?.exportRawJsonForSync(),
+                    grokOAuthBackup = grokAuthStore?.exportBackupRawJsonForSync(),
+                    antigravityOAuth = antigravityAuthStore?.exportRawJsonForSync(),
+                )
+            }
             val params = crypto.newEncryptionParams()
             val encryptResult = crypto.encrypt(payloadFile, encryptedPayloadFile, passphrase, params)
             val manifest = SyncManifest(
@@ -145,7 +141,7 @@ class SyncArchiveManager(
                 // 文件头只记录加密方式与 KDF 参数，从不记录口令或可逆提示。
                 encryptionMode = request.encryptionMode,
             )
-            zipArchive(manifest, encryptedPayloadFile, encryptResult, archiveFile)
+            codec.zipArchive(manifest, encryptedPayloadFile, encryptResult, archiveFile)
             archiveFile
         } catch (error: Throwable) {
             archiveFile.delete()
@@ -157,7 +153,7 @@ class SyncArchiveManager(
     }
 
     fun inspectArchive(file: File, fileName: String? = file.name): SyncPreview {
-        val parsed = parseArchive(file)
+        val parsed = codec.parseArchive(file)
         return SyncPreview(
             manifest = parsed.manifest,
             fileName = fileName,
@@ -176,7 +172,7 @@ class SyncArchiveManager(
             val encryptedPayloadFile = tempSyncFile("restore-payload", ".enc")
             val payloadFile = tempSyncFile("restore-payload", ".zip")
             try {
-                val parsed = parseArchive(file, encryptedPayloadFile)
+                val parsed = codec.parseArchive(file, encryptedPayloadFile)
                 require(crypto.sha256(encryptedPayloadFile) == parsed.manifest.payloadSha256) {
                     context.getString(R.string.backup_incompatible)
                 }
@@ -190,7 +186,7 @@ class SyncArchiveManager(
                         error,
                     )
                 }
-                val payloadPreview = readPayloadPreview(payloadFile)
+                val payloadPreview = codec.readPayloadPreview(payloadFile)
                 SyncRestoreVerification(
                     archiveFile = file,
                     encryptedPayloadFile = encryptedPayloadFile,
@@ -238,15 +234,13 @@ class SyncArchiveManager(
                 if (restoreWriteGate == null) {
                     restore()
                 } else {
-                    val journalRoot = File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR)
-                    val interruptedNovelRestore = File(journalRoot, FILE_RESTORE_ROOTS)
-                        .takeIf { it.isFile }?.readLines()?.contains(NOVEL_WORKSPACE_ROOT) == true
+                    val interruptedNovelRestore = NOVEL_WORKSPACE_ROOT in fileRestoreJournal.interruptedRoots()
                     val affectedRoots = if (restoreNovelWorkspace || interruptedNovelRestore) {
                         setOf(NOVEL_WORKSPACE_ROOT)
                     } else {
                         emptySet()
                     }
-                    val adoptedRoots = if (interruptedNovelRestore && committedFileRestoreToken(journalRoot) != null) {
+                    val adoptedRoots = if (interruptedNovelRestore && fileRestoreJournal.committedToken() != null) {
                         setOf(NOVEL_WORKSPACE_ROOT)
                     } else {
                         emptySet()
@@ -346,112 +340,6 @@ class SyncArchiveManager(
             }
         }
 
-    private suspend fun buildPayload(
-        settings: Settings,
-        mode: SyncMode,
-        outputFile: File,
-    ) {
-        outputFile.parentFile?.mkdirs()
-        val summaries = mutableListOf<SyncDatasetSummary>()
-        ZipOutputStream(FileOutputStream(outputFile).buffered()).use { zip ->
-            // P1-01: 备份导出默认不含 secret —— 只序列化持久化形式（掩码 + reference），
-            // 明文永远不进入导出 JSON。refs 随 settings 一起写入，恢复端靠它找回本机 secret。
-            // TODO(P7-02): 自定义口令/版本化加密头与“含 secrets 的备份”属于 P7-02 范围。
-            val redacted = secretRedactor.redactForExport(
-                providers = settings.providers,
-                customHeaders = settings.customHeaders,
-                searchServices = settings.searchServices,
-                mcpServers = settings.mcpServers,
-                webDavConfig = settings.webDavConfig,
-                s3Config = settings.s3Config,
-            )
-            val redactedSettings = settings.copy(
-                providers = redacted.providers,
-                customHeaders = redacted.customHeaders,
-                searchServices = redacted.searchServices,
-                mcpServers = redacted.mcpServers,
-                webDavConfig = redacted.webDavConfig,
-                s3Config = redacted.s3Config,
-            )
-            val settingsJson = redactor.encodeSettings(redactedSettings, mode)
-            writeTextEntry(
-                zip,
-                SETTINGS_ENTRY,
-                secretRedactor.settingsJsonWithRefs(json, settingsJson, redacted.refs.values.toList()),
-            )
-            summaries += SyncDatasetSummary("settings", recordCount = 1)
-
-            val secretsJson = redactor.encodeSecrets(
-                SyncSecretSnapshot(
-                    webMountOauth = webMountOAuthTokenStore.exportRawJsonForSync(),
-                    openAICodexOAuth = openAICodexAuthStore.exportRawJsonForSync(),
-                    googleGeminiOAuth = googleGeminiAuthStore.exportRawJsonForSync(),
-                    grokOAuth = grokAuthStore?.exportRawJsonForSync(),
-                    grokOAuthBackup = grokAuthStore?.exportBackupRawJsonForSync(),
-                    antigravityOAuth = antigravityAuthStore?.exportRawJsonForSync(),
-                ),
-                mode,
-            )
-            writeTextEntry(zip, SECRETS_ENTRY, secretsJson)
-            summaries += SyncDatasetSummary("secrets", recordCount = if (mode == SyncMode.FULL) 1 else 0)
-
-            val db = database.openHelper.writableDatabase
-            val artifactLocators = mutableListOf<String>()
-            // Keep every exported table on one SQLite read snapshot. File roots
-            // are external resources and intentionally remain outside this DB
-            // transaction; the current ownership graph has no shared writer lock
-            // that could make DB + files one atomic snapshot.
-            db.beginTransactionNonExclusive()
-            try {
-                SYNC_TABLES.forEach { table ->
-                    val rowCount = writeTableEntry(zip, db, table)
-                    summaries += SyncDatasetSummary("table:$table", recordCount = rowCount)
-                }
-                db.query("SELECT content_locator FROM artifact").use { cursor ->
-                    while (cursor.moveToNext()) artifactLocators += cursor.getString(0)
-                }
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
-
-            val artifactSummary = writeArtifactBodies(zip, artifactLocators)
-            val fileSummary = writeFileTrees(zip, mode)
-            summaries += fileSummary.copy(
-                recordCount = fileSummary.recordCount + artifactSummary.recordCount,
-                byteCount = fileSummary.byteCount + artifactSummary.byteCount,
-            )
-            // File totals already include these bytes; this dataset declares ownership.
-            summaries += artifactSummary.copy(byteCount = 0)
-            if (mode == SyncMode.FULL) {
-                // Explicit replace contract, including an empty native workspace. File totals
-                // already include these bytes, so this dataset is only a presence marker.
-                summaries += SyncDatasetSummary(NOVEL_WORKSPACE_DATASET, recordCount = 0, byteCount = 0)
-            }
-            writeTextEntry(zip, PAYLOAD_MANIFEST_ENTRY, json.encodeToString(SyncPayloadManifest(summaries)))
-        }
-    }
-
-    private fun writeTableEntry(
-        zip: ZipOutputStream,
-        db: androidx.sqlite.db.SupportSQLiteDatabase,
-        table: String,
-    ): Int {
-        var count = 0
-        zip.putNextEntry(ZipEntry("tables/$table.jsonl"))
-        val cursor = db.query("SELECT * FROM ${table.sqlName()}")
-        cursor.use {
-            while (it.moveToNext()) {
-                if (count > 0) zip.write('\n'.code)
-                val row = cursorRowToJson(table, it).toString()
-                zip.write(row.toByteArray())
-                count += 1
-            }
-        }
-        zip.closeEntry()
-        return count
-    }
-
     /**
      * Build "OPPO PMA110" / "vivo V2509A" style label. We dedupe when MODEL
      * already starts with MANUFACTURER (some OEMs prepend their brand) so
@@ -529,7 +417,7 @@ class SyncArchiveManager(
         ZipInputStream(FileInputStream(payloadFile).buffered()).use { zip ->
             while (true) {
                 val entry = zip.nextEntry ?: break
-                requireSafeRelativePath(entry.name)
+                codec.requireSafeRelativePath(entry.name)
                 if (!entry.isDirectory) {
                     when {
                         entry.name == SETTINGS_ENTRY -> {
@@ -566,7 +454,7 @@ class SyncArchiveManager(
 
                         !skipBulkPayload && entry.name.startsWith("files/") -> {
                             val relativePath = entry.name.removePrefix("files/")
-                            requireSafeRelativePath(relativePath)
+                            codec.requireSafeRelativePath(relativePath)
                             val relativeRoot = SYNC_FILE_ROOTS.firstOrNull { relativePath.startsWith("$it/") }
                             require(relativeRoot != null) { "Invalid sync file root: $relativePath" }
                             if (relativeRoot == ArtifactBackupContentStore.RELATIVE_ROOT) {
@@ -671,7 +559,7 @@ class SyncArchiveManager(
                 val mergeLocalRoots = if (request.preserveConversations != request.preserveGenMedia) {
                     setOf(FileFolders.CHAT_IMAGES)
                 } else emptySet()
-                val fileJournal = prepareFileTreeRestore(stagedFilesRoot, skippedFileRoots, mergeLocalRoots)
+                val fileJournal = fileRestoreJournal.prepare(stagedFilesRoot, skippedFileRoots, mergeLocalRoots)
                 var dataCommitted = false
                 try {
                     restoreTables(filteredTableRows, preservedTables, fileJournal.token)
@@ -685,15 +573,15 @@ class SyncArchiveManager(
                     restoreWriteGate?.markDataCommitted()
                     fileJournal.markDataCommitted()
                     restoreSecrets(secretsJson)
-                    fileJournal.markPhase(FILE_RESTORE_SECRETS_APPLIED)
+                    fileJournal.markSecretsApplied()
                     // The restore already owns the write gate. Use the
                     // restore-only reconciliation path so this does not
                     // reacquire the non-reentrant gate.
                     filesManager.syncFolderDuringRestore(FileFolders.UPLOAD)
                     messageFtsManager.rebuildAllFromDatabase()
-                    fileJournal.markPhase(FILE_RESTORE_FTS_APPLIED)
+                    fileJournal.markFtsApplied()
                     applyRestoredSettings(restoredSettingsJson, finalSettings)
-                    fileJournal.markPhase(FILE_RESTORE_SETTINGS_APPLIED)
+                    fileJournal.markSettingsApplied()
                     fileJournal.commit()
                 } catch (error: Throwable) {
                     if (!dataCommitted) {
@@ -738,27 +626,6 @@ class SyncArchiveManager(
         )
     }
 
-    private fun cursorRowToJson(table: String, cursor: Cursor): JsonObject = buildJsonObject {
-        cursor.columnNames.forEachIndexed { index, name ->
-            val value = when (cursor.getType(index)) {
-                Cursor.FIELD_TYPE_NULL -> typedValue("null", JsonNull)
-                Cursor.FIELD_TYPE_INTEGER -> typedValue("integer", JsonPrimitive(cursor.getLong(index)))
-                Cursor.FIELD_TYPE_FLOAT -> typedValue("float", JsonPrimitive(cursor.getDouble(index)))
-                Cursor.FIELD_TYPE_BLOB -> typedValue("blob", JsonPrimitive(cursor.getBlob(index).toBase64()))
-                else -> {
-                    val raw = cursor.getString(index)
-                    typedValue("string", JsonPrimitive(normalizeStringForExport(table, name, raw)))
-                }
-            }
-            put(name, value)
-        }
-    }
-
-    private fun typedValue(type: String, value: JsonElement): JsonObject = buildJsonObject {
-        put("type", JsonPrimitive(type))
-        put("value", value)
-    }
-
     private fun restoreTables(
         rowsByTable: Map<String, File>,
         preservedTables: Set<String> = emptySet(),
@@ -793,7 +660,7 @@ class SyncArchiveManager(
             }
             val profileId = AMBER_AGENT_ID.toString()
             canonicalizeAmberOwnership(db, profileId)
-            restoreToken?.let { writeDatabaseRestoreMarker(db, it) }
+            restoreToken?.let { fileRestoreJournal.writeDatabaseMarker(db, it) }
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
@@ -814,153 +681,17 @@ class SyncArchiveManager(
                 "blob" -> values.put(column, value?.jsonPrimitive?.contentOrNull?.fromBase64())
                 "string" -> values.put(
                     column,
-                    rewriteStringForImport(table, column, value?.jsonPrimitive?.contentOrNull.orEmpty())
+                    codec.rewriteStringForImport(table, column, value?.jsonPrimitive?.contentOrNull.orEmpty())
                 )
             }
         }
         return values
     }
 
-    private suspend fun writeArtifactBodies(zip: ZipOutputStream, locators: List<String>): SyncDatasetSummary {
-        val content = ArtifactBackupContentStore(workspaceManager ?: WorkspaceManager(context))
-        var count = 0
-        var bytes = 0L
-        locators.distinct().forEach { locator ->
-            val body = content.readForBackup(locator) ?: return@forEach
-            writeBytesEntry(zip, "files/${ArtifactBackupContentStore.RELATIVE_ROOT}/$locator", body)
-            count++
-            bytes += body.size
-        }
-        return SyncDatasetSummary(ArtifactBackupContentStore.DATASET, count, bytes)
-    }
-
-    private fun writeFileTrees(zip: ZipOutputStream, mode: SyncMode): SyncDatasetSummary {
-        var count = 0
-        var bytes = 0L
-        SYNC_FILE_ROOTS.forEach { relativeRoot ->
-            if (relativeRoot == NOVEL_WORKSPACE_ROOT || relativeRoot == ArtifactBackupContentStore.RELATIVE_ROOT) return@forEach
-            val root = File(context.filesDir, relativeRoot)
-            if (!root.exists()) return@forEach
-            root.walkTopDown()
-                .filter { it.isFile }
-                .forEach { file ->
-                    val relativePath = file.relativeTo(context.filesDir).invariantSeparatorsPath
-                    writeFileTreeEntry(zip, "files/$relativePath", file)
-                    count += 1
-                    bytes += file.length()
-                }
-        }
-        if (mode == SyncMode.FULL) {
-            val snapshot = tempSyncDirectory("novel-snapshot")
-            val snapshotTree = File(snapshot, "workspace")
-            try {
-                // Copy under the same short owner lock as novel transactions. Compression,
-                // encryption and provider uploads happen after releasing that lock.
-                NovelWorkspaceRestoreBoundary.write {
-                    val root = File(context.filesDir, NOVEL_WORKSPACE_ROOT)
-                    if (root.exists()) root.copyRecursively(snapshotTree, overwrite = true)
-                }
-                snapshotTree.walkTopDown().filter { it.isFile }.forEach { file ->
-                    val relativePath = file.relativeTo(snapshotTree).invariantSeparatorsPath
-                    writeFileTreeEntry(zip, "files/$NOVEL_WORKSPACE_ROOT/$relativePath", file)
-                    count += 1
-                    bytes += file.length()
-                }
-            } finally {
-                snapshot.deleteRecursively()
-            }
-        }
-        return SyncDatasetSummary("files", recordCount = count, byteCount = bytes)
-    }
-
-    private fun writeFileTreeEntry(zip: ZipOutputStream, name: String, file: File) {
-        // Images, audio, video, and pre-compressed archives carry incompressible
-        // payloads — DEFLATE just spends CPU for no gain. STORE them straight; the
-        // extra CRC32 pass is still cheaper than a wasted DEFLATE pass.
-        if (shouldStoreUncompressed(name)) {
-            writeStoredFileEntry(
-                zip = zip,
-                name = name,
-                file = file,
-                sizeBytes = file.length(),
-                crc32 = computeCrc32(file),
-            )
-        } else {
-            writeFileEntry(zip, name, file)
-        }
-    }
-
-    private fun prepareFileTreeRestore(
-        stageRoot: File,
-        preservedRoots: Set<String> = emptySet(),
-        mergeLocalRoots: Set<String> = emptySet(),
-    ): FileTreeRestoreJournal {
-        val filesDir = context.filesDir.canonicalFile
-        val replacedRoots = SYNC_FILE_ROOTS.filterNot { it in preservedRoots }
-        val targets = replacedRoots.associateWith { relativeRoot ->
-            File(filesDir, relativeRoot).canonicalFile.also { target ->
-                require(target.path.startsWith(filesDir.path + File.separator)) {
-                    "Invalid sync file root: $relativeRoot"
-                }
-            }
-        }
-        // CHAT_IMAGES has chat and gallery consumers. In mixed preservation modes,
-        // import archive files and retain local files, with local bytes winning collisions.
-        mergeLocalRoots.forEach { relativeRoot ->
-            val local = targets.getValue(relativeRoot)
-            if (local.exists()) local.copyRecursively(File(stageRoot, relativeRoot), overwrite = true)
-        }
-        // Novel and artifact roots are nested below amberagent; restore complete roots,
-        // never their shared parent directory.
-        val stagedRoots = replacedRoots.associateWith { File(stageRoot, it).takeIf(File::exists) }
-        val journalRoot = File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).canonicalFile
-        val backupRoot = File(journalRoot, "backup").canonicalFile
-        val restoreToken = UUID.randomUUID().toString()
-        journalRoot.deleteRecursively()
-        backupRoot.mkdirs()
-        writeJournalText(File(journalRoot, FILE_RESTORE_ROOTS), replacedRoots.joinToString("\n"))
-        writeJournalText(File(journalRoot, FILE_RESTORE_TOKEN), restoreToken)
-        writeJournalText(File(journalRoot, FILE_RESTORE_STATE), FILE_RESTORE_PENDING)
-        val journal = FileTreeRestoreJournal(
-            filesDir = filesDir,
-            journalRoot = journalRoot,
-            backupRoot = backupRoot,
-            replacedRoots = replacedRoots,
-            token = restoreToken,
-        )
-        try {
-            replacedRoots.forEach { relativeRoot ->
-                val target = targets.getValue(relativeRoot)
-                if (target.exists()) {
-                    val backup = File(backupRoot, relativeRoot).canonicalFile
-                    backup.parentFile?.mkdirs()
-                    if (!target.renameTo(backup)) {
-                        target.copyRecursively(backup, overwrite = true)
-                        target.deleteRecursively()
-                    }
-                }
-            }
-            writeJournalText(File(journalRoot, FILE_RESTORE_STATE), FILE_RESTORE_ROOTS_BACKED_UP)
-            replacedRoots.forEach { relativeRoot ->
-                stagedRoots[relativeRoot]?.copyRecursively(
-                    target = File(filesDir, relativeRoot),
-                    overwrite = true,
-                )
-            }
-            writeJournalText(File(journalRoot, FILE_RESTORE_STATE), FILE_RESTORE_FILES_REPLACED)
-            return journal
-        } catch (error: Throwable) {
-            runCatching { journal.rollback() }
-                .exceptionOrNull()
-                ?.let(error::addSuppressed)
-            throw error
-        }
-    }
-
     private suspend fun recoverInterruptedFileRestore() {
-        val journalRoot = File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).canonicalFile
+        val journalRoot = fileRestoreJournal.rootDirectory
         if (!journalRoot.exists()) return
-        val committedToken = committedFileRestoreToken(journalRoot)
+        val committedToken = fileRestoreJournal.committedToken()
         if (committedToken != null) {
             // The DB marker proves that the transaction committed. Any
             // journal state after that point may have stopped in secrets,
@@ -968,101 +699,10 @@ class SyncArchiveManager(
             // derived step that is safe without holding credentials.
             restoreWriteGate?.markDataCommitted()
             messageFtsManager.rebuildAllFromDatabase()
-            check(journalRoot.deleteRecursively()) { "Unable to clean completed restore journal" }
-            clearDatabaseRestoreMarker(committedToken)
+            fileRestoreJournal.completeCommitted(committedToken)
             return
         }
-        val roots = File(journalRoot, FILE_RESTORE_ROOTS)
-            .takeIf { it.isFile }
-            ?.readLines()
-            .orEmpty()
-            .filter { it in SYNC_FILE_ROOTS }
-        FileTreeRestoreJournal(
-            filesDir = context.filesDir.canonicalFile,
-            journalRoot = journalRoot,
-            backupRoot = File(journalRoot, "backup").canonicalFile,
-            replacedRoots = roots,
-            token = File(journalRoot, FILE_RESTORE_TOKEN).takeIf { it.isFile }?.readText().orEmpty(),
-        ).rollback()
-    }
-
-    private fun committedFileRestoreToken(journalRoot: File): String? {
-        val token = File(journalRoot, FILE_RESTORE_TOKEN).takeIf { it.isFile }?.readText() ?: return null
-        return token.takeIf { readDatabaseRestoreMarker() == it }
-    }
-
-    private fun writeDatabaseRestoreMarker(db: androidx.sqlite.db.SupportSQLiteDatabase, token: String) {
-        db.execSQL(
-            "CREATE TABLE IF NOT EXISTS $RESTORE_MARKER_TABLE " +
-                "(id INTEGER PRIMARY KEY CHECK (id = 1), token TEXT NOT NULL)"
-        )
-        db.execSQL(
-            "INSERT OR REPLACE INTO $RESTORE_MARKER_TABLE(id, token) VALUES (1, ?)",
-            arrayOf(token),
-        )
-    }
-
-    private fun readDatabaseRestoreMarker(): String? {
-        val db = database.openHelper.writableDatabase
-        val exists = db.query(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-            arrayOf(RESTORE_MARKER_TABLE),
-        ).use { it.moveToFirst() }
-        if (!exists) return null
-        return db.query("SELECT token FROM $RESTORE_MARKER_TABLE WHERE id = 1").use { cursor ->
-            if (cursor.moveToFirst()) cursor.getString(0) else null
-        }
-    }
-
-    private fun clearDatabaseRestoreMarker(token: String) {
-        runCatching {
-            database.openHelper.writableDatabase.execSQL(
-                "DELETE FROM $RESTORE_MARKER_TABLE WHERE id = 1 AND token = ?",
-                arrayOf(token),
-            )
-        }
-    }
-
-    private fun writeJournalText(file: File, value: String) {
-        file.parentFile?.mkdirs()
-        FileOutputStream(file).use { output ->
-            output.write(value.toByteArray())
-            output.fd.sync()
-        }
-    }
-
-    private inner class FileTreeRestoreJournal(
-        private val filesDir: File,
-        private val journalRoot: File,
-        private val backupRoot: File,
-        private val replacedRoots: List<String>,
-        val token: String,
-    ) {
-        fun markDataCommitted() {
-            markPhase(FILE_RESTORE_DATA_COMMITTED)
-        }
-
-        fun markPhase(phase: String) {
-            writeJournalText(File(journalRoot, FILE_RESTORE_STATE), phase)
-        }
-
-        fun commit() {
-            check(journalRoot.deleteRecursively()) { "Unable to clean completed restore journal" }
-            clearDatabaseRestoreMarker(token)
-        }
-
-        fun rollback() {
-            val state = File(journalRoot, FILE_RESTORE_STATE).takeIf { it.isFile }?.readText()
-            val backupsComplete = state != null && state != FILE_RESTORE_PENDING
-            replacedRoots.forEach { relativeRoot ->
-                val backup = File(backupRoot, relativeRoot)
-                val target = File(filesDir, relativeRoot)
-                // Before backup completes, a later root may still be the untouched original.
-                if (backupsComplete || backup.exists()) target.deleteRecursively()
-                if (backup.exists()) backup.copyRecursively(target, overwrite = true)
-            }
-            journalRoot.deleteRecursively()
-        }
+        fileRestoreJournal.rollbackInterrupted()
     }
 
     private fun restoreSecrets(secretsJson: String?) {
@@ -1076,80 +716,6 @@ class SyncArchiveManager(
         snapshot.grokOAuthBackup?.let { grokAuthStore?.restoreBackupRawJsonFromSync(it) }
         snapshot.antigravityOAuth?.let { antigravityAuthStore?.restoreRawJsonFromSync(it) }
     }
-
-    private fun zipArchive(
-        manifest: SyncManifest,
-        encryptedPayloadFile: File,
-        encryptResult: EncryptResult,
-        archiveFile: File,
-    ) {
-        archiveFile.parentFile?.mkdirs()
-        ZipOutputStream(FileOutputStream(archiveFile).buffered()).use { zip ->
-            // Put the small manifest first so preview can read metadata without inflating the payload entry first.
-            writeTextEntry(zip, SYNC_MANIFEST_ENTRY, json.encodeToString(manifest))
-            // payload.enc is AES-GCM ciphertext; DEFLATE would burn CPU for zero gain.
-            // We already have size + CRC32 from the encrypt pass, so STORE it straight.
-            writeStoredFileEntry(
-                zip = zip,
-                name = SYNC_PAYLOAD_ENTRY,
-                file = encryptedPayloadFile,
-                sizeBytes = encryptResult.sizeBytes,
-                crc32 = encryptResult.crc32,
-            )
-        }
-    }
-
-    private fun parseArchive(file: File, payloadTarget: File? = null): ParsedSyncArchive {
-        var manifestJson: String? = null
-        var hasEncryptedPayload = false
-        ZipInputStream(FileInputStream(file).buffered()).use { zip ->
-            while (true) {
-                val entry = zip.nextEntry ?: break
-                requireSafeRelativePath(entry.name)
-                if (!entry.isDirectory) {
-                    when (entry.name) {
-                        SYNC_MANIFEST_ENTRY -> {
-                            manifestJson = zip.readBytesWithinLimit(MAX_MANIFEST_ENTRY_BYTES, entry.name).decodeToString()
-                        }
-
-                        SYNC_PAYLOAD_ENTRY -> {
-                            hasEncryptedPayload = true
-                            if (payloadTarget != null) {
-                                payloadTarget.parentFile?.mkdirs()
-                                FileOutputStream(payloadTarget).buffered().use { output ->
-                                    zip.copyToWithinLimit(output, MAX_PAYLOAD_ENTRY_BYTES, entry.name)
-                                }
-                            }
-                        }
-                    }
-                }
-                if (payloadTarget == null && manifestJson != null && hasEncryptedPayload) break
-                zip.closeEntry()
-            }
-        }
-        val manifestJsonValue = manifestJson ?: error(
-            context.getString(R.string.backup_format_incompatible, "manifest.json")
-        )
-        require(hasEncryptedPayload) {
-            context.getString(R.string.backup_format_incompatible, "payload.enc")
-        }
-        val manifest = json.decodeFromString<SyncManifest>(manifestJsonValue)
-        // P7-02：v2 = 当前新格式；v1 = 只读迁移（含历史固定口令格式的受控兼容分支）。
-        require(
-            manifest.archiveVersion == CURRENT_ARCHIVE_VERSION ||
-                manifest.archiveVersion == LEGACY_ARCHIVE_VERSION
-        ) {
-            context.getString(R.string.backup_archive_incompatible, manifest.archiveVersion)
-        }
-        return ParsedSyncArchive(manifest = manifest)
-    }
-
-    private fun normalizeStringForExport(table: String, column: String, value: String): String =
-        if (table == "message_node" && column == "messages") {
-            value.replace(filesUriPrefix(), AMBER_FILE_PREFIX)
-        } else {
-            value
-        }
 
     /**
      * P7-02 恢复口令解析：
@@ -1176,142 +742,18 @@ class SyncArchiveManager(
         }
     }
 
-    /**
-     * 解密成功后读取负载内的 payload_manifest.json（缺失时按空预览处理）。
-     * EVERYTHING 会在 [requireRestorePayloadCompatible] 中拒绝该空预览；
-     * CONFIG_ONLY 仍可沿用 settings-only 迁移兼容路径。
-     */
-    private fun readPayloadPreview(payloadFile: File): SyncPayloadPreview {
-        ZipInputStream(FileInputStream(payloadFile).buffered()).use { zip ->
-            while (true) {
-                val entry = zip.nextEntry ?: break
-                requireSafeRelativePath(entry.name)
-                if (!entry.isDirectory && entry.name == PAYLOAD_MANIFEST_ENTRY) {
-                    val raw = zip.readBytesWithinLimit(MAX_CONFIG_ENTRY_BYTES, entry.name).decodeToString()
-                    return runCatching { json.decodeFromString<SyncPayloadPreview>(raw) }
-                        .getOrElse { SyncPayloadPreview() }
-                }
-                zip.closeEntry()
-            }
-        }
-        return SyncPayloadPreview()
-    }
-
-    private fun rewriteStringForImport(table: String, column: String, value: String): String =
-        if (table == "message_node" && column == "messages") {
-            value.replace(AMBER_FILE_PREFIX, filesUriPrefix())
-        } else {
-            value
-        }
-
-    private fun filesUriPrefix(): String =
-        context.filesDir.toUri().toString().trimEnd('/') + "/"
-
-    private fun requireSafeRelativePath(path: String) {
-        require(path.isNotBlank()) { "Invalid archive path" }
-        require('\\' !in path) { "Invalid archive path: $path" }
-        require(!path.startsWith('/')) { "Invalid archive path: $path" }
-        require(!path.contains("//")) { "Invalid archive path: $path" }
-        require(!Regex("^[A-Za-z]:").containsMatchIn(path)) { "Invalid archive path: $path" }
-        require(path.split('/').none { it == "." || it == ".." }) { "Invalid archive path: $path" }
-    }
-
     private fun String.sqlName(): String = "\"${replace("\"", "\"\"")}\""
-
-    private fun writeTextEntry(zip: ZipOutputStream, name: String, text: String) =
-        writeBytesEntry(zip, name, text.toByteArray())
-
-    private fun writeFileEntry(zip: ZipOutputStream, name: String, file: File) {
-        zip.putNextEntry(ZipEntry(name))
-        file.inputStream().use { input -> input.copyTo(zip) }
-        zip.closeEntry()
-    }
-
-    private fun writeStoredFileEntry(
-        zip: ZipOutputStream,
-        name: String,
-        file: File,
-        sizeBytes: Long,
-        crc32: Long,
-    ) {
-        val entry = ZipEntry(name).apply {
-            method = ZipEntry.STORED
-            size = sizeBytes
-            compressedSize = sizeBytes
-            crc = crc32
-        }
-        zip.putNextEntry(entry)
-        file.inputStream().buffered().use { input -> input.copyTo(zip) }
-        zip.closeEntry()
-    }
-
-    private fun computeCrc32(file: File): Long {
-        val crc = CRC32()
-        file.inputStream().buffered().use { input ->
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                if (read > 0) crc.update(buffer, 0, read)
-            }
-        }
-        return crc.value
-    }
-
-    private fun shouldStoreUncompressed(name: String): Boolean {
-        val ext = name.substringAfterLast('.', "").lowercase()
-        return ext in STORE_UNCOMPRESSED_EXTENSIONS
-    }
-
-    private fun writeBytesEntry(zip: ZipOutputStream, name: String, bytes: ByteArray) {
-        zip.putNextEntry(ZipEntry(name))
-        zip.write(bytes)
-        zip.closeEntry()
-    }
-
-    private data class ParsedSyncArchive(
-        val manifest: SyncManifest,
-    )
 
     companion object {
         fun hasInterruptedFileRestore(context: Context): Boolean =
-            File(context.cacheDir, FILE_RESTORE_JOURNAL_DIR).exists()
+            SyncFileRestoreJournal.hasInterruptedRestore(context)
 
-        private const val MAX_MANIFEST_ENTRY_BYTES = 1024 * 1024
-        private const val MAX_CONFIG_ENTRY_BYTES = 8 * 1024 * 1024
-        private const val MAX_PAYLOAD_ENTRY_BYTES = 1024L * 1024 * 1024
         private const val MAX_PAYLOAD_FILE_ENTRY_BYTES = 512L * 1024 * 1024
         private const val MAX_PAYLOAD_FILES_TOTAL_BYTES = 1024L * 1024 * 1024
         private const val MAX_PAYLOAD_FILE_COUNT = 20_000
         private const val MAX_STAGED_TABLE_BYTES = 4L * 1024 * 1024 * 1024
-        private const val PAYLOAD_MANIFEST_ENTRY = "payload_manifest.json"
-        private const val SETTINGS_ENTRY = "settings.json"
-        private const val SECRETS_ENTRY = "secrets.json"
-        private const val AMBER_FILE_PREFIX = "amber-file://"
-        private const val FILE_RESTORE_JOURNAL_DIR = "sync-restore-file-journal"
-        private const val FILE_RESTORE_STATE = "state"
-        private const val FILE_RESTORE_ROOTS = "roots"
-        private const val FILE_RESTORE_TOKEN = "token"
-        private const val FILE_RESTORE_PENDING = "pending"
-        private const val FILE_RESTORE_ROOTS_BACKED_UP = "roots_backed_up"
-        private const val FILE_RESTORE_FILES_REPLACED = "files_replaced"
-        private const val FILE_RESTORE_DATA_COMMITTED = "data_committed"
-        private const val FILE_RESTORE_SECRETS_APPLIED = "secrets_applied"
-        private const val FILE_RESTORE_FTS_APPLIED = "fts_applied"
-        private const val FILE_RESTORE_SETTINGS_APPLIED = "settings_applied"
-        private const val RESTORE_MARKER_TABLE = "amber_sync_restore_marker"
-        private const val NOVEL_WORKSPACE_ROOT = NovelWorkspaceProjectRepository.RELATIVE_ROOT
-        private const val NOVEL_WORKSPACE_DATASET = "novel-workspace"
-
-        // Pre-compressed/lossy formats: DEFLATE has no headroom and just burns CPU.
-        // Listed by extension so the check stays cheap and stable across content
-        // types we cannot otherwise detect from a File handle.
-        private val STORE_UNCOMPRESSED_EXTENSIONS = setOf(
-            "jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "avif",
-            "mp3", "m4a", "aac", "ogg", "opus", "flac",
-            "mp4", "m4v", "mov", "webm", "mkv",
-            "pdf", "zip", "gz", "tgz", "7z", "rar", "xz", "br", "zst",
-        )
+        internal const val NOVEL_WORKSPACE_ROOT = NovelWorkspaceProjectRepository.RELATIVE_ROOT
+        internal const val NOVEL_WORKSPACE_DATASET = "novel-workspace"
 
         // Subset of SYNC_TABLES whose rows describe local chat history.
         // Restore preserves these when SyncRestoreRequest.preserveConversations
@@ -1383,7 +825,7 @@ class SyncArchiveManager(
             "live_card",
         )
 
-        private val SYNC_FILE_ROOTS = listOf(
+        internal val SYNC_FILE_ROOTS = listOf(
             FileFolders.UPLOAD,
             FileFolders.SKILLS,
             FileFolders.IMAGES,
@@ -1409,33 +851,6 @@ class SyncRestorePartialCommitException(cause: Throwable) :
         "备份数据已写入，但设置、令牌或搜索索引收尾失败；请重新验证同一备份后重试",
         cause,
     )
-
-private fun ZipInputStream.readBytesWithinLimit(limit: Int, entryName: String): ByteArray {
-    val output = java.io.ByteArrayOutputStream()
-    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-    var total = 0
-    while (true) {
-        val read = read(buffer)
-        if (read < 0) break
-        require(total <= limit - read) { "Sync archive entry $entryName exceeds $limit bytes" }
-        output.write(buffer, 0, read)
-        total += read
-    }
-    return output.toByteArray()
-}
-
-private fun ZipInputStream.copyToWithinLimit(output: java.io.OutputStream, limit: Long, entryName: String): Long {
-    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-    var total = 0L
-    while (true) {
-        val read = read(buffer)
-        if (read < 0) break
-        require(total <= limit - read) { "Sync archive entry $entryName exceeds $limit bytes" }
-        output.write(buffer, 0, read)
-        total += read
-    }
-    return total
-}
 
 /**
  * P7-02 两阶段恢复的验证结果：头部 + 认证标签已验证、负载已解密并暂存，

@@ -27,7 +27,7 @@ class PromptInjectionTransformerTest {
     ) = Settings(
         enabledModeInjectionIds = modeInjectionIds,
         enabledLorebookIds = lorebookIds
-    )
+    ).toTransformerSettings()
 
     private fun createModeInjection(
         id: Uuid = Uuid.random(),

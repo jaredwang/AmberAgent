@@ -6,7 +6,6 @@ import app.amber.ai.ui.UIMessage
 import app.amber.core.ai.transformers.MessageTransformer
 import app.amber.core.model.AssistantMemory
 import app.amber.core.model.Conversation
-import app.amber.core.settings.Settings
 import app.amber.feature.runtime.SpeculativeToolRunner
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -46,7 +45,7 @@ class GenerationRoundOutcome(
 )
 
 class GenerationRoundRequest(
-    val settings: Settings,
+    val settings: GenerationSettings,
     val messages: List<UIMessage>,
     val transformers: List<MessageTransformer>,
     val model: Model,

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.Json
 import app.amber.highlight.Highlighter
 import app.amber.agent.AppScope
 import app.amber.core.ai.AILoggingManager
-import app.amber.core.ai.tools.LocalTools
 import app.amber.core.event.AppEventBus
 import app.amber.core.utils.EmojiData
 import app.amber.core.utils.EmojiUtils
@@ -27,10 +26,6 @@ val appModule = module {
         AppEventBus()
     }
 
-
-    single {
-        LocalTools(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
-    }
 
     single {
         AppScope()

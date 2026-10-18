@@ -43,7 +43,7 @@ internal object MessageRenderCache {
         val key = VisualTextKey(
             text = text,
             textHash = text.hashCode(),
-            assistantSignature = regexes.renderSignature(),
+            assistantRegexes = regexes.toList(),
             scope = scope,
         )
         synchronized(lock) {
@@ -183,7 +183,7 @@ internal object MessageRenderCache {
 private data class VisualTextKey(
     val text: String,
     val textHash: Int,
-    val assistantSignature: Int,
+    val assistantRegexes: List<AssistantRegex>,
     val scope: AssistantAffectScope,
 )
 
@@ -232,19 +232,6 @@ private data class ToolOutputIdentitySignature(
 private enum class ToolJsonKind {
     Input,
     Output,
-}
-
-private fun List<AssistantRegex>.renderSignature(): Int {
-    var result = 1
-    forEach { regex ->
-        result = 31 * result + regex.id.hashCode()
-        result = 31 * result + regex.enabled.hashCode()
-        result = 31 * result + regex.findRegex.hashCode()
-        result = 31 * result + regex.replaceString.hashCode()
-        result = 31 * result + regex.affectingScope.hashCode()
-        result = 31 * result + regex.visualOnly.hashCode()
-    }
-    return result
 }
 
 private fun List<UIMessagePart>.textOutputForJson(): String {

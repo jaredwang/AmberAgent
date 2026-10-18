@@ -1,14 +1,12 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const { JSDOM } = require('jsdom');
 
-const bridgePath = path.resolve(__dirname, '..', 'app/src/main/assets/webmount/bridge.js');
-const bridgeSource = fs.readFileSync(bridgePath, 'utf8');
+const { loadBootstrap } = require('./webmount-bootstrap.cjs');
+const bridgeSource = loadBootstrap();
 
-function createHarness() {
+function createHarness(url = 'https://fixture.test/page') {
   const tailText = 'A'.repeat(4500) + 'OLD'.repeat(200);
   const dom = new JSDOM(`<!doctype html><html><head><title>bridge fixture</title></head><body>
     <form id="form">
@@ -36,7 +34,7 @@ function createHarness() {
     <img id="visible" alt="visible">
     <p id="tail">${tailText}</p>
   </body></html>`, {
-    url: 'https://fixture.test/page',
+    url,
     runScripts: 'outside-only',
   });
   const { window } = dom;
@@ -114,16 +112,23 @@ function createHarness() {
   });
 
   const results = Object.create(null);
+  const networkEvents = [];
+  let resolvePreview;
   window.AmberWM = {
     resolve(id, payload) { results[id] = JSON.parse(payload); },
     reject(id, error) { results[id] = { __reject: error }; },
-    onNetworkEvent() {},
+    onNetworkEvent(payload) { networkEvents.push(JSON.parse(payload)); },
     onDomMutation() {},
     log() {},
   };
-  window.__amberZCodeUiTree = (_args, hooks) => ({ ok: true, snapshot_id: hooks.snapshotId, nodes: [] });
   window.fetch = function (input) {
     const url = new URL(typeof input === 'string' ? input : input.url, window.location.href).href;
+    if (url.endsWith('/api/deferred-preview')) {
+      return Promise.resolve({
+        status: 200,
+        clone() { return { text: () => new Promise(resolve => { resolvePreview = resolve; }) }; },
+      });
+    }
     if (url.endsWith('/api/body-error')) {
       return Promise.resolve({
         url,
@@ -144,7 +149,7 @@ function createHarness() {
     return results[id];
   }
 
-  return { window, document, results, call, editingEvents, plainEditingEvents };
+  return { window, document, results, call, editingEvents, plainEditingEvents, networkEvents, finishPreview: text => resolvePreview(text) };
 }
 
 function waitForResult(results, id, timeoutMs = 1000) {
@@ -166,7 +171,51 @@ function waitForResult(results, id, timeoutMs = 1000) {
 }
 
 async function main() {
-  const { window, document, results, call, editingEvents, plainEditingEvents } = createHarness();
+  const { window, document, results, call, editingEvents, plainEditingEvents, networkEvents, finishPreview } = createHarness();
+  // A missing listed source must fail assembly, never inject a partial bridge.
+  assert.throws(() => loadBootstrap(name => {
+    if (name === 'bootstrap-sources.json') return '["missing.js"]';
+    throw new Error('missing asset: ' + name);
+  }), /missing asset: missing.js/);
+  const fetchBeforeReinject = window.fetch;
+  const xhrBeforeReinject = window.XMLHttpRequest.prototype.send;
+  const callBeforeReinject = window.__amberWm_call;
+  const realmBeforeReinject = window.__amberWmRealmId;
+  const snapshotBeforeReinject = window.__amberWmSnapshot;
+  window.eval(bridgeSource);
+  assert.equal(window.fetch, fetchBeforeReinject, 'reinject must not wrap fetch again');
+  assert.equal(window.XMLHttpRequest.prototype.send, xhrBeforeReinject, 'reinject must not wrap XHR again');
+  assert.equal(window.__amberWm_call, callBeforeReinject, 'reinject keeps the RPC owner');
+  assert.equal(window.__amberWmRealmId, realmBeforeReinject);
+  assert.equal(window.__amberWmSnapshot, snapshotBeforeReinject);
+
+  const previousRealm = createHarness();
+  const oldObservation = previousRealm.call('observe', {}, 'old_realm_observe');
+  const oldLogin = oldObservation.interactive.nodes.find(node => node.name === 'Login');
+  const currentObservation = call('observe', {}, 'new_realm_observe');
+  assert.notEqual(previousRealm.window.__amberWmRealmId, window.__amberWmRealmId);
+  const oldRefClick = call('click', { target: oldLogin.ref, snapshot_id: currentObservation.interactive.snapshot_id }, 'old_realm_click');
+  assert.equal(oldRefClick.ok, false, 'a prior realm ref cannot alias the current snapshot');
+  previousRealm.window.close();
+
+  assert.equal(window.createWebMountNetwork, undefined, 'network factory stays private to bootstrap');
+  assert.equal(window.createFeishuSnapshot, undefined, 'site factories stay private to bootstrap');
+  assert.equal(window.createZCodeProtocol, undefined, 'ticket owner has no new global API');
+  const feishu = createHarness('https://tenant.feishu.cn/docx/fixture-token');
+  const heading = feishu.document.createElement('h2');
+  heading.setAttribute('data-block-id', 'heading-block');
+  heading.textContent = 'Visible document heading';
+  feishu.document.body.append(heading);
+  const beforeFeishu = feishu.call('observe', {}, 'before_feishu');
+  const feishuSnapshot = feishu.call('feishu_snapshot', {}, 'feishu_snapshot');
+  assert.equal(feishuSnapshot.ok, true);
+  assert.equal(feishuSnapshot.doc_token, 'fixture-token');
+  assert.equal(feishuSnapshot.outline[0].text, 'Visible document heading');
+  assert.equal(feishuSnapshot.visible_blocks.find(block => block.stable_hint.data_block_id === 'heading-block').text, 'Visible document heading');
+  assert.equal(feishu.window.__amberWmSnapshot.id, beforeFeishu.interactive.snapshot_id + 1, 'Feishu advances the same snapshot owner');
+  const staleFeishuRef = feishu.call('click', { target: beforeFeishu.interactive.nodes[0].ref }, 'after_feishu_old_ref');
+  assert.equal(staleFeishuRef.ok, false, 'site snapshot invalidates old generic refs');
+  feishu.window.close();
   let loginClicks = 0;
   let disabledClicks = 0;
   let zcodeSubmits = 0;
@@ -227,6 +276,7 @@ async function main() {
   assert.equal(zcodePrepare.text_chars, 9);
   assert.deepEqual(editingEvents, [{ type: 'beforeinput', inputType: 'insertText', data: 'Ask ZCode' }]);
   assert.equal(document.getElementById('zcodeInput').textContent, 'Ask ZCode');
+  window.eval(bridgeSource); // A prepared single-use ticket survives harmless same-realm injection.
   const zcodeSend = call('zcode_send', { ticket: zcodePrepare.ticket }, 'zcode_send');
   assert.equal(zcodeSend.ok, true);
   assert.equal(zcodeSend.dispatched, true);
@@ -378,6 +428,16 @@ async function main() {
   const fetchBodyError = await waitForResult(results, 'fetch_body_error');
   assert.deepEqual(fetchBodyError, { ok: false, error: 'body stream failed' });
 
+  const response = await window.fetch('/api/deferred-preview');
+  assert.equal(response.status, 200, 'page receives response before the body preview completes');
+  assert.deepEqual(networkEvents.filter(event => event.url.endsWith('/api/deferred-preview')).map(event => event.type), ['fetch_send', 'fetch_done']);
+  finishPreview('later body');
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const previewEvents = networkEvents.filter(event => event.url.endsWith('/api/deferred-preview'));
+  assert.deepEqual(previewEvents.map(event => event.type), ['fetch_send', 'fetch_done', 'fetch_preview']);
+  assert.equal(previewEvents[2].response_preview, 'later body');
+  assert.equal(previewEvents[0].req_id, previewEvents[2].req_id);
+  window.close();
   console.log('webmount bridge regression: PASS');
 }
 

@@ -296,6 +296,10 @@ class ThreadGraphManager(
         return record
     }
 
+    /** Preserve unread process deliveries for a later turn before persisting this result. */
+    suspend fun requeueUndrainedMessages(threadId: String, messageIds: List<String>): Int =
+        store.requeueUndrainedMessages(threadId, messageIds)
+
     /** Mark one message delivered (handed to a live generation). */
     suspend fun markDelivered(messageId: String) {
         store.markMessageDelivered(messageId)

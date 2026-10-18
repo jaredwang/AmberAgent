@@ -1,11 +1,5 @@
 package app.amber.feature.ui.components.ai
 
-import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -16,37 +10,28 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,20 +47,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.window.DialogProperties
-import androidx.core.net.toFile
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.dokar.sonner.ToastType
 import com.dokar.sonner.ToasterState
-import com.yalantis.ucrop.UCrop
-import com.yalantis.ucrop.UCropActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.ui.UIMessagePart
-import app.amber.common.android.appTempFolder
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.X
@@ -106,15 +85,12 @@ import app.amber.feature.ui.hooks.ChatInputState
 import app.amber.feature.ui.pages.chat.LocalChatTheme
 import app.amber.feature.ui.theme.LocalAmberTokens
 import org.koin.compose.koinInject
-import java.io.File
 
 /**
- * Composer attachment chips, file/image/video/audio picker buttons, full-screen
- * text editor, and the UCrop launcher hook. Extracted from the ChatInput god
+ * Composer attachment chips and file/image/video/audio picker buttons. Extracted from the ChatInput god
  * class so the main composable stays focused on layout + state.
  *
- * Only `MediaFileInputRow`, `FilesPicker`, `FullScreenEditor`, `ImagePickButton`,
- * and `useCropLauncher` are called from the main `ChatInput()` composable —
+ * Only `MediaFileInputRow`, `FilesPicker`, and `ImagePickButton` are shared with the composer —
  * those are `internal`. Other helpers stay `private` / preserve their original
  * top-level public visibility (TakePicButton / VideoPickButton / AudioPickButton
  * / FilePickButton were `public fun` before the extraction and stay that way).
@@ -574,118 +550,6 @@ internal fun FilesPicker(
 
             FilePickButton(onClick = onPickFile)
         }
-    }
-}
-
-@Composable
-internal fun FullScreenEditor(
-    state: ChatInputState, onDone: () -> Unit
-) {
-    BasicAlertDialog(
-        onDismissRequest = {
-            onDone()
-        },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false, decorFitsSystemWindows = false
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .imePadding(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Surface(
-                modifier = Modifier
-                    .widthIn(max = 800.dp)
-                    .fillMaxHeight(0.9f),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row {
-                        TextButton(
-                            onClick = {
-                                onDone()
-                            }) {
-                            Text(stringResource(R.string.chat_page_save))
-                        }
-                    }
-                    TextField(
-                        state = state.textContent,
-                        modifier = Modifier
-                            .padding(bottom = 2.dp)
-                            .fillMaxSize(),
-                        shape = RoundedCornerShape(32.dp),
-                        placeholder = {
-                            Text(stringResource(R.string.chat_input_placeholder))
-                        },
-                        colors = TextFieldDefaults.colors().copy(
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun useCropLauncher(
-    onCroppedImageReady: (Uri) -> Job, onCleanup: (() -> Unit)? = null
-): Pair<ActivityResultLauncher<Intent>, (Uri) -> Unit> {
-    val context = LocalContext.current
-    var cropOutputUri by remember { mutableStateOf<Uri?>(null) }
-
-    val cropActivityLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val outputUri = cropOutputUri
-        cropOutputUri = null
-        if (result.resultCode == android.app.Activity.RESULT_OK && outputUri != null) {
-            importCroppedImage(outputUri, onCroppedImageReady)
-        } else {
-            outputUri?.toFile()?.delete()
-        }
-        onCleanup?.invoke()
-    }
-
-    val launchCrop: (Uri) -> Unit = { sourceUri ->
-        val outputFile = File(context.appTempFolder, "crop_output_${System.currentTimeMillis()}.jpg")
-        cropOutputUri = Uri.fromFile(outputFile)
-
-        val cropIntent = UCrop.of(sourceUri, cropOutputUri!!).withOptions(UCrop.Options().apply {
-            setFreeStyleCropEnabled(true)
-            setAllowedGestures(
-                UCropActivity.SCALE, UCropActivity.ROTATE, UCropActivity.NONE
-            )
-            setCompressionFormat(Bitmap.CompressFormat.PNG)
-        }).withMaxResultSize(4096, 4096).getIntent(context)
-
-        cropActivityLauncher.launch(cropIntent)
-    }
-
-    return Pair(cropActivityLauncher, launchCrop)
-}
-
-internal fun importCroppedImage(uri: Uri, importImage: (Uri) -> Job) {
-    val file = uri.toFile()
-    try {
-        // Import reads asynchronously; retain the source until its job finishes,
-        // including any non-cancellable copy during composer disposal.
-        importImage(uri).invokeOnCompletion { file.delete() }
-    } catch (error: Throwable) {
-        file.delete()
-        throw error
     }
 }
 

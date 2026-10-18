@@ -10,7 +10,6 @@ import app.amber.ai.provider.Model
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
 import app.amber.agent.R
-import app.amber.core.settings.Settings
 import app.amber.core.utils.appLocale
 import app.amber.core.utils.appLocaleDisplayName
 import java.time.LocalDate
@@ -24,7 +23,7 @@ import java.util.TimeZone
 
 data class PlaceholderCtx(
     val context: Context,
-    val settings: Settings,
+    val userNickname: String,
     val model: Model,
 )
 
@@ -98,7 +97,7 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
         }
 
         placeholder("nickname", { Text(stringResource(R.string.placeholder_nickname)) }) {
-            it.settings.displaySetting.userNickname.ifBlank { "user" }
+            it.userNickname.ifBlank { "user" }
         }
 
         placeholder("char", { Text(stringResource(R.string.placeholder_char)) }) {
@@ -106,7 +105,7 @@ object DefaultPlaceholderProvider : PlaceholderProvider {
         }
 
         placeholder("user", { Text(stringResource(R.string.placeholder_user)) }) {
-            it.settings.displaySetting.userNickname.ifBlank { "user" }
+            it.userNickname.ifBlank { "user" }
         }
     }
 
@@ -161,7 +160,7 @@ object PlaceholderTransformer : InputMessageTransformer {
 
         val placeholderCtx = PlaceholderCtx(
             context = ctx.context,
-            settings = ctx.settings,
+            userNickname = ctx.settings.userNickname,
             model = ctx.model,
         )
         defaultProvider.placeholders.forEach { (key, placeholderInfo) ->

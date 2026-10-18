@@ -861,7 +861,7 @@
   <string name="setting_agent_memory_context_compaction_desc">When long conversations approach the model window, summarize older turns without deleting originals.</string>
   <string name="setting_agent_memory_context_compaction_notify_title">Only remind first</string>
   <string name="setting_agent_memory_context_compaction_notify_desc">Show context pressure but do not compact automatically.</string>
-  <string name="setting_agent_memory_context_compaction_defaults">Defaults: 70%% precompact, 85%% force, protect 8 recent turns / 16 messages.</string>
+  <string name="setting_agent_memory_context_compaction_defaults" formatted="false">Defaults: 70% precompact, 85% force, protect 8 recent turns / 16 messages.</string>
   <string name="setting_agent_memory_context_mode_section">Mode</string>
   <string name="setting_agent_memory_context_threshold_section">Threshold</string>
   <string name="setting_agent_memory_context_protect_section">Protection</string>

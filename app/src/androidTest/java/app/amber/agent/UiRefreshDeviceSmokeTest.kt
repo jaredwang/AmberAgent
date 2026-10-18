@@ -27,6 +27,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -234,8 +235,10 @@ class UiRefreshDeviceSmokeTest {
                 compose.onNode(hasSetTextAction()).assertDoesNotExist()
                 capture("09-home-compact-light")
 
-                // The fixed search entry must work even when its former LazyColumn slot is off screen.
+                // The header scrolls with the conversation list. Return to its search entry
+                // after checking that lower conversation rows remain reachable.
                 compose.onNode(hasScrollAction()).performScrollToNode(hasText(smokeConversationTitles.first()))
+                compose.onNode(hasScrollAction()).performScrollToIndex(0)
                 compose.onNodeWithContentDescription(targetContext.getString(R.string.history_page_search))
                     .performClick()
                 compose.onNode(hasSetTextAction()).assertIsDisplayed().performTextReplacement(smokeConversationTitles.first())

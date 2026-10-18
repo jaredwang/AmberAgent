@@ -59,7 +59,7 @@ class NovelWorkspaceChapterRestoreTest {
     private fun snapshot(directory: File) = checkNotNull(NovelWorkspaceChapterHistory.snapshot(directory, "B-1", "主线", path))
 
     private fun restore(directory: File, snapshot: NovelWorkspaceChapterHistorySnapshot) = NovelWorkspaceChapterRestore.restore(
-        runtime, directory, "B-1", "主线", path,
+        directory, "B-1", "主线", path,
         snapshot.versions.last().contentHash, snapshot.headId, snapshot.currentContentHash,
     )
 

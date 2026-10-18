@@ -292,8 +292,8 @@ class NovelWorkspaceContinuityAuditTest {
             modelGroupSessionDefaults = listOf(ModelGroupSessionDefault("openai_reasoning", contextMessageSize = 1)),
         )
         val kernel = ScriptKernel { session, _ ->
-            assertEquals(Int.MAX_VALUE, session.settings.contextMessageSize)
-            assertEquals(Int.MAX_VALUE, session.settings.resolveSessionDefaults(model).contextMessageSize)
+            assertEquals(Int.MAX_VALUE, session.settings.defaults.contextMessageSize)
+            assertEquals(model, session.model)
             val path = checkNotNull(Regex("(?m)^CHAPTER_PATH: (.+)$").find(systemPrompt(session))).groupValues[1]
             reply(path)
         }

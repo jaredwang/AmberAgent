@@ -17,6 +17,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -108,6 +109,47 @@ class AgentLiveStatusNotifierTest {
     }
 
     @Test
+    fun `saved stop action keeps its original run when a successor notification is posted`() {
+        notify(parts = listOf(UIMessagePart.Text("First reply")), runId = "run-1")
+        val first = notification().actions.single().actionIntent
+        notifier.cancel(conversationId)
+
+        notify(parts = listOf(UIMessagePart.Text("Next reply")), runId = "run-2")
+        val successor = notification().actions.single().actionIntent
+
+        assertEquals("run-1", shadowOf(first).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_RUN_ID))
+        assertEquals("run-2", shadowOf(successor).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_RUN_ID))
+    }
+
+    @Test
+    fun `saved approval action keeps its original tool and token when another question is posted`() {
+        fun question(id: String) = UIMessagePart.Tool(
+            toolCallId = id,
+            toolName = "ask_user",
+            input = """{"questions":[{"question":"Continue?","options":["Yes","No"]}]}""",
+            approvalState = ToolApprovalState.Pending,
+        )
+        notify(parts = listOf(question("first-question")))
+        val first = notification().actions.single().actionIntent
+        val originalToken = shadowOf(first).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN)
+        notifier.cancel(conversationId)
+
+        notify(parts = listOf(question("next-question")))
+        val next = notification().actions.single().actionIntent
+
+        assertEquals("first-question", shadowOf(first).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_TOOL_CALL_ID))
+        assertEquals(originalToken, shadowOf(first).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN))
+        assertEquals("next-question", shadowOf(next).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_TOOL_CALL_ID))
+
+        val nextToken = shadowOf(next).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN)
+        notifier.cancel(conversationId)
+        notify(parts = listOf(question("next-question")))
+        val refreshed = notification().actions.single().actionIntent
+        assertEquals(nextToken, shadowOf(next).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN))
+        assertNotEquals(nextToken, shadowOf(refreshed).savedIntent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN))
+    }
+
+    @Test
     fun `raw terminal command stays private while unlocked details remain visible`() {
         notifyTerminal("LEAK curl https://private.example", hideSensitive = false)
 
@@ -150,6 +192,7 @@ class AgentLiveStatusNotifierTest {
         parts: List<UIMessagePart>,
         activity: SandboxActivityUiState? = null,
         hideSensitive: Boolean = false,
+        runId: String = "notification-test-run",
     ) {
         notifier.notifyRunning(
             conversationId = conversationId,
@@ -158,7 +201,7 @@ class AgentLiveStatusNotifierTest {
             activity = activity,
             hideSensitive = hideSensitive,
             launchIntent = { null },
-            runId = "notification-test-run",
+            runId = runId,
         )
     }
 

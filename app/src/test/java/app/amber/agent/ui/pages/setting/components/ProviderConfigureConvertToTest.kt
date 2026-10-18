@@ -1,5 +1,9 @@
 package app.amber.feature.ui.pages.setting.components
 
+import app.amber.feature.ui.pages.setting.provider.convertTo
+import app.amber.feature.ui.pages.setting.provider.isUsingDefaultBaseUrl
+import app.amber.feature.ui.pages.setting.provider.resetBaseUrlToDefault
+import app.amber.core.settings.DEFAULT_PROVIDERS
 import app.amber.ai.provider.BalanceOption
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.ProviderSetting
@@ -108,4 +112,41 @@ class ProviderConfigureConvertToTest {
         val converted = original.convertTo(ProviderSetting.OpenAI::class) as ProviderSetting.OpenAI
         assertEquals("not-a-url", converted.baseUrl)
     }
+
+    @Test
+    fun `reset should restore built-in endpoint and keep credentials and models`() {
+        val preset = DEFAULT_PROVIDERS.filterIsInstance<ProviderSetting.OpenAI>().first()
+        val model = Model(modelId = "custom-model", displayName = "Custom Model")
+        val edited = preset.copy(
+            baseUrl = "https://gateway.example.com/custom/v1",
+            apiKey = "saved-key",
+            models = listOf(model),
+        )
+
+        val restored = edited.resetBaseUrlToDefault() as ProviderSetting.OpenAI
+
+        assertEquals(preset.baseUrl, restored.baseUrl)
+        assertEquals(edited.id, restored.id)
+        assertEquals(edited.apiKey, restored.apiKey)
+        assertEquals(edited.models, restored.models)
+        assertTrue(restored.isUsingDefaultBaseUrl())
+    }
+
+    @Test
+    fun `reset after protocol conversion should use the new protocol default`() {
+        val preset = DEFAULT_PROVIDERS.filterIsInstance<ProviderSetting.OpenAI>().first()
+        val converted = ProviderSetting.Google(
+            id = preset.id,
+            baseUrl = "https://gateway.example.com/custom/v1beta",
+            apiKey = "saved-key",
+        )
+
+        val restored = converted.resetBaseUrlToDefault() as ProviderSetting.Google
+
+        assertEquals(ProviderSetting.Google().baseUrl, restored.baseUrl)
+        assertEquals(converted.id, restored.id)
+        assertEquals(converted.apiKey, restored.apiKey)
+        assertTrue(restored.isUsingDefaultBaseUrl())
+    }
+
 }

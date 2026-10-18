@@ -14,6 +14,8 @@ import app.amber.ai.ui.MessageStreamAccumulator
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
 import app.amber.ai.util.json
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -273,6 +275,130 @@ class ResponseAPIResumeStreamTest {
         // conversation checkpoint; this transport-level test has no owner,
         // so the terminal cursor remains available for recovery.
         assertEquals(11L, store.load("run_1")?.sequence)
+    }
+
+    @Test
+    fun secondDisconnectFailsWithoutAThirdRequestAndCancelsBothSources() = runBlocking {
+        val transport = FakeSseTransport()
+        val store = InMemoryResumeStore()
+        val setting = providerSetting()
+        val api = ResponseAPI(okhttp3.OkHttpClient(), transport = transport::invoke)
+        val chunks = mutableListOf<MessageChunk>()
+        val outcome = CompletableDeferred<Result<Unit>>()
+        val job = launch {
+            outcome.complete(runCatching {
+                withTimeout(10_000) {
+                    api.streamText(setting, emptyList(), params(ResponsesResumeRequest("run_1", store)))
+                        .collect { chunks += it }
+                }
+            })
+        }
+        withTimeout(10_000) { while (transport.streams.isEmpty()) yield() }
+        val initial = transport.streams[0].second
+        initial.onEvent(transport.sources[0], null, "response.created", createdEvent(0, "resp_1"))
+        initial.onEvent(transport.sources[0], null, "response.output_text.delta", deltaEvent(1, "resp_1", "msg_1", "a"))
+        withTimeout(10_000) { while (store.load("run_1")?.sequence != 1L) yield() }
+        initial.onFailure(transport.sources[0], IOException("first disconnect"), null)
+        withTimeout(10_000) { while (transport.streams.size < 2) yield() }
+        assertEquals("GET", transport.streams[1].first.method)
+        val replay = transport.streams[1].second
+        replay.onEvent(transport.sources[1], null, "response.created", createdEvent(0, "resp_1"))
+        replay.onEvent(transport.sources[1], null, "response.output_text.delta", deltaEvent(2, "resp_1", "msg_1", "b"))
+        withTimeout(10_000) { while (store.load("run_1")?.sequence != 2L) yield() }
+        val secondFailure = IOException("second disconnect must escape")
+        replay.onFailure(transport.sources[1], secondFailure, null)
+        val result = withTimeout(10_000) { outcome.await() }
+        job.join()
+
+        val failure = requireNotNull(result.exceptionOrNull())
+        assertTrue(failure is IOException)
+        assertEquals(secondFailure.message, failure.message)
+        assertTrue("Coroutine stacktrace recovery must retain the original second failure",
+            generateSequence(failure) { it.cause }.any { it === secondFailure })
+        assertEquals(2, transport.streams.size)
+        assertTrue("Both real transport handles must be cancelled", transport.sources.all { it.cancelled })
+        assertEquals("ab", chunks.joinToString("") { deltaText(it) })
+        assertEquals(ResponseCursor("resp_1", 2, setting.id.toString()), store.load("run_1"))
+    }
+
+    @Test
+    fun collectingCancellationCancelsTheActiveEventSourceWithoutReconnectOrCursorDeletion() = runBlocking {
+        val transport = FakeSseTransport()
+        val store = InMemoryResumeStore()
+        val setting = providerSetting()
+        val api = ResponseAPI(okhttp3.OkHttpClient(), transport = transport::invoke)
+        val chunks = mutableListOf<MessageChunk>()
+        val received = CompletableDeferred<Unit>()
+        val job = launch {
+            api.streamText(setting, emptyList(), params(ResponsesResumeRequest("run_1", store))).collect {
+                chunks += it
+                received.complete(Unit)
+            }
+        }
+        withTimeout(10_000) { while (transport.streams.isEmpty()) yield() }
+        val listener = transport.streams.single().second
+        val source = transport.sources.single()
+        listener.onEvent(source, null, "response.created", createdEvent(0, "resp_1"))
+        listener.onEvent(source, null, "response.output_text.delta", deltaEvent(1, "resp_1", "msg_1", "a"))
+        withTimeout(10_000) { received.await(); job.cancelAndJoin() }
+
+        assertTrue(job.isCancelled)
+        assertTrue("Cancellation must reach the actual EventSource handle", source.cancelled)
+        assertEquals(1, transport.streams.size)
+        assertEquals(ResponseCursor("resp_1", 1, setting.id.toString()), store.load("run_1"))
+        listener.onEvent(source, null, "response.completed", completedEvent(2, "resp_1", "[]"))
+        listener.onFailure(source, IOException("late callback after cancellation"), null)
+        yield()
+        assertEquals("Late provider callbacks cannot reach the cancelled consumer", "a", chunks.joinToString("") { deltaText(it) })
+        assertEquals(1, transport.streams.size)
+        assertEquals(1L, store.load("run_1")?.sequence)
+    }
+
+    @Test
+    fun cursorSaveCompletesBeforeAnyDownstreamEventIsVisible() = runBlocking {
+        val transport = FakeSseTransport()
+        val durable = InMemoryResumeStore()
+        val saveEntered = CompletableDeferred<Unit>()
+        val releaseSave = CompletableDeferred<Unit>()
+        val store = object : ResponseResumeStore by durable {
+            override suspend fun save(runId: String, responseId: String, sequence: Long, providerId: String) {
+                if (sequence == 1L) {
+                    saveEntered.complete(Unit)
+                    releaseSave.await()
+                }
+                durable.save(runId, responseId, sequence, providerId)
+            }
+        }
+        val setting = providerSetting()
+        val api = ResponseAPI(okhttp3.OkHttpClient(), transport = transport::invoke)
+        val chunks = mutableListOf<MessageChunk>()
+        val cursorAtEmission = mutableListOf<Long>()
+        val job = launch {
+            withTimeout(10_000) {
+                api.streamText(setting, emptyList(), params(ResponsesResumeRequest("run_1", store))).collect {
+                    cursorAtEmission += requireNotNull(store.load("run_1")).sequence
+                    chunks += it
+                }
+            }
+        }
+        withTimeout(10_000) { while (transport.streams.isEmpty()) yield() }
+        val listener = transport.streams.single().second
+        val source = transport.sources.single()
+        listener.onEvent(source, null, "response.created", createdEvent(0, "resp_1"))
+        listener.onEvent(source, null, "response.output_text.delta", deltaEvent(1, "resp_1", "msg_1", "a"))
+        listener.onEvent(source, null, "response.completed", completedEvent(2, "resp_1",
+            """[{"type":"message","id":"msg_1","role":"assistant","content":[{"type":"output_text","text":"a"}]}]"""))
+        withTimeout(10_000) { saveEntered.await() }
+        assertTrue("Queued events must not escape a suspended cursor save", chunks.isEmpty())
+        assertNull(store.load("run_1"))
+        releaseSave.complete(Unit)
+        job.join()
+
+        assertEquals(listOf(1L, 2L), cursorAtEmission)
+        assertEquals("a", chunks.joinToString("") { deltaText(it) })
+        assertEquals(2, chunks.size)
+        assertEquals(ResponseCursor("resp_1", 2, setting.id.toString()), store.load("run_1"))
+        assertTrue(source.cancelled)
     }
 
     @Test

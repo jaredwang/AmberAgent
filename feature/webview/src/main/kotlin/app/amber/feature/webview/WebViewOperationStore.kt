@@ -302,7 +302,7 @@ private fun WebViewOperationState.matches(toolCallId: String, url: String): Bool
     if (toolCallId.isNotBlank() && this.toolCallId.isNotBlank() && this.toolCallId == toolCallId) return true
     val normalizedUrl = url.normalizedPreviewUrl()
     if (normalizedUrl.isBlank()) return false
-    return sequenceOf(requestedUrl, committedUrl, this.url, displayUrl, lastGoodPreviewUrl)
+    return sequenceOf(requestedUrl, committedUrl, this.url, displayUrl)
         .filter { it.isNotBlank() }
         .map { it.normalizedPreviewUrl() }
         .any { it == normalizedUrl }

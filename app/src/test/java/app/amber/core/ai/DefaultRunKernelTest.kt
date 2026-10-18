@@ -45,6 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
 class DefaultRunKernelTest : DurableRuntimeTestBase() {
+    private val sessionModel = Model()
+
 
     /**
      * Engine that appends one scripted assistant message per round.
@@ -346,8 +348,8 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
     ): GenerationRunSession {
         var pendingSteer = steer
         return GenerationRunSession(
-            settings = settings,
-            model = Model(),
+            settings = settings.toGenerationSettings(sessionModel),
+            model = sessionModel,
             messages = messages,
             tools = tools,
             maxSteps = maxSteps,

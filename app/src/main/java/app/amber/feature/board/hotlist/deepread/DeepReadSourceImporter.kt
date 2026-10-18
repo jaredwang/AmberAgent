@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import app.amber.document.DocxParser
 import app.amber.document.EpubParser
@@ -51,16 +54,32 @@ object DeepReadSourceImporter {
         }
 
         val temp = runCatching {
-            File.createTempFile("deepread-import-", ".$ext".ifBlank { ".bin" }, context.cacheDir).also { file ->
-                resolver.openInputStream(uri)?.use { input ->
-                    file.outputStream().use { output -> input.copyTo(output) }
-                } ?: return@withContext Result.Failure(Reason.READ_ERROR)
-            }
-        }.getOrElse { return@withContext Result.Failure(Reason.READ_ERROR) }
+            File.createTempFile("deepread-import-", ".$ext".ifBlank { ".bin" }, context.cacheDir)
+        }.getOrElse {
+            if (it is CancellationException) throw it
+            return@withContext Result.Failure(Reason.READ_ERROR)
+        }
 
         try {
-            val text = runCatching { extractText(temp, mime, ext) }.getOrNull()
-                ?: return@withContext Result.Failure(Reason.READ_ERROR)
+            resolver.openInputStream(uri)?.use { input ->
+                temp.outputStream().use { output ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    var copied = 0L
+                    while (true) {
+                        currentCoroutineContext().ensureActive()
+                        // Providers may omit or misreport SIZE. Consume only the first byte over the cap.
+                        val readLimit = minOf(buffer.size.toLong(), MAX_IMPORT_FILE_BYTES - copied + 1).toInt()
+                        val read = input.read(buffer, 0, readLimit)
+                        if (read < 0) break
+                        copied += read
+                        if (copied > MAX_IMPORT_FILE_BYTES) return@withContext Result.Failure(Reason.TOO_LARGE)
+                        output.write(buffer, 0, read)
+                    }
+                }
+            } ?: return@withContext Result.Failure(Reason.READ_ERROR)
+            currentCoroutineContext().ensureActive()
+            val text = extractText(temp, mime, ext)
+            currentCoroutineContext().ensureActive()
             if (text.isBlank()) return@withContext Result.Failure(Reason.NO_TEXT)
             Result.Success(
                 ImportedSource(
@@ -70,16 +89,19 @@ object DeepReadSourceImporter {
                     truncated = text.length > MAX_IMPORT_TEXT_CHARS,
                 )
             )
+        } catch (error: Throwable) {
+            if (error is CancellationException) throw error
+            Result.Failure(Reason.READ_ERROR)
         } finally {
             temp.delete()
         }
     }
 
     private fun extractText(file: File, mime: String, ext: String): String = when {
-        mime == "application/pdf" || ext == "pdf" -> PdfParser.parserPdf(file, MAX_IMPORT_TEXT_CHARS)
-        mime == MIME_DOCX || ext == "docx" -> DocxParser.parse(file, MAX_IMPORT_TEXT_CHARS)
-        mime == MIME_PPTX || ext == "pptx" -> PptxParser.parse(file, MAX_IMPORT_TEXT_CHARS)
-        mime == "application/epub+zip" || ext == "epub" -> EpubParser.parse(file, MAX_IMPORT_TEXT_CHARS)
+        mime == "application/pdf" || ext == "pdf" -> PdfParser.extractText(file, MAX_IMPORT_TEXT_CHARS)
+        mime == MIME_DOCX || ext == "docx" -> DocxParser.extractText(file, MAX_IMPORT_TEXT_CHARS)
+        mime == MIME_PPTX || ext == "pptx" -> PptxParser.extractText(file, MAX_IMPORT_TEXT_CHARS)
+        mime == "application/epub+zip" || ext == "epub" -> EpubParser.extractText(file, MAX_IMPORT_TEXT_CHARS)
         else -> file.bufferedReader().use { reader ->
             val buffer = CharArray(MAX_IMPORT_TEXT_CHARS + 1)
             var total = 0
@@ -106,14 +128,14 @@ object DeepReadSourceImporter {
             resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) cursor.getString(0) else null
             }
-        }.getOrNull()
+        }.onFailure { if (it is CancellationException) throw it }.getOrNull()
 
     private fun querySize(resolver: android.content.ContentResolver, uri: Uri): Long? =
         runCatching {
             resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else null
             }
-        }.getOrNull()
+        }.onFailure { if (it is CancellationException) throw it }.getOrNull()
 
     /** Aligned with the iOS deep-read import cap (40k chars). */
     private const val MAX_IMPORT_TEXT_CHARS = 40_000

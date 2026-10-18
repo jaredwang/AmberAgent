@@ -18,7 +18,7 @@ object MiniAppOutputTransformer : OutputMessageTransformer, KoinComponent {
         ctx: TransformerContext,
         messages: List<UIMessage>,
     ): List<UIMessage> {
-        if (!ctx.settings.agentRuntime.miniApp.enabled) return messages
+        if (!ctx.settings.miniAppEnabled) return messages
         val assistantIndex = messages.indexOfLast { it.role == MessageRole.ASSISTANT }
         if (assistantIndex < 0) return messages
         val lastUserIndex = messages.take(assistantIndex).indexOfLast { it.role == MessageRole.USER }

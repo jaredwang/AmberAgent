@@ -3,6 +3,7 @@ package app.amber.feature.runtime
 import android.util.Log
 import app.amber.ai.provider.ResponseResumeStore
 import app.amber.ai.provider.providers.openai.StoredResponseCancelResult
+import java.util.concurrent.ConcurrentHashMap
 
 private const val TAG = "StoredResponseStopCancel"
 
@@ -18,6 +19,20 @@ class StoredResponseStopCancel(
     private val gateway: StoredResponseGateway,
     private val resumeStore: ResponseResumeStore,
 ) {
+    // Stop marks this before cancelling the local handler; that handler's final
+    // checkpoint then publishes WAITING_EXTERNAL instead of a false cancellation.
+    private val unconfirmedStops = ConcurrentHashMap.newKeySet<String>()
+
+    fun markStopUnconfirmed(runId: String) {
+        unconfirmedStops.add(runId)
+    }
+
+    fun consumeStopUnconfirmed(runId: String): Boolean = unconfirmedStops.remove(runId)
+
+    fun clearStopUnconfirmed(runId: String) {
+        unconfirmedStops.remove(runId)
+    }
+
     /** Regeneration may start a new run only after the previous response is settled. */
     suspend fun cancelForRegeneration(runId: String, terminals: RunTerminalStore): Boolean {
         val cancelled = cancelStored(runId)

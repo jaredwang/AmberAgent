@@ -23,6 +23,8 @@ dependencies {
     api(project(":ai"))
     api(project(":core:model"))
     api(project(":core:settings"))
+    api(project(":core:context:api"))
+    api(project(":core:memory:api"))
     api(project(":core:ai:transformers:api"))
     api(project(":core:agent-runtime"))
     api(project(":feature:runtime:api"))

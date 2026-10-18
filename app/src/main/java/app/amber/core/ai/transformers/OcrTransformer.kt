@@ -19,8 +19,6 @@ import app.amber.common.cache.LruCache
 import app.amber.common.cache.SingleFileCacheStore
 import app.amber.core.ai.prompts.resolveVisionRecognitionPrompt
 import app.amber.core.settings.Settings
-import app.amber.core.settings.findModelById
-import app.amber.core.settings.findProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import java.io.File
@@ -110,7 +108,7 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
                                     UIMessagePart.Text(
                                         performImageRecognition(
                                             part = part,
-                                            settings = ctx.settings,
+                                            settings = ctx.settings.ocr,
                                             strings = strings,
                                         )
                                     )
@@ -133,16 +131,24 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         promptOverride: String? = null,
         useCache: Boolean = true,
         strings: OcrStrings = OcrStrings.english(),
+    ): String = performImageRecognition(part, settings.toOcrSettings(), promptOverride, useCache, strings)
+
+    suspend fun performImageRecognition(
+        part: UIMessagePart.Image,
+        settings: OcrSettings,
+        promptOverride: String? = null,
+        useCache: Boolean = true,
+        strings: OcrStrings = OcrStrings.english(),
     ): String {
-        val model = settings.findModelById(settings.ocrModelId)
+        val model = settings.model
             ?: throw VisualRecognitionException(strings.modelMissing)
         if (Modality.IMAGE !in model.inputModalities) {
             throw VisualRecognitionException(strings.modelUnsupported)
         }
-        val providerSetting = model.findProvider(settings.providers)
+        val providerSetting = settings.provider
             ?: throw VisualRecognitionException(strings.providerMissing)
         val prompt = promptOverride?.trim()?.takeIf { it.isNotBlank() }
-            ?: resolveVisionRecognitionPrompt(settings.ocrPrompt)
+            ?: resolveVisionRecognitionPrompt(settings.prompt)
         val cacheKey = "${part.url}|${model.id}|${prompt.hashCode()}"
 
         if (useCache) {

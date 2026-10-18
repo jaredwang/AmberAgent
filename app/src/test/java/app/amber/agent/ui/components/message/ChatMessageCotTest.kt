@@ -1,12 +1,22 @@
 package app.amber.feature.ui.components.message
 
+import android.app.Application
+import android.content.res.Configuration
 import app.amber.ai.ui.UIMessagePart
 import app.amber.ai.ui.reasoningContentPresentMetadata
+import app.amber.agent.R
 import app.amber.feature.subagent.SubAgentRunStatus
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = Application::class)
 class ChatMessageCotTest {
     @Test
     fun `blank reasoning markers do not split adjacent visible text`() {
@@ -81,7 +91,10 @@ class ChatMessageCotTest {
         assertEquals(SubAgentRunStatus.COMPLETED, state.status)
         assertTrue(state.isQueued)
         assertTrue(state.isPendingReceipt)
-        assertEquals("补充已排队", state.statusVerb(SubAgentRunStatus.COMPLETED))
+        assertEquals(
+            englishResources().getString(R.string.chat_message_subagent_status_followup_queued),
+            state.statusVerb(SubAgentRunStatus.COMPLETED),
+        )
     }
 
     @Test
@@ -103,7 +116,18 @@ class ChatMessageCotTest {
 
         assertEquals(2, state.turn)
         assertEquals(SubAgentRunStatus.RUNNING, state.status)
-        assertEquals("第2轮 正在工作", state.statusVerb(state.status))
+        val resources = englishResources()
+        assertEquals(
+            resources.getString(R.string.chat_message_subagent_turn_prefix, state.turn).trimEnd() + " " +
+                resources.getString(R.string.chat_message_subagent_status_working),
+            state.statusVerb(state.status),
+        )
+    }
+
+    // statusVerb is the documented English non-Compose fallback; the UI uses localizedStatusVerb.
+    private fun englishResources() = RuntimeEnvironment.getApplication().let { application ->
+        val configuration = Configuration(application.resources.configuration).apply { setLocale(Locale.ENGLISH) }
+        application.createConfigurationContext(configuration).resources
     }
 
     private fun tool(name: String, input: String, output: String): UIMessagePart.Tool =

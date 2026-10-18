@@ -247,7 +247,9 @@ object GuizangHtmlDeckValidator {
                 Regex("""(?<=['"])(?:\./)?assets/lucide\.min\.js(?=['"])""", RegexOption.IGNORE_CASE),
                 lucideUrl,
             )
+            .replace(LOCAL_MOTION_URL, motionUrl, ignoreCase = true)
             .replace(LEGACY_LOCAL_MOTION_URL, motionUrl, ignoreCase = true)
+            .replace(LOCAL_LUCIDE_URL, lucideUrl, ignoreCase = true)
             .replace(LEGACY_LOCAL_LUCIDE_URL, lucideUrl, ignoreCase = true)
             .replace(
                 Regex("""(?<=['"])(?:\./)?assets/three\.min\.js(?=['"])""", RegexOption.IGNORE_CASE),

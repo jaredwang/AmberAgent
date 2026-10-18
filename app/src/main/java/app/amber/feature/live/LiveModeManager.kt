@@ -1,16 +1,9 @@
 package app.amber.feature.live
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.PendingIntent
-import android.content.Intent
 import android.view.accessibility.AccessibilityManager
-import androidx.core.app.NotificationCompat
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,14 +25,9 @@ import app.amber.core.agent.runtime.AgentRunner
 import app.amber.core.agent.runtime.RunStatus
 import app.amber.core.agent.store.RoomAgentEventStore
 import app.amber.core.automation.AmberAccessibilityService
-import app.amber.core.automation.LiveFillOutcome
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.utils.JsonInstant
 import app.amber.core.utils.appLocale
-import app.amber.core.utils.sendNotification
-import app.amber.feature.bubble.BubbleWindow
-import app.amber.feature.live.bubble.LiveBubbleContent
-import app.amber.feature.ui.theme.AmberAgentTheme
 
 class LiveModeManager(
     private val context: Context,
@@ -57,17 +45,24 @@ class LiveModeManager(
     )
     val state: StateFlow<LiveModeUiState> = _state.asStateFlow()
 
-    /** 气泡展开态由 Manager 持有（原 UI 侧 remember 在窗口重挂/任务气泡让位往返后会丢失）。
-     *  lastSeenMillis 同理上提：跨重挂的"新鲜结果"判定与查看指标不再重置。 */
-    private val _bubbleExpanded = MutableStateFlow(false)
-    val bubbleExpanded: StateFlow<Boolean> = _bubbleExpanded.asStateFlow()
-
-    @Volatile
-    private var bubbleLastSeenMillis: Long = 0L
-
     private val analyzer = LiveAnalyzer(providerCatalog, context)
     private val screenshotter = LiveScreenshotter(context)
-    private val bubble = BubbleWindow()
+    private val resultNotifier = LiveResultNotifier(context)
+    private val draftFiller = LiveDraftFiller(context)
+    private val bubblePresenter = LiveBubblePresenter(
+        ownPackageName = context.packageName,
+        state = state,
+        onFillDraft = ::fillCurrentDraft,
+        onRefresh = ::refreshNow,
+        onStop = ::stop,
+        onSuggestViewed = {
+            appScope.launch(Dispatchers.IO) {
+                runCatching { usageStore.markSuggestViewed() }
+            }
+        },
+    )
+    val bubbleExpanded: StateFlow<Boolean> = bubblePresenter.expanded
+
 
     private var loopJob: Job? = null
     private var eventJob: Job? = null
@@ -84,17 +79,8 @@ class LiveModeManager(
     @Volatile
     private var lastStreamEmitAt: Long = 0L
 
-    /** 填入二次确认窗口（包名+草稿哈希+时间戳）；熔断集（回读不符的包名，进程级）。 */
-    @Volatile
-    private var pendingFillConfirm: Triple<String, Int, Long>? = null
-    private val fillDenylist = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
-
     /** 自动建议预算账本：包名 → 最近一小时触发时间戳队列（P2 推理门）。 */
     private val autoSuggestTimestamps = java.util.concurrent.ConcurrentHashMap<String, ArrayDeque<Long>>()
-
-    /** 已上报"查看"的结果时间戳（去重；单调不回落——同结果被反复展开只计一次）。 */
-    @Volatile
-    private var lastSuggestViewedAt: Long = 0L
 
     @Volatile
     private var screenDirty: Boolean = true // 启动先看一眼
@@ -135,7 +121,7 @@ class LiveModeManager(
         // 任务气泡亮起时立即让位（不等 runLoop 下个 tick，避免双窗叠放数秒）
         bubbleWatchJob = appScope.launch(Dispatchers.Main.immediate) {
             taskBubble.visible.collect {
-                syncBubble(settingsStore.settingsFlow.value.agentRuntime.liveMode)
+                bubblePresenter.sync(settingsStore.settingsFlow.value.agentRuntime.liveMode, taskBubble.visible.value)
             }
         }
         loopJob = appScope.launch(Dispatchers.Main.immediate) { runLoop() }
@@ -152,16 +138,7 @@ class LiveModeManager(
         }
     }
 
-    /** 自动建议结果被查看（气泡展开）——P2 对照指标"有效帮助"。
-     *  以结果为单位去重（P2 终审 #3：气泡重组会重置 UI 侧 lastSeenMillis，
-     *  同一结果往返展开不得重复计数）；atMillis=结果的 lastUpdatedAtMillis。 */
-    fun markSuggestViewed(atMillis: Long) {
-        if (atMillis <= lastSuggestViewedAt) return
-        lastSuggestViewedAt = atMillis
-        appScope.launch(Dispatchers.IO) {
-            runCatching { usageStore.markSuggestViewed() }
-        }
-    }
+    fun markSuggestViewed(atMillis: Long) = bubblePresenter.markSuggestViewed(atMillis)
 
     /** 每包名每小时的自动建议预算（蓝图 §7.4 P2 推理门：防同一 App 刷屏）。 */
     private fun autoBudgetAllow(packageName: String): Boolean {
@@ -240,15 +217,7 @@ class LiveModeManager(
         }
     }
 
-    /** 展开即视为"查看"：新鲜自动结果记指标（P2 终审 #3 口径移到这里，跨重挂仍按结果时间戳去重）。 */
-    fun setBubbleExpanded(expanded: Boolean) {
-        val s = _state.value
-        if (expanded && s.card != null && s.lastUpdatedAtMillis > bubbleLastSeenMillis) {
-            if (s.lastResultAuto) markSuggestViewed(s.lastUpdatedAtMillis)
-            bubbleLastSeenMillis = s.lastUpdatedAtMillis
-        }
-        _bubbleExpanded.value = expanded
-    }
+    fun setBubbleExpanded(expanded: Boolean) = bubblePresenter.setBubbleExpanded(expanded)
 
     fun stop() {
         analysisGeneration.incrementAndGet()
@@ -262,13 +231,11 @@ class LiveModeManager(
         activeRunId = null
         analysisJob?.cancel()
         analysisJob = null
-        bubble.hide()
+        bubblePresenter.stop()
         engine = null
         pendingSnapshot = null
         screenDirty = true
         focusInstruction = ""
-        _bubbleExpanded.value = false
-        bubbleLastSeenMillis = 0L
         _state.value = LiveModeUiState(
             statusText = context.getString(R.string.live_empty_not_started),
         )
@@ -354,7 +321,7 @@ class LiveModeManager(
         while (true) {
             val settings = settingsStore.settingsFlow.value
             val liveSetting = settings.agentRuntime.liveMode
-            syncBubble(liveSetting)
+            bubblePresenter.sync(liveSetting, taskBubble.visible.value)
             if (!liveSetting.enabled) {
                 // 设置页开关关闭 = 停止一切（与 stop() 的取消语义对齐）：
                 // 在飞 run 取消、晚到结果经 generation 兜底不回写（总检查 #2）。
@@ -467,7 +434,7 @@ class LiveModeManager(
             // 签名去重使快照分支不重算，静态屏幕下设置变更/熔断后 UI 标签会滞留）。
             val freshFillAllowed = pendingSnapshot?.let {
                 LiveScenes.classify(it.packageName, liveSetting.sceneOverrides) == LiveScene.CHAT &&
-                    it.packageName !in fillDenylist
+                    !draftFiller.isDenied(it.packageName)
             } ?: false
             if (_state.value.fillAllowed != freshFillAllowed) {
                 _state.update { it.copy(fillAllowed = freshFillAllowed) }
@@ -644,7 +611,9 @@ class LiveModeManager(
                             if (!force) {
                                 runCatching { withContext(NonCancellable) { usageStore.accumulateSuggest() } }
                             }
-                            notifyAnalysisDone(actionLabel, artifact.card.watching, auto = !force)
+                            if (bubblePresenter.isShowing) {
+                                resultNotifier.notifyDone(localizedActionLabel(actionLabel), artifact.card.watching, auto = !force)
+                            }
                         }
                         }
                     }
@@ -772,92 +741,13 @@ class LiveModeManager(
         return screenshotter.captureToFileUri(service, snapshot.windowId)
     }
 
-    /**
-     * 屏幕写入仲裁（蓝图 §7.2 P0-5 + §7.3 P1-2 白名单填入）。决策核在
-     *  [LiveFillPolicy]（纯逻辑，JVM 锁定）；这里做平台探测与执行：
-     * 写入前现抓窗口身份与卡片来源比对（封死 runLoop tick 的同包切会话盲窗），
-     * 目标框已有非草稿文本 → NEEDS_CONFIRM（5s 内二次点击 = 明确覆盖选择）；
-     * 写入后回读不符 → 熔断该包名（进程级）并降级复制。冲突一律拒绝，不排队。
-     */
-    fun fillCurrentDraft(): LiveFillResult {
-        val state = _state.value
-        val card = state.card ?: return LiveFillResult.NO_DRAFT
-        val draft = card.suggestions.firstOrNull()?.takeIf { it.isNotBlank() }
-            ?: card.watching.takeIf { it.isNotBlank() }
-            ?: return LiveFillResult.NO_DRAFT
-        val targetPackage = state.currentPackage
-        val service = AmberAccessibilityService.getActiveService()
-        if (service == null) {
-            copyDraftToClipboard(draft)
-            return LiveFillResult.COPIED
-        }
-
-        // 同次观察重校验（Phase 7 检查 #1）：cardStale 依赖 runLoop tick（≤1.5s），
-        // 同包切会话的盲窗内 stale 仍为 false——写入前现抓窗口身份兜底比对。
-        val liveSetting = settingsStore.settingsFlow.value.agentRuntime.liveMode
-        val fresh = runCatching {
-            service.captureLiveUiSnapshot(
-                ownPackageName = context.packageName,
-                maxNodes = liveSetting.maxNodes.coerceIn(40, 260),
-            )
-        }.getOrNull()
-        val existing = service.readTextInPackage(targetPackage)
-        val confirmed = pendingFillConfirm?.let { (pkg, hash, at) ->
-            pkg == targetPackage && hash == draft.hashCode() &&
-                System.currentTimeMillis() - at <= FILL_CONFIRM_WINDOW_MS
-        } == true
-        val decision = LiveFillPolicy.decide(
-            cardStale = state.cardStale,
-            scene = LiveScenes.classify(targetPackage, liveSetting.sceneOverrides),
-            denied = targetPackage in fillDenylist,
-            targetPresent = existing != null,
-            contextMatches = fresh != null &&
-                fresh.packageName == targetPackage && fresh.title == state.currentTitle,
-            existingText = existing,
-            draft = draft,
-            confirmed = confirmed,
-        )
-        return when (decision) {
-            LiveFillPolicy.Decision.COPY_STALE -> {
-                copyDraftToClipboard(draft)
-                LiveFillResult.REJECTED_STALE
-            }
-            LiveFillPolicy.Decision.COPY -> {
-                copyDraftToClipboard(draft)
-                LiveFillResult.COPIED
-            }
-            LiveFillPolicy.Decision.CONFIRM -> {
-                pendingFillConfirm = Triple(targetPackage, draft.hashCode(), System.currentTimeMillis())
-                LiveFillResult.NEEDS_CONFIRM
-            }
-            LiveFillPolicy.Decision.FILL -> {
-                pendingFillConfirm = null
-                when (service.setTextInPackageVerified(targetPackage, draft)) {
-                    LiveFillOutcome.SUCCESS -> LiveFillResult.FILLED
-                    LiveFillOutcome.MISMATCH -> {
-                        // 写入未被接受/被并发覆盖：熔断该包名，不自动重试。
-                        fillDenylist += targetPackage
-                        copyDraftToClipboard(draft)
-                        LiveFillResult.COPIED
-                    }
-                    LiveFillOutcome.NOT_FOUND, LiveFillOutcome.UNKNOWN -> {
-                        copyDraftToClipboard(draft)
-                        LiveFillResult.COPIED
-                    }
-                }
-            }
-        }
-    }
-
-    private fun copyDraftToClipboard(draft: String) {
-        context.getSystemService(ClipboardManager::class.java)
-            ?.setPrimaryClip(ClipData.newPlainText("amber-live-draft", draft))
-    }
+    fun fillCurrentDraft(): LiveFillResult =
+        draftFiller.fill(_state.value, settingsStore.settingsFlow.value.agentRuntime.liveMode)
 
     /** 整卡复制（页面"复制"chip）：文案与"发到聊天"同格式，走剪贴板。 */
     fun copyCurrentCardToClipboard(): Boolean {
         val text = exportCurrentCard() ?: return false
-        copyDraftToClipboard(text)
+        draftFiller.copyText(text)
         return true
     }
 
@@ -871,76 +761,6 @@ class LiveModeManager(
 
     /** 撤销删除（toast Undo）：原 id 仍在（延迟删除未落库）则跳过，否则按原 createdAt 重插。 */
     suspend fun restoreSavedCard(card: LiveCardEntity) = cardStore.restore(card)
-
-    /**
-     * 结果通知（蓝图 §7.3 P1-6 / §7.4 P2-2）：仅在气泡显示中（用户在外 App）时通知；
-     * 伴随页在前台（Amber 前台时气泡隐藏）不打扰。点击打开伴随页。
-     * 通知默认 VISIBILITY_PRIVATE（NotificationUtil 默认），锁屏不暴露第三方摘要。
-     * auto=true 时标题区分"伴随建议"（P2 自动建议）与手动"伴随完成"。
-     */
-    private fun notifyAnalysisDone(actionLabel: String, watching: String, auto: Boolean = false) {
-        if (!bubble.isShowing) return
-        val intent = Intent(context, app.amber.agent.RouteActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(app.amber.agent.RouteActivity.EXTRA_OPEN_LIVE_COMPANION, true)
-        }
-        val pending = PendingIntent.getActivity(
-            context,
-            LIVE_RESULT_NOTIFICATION_ID,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        context.sendNotification(
-            channelId = app.amber.agent.CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID,
-            notificationId = LIVE_RESULT_NOTIFICATION_ID,
-        ) {
-            title = context.getString(
-                if (auto) R.string.live_notification_suggest_title else R.string.live_notification_result_title,
-                localizedActionLabel(actionLabel),
-            )
-            content = watching.take(120)
-            smallIcon = R.drawable.amberagent_live_status_icon
-            autoCancel = true
-            onlyAlertOnce = true
-            category = NotificationCompat.CATEGORY_STATUS
-            contentIntent = pending
-        }
-    }
-
-    /** 每个 runLoop tick 调一次：根据状态决定气泡显隐。仅主线程。 */
-    private fun syncBubble(liveSetting: LiveModeSetting) {
-        val service = AmberAccessibilityService.getActiveService()
-        if (service == null ||
-            !liveSetting.enabled ||
-            !liveSetting.bubbleEnabled ||
-            !_state.value.active ||
-            service.activePackageName() == context.packageName ||
-            // 任务气泡与伴随气泡共用窗口位置，agent 任务运行中优先展示任务
-            taskBubble.visible.value
-        ) {
-            bubble.hide()
-            return
-        }
-        bubble.show(service) {
-            AmberAgentTheme {
-                val uiState by state.collectAsState()
-                val isExpanded by bubbleExpanded.collectAsState()
-                LiveBubbleContent(
-                    state = uiState,
-                    expanded = isExpanded,
-                    lastSeenMillis = bubbleLastSeenMillis,
-                    onExpandedChange = ::setBubbleExpanded,
-                    onFillDraft = ::fillCurrentDraft,
-                    onRefresh = ::refreshNow,
-                    onStop = ::stop,
-                    onDrag = bubble::moveBy,
-                    onDragEnd = bubble::snapToEdge,
-                    onSizeChanged = bubble::requestReclamp,
-                    anchorEndProvider = bubble::isAnchoredEnd,
-                )
-            }
-        }
-    }
 
     companion object {
         private const val TAG = "LiveModeManager"
@@ -957,15 +777,8 @@ class LiveModeManager(
         private const val STREAM_EMIT_INTERVAL_MS = 80L
         private const val STREAM_TEXT_LIMIT = 500
 
-        /** 伴随结果通知的固定 id（新结果覆盖旧通知）。 */
-        private const val LIVE_RESULT_NOTIFICATION_ID = 4207
-
         /** 自动建议预算：每包名每小时最多 4 次（蓝图 §7.4 P2 推理门）。 */
         private const val AUTO_SUGGEST_WINDOW_MS = 3_600_000L
         private const val AUTO_SUGGEST_MAX_PER_HOUR = 4
     }
 }
-
-/** FILLED=已写入目标框；COPIED=已复制剪贴板；NO_DRAFT=无草稿；
- *  NEEDS_CONFIRM=目标已有文本待用户明确覆盖；REJECTED_STALE=卡片脱离现场已改复制。 */
-enum class LiveFillResult { FILLED, COPIED, NO_DRAFT, NEEDS_CONFIRM, REJECTED_STALE }

@@ -331,6 +331,66 @@ class AgentTaskStoreTest {
         assertEquals(AgentTaskStatus.COMPLETED, completed.status)
     }
 
+    @Test
+    fun `cancel callback finishing after successor start cannot cancel successor snapshot`() =
+        assertCancelCallbackDoesNotOverwriteSuccessor(callbackResult = true)
+
+    @Test
+    fun `failed cancel callback finishing after successor start cannot overwrite successor error`() =
+        assertCancelCallbackDoesNotOverwriteSuccessor(callbackResult = false)
+
+    private fun assertCancelCallbackDoesNotOverwriteSuccessor(callbackResult: Boolean) = runBlocking {
+        val root = tempFolder.newFolder("cancel-successor-$callbackResult")
+        val store = store(root)
+        val scheduler = AgentTaskScheduler(store)
+        val callbackEntered = CompletableDeferred<Unit>()
+        val releaseCallback = CompletableDeferred<Unit>()
+        var oldRunCancellations = 0
+        var successorCancellations = 0
+        val original = snapshot(
+            status = AgentTaskStatus.RUNNING,
+            queueState = AgentTaskQueueState.ACTIVE,
+            recoveryState = AgentTaskRecoveryState.ACTIVE,
+            retryPolicy = AgentTaskRetryPolicy(),
+        ).copy(
+            taskId = "generation-conversation-1",
+            type = "generation",
+            spec = buildJsonObject { put("run_id", "old-run") },
+            cancelCapability = true,
+            error = null,
+            lastErrorCode = null,
+        )
+        scheduler.start(original, cancel = {
+            oldRunCancellations++
+            callbackEntered.complete(Unit)
+            releaseCallback.await()
+            callbackResult
+        })
+        val cancelled = async { scheduler.cancel(original.taskId) }
+        try {
+            callbackEntered.await()
+            val successor = scheduler.start(
+                original.copy(spec = buildJsonObject { put("run_id", "successor-run") }),
+                cancel = { successorCancellations++; true },
+            )
+            releaseCallback.complete(Unit)
+            val result = cancelled.await()
+
+            val current = store.read(original.taskId)!!
+            assertEquals(AgentTaskStatus.RUNNING, current.status)
+            assertTrue(current.cancelCapability)
+            assertEquals(successor.spec, current.spec)
+            assertEquals(successor, current)
+            assertEquals(successor, result)
+            assertEquals(listOf(successor), store.tasksFlow.value)
+            assertEquals(successor, readSnapshot(root, original.taskId))
+            assertEquals(1, oldRunCancellations)
+            assertEquals(0, successorCancellations)
+        } finally {
+            releaseCallback.complete(Unit)
+        }
+    }
+
     private fun store(root: File): AgentTaskStore = AgentTaskStore(TestContext(root), json)
 
     private fun snapshotFile(root: File, taskId: String): File =

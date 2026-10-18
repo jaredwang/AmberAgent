@@ -284,6 +284,8 @@ class GoogleGeminiOAuthClient(
 
     private companion object {
         val refreshMutexes = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
+        val generations = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        val generationLocks = java.util.concurrent.ConcurrentHashMap<String, Any>()
     }
 
     /**
@@ -305,6 +307,7 @@ class GoogleGeminiOAuthClient(
         providerId: Uuid,
         loopbackCopy: LoopbackOAuthCopy = LoopbackOAuthCopy.ENGLISH,
     ): GoogleGeminiAuthTokens {
+        val loginGeneration = beginAuthorization(providerId)
         val server = try {
             LoopbackOAuthCallbackServer(copy = loopbackCopy)
         } catch (error: Throwable) {
@@ -328,7 +331,8 @@ class GoogleGeminiOAuthClient(
             }
             val code = callback.code ?: error(copy.missingCode)
             val tokens = exchangeAuthorizationCode(code, verifier, redirectUri)
-            authStore.save(providerId, tokens)
+            if (!saveIfCurrent(providerId, loginGeneration, tokens, advanceGeneration = true)) staleSession()
+            val onboardGeneration = loginGeneration + 1L
             Log.i(TAG, "OAuth tokens stored for provider=$providerId, kicking off cloudcode-pa onboard…")
             // Run loadCodeAssist+onboardUser inside the login flow so the user pays the
             // ~5-15s onboarding cost upfront (with the "登录中" busy indicator) instead
@@ -337,12 +341,14 @@ class GoogleGeminiOAuthClient(
             val onboarded = runCatching { ensureOnboarded(providerId) }
                 .onFailure { Log.w(TAG, "Onboard during login failed; will retry on first chat", it) }
                 .getOrNull() ?: tokens
+            if (generation(providerId) != onboardGeneration) staleSession()
             Log.i(TAG, "Onboard done: projectId=${onboarded.projectId?.take(20)}… tier=${onboarded.onboardedTier}")
             onboarded
         }
     }
 
     suspend fun refresh(providerId: Uuid): GoogleGeminiAuthTokens = refreshMutex(providerId).withLock {
+        val generationAtStart = generation(providerId)
         val current = authStore.get(providerId)
             ?: error(copy.sessionMissing)
         val refreshToken = current.refreshToken
@@ -378,7 +384,7 @@ class GoogleGeminiOAuthClient(
             email = newEmail,
             expiresAtMillis = System.currentTimeMillis() + expiresIn * 1000L,
         )
-        authStore.save(providerId, merged)
+        if (!saveIfCurrent(providerId, generationAtStart, merged)) staleSession()
         merged
     }
 
@@ -441,9 +447,50 @@ class GoogleGeminiOAuthClient(
         return resolved
     }
 
-    fun logout(providerId: Uuid) {
+    fun logout(providerId: Uuid) = synchronized(generationLock(providerId)) {
+        val key = providerId.toString()
+        generations[key] = (generations[key] ?: 0L) + 1L
         authStore.clear(providerId)
     }
+
+    private fun generationLock(id: Uuid): Any =
+        generationLocks.getOrPut(id.toString()) { Any() }
+
+    private fun generation(id: Uuid): Long = synchronized(generationLock(id)) {
+        generations[id.toString()] ?: 0L
+    }
+
+    private fun beginAuthorization(id: Uuid): Long = synchronized(generationLock(id)) {
+        val next = (generations[id.toString()] ?: 0L) + 1L
+        generations[id.toString()] = next
+        next
+    }
+
+    private fun saveIfCurrent(
+        id: Uuid,
+        expectedGeneration: Long,
+        tokens: GoogleGeminiAuthTokens,
+        advanceGeneration: Boolean = false,
+    ): Boolean = synchronized(generationLock(id)) {
+        if ((generations[id.toString()] ?: 0L) != expectedGeneration) return@synchronized false
+        authStore.save(id, tokens)
+        if (advanceGeneration) generations[id.toString()] = expectedGeneration + 1L
+        true
+    }
+
+    private fun saveOnboardingIfCurrent(
+        id: Uuid,
+        expectedGeneration: Long,
+        projectId: String,
+        tier: String,
+    ): GoogleGeminiAuthTokens? = synchronized(generationLock(id)) {
+        if ((generations[id.toString()] ?: 0L) != expectedGeneration) return@synchronized null
+        // Onboarding owns project/tier only; retain tokens rotated by a refresh in this session.
+        val current = authStore.get(id) ?: return@synchronized null
+        current.copy(projectId = projectId, onboardedTier = tier).also { authStore.save(id, it) }
+    }
+
+    private fun staleSession(): Nothing = error("Google OAuth session changed; discarded stale response. Please retry.")
 
     /**
      * Resolve the cloudaicompanionProject identifier for the user, calling
@@ -462,6 +509,7 @@ class GoogleGeminiOAuthClient(
      * Throws on any HTTP failure with a Chinese-readable message.
      */
     suspend fun ensureOnboarded(providerId: Uuid): GoogleGeminiAuthTokens {
+        val generationAtStart = generation(providerId)
         val current = authStore.get(providerId)
             ?: error(copy.onboardingSessionMissing)
         if (!current.projectId.isNullOrBlank() && !current.onboardedTier.isNullOrBlank()) {
@@ -493,9 +541,8 @@ class GoogleGeminiOAuthClient(
         val currentProject = loadResp["cloudaicompanionProject"]?.jsonPrimitive?.contentOrNull
         val currentTier = loadResp["currentTier"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
         if (!currentProject.isNullOrBlank() && !currentTier.isNullOrBlank()) {
-            val updated = current.copy(projectId = currentProject, onboardedTier = currentTier)
-            authStore.save(providerId, updated)
-            return updated
+            return saveOnboardingIfCurrent(providerId, generationAtStart, currentProject, currentTier)
+                ?: staleSession()
         }
 
         // 2) onboardUser — pick the first allowed tier (FREE for individual accounts),
@@ -529,9 +576,8 @@ class GoogleGeminiOAuthClient(
 
         val resolved = pollOnboardOperation(accessToken, onboardResp)
             ?: error(copy.onboardingProjectMissing(onboardResp.toString().take(300)))
-        val merged = current.copy(projectId = resolved, onboardedTier = chosenTier)
-        authStore.save(providerId, merged)
-        return merged
+        return saveOnboardingIfCurrent(providerId, generationAtStart, resolved, chosenTier)
+            ?: staleSession()
     }
 
     private suspend fun pollOnboardOperation(

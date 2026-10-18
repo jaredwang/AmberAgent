@@ -22,6 +22,7 @@ import app.amber.core.ai.GenerationChunk
 import app.amber.core.ai.ChatGenerationRoundEngine
 import app.amber.core.ai.DefaultRunKernel
 import app.amber.core.ai.GenerationRunSession
+import app.amber.core.ai.toGenerationSettings
 import app.amber.core.ai.GenerationRetrySetting
 import app.amber.core.ai.GenerationTerminal
 import app.amber.core.ai.transformers.InputMessageTransformer
@@ -295,7 +296,7 @@ class RuntimeChainCanaryTest : DurableRuntimeTestBase() {
             runCatching {
                 handler.run(
                     GenerationRunSession(
-                        settings = settings,
+                        settings = settings.toGenerationSettings(model),
                         model = model,
                         messages = listOf(UIMessage.user("$MARKER_STOP 写一篇长文")),
                         conversation = canaryConversation(convStop, listOf(UIMessage.user("$MARKER_STOP 写一篇长文"))),
@@ -309,7 +310,7 @@ class RuntimeChainCanaryTest : DurableRuntimeTestBase() {
             runCatching {
                 handler.run(
                     GenerationRunSession(
-                        settings = settings,
+                        settings = settings.toGenerationSettings(model),
                         model = model,
                         messages = listOf(UIMessage.user("$MARKER_FINISH 帮我总结")),
                         conversation = canaryConversation(convFinish, listOf(UIMessage.user("$MARKER_FINISH 帮我总结"))),
@@ -430,7 +431,7 @@ class RuntimeChainCanaryTest : DurableRuntimeTestBase() {
             runCatching {
                 handler.run(
                     GenerationRunSession(
-                        settings = settings,
+                        settings = settings.toGenerationSettings(model),
                         model = model,
                         messages = approveTool(round1.lastMessages, "call_chain3_1"),
                         tools = listOf(toolDef),
@@ -837,7 +838,7 @@ class RuntimeChainCanaryTest : DurableRuntimeTestBase() {
         val error = runCatching {
             handler.run(
                 GenerationRunSession(
-                    settings = settings,
+                    settings = settings.toGenerationSettings(model),
                     model = model,
                     messages = messages,
                     inputTransformers = inputTransformers,

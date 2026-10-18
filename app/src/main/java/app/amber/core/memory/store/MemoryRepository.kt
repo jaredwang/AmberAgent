@@ -268,6 +268,92 @@ open class MemoryRepository(
         return memoryDAO.getMemoryById(record.id)?.toRecord() ?: record
     }
 
+    /** Room commits a dream suggestion's record changes and events together, or none of them. */
+    internal suspend fun applyDreamMerge(
+        target: MemoryRecord,
+        duplicates: List<MemoryRecord>,
+        mergedContent: String,
+    ): List<MemoryRecord> = withMemoryWriter {
+        val db = appDatabase
+        if (db == null) {
+            applyDreamMergeInternal(target, duplicates, mergedContent)
+        } else {
+            db.withTransaction { applyDreamMergeInternal(target, duplicates, mergedContent) }
+        }
+    }
+
+    private suspend fun applyDreamMergeInternal(
+        target: MemoryRecord,
+        duplicates: List<MemoryRecord>,
+        mergedContent: String,
+    ): List<MemoryRecord> {
+        val updated = mutableListOf(upsertRecordInternal(target.copy(content = mergedContent)))
+        addDreamEvent(MemoryEventType.MEMORY_UPDATED, target.id, "Updated by dream merge.")
+        duplicates.forEach { duplicate ->
+            updated += upsertRecordInternal(duplicate.copy(archived = true))
+            addDreamEvent(MemoryEventType.MEMORY_ARCHIVED, duplicate.id, "Archived duplicate by dream merge.")
+        }
+        return updated
+    }
+
+    internal suspend fun applyDreamSupersede(
+        oldRecords: List<MemoryRecord>,
+        existingReplacement: MemoryRecord?,
+        newContent: String,
+        scope: MemoryScope,
+        kind: MemoryKind,
+        confidence: Float,
+    ): List<MemoryRecord> = withMemoryWriter {
+        val db = appDatabase
+        if (db == null) {
+            applyDreamSupersedeInternal(oldRecords, existingReplacement, newContent, scope, kind, confidence)
+        } else {
+            db.withTransaction {
+                applyDreamSupersedeInternal(oldRecords, existingReplacement, newContent, scope, kind, confidence)
+            }
+        }
+    }
+
+    private suspend fun applyDreamSupersedeInternal(
+        oldRecords: List<MemoryRecord>,
+        existingReplacement: MemoryRecord?,
+        newContent: String,
+        scope: MemoryScope,
+        kind: MemoryKind,
+        confidence: Float,
+    ): List<MemoryRecord> {
+        val replacement = existingReplacement ?: addMemoryInternal(
+            scope = scope,
+            kind = kind,
+            assistantId = bucketForScope(scope),
+            content = newContent,
+            sourceConversationId = oldRecords.firstNotNullOfOrNull { it.sourceConversationId },
+            sourceMessageIds = oldRecords.flatMap { it.sourceMessageIds }.distinct(),
+            supersedesIds = oldRecords.map { it.id }.distinct(),
+            confidence = confidence,
+        ).also { created ->
+            addDreamEvent(
+                MemoryEventType.MEMORY_CREATED,
+                created.id,
+                "Superseded memories: ${oldRecords.joinToString(",") { it.id.toString() }}.",
+            )
+        }
+        val updated = mutableListOf(replacement)
+        oldRecords.forEach { oldRecord ->
+            updated += upsertRecordInternal(oldRecord.copy(archived = true))
+            addDreamEvent(
+                MemoryEventType.MEMORY_ARCHIVED,
+                oldRecord.id,
+                "Archived by dream supersede -> new #${replacement.id}.",
+            )
+        }
+        return updated
+    }
+
+    private suspend fun addDreamEvent(type: MemoryEventType, memoryId: Int, message: String) {
+        eventDAO.insert(MemoryEvent(type = type, memoryId = memoryId, message = message).toEntity())
+    }
+
     suspend fun deleteMemory(id: Int) = withMemoryWriter {
         memoryDAO.deleteMemory(id)
     }

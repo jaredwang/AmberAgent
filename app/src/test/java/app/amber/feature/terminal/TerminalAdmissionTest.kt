@@ -171,10 +171,41 @@ class TerminalAdmissionTest {
         assertEquals(2, tasks.list(type = "terminal").size)
     }
 
-    private fun runtime(tasks: AgentTaskStore) = TerminalRuntime(
+    @Test
+    fun `session process launch failure releases its workspace lease`(): Unit = runBlocking {
+        // Robolectric omits the installed app's native library directory.
+        context.applicationInfo.nativeLibraryDir = context.filesDir.resolve("native-libs")
+            .apply { mkdirs() }.absolutePath
+        val installer = AlpineRuntimeInstaller(context)
+        val runtimeVersion = AlpineRuntimeInstaller::class.java.getDeclaredField("runtimeVersion")
+            .apply { isAccessible = true }.get(installer) as String
+        listOf(
+            context.filesDir.resolve("proot"),
+            context.filesDir.resolve("libtalloc.so.2"),
+            context.filesDir.resolve("alpine.tar.gz"),
+            installer.localBinDir.resolve("init-host"),
+            installer.localBinDir.resolve("init"),
+        ).forEach { file ->
+            file.parentFile?.mkdirs()
+            file.writeText("fixture")
+            file.setExecutable(true)
+        }
+        context.filesDir.resolve("embedded-terminal-runtime.version").writeText(runtimeVersion)
+        assertTrue(installer.getInstallStatus().success)
+        val workspace = WorkspaceManager(context)
+        val runtime = runtime(AgentTaskStore(context, Json), workspace)
+
+        // JVM tests cannot launch Android's /system/bin/sh, after acquiring the real lease.
+        val failure = runCatching { runtime.startSession() }.exceptionOrNull()
+
+        assertTrue("Expected native process launch IOException; actual: ${failure?.stackTraceToString()}", failure is IOException)
+        workspace.acquireTerminalMirror(refreshFromWorkspace = false).release(syncBack = false)
+    }
+
+    private fun runtime(tasks: AgentTaskStore, workspace: WorkspaceManager = WorkspaceManager(context)) = TerminalRuntime(
         context = context,
         appScope = appScope,
-        workspaceManager = WorkspaceManager(context),
+        workspaceManager = workspace,
         alpineRuntimeInstaller = AlpineRuntimeInstaller(context),
         activityStore = AgentToolActivityStore(),
         settingsStore = settingsStore,

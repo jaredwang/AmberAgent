@@ -165,22 +165,31 @@ class AgentTaskStore(
 
     suspend fun cancel(taskId: String): AgentTaskSnapshot = withContext(Dispatchers.IO) {
         awaitReady()
-        val current = tasks[taskId] ?: error("Unknown agent task: $taskId")
+        // A reused task id must not pair an old snapshot with its successor's callback.
+        val (current, callback) = mutex.withLock {
+            val current = tasks[taskId] ?: error("Unknown agent task: $taskId")
+            current to cancelCallbacks[taskId]
+        }
         if (!current.status.running) return@withContext current
-        val callback = cancelCallbacks[taskId]
         if (!current.cancelCapability || callback == null) {
             return@withContext update(
                 taskId = taskId,
                 error = "Task cannot be cancelled from AmberAgent.",
-            ) ?: current
+                expectedSpec = current.spec,
+            ) ?: tasks[taskId] ?: current
         }
         val ok = runCatching { callback() }.getOrDefault(false)
         if (ok) {
             tasks[taskId]?.takeUnless { it.status.running }
-                ?: update(taskId = taskId, status = AgentTaskStatus.CANCELLED, summary = "Cancellation requested.")
+                ?: update(
+                    taskId = taskId,
+                    status = AgentTaskStatus.CANCELLED,
+                    summary = "Cancellation requested.",
+                    expectedSpec = current.spec,
+                )
         } else {
-            update(taskId = taskId, error = "Cancellation request failed.")
-        } ?: current
+            update(taskId = taskId, error = "Cancellation request failed.", expectedSpec = current.spec)
+        } ?: tasks[taskId] ?: current
     }
 
     suspend fun retry(taskId: String): AgentTaskSnapshot = withContext(Dispatchers.IO) {

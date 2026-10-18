@@ -209,7 +209,7 @@ class StreamingMarkdownRepairTest {
 
     @Test
     fun `streaming parse throttle does not sample single value flows`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/Markdown.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/MarkdownDocument.kt").readText()
 
         assertTrue(source.contains(".transform { triple ->"))
         assertTrue(source.contains("SystemClock.uptimeMillis()"))
@@ -259,7 +259,7 @@ class StreamingMarkdownRepairTest {
 
     @Test
     fun `streaming markdown reveal keeps vertical motion out of block containers`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/Markdown.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/components/richtext/StreamingMarkdownPresentation.kt").readText()
 
         assertTrue(source.contains("BaselineShift"))
         assertTrue(source.contains("STREAMING_CHAR_REVEAL_LIFT_EM"))

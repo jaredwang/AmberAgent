@@ -1,18 +1,11 @@
 package app.amber.feature.ui.components.ai
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.provider.OpenableColumns
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -29,9 +22,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,84 +32,49 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
-import androidx.core.content.FileProvider
-import androidx.core.net.toFile
-import androidx.core.net.toUri
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import app.amber.ai.core.ReasoningLevel
 import app.amber.ai.provider.Model
-import app.amber.ai.provider.ModelType
-import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderCatalog
-import app.amber.ai.provider.ProviderSetting
-import app.amber.ai.provider.providers.openai.OpenAICodexAuthStore
-import app.amber.ai.provider.providers.openai.OpenAICodexOAuthClient
 import app.amber.ai.ui.UIMessagePart
-import app.amber.common.android.appTempFolder
-import app.amber.core.ai.transformers.DocumentAsPromptTransformer
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.ArrowUp
-import com.composables.icons.lucide.BookText
 import com.composables.icons.lucide.X
 import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Files
 import com.composables.icons.lucide.Image
-import app.amber.agent.BuildConfig
 import app.amber.agent.R
 import app.amber.feature.runtime.SandboxActivityUiState
-import app.amber.feature.runtime.ToolActivityStatus
 import app.amber.core.ai.vision.ImageAttachmentStrings
 import app.amber.core.ai.vision.ImageAttachmentValidator
 import app.amber.core.context.CompactLifecycleState
@@ -127,33 +83,20 @@ import app.amber.core.settings.findProvider
 import app.amber.core.settings.findModelById
 import app.amber.core.files.FilesManager
 import app.amber.core.model.Conversation
-import app.amber.core.usage.ProviderUsageClient
 import app.amber.core.service.PendingUserMessageMode
 import app.amber.feature.ui.components.ui.KeepScreenOn
-import app.amber.feature.ui.components.ui.WorkspaceIconButton
-import app.amber.feature.ui.components.ui.WorkspaceTone
 import app.amber.feature.ui.components.ui.permission.PermissionCamera
 import app.amber.feature.ui.components.ui.permission.PermissionManager
 import app.amber.feature.ui.components.ui.permission.rememberPermissionState
 import app.amber.feature.ui.components.webmount.WebMountTaskCard
-import app.amber.feature.ui.context.LocalSettings
 import app.amber.feature.ui.context.LocalToaster
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.components.ui.workspaceColors
-import app.amber.feature.ui.hooks.ChatInputAttachmentImport
 import app.amber.feature.ui.hooks.ChatInputAttachmentImportStatus
-import app.amber.feature.ui.hooks.ChatInputAttachmentKind
 import app.amber.feature.ui.hooks.ChatInputState
 import app.amber.feature.webmount.primitives.WebMountSessionMetadata
 import app.amber.core.utils.ChatSendTransitionTracker
-import app.amber.core.utils.formatNumber
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import org.koin.compose.koinInject
-import okhttp3.OkHttpClient
-import java.io.File
 import kotlin.uuid.Uuid
 
 private const val PostSendKeyboardHideDelayMillis = 96L
@@ -174,59 +117,6 @@ fun nextExpandState(current: ExpandState, target: ExpandState): ExpandState =
  * while streaming so it can show "stop". Pure + testable (see ComposerLogicTest) — the "draft 亮起".
  */
 fun composerSendEnabled(isEmpty: Boolean, loading: Boolean): Boolean = loading || !isEmpty
-
-private fun Uri.attachmentFallbackName(kind: ChatInputAttachmentKind): String = when (kind) {
-    ChatInputAttachmentKind.IMAGE -> "image"
-    ChatInputAttachmentKind.VIDEO -> "video"
-    ChatInputAttachmentKind.AUDIO -> "audio"
-    ChatInputAttachmentKind.DOCUMENT -> "file"
-}
-
-private fun attachmentMimeFallback(kind: ChatInputAttachmentKind): String = when (kind) {
-    ChatInputAttachmentKind.IMAGE -> "image/*"
-    ChatInputAttachmentKind.VIDEO -> "video/*"
-    ChatInputAttachmentKind.AUDIO -> "audio/*"
-    ChatInputAttachmentKind.DOCUMENT -> "application/octet-stream"
-}
-
-private fun attachmentPart(
-    uri: Uri,
-    kind: ChatInputAttachmentKind,
-    displayName: String,
-    mimeType: String,
-): UIMessagePart = when (kind) {
-    ChatInputAttachmentKind.IMAGE -> UIMessagePart.Image(uri.toString())
-    ChatInputAttachmentKind.VIDEO -> UIMessagePart.Video(uri.toString(), mime = mimeType)
-    ChatInputAttachmentKind.AUDIO -> UIMessagePart.Audio(
-        url = uri.toString(),
-        fileName = displayName,
-        mime = mimeType,
-    )
-    ChatInputAttachmentKind.DOCUMENT -> UIMessagePart.Document(
-        url = uri.toString(),
-        fileName = displayName,
-        mime = mimeType,
-    )
-}
-
-internal fun attachmentReadWarning(content: String, readFailureMessage: String): String? {
-    val parserFailure = content.startsWith("[ERROR,") ||
-        content.startsWith("Error parsing PDF file:", ignoreCase = true) ||
-        content.startsWith("Error parsing DOCX file:", ignoreCase = true) ||
-        content.startsWith("Error parsing document XML:", ignoreCase = true) ||
-        content.startsWith("Error parsing PPTX file:", ignoreCase = true) ||
-        content.startsWith("Error parsing EPUB file:", ignoreCase = true) ||
-        content.startsWith("Unable to find document content in DOCX file") ||
-        content.startsWith("No slides found in PPTX file") ||
-        content.startsWith("No readable slides in PPTX file") ||
-        content.startsWith("Unable to find OPF file in EPUB") ||
-        content.startsWith("Unable to read OPF file in EPUB") ||
-        content.startsWith("No readable content found in EPUB file")
-    return readFailureMessage.takeIf { parserFailure }
-}
-
-private fun attachmentWasTruncated(content: String): Boolean =
-    "[TRUNCATED:" in content
 
 @Composable
 internal fun ChatInput(
@@ -382,9 +272,7 @@ internal fun ChatInput(
     }
 
     var showUsageSheet by remember { mutableStateOf(false) }
-    var usageStatus by remember { mutableStateOf(ComposerUsageStatus()) }
-    var usageLoading by remember { mutableStateOf(false) }
-    var usageError by remember { mutableStateOf<String?>(null) }
+    val usage = rememberComposerUsageLoader()
     fun dismissExpand() {
         expand = ExpandState.Collapsed
     }
@@ -398,13 +286,6 @@ internal fun ChatInput(
     }
 
     val filesManager: FilesManager = koinInject()
-    val httpClient: OkHttpClient = koinInject()
-    val usageClient = remember(context, httpClient) {
-        OpenAICodexOAuthClient(httpClient, OpenAICodexAuthStore(context))
-    }
-    val providerUsageClient = remember(httpClient) {
-        ProviderUsageClient(httpClient)
-    }
     val scope = rememberCoroutineScope()
     val conversationId = conversation.id.toString()
 
@@ -422,456 +303,22 @@ internal fun ChatInput(
         chatModel?.findProvider(settings.providers)
     }
 
-    fun deleteTempFileAsync(file: File?) {
-        if (file == null) return
-        scope.launch(Dispatchers.IO) {
-            file.delete()
-        }
-    }
-
-    suspend fun sourceSizeBytes(uri: Uri): Long? = withContext(Dispatchers.IO) {
-        if (uri.scheme == "file") {
-            return@withContext runCatching { uri.toFile() }
-                .getOrNull()
-                ?.takeIf { it.isFile }
-                ?.length()
-        }
-        runCatching {
-            context.contentResolver.query(
-                uri,
-                arrayOf(OpenableColumns.SIZE),
-                null,
-                null,
-                null,
-            )?.use { cursor ->
-                val index = cursor.getColumnIndex(OpenableColumns.SIZE)
-                if (index >= 0 && cursor.moveToFirst() && !cursor.isNull(index)) {
-                    cursor.getLong(index)
-                } else {
-                    null
-                }
-            }
-        }.getOrNull()
-    }
-
-    fun importOneAttachment(
-        ownerConversationId: String,
-        sourceUri: Uri,
-        kind: ChatInputAttachmentKind,
-        displayName: String? = null,
-        mimeType: String? = null,
-        existingImport: ChatInputAttachmentImport? = null,
-        onComplete: () -> Unit = {},
-    ): Job {
-        return scope.launch {
-            var import: ChatInputAttachmentImport? = null
-            var copiedUri: Uri? = null
-
-            fun markFailed(message: String, sizeBytes: Long? = null): Boolean {
-                val currentImport = import ?: return false
-                return state.failAttachmentImport(
-                    conversationId = ownerConversationId,
-                    importId = currentImport.id,
-                    errorMessage = message,
-                    sizeBytes = sizeBytes,
-                )
-            }
-
-            fun deleteCopiedFile() {
-                copiedUri?.let { uri ->
-                    // FilesManager deletion is app-scoped, so it remains
-                    // valid even when the composable scope is cancelled.
-                    filesManager.deleteChatFiles(listOf(uri))
-                    copiedUri = null
-                }
-            }
-
-            try {
-                val resolvedName = displayName ?: withContext(Dispatchers.IO) {
-                    filesManager.getFileNameFromUri(sourceUri)
-                        ?: sourceUri.lastPathSegment
-                        ?: sourceUri.attachmentFallbackName(kind)
-                }
-                val resolvedMime = mimeType ?: withContext(Dispatchers.IO) {
-                    filesManager.getFileMimeType(sourceUri)
-                        ?: attachmentMimeFallback(kind)
-                }
-                val sourceSize = existingImport?.sizeBytes ?: sourceSizeBytes(sourceUri)
-                import = existingImport ?: state.beginAttachmentImport(
-                    conversationId = ownerConversationId,
-                    sourceUri = sourceUri,
-                    displayName = resolvedName,
-                    mimeType = resolvedMime,
-                    kind = kind,
-                    sizeBytes = sourceSize,
-                )
-                if (import == null) return@launch
-
-                // Finish the copy even if the composer leaves composition. The
-                // cancellation handler then deletes the private copy instead
-                // of losing its URI between a completed copy and cancellation.
-                copiedUri = withContext(NonCancellable + Dispatchers.IO) {
-                    filesManager.createChatFilesByContents(listOf(sourceUri)).firstOrNull()
-                }
-                currentCoroutineContext().ensureActive()
-
-                if (copiedUri == null) {
-                    val accepted = markFailed(
-                        message = context.getString(R.string.parity_attachment_import_failed_detail),
-                        sizeBytes = sourceSize,
-                    )
-                    if (accepted) {
-                        toaster.show(
-                            context.getString(R.string.parity_attachment_import_failed, resolvedName),
-                            type = ToastType.Error,
-                        )
-                    }
-                    return@launch
-                }
-
-                val part = attachmentPart(
-                    uri = copiedUri!!,
-                    kind = kind,
-                    displayName = import!!.displayName,
-                    mimeType = import!!.mimeType,
-                )
-                val documentReadReport = if (part is UIMessagePart.Document) {
-                    try {
-                        DocumentAsPromptTransformer.extractText(part)
-                    } catch (error: CancellationException) {
-                        throw error
-                    } catch (error: Throwable) {
-                        "[ERROR, ${error.message.orEmpty()}]"
-                    }
-                } else {
-                    null
-                }
-                currentCoroutineContext().ensureActive()
-
-                val applied = state.completeAttachmentImport(
-                    conversationId = ownerConversationId,
-                    importId = import!!.id,
-                    part = part,
-                    sizeBytes = withContext(Dispatchers.IO) {
-                        runCatching { copiedUri!!.toFile().takeIf { it.isFile }?.length() }.getOrNull()
-                    },
-                    textWasTruncated = documentReadReport?.let(::attachmentWasTruncated) == true,
-                    readWarning = documentReadReport?.let {
-                        attachmentReadWarning(it, attachmentReadFailureMessage)
-                    },
-                )
-                if (applied) {
-                    // The state now owns this URI. A later cancellation must
-                    // not delete a ready attachment that has already landed.
-                    copiedUri = null
-                    onComplete()
-                } else {
-                    // The import finished after the item was removed or its
-                    // chat changed. Do not leak its private copy into the next chat.
-                    deleteCopiedFile()
-                }
-            } catch (error: CancellationException) {
-                deleteCopiedFile()
-                val currentImport = import
-                if (currentImport != null) {
-                    withContext(NonCancellable) {
-                        state.failAttachmentImport(
-                            conversationId = ownerConversationId,
-                            importId = currentImport.id,
-                            errorMessage = context.getString(R.string.parity_attachment_import_failed_detail),
-                        )
-                    }
-                }
-                throw error
-            } catch (error: Throwable) {
-                deleteCopiedFile()
-                val accepted = markFailed(
-                    message = context.getString(R.string.parity_attachment_import_failed_detail),
-                )
-                if (accepted) {
-                    toaster.show(
-                        context.getString(
-                            R.string.parity_attachment_import_failed,
-                            import?.displayName ?: sourceUri.lastPathSegment ?: "file",
-                        ),
-                        type = ToastType.Error,
-                    )
-                }
-            }
-        }
-    }
-
-    fun retryAttachmentImport(import: ChatInputAttachmentImport) {
-        val retried = state.retryAttachmentImport(conversationId, import.id) ?: return
-        importOneAttachment(
-            ownerConversationId = conversationId,
-            sourceUri = Uri.parse(retried.sourceUri),
-            kind = retried.kind,
-            displayName = retried.displayName,
-            mimeType = retried.mimeType,
-            existingImport = retried,
+    val importer = remember(state, filesManager, context, scope, attachmentReadFailureMessage, toaster) {
+        ChatAttachmentImporter(
+            state = state,
+            filesManager = filesManager,
+            context = context,
+            scope = scope,
+            attachmentReadFailureMessage = attachmentReadFailureMessage,
+            showError = { toaster.show(it, type = ToastType.Error) },
         )
     }
-
-    fun importPastedTextFile(ownerConversationId: String, text: String) {
-        scope.launch {
-            val import = state.beginAttachmentImport(
-                conversationId = ownerConversationId,
-                sourceUri = Uri.parse("amber-paste://${Uuid.random()}"),
-                displayName = "pasted_text.txt",
-                mimeType = "text/plain",
-                kind = ChatInputAttachmentKind.DOCUMENT,
-            ) ?: return@launch
-            var document: UIMessagePart.Document? = null
-            try {
-                // A long paste is materialized as an app-owned upload. Keep it
-                // behind the same import token so clear/switch invalidates the
-                // completion before it can append a late document.
-                document = withContext(NonCancellable + Dispatchers.IO) {
-                    filesManager.createChatTextFile(text)
-                }
-                currentCoroutineContext().ensureActive()
-                val documentReadReport = try {
-                    DocumentAsPromptTransformer.extractText(document!!)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: Throwable) {
-                    "[ERROR, ${error.message.orEmpty()}]"
-                }
-                currentCoroutineContext().ensureActive()
-                val applied = state.completeAttachmentImport(
-                    conversationId = ownerConversationId,
-                    importId = import.id,
-                    part = document!!,
-                    sizeBytes = withContext(Dispatchers.IO) {
-                        runCatching { document!!.url.toUri().toFile().takeIf { it.isFile }?.length() }.getOrNull()
-                    },
-                    textWasTruncated = attachmentWasTruncated(documentReadReport),
-                    readWarning = attachmentReadWarning(
-                        documentReadReport,
-                        attachmentReadFailureMessage,
-                    ),
-                )
-                if (applied) {
-                    // The composer now owns the part and its discard path can
-                    // release it if the user clears the unsent draft.
-                    document = null
-                } else {
-                    filesManager.deleteChatFiles(listOf(document!!.url.toUri()))
-                    document = null
-                }
-            } catch (error: CancellationException) {
-                document?.let { filesManager.deleteChatFiles(listOf(it.url.toUri())) }
-                state.removeAttachmentImport(import.id)
-                throw error
-            } catch (_: Throwable) {
-                document?.let { filesManager.deleteChatFiles(listOf(it.url.toUri())) }
-                state.removeAttachmentImport(import.id)
-            }
-        }
-    }
-
-    suspend fun refreshUsage() {
-        val openAIProvider = chatProvider as? ProviderSetting.OpenAI
-        if (openAIProvider == null) {
-            usageStatus = ComposerUsageStatus()
-            usageError = context.getString(R.string.chat_input_usage_openai_compatible_required)
-            return
-        }
-
-        usageLoading = true
-        usageError = null
-        runCatching {
-            if (openAIProvider.authMode == OpenAIAuthMode.CODEX_OAUTH) {
-                usageClient.fetchUsage(openAIProvider.id).toComposerUsageStatus(context)
-            } else {
-                providerUsageClient.fetchUsage(openAIProvider, chatModel).toComposerUsageStatus()
-            }
-        }.onSuccess {
-            usageStatus = it
-        }.onFailure {
-            usageStatus = ComposerUsageStatus()
-            usageError = it.toComposerUsageErrorMessage(context)
-        }
-        usageLoading = false
-    }
-
-    // Camera launcher
-    var cameraOutputUri by remember { mutableStateOf<Uri?>(null) }
-    var cameraOutputFile by remember { mutableStateOf<File?>(null) }
-    var cameraOwner by remember { mutableStateOf(conversationId) }
-    val (_, launchCameraCrop) = useCropLauncher(
-        onCroppedImageReady = { croppedUri ->
-            importOneAttachment(
-                ownerConversationId = cameraOwner,
-                sourceUri = croppedUri,
-                kind = ChatInputAttachmentKind.IMAGE,
-            ) {
-                dismissExpand()
-            }
-        },
-        onCleanup = {
-            deleteTempFileAsync(cameraOutputFile)
-            cameraOutputFile = null
-            cameraOutputUri = null
-        }
+    val attachmentLaunchers = rememberChatAttachmentLaunchers(
+        conversationId = conversationId,
+        skipCropImage = settings.displaySetting.skipCropImage,
+        importer = importer,
+        onImported = ::dismissExpand,
     )
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captureSuccessful ->
-        if (captureSuccessful && cameraOutputUri != null) {
-            if (settings.displaySetting.skipCropImage) {
-                val capturedUri = cameraOutputUri!!
-                val capturedFile = cameraOutputFile
-                importOneAttachment(
-                    ownerConversationId = cameraOwner,
-                    sourceUri = capturedUri,
-                    kind = ChatInputAttachmentKind.IMAGE,
-                ) {
-                    deleteTempFileAsync(capturedFile)
-                    if (cameraOutputFile == capturedFile) {
-                        cameraOutputFile = null
-                    }
-                    if (cameraOutputUri == capturedUri) {
-                        cameraOutputUri = null
-                    }
-                    dismissExpand()
-                }
-            } else {
-                launchCameraCrop(cameraOutputUri!!)
-            }
-        } else {
-            deleteTempFileAsync(cameraOutputFile)
-            cameraOutputFile = null
-            cameraOutputUri = null
-        }
-    }
-    val onLaunchCamera: () -> Unit = {
-        cameraOwner = conversationId
-        cameraOutputFile = context.cacheDir.resolve("camera_${Uuid.random()}.jpg")
-        cameraOutputUri = FileProvider.getUriForFile(
-            context, "${context.packageName}.fileprovider", cameraOutputFile!!
-        )
-        cameraLauncher.launch(cameraOutputUri!!)
-    }
-
-    // Image picker launcher
-    var preCropTempFile by remember { mutableStateOf<File?>(null) }
-    var imagePickerOwner by remember { mutableStateOf(conversationId) }
-    var imageCropOwner by remember { mutableStateOf(conversationId) }
-    val (_, launchImageCrop) = useCropLauncher(
-        onCroppedImageReady = { croppedUri ->
-            importOneAttachment(
-                ownerConversationId = imageCropOwner,
-                sourceUri = croppedUri,
-                kind = ChatInputAttachmentKind.IMAGE,
-            ) {
-                dismissExpand()
-            }
-        },
-        onCleanup = {
-            deleteTempFileAsync(preCropTempFile)
-            preCropTempFile = null
-        }
-    )
-    val imagePickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { selectedUris ->
-            if (selectedUris.isNotEmpty()) {
-                Log.d("ImagePickButton", "Selected URIs: $selectedUris")
-                if (settings.displaySetting.skipCropImage) {
-                    selectedUris.forEach { uri ->
-                        importOneAttachment(
-                            ownerConversationId = imagePickerOwner,
-                            sourceUri = uri,
-                            kind = ChatInputAttachmentKind.IMAGE,
-                        ) {
-                            dismissExpand()
-                        }
-                    }
-                } else {
-                    if (selectedUris.size == 1) {
-                        val tempFile = File(context.appTempFolder, "pick_temp_${System.currentTimeMillis()}.jpg")
-                        scope.launch {
-                            runCatching {
-                                withContext(Dispatchers.IO) {
-                                    context.contentResolver.openInputStream(selectedUris.first())?.use { input ->
-                                        tempFile.outputStream().use { output -> input.copyTo(output) }
-                                    }
-                                }
-                                preCropTempFile = tempFile
-                                imageCropOwner = imagePickerOwner
-                                launchImageCrop(tempFile.toUri())
-                            }.onFailure {
-                                Log.e("ImagePickButton", "Failed to copy image to temp, falling back", it)
-                                imageCropOwner = imagePickerOwner
-                                launchImageCrop(selectedUris.first())
-                            }
-                        }
-                    } else {
-                        selectedUris.forEach { uri ->
-                            importOneAttachment(
-                                ownerConversationId = imagePickerOwner,
-                                sourceUri = uri,
-                                kind = ChatInputAttachmentKind.IMAGE,
-                            ) {
-                                dismissExpand()
-                            }
-                        }
-                    }
-                }
-            } else {
-                Log.d("ImagePickButton", "No images selected")
-            }
-        }
-
-    // Video picker launcher
-    var videoPickerOwner by remember { mutableStateOf(conversationId) }
-    val videoPickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { selectedUris ->
-            if (selectedUris.isNotEmpty()) {
-                selectedUris.forEach { uri ->
-                    importOneAttachment(
-                        ownerConversationId = videoPickerOwner,
-                        sourceUri = uri,
-                        kind = ChatInputAttachmentKind.VIDEO,
-                    ) {
-                        dismissExpand()
-                    }
-                }
-            }
-        }
-
-    // Audio picker launcher
-    var audioPickerOwner by remember { mutableStateOf(conversationId) }
-    val audioPickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { selectedUris ->
-            if (selectedUris.isNotEmpty()) {
-                selectedUris.forEach { uri ->
-                    importOneAttachment(
-                        ownerConversationId = audioPickerOwner,
-                        sourceUri = uri,
-                        kind = ChatInputAttachmentKind.AUDIO,
-                    ) {
-                        dismissExpand()
-                    }
-                }
-            }
-        }
-
-    // File picker launcher
-    var filePickerOwner by remember { mutableStateOf(conversationId) }
-    val filePickerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-            if (uris.isNotEmpty()) {
-                uris.forEach { uri ->
-                    importOneAttachment(
-                        ownerConversationId = filePickerOwner,
-                        sourceUri = uri,
-                        kind = ChatInputAttachmentKind.DOCUMENT,
-                    ) {
-                        dismissExpand()
-                    }
-                }
-            }
-        }
 
     // Collapse when ime is visible
     LaunchedEffect(imeVisible, showUsageSheet) {
@@ -882,15 +329,15 @@ internal fun ChatInput(
 
     if (showUsageSheet) {
         LaunchedEffect(showUsageSheet, chatProvider.providerRoutingKey()) {
-            refreshUsage()
+            usage.refresh(chatProvider, chatModel)
         }
         ComposerUsageSheet(
-            status = usageStatus,
-            loading = usageLoading,
-            error = usageError,
+            status = usage.status,
+            loading = usage.loading,
+            error = usage.error,
             onRefresh = {
                 scope.launch {
-                    refreshUsage()
+                    usage.refresh(chatProvider, chatModel)
                 }
             },
             onDismissRequest = { showUsageSheet = false },
@@ -1014,15 +461,9 @@ internal fun ChatInput(
                             ),
                         ) {
                             InlineAttachmentActions(
-                                onTakePic = onLaunchCamera,
-                                onPickImage = {
-                                    imagePickerOwner = conversationId
-                                    imagePickerLauncher.launch("image/*")
-                                },
-                                onPickFile = {
-                                    filePickerOwner = conversationId
-                                    filePickerLauncher.launch(arrayOf("*/*"))
-                                },
+                                onTakePic = attachmentLaunchers.takePicture,
+                                onPickImage = attachmentLaunchers.pickImages,
+                                onPickFile = attachmentLaunchers.pickFiles,
                                 modifier = Modifier.padding(end = 4.dp),
                             )
                         }
@@ -1053,14 +494,14 @@ internal fun ChatInput(
                                 hidePlaceholder = hideComposerPlaceholder,
                                 onUpdateSettings = onUpdateSettings,
                                 onImportAttachment = { uri, kind ->
-                                    importOneAttachment(
+                                    importer.importAttachment(
                                         ownerConversationId = conversationId,
                                         sourceUri = uri,
                                         kind = kind,
                                     )
                                 },
                                 onImportTextFile = { text ->
-                                    importPastedTextFile(
+                                    importer.importPastedTextFile(
                                         ownerConversationId = conversationId,
                                         text = text,
                                     )
@@ -1149,7 +590,7 @@ internal fun ChatInput(
                 if (state.messageContent.isNotEmpty() || state.attachmentImports.isNotEmpty()) {
                     MediaFileInputRow(
                         state = state,
-                        onRetryAttachment = ::retryAttachmentImport,
+                        onRetryAttachment = { importer.retryAttachmentImport(conversationId, it) },
                     )
                 }
 

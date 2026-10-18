@@ -58,21 +58,12 @@ class MemoryDreamApplier(
                     ?.trim()
                     ?.takeIf { it.length >= 8 }
                     ?: target.content
-                records[target.id] = memoryRepository.upsertRecord(target.copy(content = mergedContent))
-                eventLogger.log(
-                    type = MemoryEventType.MEMORY_UPDATED,
-                    memoryId = target.id,
-                    message = "Updated by dream merge.",
+                val updated = memoryRepository.applyDreamMerge(
+                    target = target,
+                    duplicates = suggestion.duplicateMemoryIds.mapNotNull { records[it] },
+                    mergedContent = mergedContent,
                 )
-                suggestion.duplicateMemoryIds.forEach { duplicateId ->
-                    val duplicate = records[duplicateId] ?: return@forEach
-                    records[duplicate.id] = memoryRepository.upsertRecord(duplicate.copy(archived = true))
-                    eventLogger.log(
-                        type = MemoryEventType.MEMORY_ARCHIVED,
-                        memoryId = duplicateId,
-                        message = "Archived duplicate by dream merge.",
-                    )
-                }
+                updated.forEach { records[it.id] = it }
                 appliedMerges += suggestion
             } catch (e: CancellationException) {
                 throw e
@@ -126,35 +117,20 @@ class MemoryDreamApplier(
                 val oldRecords = suggestion.oldMemoryIds.mapNotNull { records[it] }
                 if (oldRecords.isEmpty()) return@forEach
                 val supersededIds = oldRecords.map { it.id }.distinct()
-                val newRecord = records.values.firstOrNull { existing ->
+                val existingReplacement = records.values.firstOrNull { existing ->
                     !existing.archived &&
                         existing.supersedesIds.toSet() == supersededIds.toSet() &&
                         existing.content == suggestion.newContent
-                } ?: memoryRepository.addMemory(
+                }
+                val updated = memoryRepository.applyDreamSupersede(
+                    oldRecords = oldRecords,
+                    existingReplacement = existingReplacement,
+                    newContent = suggestion.newContent,
                     scope = suggestion.scope,
                     kind = suggestion.kind,
-                    content = suggestion.newContent,
-                    sourceConversationId = oldRecords.firstNotNullOfOrNull { it.sourceConversationId },
-                    sourceMessageIds = oldRecords.flatMap { it.sourceMessageIds }.distinct(),
-                    supersedesIds = supersededIds,
                     confidence = suggestion.confidence,
-                ).also { created ->
-                    records[created.id] = created
-                    eventLogger.log(
-                        type = MemoryEventType.MEMORY_CREATED,
-                        memoryId = created.id,
-                        message = "Superseded memories: ${oldRecords.joinToString(",") { it.id.toString() }}.",
-                    )
-                }
-                oldRecords.forEach { oldRecord ->
-                    val currentRecord = records[oldRecord.id] ?: oldRecord
-                    records[oldRecord.id] = memoryRepository.upsertRecord(currentRecord.copy(archived = true))
-                    eventLogger.log(
-                        type = MemoryEventType.MEMORY_ARCHIVED,
-                        memoryId = oldRecord.id,
-                        message = "Archived by dream supersede -> new #${newRecord.id}.",
-                    )
-                }
+                )
+                updated.forEach { records[it.id] = it }
                 appliedSupersedes += suggestion
             } catch (e: CancellationException) {
                 throw e

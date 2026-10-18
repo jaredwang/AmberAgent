@@ -12,6 +12,7 @@ import app.amber.feature.runtime.ApprovalGuard
 import app.amber.feature.runtime.ApprovalHistoryEntry
 import app.amber.feature.runtime.CasLedger
 import app.amber.feature.tools.isPrivateNetworkTarget
+import kotlinx.coroutines.CancellationException
 
 /**
  * P2-05 MCP import safety transaction (docs/plans/2026-08-13-android-ios-
@@ -219,6 +220,8 @@ class McpImportTransaction(
         candidates.forEach { candidate ->
             try {
                 toolCounts += preflight.connectAndListTools(candidate).size
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (error: Throwable) {
                 preflightErrors += "Connect preflight failed for '${candidate.serverName}': ${error.message ?: error.javaClass.simpleName}"
             }
@@ -228,7 +231,12 @@ class McpImportTransaction(
         }
 
         // Publish the whole batch in one settings update.
-        publish(candidates.map { it.toMcpServerConfig() })
+        try {
+            publish(candidates.map { it.toMcpServerConfig() })
+        } catch (conflict: McpImportNameConflict) {
+            return reject(candidates, ready.preview, sessionId,
+                conflict.serverNames.map { "MCP server '$it' already exists in the configuration; remove it first or delete the server before importing again" })
+        }
         approvalLedger.recordOutcome(sessionId, "applied")
         return McpImportApplyResult.Applied(serverCount = candidates.size, toolCount = toolCounts.sum())
     }

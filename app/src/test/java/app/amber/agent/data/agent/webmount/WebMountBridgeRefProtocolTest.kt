@@ -1,5 +1,6 @@
 package app.amber.feature.webmount
 
+import app.amber.feature.webmount.primitives.WebMountBridgeBootstrap
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -8,7 +9,9 @@ import java.io.File
 class WebMountBridgeRefProtocolTest {
     @Test
     fun bridgeUsesStandardsCompliantCssRefs() {
-        val source = locateBridge().readText()
+        val source = WebMountBridgeBootstrap.load { assetPath ->
+            File(locateBridge().parentFile, assetPath.removePrefix("webmount/")).readText()
+        }
 
         assertTrue(source.contains(":nth-of-type("))
         assertFalse("bridge.js must not emit the old non-standard :nth(...) selector", source.contains(":nth("))

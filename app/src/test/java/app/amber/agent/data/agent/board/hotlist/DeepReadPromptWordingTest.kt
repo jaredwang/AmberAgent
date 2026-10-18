@@ -14,7 +14,8 @@ class DeepReadPromptWordingTest {
     @Test
     fun promptDoesNotDescribeGlobalOrFirstWriterTimeouts() {
         val source = listOf(
-            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadAgentRunManager.kt",
+            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadMagazinePrompt.kt",
+            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadMagazineGenerator.kt",
             "feature/board/impl/src/main/kotlin/app/amber/feature/board/hotlist/deepread/DeepReadHiddenAssistantFactory.kt",
             "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadSectionWriterTools.kt",
         ).joinToString("\n") { path -> Files.readString(repoFile(path)) }
@@ -31,7 +32,8 @@ class DeepReadPromptWordingTest {
     @Test
     fun diagramPromptAllowsSparseCrossNodeRelations() {
         val source = listOf(
-            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadAgentRunManager.kt",
+            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadMagazinePrompt.kt",
+            "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadMagazineGenerator.kt",
             "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadSectionWriterTools.kt",
         ).joinToString("\n") { path -> Files.readString(repoFile(path)) }
 

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -80,6 +81,7 @@ class SettingsAggregator(
                     }
                 }
             }.onFailure {
+                if (it is CancellationException) throw it
                 // Preserve the settings collection's existing fatal error contract.
                 it.printStackTrace()
                 Log.e(TAG, "Error while collecting settings flow: ${it.message}", it)

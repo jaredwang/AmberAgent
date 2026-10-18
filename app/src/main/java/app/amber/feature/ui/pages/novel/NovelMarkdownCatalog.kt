@@ -84,22 +84,36 @@ private data class CatalogSection(
 )
 
 /** The directory shows author-facing categories; file paths remain available in the full text editor. */
+internal data class NovelWorkspaceCatalogState(
+    val branchSlug: String?,
+    val catalog: NovelWorkspaceCatalog.NovelWorkspaceCatalogData?,
+    val busy: Boolean,
+    val loading: Boolean,
+    val writeLocked: Boolean,
+    val errorMessage: String?,
+)
+
 @Composable
 internal fun MarkdownWorkspaceCatalog(
-    viewModel: NovelMarkdownWorkspaceViewModel,
-    state: NovelMarkdownWorkspaceUiState,
+    state: NovelWorkspaceCatalogState,
     category: CatalogCategory,
     onSelectCategory: (CatalogCategory) -> Unit,
     listState: LazyListState,
+    readFileRaw: suspend (String) -> String?,
+    onCreateMaterial: (kind: String, title: String, body: String, onSaved: () -> Unit) -> Unit,
+    onSaveMaterial: (path: String, title: String, body: String, expectedRaw: String, onSaved: () -> Unit) -> Unit,
+    onSaveOpenedFileEdit: (path: String, body: String, expectedRaw: String, onSaved: () -> Unit) -> Unit,
+    onDeleteMaterial: (path: String, expectedRaw: String, onDeleted: () -> Unit) -> Unit,
+    onClearError: () -> Unit,
 ) {
     var create by remember(state.branchSlug) { mutableStateOf(false) }
     var editing by remember(state.branchSlug) { mutableStateOf<CatalogEditorTarget?>(null) }
-    val locked = state.ghostwriteJob?.status in setOf("running", "paused", "failed")
+    val locked = state.writeLocked
     if (create) MarkdownMaterialCreateSheet(
         busy = state.busy, writeLocked = locked, errorMessage = state.errorMessage,
         initialKind = category.initialMaterialKind,
         onCreate = { kind, title, body, done ->
-            viewModel.createMaterial(kind, title, body) {
+            onCreateMaterial(kind, title, body) {
                 onSelectCategory(when (kind) {
                     "character" -> CatalogCategory.Characters
                     "world" -> CatalogCategory.World
@@ -115,16 +129,16 @@ internal fun MarkdownWorkspaceCatalog(
         MarkdownMaterialEditSheet(
             path = target.path, displayTitle = target.title, busy = state.busy,
             writeLocked = locked, errorMessage = state.errorMessage,
-            allowRenameDelete = target.renameDelete, plot = target.plot, readRaw = viewModel::readFileRaw,
+            allowRenameDelete = target.renameDelete, plot = target.plot, readRaw = readFileRaw,
             onSave = { title, body, raw, done ->
-                if (target.renameDelete) viewModel.saveMaterial(target.path, title, body, raw, done)
-                else viewModel.saveOpenedFileEdit(target.path, body, raw, done)
+                if (target.renameDelete) onSaveMaterial(target.path, title, body, raw, done)
+                else onSaveOpenedFileEdit(target.path, body, raw, done)
             },
-            onDelete = { raw, done -> viewModel.deleteMaterial(target.path, raw, done) },
+            onDelete = { raw, done -> onDeleteMaterial(target.path, raw, done) },
             onDismiss = { editing = null },
         )
     }
-    fun open(target: CatalogEditorTarget) { viewModel.clearError(); editing = target }
+    fun open(target: CatalogEditorTarget) { onClearError(); editing = target }
     val currentPlotTitle = stringResource(R.string.novel_catalog_current_plot)
     val sections = remember(state.catalog, state.branchSlug, category, currentPlotTitle) {
         catalogSections(state.catalog, state.branchSlug, category, currentPlotTitle)
@@ -161,7 +175,7 @@ internal fun MarkdownWorkspaceCatalog(
                     val canCreate = !state.busy && !state.loading && !locked
                     Row(
                         Modifier.heightIn(min = 48.dp)
-                            .novelPressable(onClick = { viewModel.clearError(); create = true }, enabled = canCreate)
+                            .novelPressable(onClick = { onClearError(); create = true }, enabled = canCreate)
                             .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

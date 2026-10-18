@@ -259,7 +259,7 @@ class NovelWorkspaceRuntimeTest {
                 .joinToString("\n") { it.text }
             val isPlanning = prompt.contains("下一章规划轮") ||
                 prompt.contains("next-chapter planning turn")
-            val isReview = !isPlanning && (session.settings.maxTokens ?: 0) >=
+            val isReview = !isPlanning && (session.settings.defaults.maxTokens ?: 0) >=
                 NovelWorkspaceGhostwriteCoordinator.MIN_REVIEW_OUTPUT_TOKENS
             val output = if (isPlanning) {
                 planningCalls += 1
@@ -269,7 +269,7 @@ class NovelWorkspaceRuntimeTest {
                 buildJsonObject { put("nextPlan", body) }.toString()
             } else if (isReview) {
                 reviewCalls += 1
-                minimumReviewBudget = minOf(minimumReviewBudget, session.settings.maxTokens ?: 0)
+                minimumReviewBudget = minOf(minimumReviewBudget, session.settings.defaults.maxTokens ?: 0)
                 val candidateId = prompt.lineSequence()
                     .first { it.startsWith("candidateId: ") }
                     .substringAfter(": ")
@@ -992,7 +992,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertTrue(NovelWorkspaceStore(dir).list("branches/主线/chapters").any { it.endsWith("002-火起.md") })
         assertTrue(runtime.canUndo(dir))
     }
@@ -1135,7 +1135,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(2, kernel.calls)
         assertEquals(1, kernel.reviewCalls)
         assertTrue(kernel.minimumReviewBudget >= 10_000)
@@ -1195,7 +1195,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(4, kernel.calls)
         assertEquals(2, kernel.reviewCalls)
         assertEquals(0, kernel.planningCalls)
@@ -1239,7 +1239,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(5, kernel.calls)
         assertEquals(2, kernel.reviewCalls)
         assertEquals(1, kernel.planningCalls)
@@ -1270,7 +1270,7 @@ class NovelWorkspaceRuntimeTest {
                 isPaused = { false },
             ) { }
 
-            assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+            assertTrue(result is NovelWorkspaceBatchResult.Completed)
             assertEquals(target * 2, kernel.calls)
             assertEquals(target, kernel.reviewCalls)
             assertEquals(0, kernel.planningCalls)
@@ -1300,7 +1300,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertEquals(2, kernel.calls)
         assertEquals(1, NovelWorkspaceLedger.load(dir).commits.size)
         assertTrue(NovelWorkspaceStore(dir).list("branches/主线/chapters").none { it.contains("002-") })
@@ -1330,7 +1330,7 @@ class NovelWorkspaceRuntimeTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(4, kernel.calls)
         assertEquals(2, kernel.reviewCalls)
         val persisted = NovelWorkspaceGhostwriteJobs.load(dir, job.id)!!
@@ -1576,7 +1576,7 @@ class NovelWorkspaceRuntimeTest {
         ) { }
 
         assertEquals(3, generator.calls) // failed write + one retry + one joint review
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(1, NovelWorkspaceGhostwriteJobs.load(dir, job.id)?.receipts?.size)
     }
 
@@ -1601,8 +1601,8 @@ class NovelWorkspaceRuntimeTest {
         ) { }
 
         assertEquals(2, generator.calls) // exactly one retry, then the batch stops
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
-        assertTrue((result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed).error.contains("provider 429"))
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
+        assertTrue((result as NovelWorkspaceBatchResult.Failed).error.contains("provider 429"))
     }
 
     @Test
@@ -1839,7 +1839,7 @@ class NovelWorkspaceRuntimeTest {
         ) { }
 
         // Filler twice → no-progress guard fails the batch; nothing got filed.
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertFalse(NovelWorkspaceStore(dir).list("branches/主线/chapters").any { it.endsWith("002-") })
     }
 
@@ -1960,7 +1960,7 @@ class NovelWorkspaceRuntimeTest {
             },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Stopped)
+        assertTrue(result is NovelWorkspaceBatchResult.Stopped)
         assertEquals(1, NovelWorkspaceLedger.load(dir).commits.size)
         assertEquals(
             "第二章推进陈桥兵变，结尾留下入汴钩子。",

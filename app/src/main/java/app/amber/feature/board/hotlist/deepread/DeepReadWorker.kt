@@ -60,7 +60,11 @@ class DeepReadWorker(
         } catch (error: Throwable) {
             if (canRetryDeepReadWorker(runAttemptCount)) return Result.retry()
             val reason = error.message ?: error::class.java.simpleName
-            val cached = repository.materializeFreshDeepRead(topicId, title)?.withInferredSectionStates()
+            val cached = if (sourceUrl.isNullOrBlank()) {
+                repository.materializeFreshDeepRead(topicId, title)
+            } else {
+                repository.getFreshDeepRead(topicId)
+            }?.withInferredSectionStates()
             repository.saveDeepRead(
                 topicId = topicId,
                 title = title,
@@ -151,7 +155,11 @@ class DeepReadWorker(
             throw cancel
         } catch (error: Throwable) {
             val reason = error.message ?: error::class.java.simpleName
-            val cached = repository.materializeFreshDeepRead(topicId, title)?.withInferredSectionStates()
+            val cached = if (sourceUrl.isNullOrBlank()) {
+                repository.materializeFreshDeepRead(topicId, title)
+            } else {
+                repository.getFreshDeepRead(topicId)
+            }?.withInferredSectionStates()
             if (shouldRetryDeepReadWorkerError(error, runAttemptCount)) {
                 repository.saveDeepRead(
                     topicId = topicId,

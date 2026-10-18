@@ -74,7 +74,6 @@ import app.amber.feature.ui.context.LocalSettings
 import app.amber.feature.ui.theme.LocalAmberType
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.pages.stats.StatsVM
-import app.amber.feature.ui.pages.sessionhome.SessionHomeVM
 import app.amber.core.utils.appLocale
 import app.amber.agent.R
 import com.composables.icons.lucide.Lucide
@@ -93,7 +92,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ProfilePage(
     vm: StatsVM = koinViewModel(),
-    sessionHomeVm: SessionHomeVM = koinViewModel(),
+    profileVm: ProfileVM = koinViewModel(),
 ) {
     val tokens = LocalAmberTokens.current
     val settings = LocalSettings.current
@@ -111,11 +110,7 @@ fun ProfilePage(
     fun saveNickname() {
         val normalized = nicknameDraft.trim()
         if (normalized != storedNickname) {
-            sessionHomeVm.updateSettings(
-                settings.copy(
-                    displaySetting = settings.displaySetting.copy(userNickname = normalized),
-                )
-            )
+            profileVm.updateNickname(normalized)
         }
         editingNickname = false
         focusManager.clearFocus(force = true)
@@ -183,11 +178,7 @@ fun ProfilePage(
                             editContentColor = tokens.accent,
                             showEditBadge = false,
                             onUpdate = { newAvatar ->
-                                sessionHomeVm.updateSettings(
-                                    settings.copy(
-                                        displaySetting = settings.displaySetting.copy(userAvatar = newAvatar)
-                                    )
-                                )
+                                profileVm.updateAvatar(newAvatar)
                             },
                         )
                     }

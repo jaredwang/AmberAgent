@@ -7,6 +7,8 @@ import kotlinx.coroutines.launch
 import app.amber.core.settings.Settings
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.ai.provider.ProviderSetting
+import app.amber.core.ai.mcp.McpServerConfig
+import app.amber.core.ai.mcp.publishMcpImport
 
 class SettingVM(
     private val settingsStore: SettingsAggregator,
@@ -24,5 +26,9 @@ class SettingVM(
         settingsStore.update { current ->
             current.copy(providers = providers + current.providers)
         }
+    }
+
+    suspend fun importMcpServers(configs: List<McpServerConfig>) {
+        settingsStore.publishMcpImport(configs)
     }
 }

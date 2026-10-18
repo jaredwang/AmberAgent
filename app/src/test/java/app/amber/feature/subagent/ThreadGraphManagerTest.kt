@@ -340,6 +340,16 @@ class FakeThreadGraphStore : ThreadGraphStore {
         return count
     }
 
+    override suspend fun requeueUndrainedMessages(threadId: String, messageIds: List<String>): Int {
+        val selected = messageIds.toSet()
+        val unread = messages.values.filter {
+            it.threadId == threadId && it.messageId in selected &&
+                it.deliveryState == ThreadDeliveryState.DELIVERED.name
+        }
+        unread.forEach { messages[it.messageId] = it.copy(deliveryState = ThreadDeliveryState.QUEUED.name) }
+        return unread.size
+    }
+
     override suspend fun markMessageDelivered(messageId: String) {
         val message = messages[messageId] ?: return
         if (message.deliveryState != ThreadDeliveryState.QUEUED.name) return

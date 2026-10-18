@@ -1,102 +1,123 @@
 package app.amber.core.service
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import android.app.Application
+import android.content.ContextWrapper
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.Conversation
+import app.amber.core.sync.core.SyncRestoreWriteGate
+import kotlin.uuid.Uuid
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
-import kotlin.uuid.Uuid
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = Application::class)
 class ConversationSessionQueueTest {
+    @get:Rule val directory = TemporaryFolder()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val queues = mutableListOf<PendingMessageQueue>()
+
+    @After
+    fun closeQueues() {
+        queues.forEach { it.cleanup() }
+        scope.cancel()
+    }
+
     @Test
-    fun pendingMessagesAreDequeuedInFifoOrder() {
-        val persistedSizes = mutableListOf<Int>()
-        val session = session { _, messages -> persistedSizes += messages.size }
-
-        assertTrue(session.enqueuePendingUserMessage(pending("first")))
-        assertTrue(session.enqueuePendingUserMessage(pending("second")))
-
-        assertEquals("first", session.dequeueNextPendingUserMessage()?.id)
-        assertEquals("second", session.dequeueNextPendingUserMessage()?.id)
-        assertNull(session.dequeueNextPendingUserMessage())
-        assertEquals(listOf(1, 2, 1, 0), persistedSizes)
+    fun pendingMessagesAreDequeuedInFifoOrder() = runBlocking {
+        val fixture = queue()
+        val id = Uuid.random()
+        val pending = fixture.queue.flow(id)
+        assertTrue(fixture.queue.enqueuePendingUserMessage(id, pending("first")))
+        assertTrue(fixture.queue.enqueuePendingUserMessage(id, pending("second")))
+        fixture.queue.persistCurrentPendingMessagesNow(id)
+        assertEquals(listOf("first", "second"), fixture.store.load(id).map { it.id })
+        assertEquals("first", fixture.queue.dequeueNextPendingUserMessageDurably(id)?.id)
+        assertEquals(listOf("second"), fixture.store.load(id).map { it.id })
+        assertEquals("second", fixture.queue.dequeueNextPendingUserMessageDurably(id)?.id)
+        assertTrue(fixture.store.load(id).isEmpty())
+        assertNull(fixture.queue.dequeueNextPendingUserMessageDurably(id))
+        assertTrue(pending.value.isEmpty())
     }
 
     @Test
     fun steerMessagesAreInsertedBeforeFollowupMessages() {
-        val session = session()
-        session.enqueuePendingUserMessage(pending("steer-1", PendingUserMessageMode.STEER))
-        session.enqueuePendingUserMessage(pending("steer-2", PendingUserMessageMode.STEER))
-        session.enqueuePendingUserMessage(pending("followup", PendingUserMessageMode.FOLLOWUP))
-        session.enqueuePendingUserMessage(pending("steer-3", PendingUserMessageMode.STEER))
-
-        val consumed = session.dequeueSteerPendingUserMessages()
-
-        assertEquals(listOf("steer-1", "steer-2", "steer-3"), consumed.map { it.id })
-        assertEquals(listOf("followup"), session.pendingUserMessages.value.map { it.id })
+        val queue = queue().queue
+        val id = Uuid.random()
+        queue.enqueuePendingUserMessage(id, pending("steer-1", PendingUserMessageMode.STEER))
+        queue.enqueuePendingUserMessage(id, pending("steer-2", PendingUserMessageMode.STEER))
+        queue.enqueuePendingUserMessage(id, pending("followup", PendingUserMessageMode.FOLLOWUP))
+        queue.enqueuePendingUserMessage(id, pending("steer-3", PendingUserMessageMode.STEER))
+        val consumed = queue.consumeSteerMessagesForRun(id)
+        assertEquals(listOf("steer-1", "steer-2", "steer-3"), consumed.map { (it.parts.single() as UIMessagePart.Text).text })
+        assertEquals(listOf("followup"), queue.flow(id).value.map { it.id })
     }
 
     @Test
     fun queueLimitAndCancelAreStable() {
-        val session = session()
+        val queue = queue().queue
+        val id = Uuid.random()
         repeat(MAX_PENDING_USER_MESSAGES) { index ->
-            assertTrue(session.enqueuePendingUserMessage(pending("message-$index")))
+            assertTrue(queue.enqueuePendingUserMessage(id, pending("message-$index")))
         }
-
-        assertFalse(session.enqueuePendingUserMessage(pending("overflow")))
-        assertTrue(session.cancelPendingUserMessage("message-3"))
-        assertFalse(session.cancelPendingUserMessage("missing"))
-        assertEquals(MAX_PENDING_USER_MESSAGES - 1, session.pendingUserMessages.value.size)
+        assertFalse(queue.enqueuePendingUserMessage(id, pending("overflow")))
+        assertTrue(queue.cancelPendingUserMessage(id, "message-3"))
+        assertFalse(queue.cancelPendingUserMessage(id, "missing"))
+        assertEquals(MAX_PENDING_USER_MESSAGES - 1, queue.flow(id).value.size)
     }
 
     @Test
     fun movePendingMessageReordersQueue() {
-        val session = session()
-        session.enqueuePendingUserMessage(pending("first"))
-        session.enqueuePendingUserMessage(pending("second"))
-        session.enqueuePendingUserMessage(pending("third"))
-
-        assertTrue(session.movePendingUserMessage("third", -2))
-        assertEquals(listOf("third", "first", "second"), session.pendingUserMessages.value.map { it.id })
-        assertFalse(session.movePendingUserMessage("third", -1))
-        assertFalse(session.movePendingUserMessage("missing", 1))
+        val queue = queue().queue
+        val id = Uuid.random()
+        queue.enqueuePendingUserMessage(id, pending("first"))
+        queue.enqueuePendingUserMessage(id, pending("second"))
+        queue.enqueuePendingUserMessage(id, pending("third"))
+        assertTrue(queue.movePendingUserMessage(id, "third", -2))
+        assertEquals(listOf("third", "first", "second"), queue.flow(id).value.map { it.id })
+        assertFalse(queue.movePendingUserMessage(id, "third", -1))
+        assertFalse(queue.movePendingUserMessage(id, "missing", 1))
     }
 
     @Test
     fun stopSemanticsPreserveQueueWithoutDowngrade() {
-        // P1-06: Stop 后会话进入 idle，队列原样保留 —— STEER 不再降级为
-        // FOLLOWUP，内容不丢；下一步由用户显式“继续队列”或“移回输入框”决定。
-        val session = session()
-        session.enqueuePendingUserMessage(pending("steer", PendingUserMessageMode.STEER))
-        session.enqueuePendingUserMessage(pending("followup", PendingUserMessageMode.FOLLOWUP))
-        session.enqueuePendingUserMessage(pending("attachment", PendingUserMessageMode.FOLLOWUP))
-
+        val queue = queue().queue
+        val id = Uuid.random()
+        val session = ConversationSession(id, Conversation.ofId(id), queue.flow(id), scope, onIdle = {})
+        queue.enqueuePendingUserMessage(id, pending("steer", PendingUserMessageMode.STEER))
+        queue.enqueuePendingUserMessage(id, pending("followup", PendingUserMessageMode.FOLLOWUP))
+        queue.enqueuePendingUserMessage(id, pending("attachment", PendingUserMessageMode.FOLLOWUP))
+        assertSame(queue.flow(id), session.pendingUserMessages)
         assertEquals(
             listOf(PendingUserMessageMode.STEER, PendingUserMessageMode.FOLLOWUP, PendingUserMessageMode.FOLLOWUP),
             session.pendingUserMessages.value.map { it.mode },
         )
-        assertEquals(
-            listOf("steer", "followup", "attachment"),
-            session.pendingUserMessages.value.map { it.id },
-        )
-        // 队列非空本身不会启动生成（kernel 调度只由显式
-        // resumePendingQueue / 新消息发送触发）。
+        assertEquals(listOf("steer", "followup", "attachment"), session.pendingUserMessages.value.map { it.id })
+        assertTrue(session.isInUse)
         assertFalse(session.isGenerating)
     }
 
     @Test
     fun collectedPendingMessagesKeepStableMarkers() {
         val collected = buildCollectedPendingUserMessage(
-            listOf(
-                pending("first", PendingUserMessageMode.COLLECT),
-                pending("second", PendingUserMessageMode.COLLECT),
-            )
+            listOf(pending("first", PendingUserMessageMode.COLLECT), pending("second", PendingUserMessageMode.COLLECT)),
         )
-
         assertEquals(PendingUserMessageMode.FOLLOWUP, collected.mode)
         val text = collected.previewText(maxChars = 1_000)
         assertTrue(text.contains("Queued #1"))
@@ -105,20 +126,58 @@ class ConversationSessionQueueTest {
         assertTrue(text.contains("second"))
     }
 
-    private fun session(
-        onPendingMessagesChanged: (Uuid, List<PendingUserMessage>) -> Unit = { _, _ -> },
-    ) = ConversationSession(
-        id = Uuid.random(),
-        initial = Conversation.ofId(Uuid.random()),
-        scope = CoroutineScope(Dispatchers.Unconfined),
-        onIdle = {},
-        onPendingMessagesChanged = onPendingMessagesChanged,
-    )
+    @Test
+    fun collectDrainIsDurableBeforePreparedInputIsReturned() = runBlocking {
+        val fixture = queue()
+        val id = Uuid.random()
+        fixture.queue.enqueuePendingUserMessage(id, pending("first", PendingUserMessageMode.COLLECT))
+        fixture.queue.enqueuePendingUserMessage(id, pending("second", PendingUserMessageMode.COLLECT))
+        fixture.queue.enqueuePendingUserMessage(id, pending("later"))
+        val first = fixture.queue.dequeueNextPendingUserMessageDurably(id)!!
+        val prepared = fixture.queue.preparePendingMessageForDispatch(id, first, PendingUserMessageDisplayCopy.ENGLISH)
+        assertTrue(prepared.previewText(maxChars = 1_000).contains("second"))
+        assertEquals(listOf("later"), fixture.store.load(id).map { it.id })
+        assertEquals(listOf("later"), fixture.queue.flow(id).value.map { it.id })
+    }
 
-    private fun pending(
-        id: String,
-        mode: PendingUserMessageMode = PendingUserMessageMode.FOLLOWUP,
-    ) = PendingUserMessage(
+    @Test
+    fun restoredQueueUsesTheSameFlowAndNeverWritesTheOldPendingSnapshotBack() = runBlocking {
+        val fixture = queue()
+        val id = Uuid.random()
+        fixture.queue.enqueuePendingUserMessage(id, pending("old"))
+        fixture.queue.persistCurrentPendingMessagesNow(id)
+        val flow = fixture.queue.flow(id)
+        fixture.gate.withRestore { fixture.gate.markDataCommitted() }
+        fixture.queue.persistCurrentPendingMessagesNow(id)
+        assertSame(flow, fixture.queue.flow(id))
+        assertTrue(flow.value.isEmpty())
+        assertTrue(fixture.store.load(id).isEmpty())
+    }
+
+    @Test
+    fun existingPendingInputLoadsSynchronouslyAndMoveToInputCommitsRemoval() = runBlocking {
+        val fixture = queue()
+        val id = Uuid.random()
+        fixture.store.persistBlocking(id, listOf(pending("retained")))
+        assertEquals(listOf("retained"), fixture.queue.flow(id).value.map { it.id })
+        assertEquals(listOf(UIMessagePart.Text("retained")), fixture.queue.takePendingMessageForInput(id))
+        assertTrue(fixture.store.load(id).isEmpty())
+    }
+
+    private fun queue(): Fixture {
+        val root = directory.newFolder()
+        val context = object : ContextWrapper(RuntimeEnvironment.getApplication()) {
+            override fun getFilesDir() = root
+        }
+        val store = PendingMessageStore(context, Json)
+        val gate = SyncRestoreWriteGate()
+        val queue = PendingMessageQueue(scope, store, gate).also(queues::add)
+        return Fixture(queue, store, gate)
+    }
+
+    private data class Fixture(val queue: PendingMessageQueue, val store: PendingMessageStore, val gate: SyncRestoreWriteGate)
+
+    private fun pending(id: String, mode: PendingUserMessageMode = PendingUserMessageMode.FOLLOWUP) = PendingUserMessage(
         id = id,
         parts = listOf(UIMessagePart.Text(id)),
         mode = mode,

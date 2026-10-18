@@ -12,8 +12,10 @@ import app.amber.feature.ui.pages.debug.DebugVM
 import app.amber.feature.ui.pages.developer.DeveloperVM
 import app.amber.feature.ui.pages.favorite.FavoriteVM
 import app.amber.feature.ui.pages.search.SearchVM
+import app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreator
 import app.amber.feature.ui.pages.sessionhome.SessionHomeVM
 import app.amber.feature.ui.pages.history.HistoryVM
+import app.amber.feature.ui.pages.profile.ProfileVM
 import app.amber.feature.ui.pages.stats.StatsVM
 import app.amber.feature.ui.pages.extensions.PromptVM
 import app.amber.feature.ui.pages.extensions.QuickMessagesVM
@@ -57,6 +59,14 @@ val viewModelModule = module {
         )
     }
     viewModelOf(::ChatDrawerVM)
+    factory {
+        HomeCouncilRoomCreator(
+            settingsStore = get(),
+            conversationRepo = get(),
+            roomManager = get(),
+            restoreWriteGate = get(),
+        )
+    }
     viewModelOf(::SessionHomeVM)
     viewModel<CouncilRoomVM> { params ->
         CouncilRoomVM(
@@ -90,4 +100,5 @@ val viewModelModule = module {
     viewModelOf(::FavoriteVM)
     viewModelOf(::SearchVM)
     viewModelOf(::StatsVM)
+    viewModelOf(::ProfileVM)
 }

@@ -7,15 +7,18 @@ import java.io.File
 
 class BackupLocalFlowSourceTest {
     @Test
-    fun localRestoreUriIsOwnedByViewModel() {
+    fun localRestoreUriIsOwnedByRestoreSession() {
         val page = source("app/src/main/java/app/amber/feature/ui/pages/backup/BackupPage.kt")
         val vm = source("app/src/main/java/app/amber/feature/ui/pages/backup/BackupVM.kt")
+        val session = source("app/src/main/java/app/amber/feature/ui/pages/backup/BackupRestoreSession.kt")
 
         assertFalse(page.contains("pendingImportUri"))
-        assertTrue(page.contains("vm.restorePendingLocal("))
-        assertTrue(vm.contains("private var pendingLocalRestoreUri"))
-        assertTrue(vm.contains("fun restorePendingLocal("))
-        assertTrue(vm.contains("没有待恢复的本地备份"))
+        assertTrue(vm.contains("val restoreSession = BackupRestoreSession("))
+        assertTrue(page.contains("restoreSession"))
+        assertTrue(page.contains("restoreSession.verify("))
+        assertTrue(session.contains("data class Local(val uri: Uri"))
+        assertTrue(session.contains("fun verify("))
+        assertTrue(session.contains("没有待恢复的本地备份"))
     }
 
     @Test

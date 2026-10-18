@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
@@ -35,14 +34,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -55,7 +54,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -64,7 +62,6 @@ import kotlinx.coroutines.withContext
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Maximize
 import app.amber.agent.R
-import app.amber.feature.subagent.SubAgentMode
 import app.amber.feature.ui.subagent.AppSubAgentDisplayLocalizer
 import app.amber.core.settings.getAmberQuickMessages
 import app.amber.core.files.FilesManager
@@ -81,31 +78,8 @@ import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import org.koin.compose.koinInject
 
-/**
- * Composer text-input row + slash-command panel + @role mention panel,
- * plus all the pure helpers (slash-command detection / build / filter,
- * mention context detection / replacement). Extracted from the ChatInput
- * god class so the main composable stays focused on layout + state wiring.
- *
- * Only `TextInputRow` is `internal` (call site: main `ChatInput()`). Every
- * other helper / composable / data class / sealed interface stays `private`
- * file-private to this file.
- *
- * Cross-file dependencies on the same package:
- *  - `FullScreenEditor` (defined in ChatInputAttachments.kt) — invoked when
- *    the user taps the FullScreen icon inside the TextField.
- *  - `MentionRoleItem` / `buildMentionRoleItems` / `filterMentionRoleItems`
- *    (defined in MentionRoles.kt) — the data model + filter for `@xxx`.
- *
- * AnimatedVisibility is intentionally invoked via fully-qualified call form
- * (`androidx.compose.animation.AnimatedVisibility(...)` + `fadeIn` / slide /
- * tween) matching the pre-refactor source byte-for-byte. The package-wide
- * import isn't pulled in here to keep the diff and behavior identical.
- */
+/** Text editing, cursor/focus, discard and mention UI for the shared composer. */
 
-private const val MAX_SLASH_COMMANDS = 9
-private const val MAX_SLASH_COMMAND_TITLE_CHARS = 32
-private const val DYNAMIC_SLASH_COMMAND_MIN_QUERY_CHARS = 2
 private const val MAX_MENTIONS = 9
 private const val SLASH_COMMAND_PANEL_EXIT_MS = 130
 private const val MENTION_PANEL_EXIT_MS = 100
@@ -577,7 +551,7 @@ private fun inputPanelPopupPositionProvider(
  * reading column when the pane is wider than it.
  */
 @Composable
-private fun inputPanelWidth(): androidx.compose.ui.unit.Dp {
+internal fun inputPanelWidth(): androidx.compose.ui.unit.Dp {
     val readingWidth = app.amber.feature.ui.adaptive.ChatReadingWidth
     app.amber.feature.ui.adaptive.LocalTwoPaneLayout.current?.let {
         return minOf(it.detailWidth, readingWidth) - 32.dp
@@ -585,124 +559,6 @@ private fun inputPanelWidth(): androidx.compose.ui.unit.Dp {
     val screenWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
     // Phone: unchanged legacy width.
     return if (screenWidth > readingWidth) readingWidth - 32.dp else screenWidth - 24.dp
-}
-
-@Composable
-private fun SlashCommandPanel(
-    commands: List<SlashCommandItem>,
-    hasAnyCommand: Boolean,
-    onSelect: (SlashCommandItem) -> Unit,
-) {
-    val workspace = workspaceColors()
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    // V3: panel 宽度跟 composer 一致 — screen 宽减去 24dp (composer 父级 horizontal padding 12dp 左右)
-    val panelWidth = inputPanelWidth()
-    val panelShape = RoundedCornerShape(14.dp)
-    Surface(
-        modifier = Modifier
-            .width(panelWidth)
-            .shadow(
-                elevation = 8.dp,
-                shape = panelShape,
-                clip = false,
-                ambientColor = Color.Transparent,
-                spotColor = Color.Transparent,
-            ),
-        shape = panelShape,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        color = chatTheme.surface,
-        border = BorderStroke(1.dp, chatTheme.surfaceEdge),
-    ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            when {
-                !hasAnyCommand -> SlashCommandEmptyRow(
-                    text = stringResource(R.string.chat_input_slash_command_empty)
-                )
-
-                commands.isEmpty() -> SlashCommandEmptyRow(
-                    text = stringResource(R.string.chat_input_slash_command_no_match)
-                )
-
-                else -> {
-                    val shownCommands = commands.take(MAX_SLASH_COMMANDS)
-                    shownCommands.forEachIndexed { index, command ->
-                        SlashCommandRow(
-                            command = command,
-                            onClick = { onSelect(command) },
-                        )
-                        if (index < shownCommands.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 58.dp),
-                                color = workspace.hairline,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SlashCommandRow(
-    command: SlashCommandItem,
-    onClick: () -> Unit,
-) {
-    val workspace = workspaceColors()
-    Surface(
-        onClick = onClick,
-        color = Color.Transparent,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            // V3: 跟主题色 (scheme.primary/primaryContainer), 边框降到 hair 极淡, 不再粗硬蓝勾边
-            val scheme = MaterialTheme.colorScheme
-            Surface(
-                modifier = Modifier.size(30.dp),
-                shape = RoundedCornerShape(6.dp),
-                color = if (command.accent) scheme.primaryContainer else workspace.row,
-                contentColor = if (command.accent) scheme.primary else workspace.muted,
-                border = BorderStroke(1.dp, workspace.hairline),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = command.marker,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "/${command.title}",
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = command.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = workspace.muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SlashCommandEmptyRow(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-    )
 }
 
 @Composable
@@ -779,173 +635,6 @@ private fun QuickMessageButton(
         }
     }
 }
-
-@Composable
-private fun SlashCommandLeadingMark() {
-    val workspace = workspaceColors()
-    val scheme = MaterialTheme.colorScheme
-    // V3: 跟主题色 (scheme.primaryContainer/primary), 替代硬编码 workspace.blue
-    Surface(
-        modifier = Modifier.size(24.dp),
-        shape = RoundedCornerShape(5.dp),
-        color = scheme.primaryContainer,
-        contentColor = scheme.primary,
-        border = BorderStroke(1.dp, workspace.hairline),
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = "/",
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
-    }
-}
-
-private fun String.slashCommandQuery(): String? {
-    // V3 修: 中文 IME 默认输入全角"／" (U+FF0F), ASCII "/" 检查会漏 → user 用中文输入法
-    // 直接打"/"唤不出 slash panel. 同时接受半角和全角.
-    if (!startsWith("/") && !startsWith("／")) return null
-    val query = drop(1)
-    return query.takeIf { it.none { char -> char.isWhitespace() } }
-}
-
-private sealed interface SlashCommandAction {
-    data object ClearInput : SlashCommandAction
-    data object CompactContext : SlashCommandAction
-    data object OpenUsage : SlashCommandAction
-    data class InsertText(val text: String) : SlashCommandAction
-}
-
-private data class SlashCommandItem(
-    val id: String,
-    val title: String,
-    val description: String,
-    val action: SlashCommandAction,
-    val marker: String = "/",
-    val minQueryChars: Int = 0,
-    val accent: Boolean = false,
-)
-
-private data class SlashCommandLabels(
-    val clearDescription: String,
-    val compactDescription: String,
-    val deepReadDescription: String,
-    val subAgentDescription: String,
-    val usageDescription: String,
-    val skillFallbackDescription: String,
-)
-
-private fun buildSlashCommandItems(
-    quickMessages: List<QuickMessage>,
-    enabledSkills: List<SkillMetadata>,
-    subAgentEnabled: Boolean,
-    subAgentMode: SubAgentMode,
-    labels: SlashCommandLabels,
-): List<SlashCommandItem> = buildList {
-    add(
-        SlashCommandItem(
-            id = "core.clear",
-            title = "clear",
-            description = labels.clearDescription,
-            action = SlashCommandAction.ClearInput,
-        )
-    )
-    add(
-        SlashCommandItem(
-            id = "core.compact",
-            title = "compact",
-            description = labels.compactDescription,
-            action = SlashCommandAction.CompactContext,
-        )
-    )
-    add(
-        SlashCommandItem(
-            id = "core.deepread",
-            title = "deepread",
-            description = labels.deepReadDescription,
-            action = SlashCommandAction.InsertText("/deepread "),
-            accent = true,
-        )
-    )
-    if (subAgentEnabled) {
-        add(
-            SlashCommandItem(
-                id = "core.subagent",
-                title = "subagent",
-                description = labels.subAgentDescription,
-                action = SlashCommandAction.InsertText(
-                    if (subAgentMode == SubAgentMode.SMART_DYNAMIC) {
-                        "请根据这个任务的复杂度，判断是否需要用 custom_subagent 临时创建 SubAgent，不要使用 subagent_id；" +
-                            "名称可省略由应用分配英文名；纯创作或无需外部读取时设 tool_profile=none，" +
-                            "需要资料时再选择只读 profile；写清楚 prompt、边界和输出格式，等待返回后再综合结论："
-                    } else {
-                        "请根据这个任务的复杂度，主动拆分并灵活调用合适的 subagent 并行处理；" +
-                            "等待它们返回后，再综合成一个可执行的结论："
-                    }
-                ),
-            )
-        )
-    }
-    add(
-        SlashCommandItem(
-            id = "core.usage",
-            title = "usage",
-            description = labels.usageDescription,
-            action = SlashCommandAction.OpenUsage,
-            minQueryChars = 1,
-            accent = true,
-        )
-    )
-    quickMessages.forEach { quickMessage ->
-        val title = quickMessage.slashTitle("quick")
-        add(
-            SlashCommandItem(
-                id = "quick.${quickMessage.id}",
-                title = title,
-                description = quickMessage.content,
-                action = SlashCommandAction.InsertText(quickMessage.content),
-                marker = "Q",
-                minQueryChars = DYNAMIC_SLASH_COMMAND_MIN_QUERY_CHARS,
-            )
-        )
-    }
-    enabledSkills.forEach { skill ->
-        add(
-            SlashCommandItem(
-                id = "skill.${skill.name}",
-                title = skill.name,
-                description = skill.description.ifBlank { labels.skillFallbackDescription },
-                action = SlashCommandAction.InsertText(skill.toSlashCommandPrompt()),
-                marker = "S",
-                minQueryChars = DYNAMIC_SLASH_COMMAND_MIN_QUERY_CHARS,
-            )
-        )
-    }
-}
-
-private fun filterSlashCommandItems(
-    items: List<SlashCommandItem>,
-    query: String,
-): List<SlashCommandItem> {
-    val normalized = query.trim()
-    return items.filter { command ->
-        if (normalized.length < command.minQueryChars) {
-            false
-        } else if (normalized.isBlank()) {
-            true
-        } else {
-            command.title.startsWith(normalized, ignoreCase = true) ||
-                command.title.contains(normalized, ignoreCase = true) ||
-                command.description.contains(normalized, ignoreCase = true)
-        }
-    }
-}
-
-private fun SkillMetadata.toSlashCommandPrompt(): String =
-    "请先调用 use_skill(\"${name.escapeForPromptString()}\")，然后按这个 skill 的说明继续完成："
-
-private fun String.escapeForPromptString(): String =
-    replace("\\", "\\\\").replace("\"", "\\\"")
 
 /** Position of an active `@xxx` mention context: the `@` index and the partial query after it. */
 private data class MentionContext(val atIndex: Int, val query: String)
@@ -1070,10 +759,3 @@ private fun MentionRow(
         }
     }
 }
-
-private fun QuickMessage.slashTitle(fallback: String): String =
-    title.ifBlank { content.lineSequence().firstOrNull().orEmpty() }
-        .trim()
-        .replace(Regex("\\s+"), "-")
-        .take(MAX_SLASH_COMMAND_TITLE_CHARS)
-        .ifBlank { fallback }

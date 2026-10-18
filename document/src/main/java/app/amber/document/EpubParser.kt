@@ -5,6 +5,8 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
 import java.io.File
+import java.io.IOException
+import java.util.concurrent.CancellationException
 import java.net.URI
 import java.util.zip.ZipFile
 
@@ -19,10 +21,19 @@ object EpubParser {
     private const val MAX_XML_BYTES = 8L * 1024 * 1024
     private const val MAX_SPINE_ENTRIES = 2_000
 
-    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = try {
+    fun parse(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = false)
+
+    /** Returns spine text, or empty text when there is none; invalid package/content XML throws. */
+    fun extractText(file: File, maxChars: Int = DEFAULT_MAX_CHARS): String = read(file, maxChars, strict = true)
+
+    private fun read(file: File, maxChars: Int, strict: Boolean): String = try {
         ZipFile(file).use { zip ->
-            val opfPath = findOpfPath(zip) ?: return "Unable to find OPF file in EPUB"
-            val opfEntry = zip.getEntry(opfPath) ?: return "Unable to read OPF file in EPUB"
+            val opfPath = findOpfPath(zip)
+                ?: if (strict) throw IOException("Unable to find OPF file in EPUB")
+                else return "Unable to find OPF file in EPUB"
+            val opfEntry = zip.getEntry(opfPath)
+                ?: if (strict) throw IOException("Unable to read OPF file in EPUB")
+                else return "Unable to read OPF file in EPUB"
             val (manifest, spine) = zip.getInputStream(opfEntry).use { input ->
                 parsePackage(BoundedInputStream(input, MAX_XML_BYTES))
             }
@@ -34,7 +45,7 @@ object EpubParser {
                 val path = resolveZipPath(opfPath, item.href)
                 val entry = zip.getEntry(path) ?: continue
                 val content = zip.getInputStream(entry).use { input ->
-                    parseXhtml(BoundedInputStream(input, MAX_XML_BYTES))
+                    parseXhtml(BoundedInputStream(input, MAX_XML_BYTES), strict)
                 }
                 if (content.isNotBlank()) {
                     output.append(content).append("\n\n")
@@ -45,9 +56,10 @@ object EpubParser {
                 }
             }
             (if (truncated) limit(output.toString(), maxChars) else output.toString().trim())
-                .ifBlank { "No readable content found in EPUB file" }
+                .ifBlank { if (strict) "" else "No readable content found in EPUB file" }
         }
     } catch (e: Exception) {
+        if (strict || e is CancellationException) throw e
         "Error parsing EPUB file: ${e.message}"
     }
 
@@ -87,11 +99,12 @@ object EpubParser {
         return manifest to spine
     }
 
-    private fun parseXhtml(input: InputStream): String = try {
+    private fun parseXhtml(input: InputStream, strict: Boolean): String = try {
         val parser = newParser(input, namespaceAware = false)
         val result = StringBuilder()
         val lists = ArrayDeque<Pair<String, Int>>()
         var inBody = false
+        var hasBodyText = false
 
         while (parser.eventType != XmlPullParser.END_DOCUMENT) {
             when (parser.eventType) {
@@ -114,7 +127,10 @@ object EpubParser {
                         "br" -> if (inBody) result.append('\n')
                         "img" -> if (inBody) {
                             parser.attribute("alt")?.takeIf { it.isNotBlank() }
-                                ?.let { result.append("[image: ").append(it).append(']') }
+                                ?.let {
+                                    hasBodyText = true
+                                    result.append("[image: ").append(it).append(']')
+                                }
                         }
                         "h1", "h2", "h3", "h4", "h5", "h6" -> if (inBody) {
                             result.append("#".repeat(tag[1].digitToInt())).append(' ')
@@ -127,16 +143,18 @@ object EpubParser {
                 }
                 XmlPullParser.TEXT, XmlPullParser.CDSECT -> if (inBody) {
                     val text = parser.text.orEmpty().replace(Regex("\\s+"), " ")
+                    if (text.isNotBlank()) hasBodyText = true
                     if (text.isNotBlank() || (result.isNotEmpty() && !result.last().isWhitespace())) {
                         result.append(text)
                     }
                 }
                 XmlPullParser.ENTITY_REF -> if (inBody) {
                     // Resolve XHTML entities locally; external DTD loading stays disabled.
-                    val text = parser.text ?: Html.fromHtml(
+                    val text = parser.text?.takeIf { it.isNotEmpty() } ?: Html.fromHtml(
                         "&${parser.name};",
                         Html.FROM_HTML_MODE_LEGACY,
                     ).toString()
+                    if (text.isNotBlank()) hasBodyText = true
                     result.append(text.replace(Regex("\\s+"), " "))
                 }
                 XmlPullParser.END_TAG -> {
@@ -160,8 +178,10 @@ object EpubParser {
             parser.nextToken()
         }
 
-        result.toString().replace(Regex("\\n{3,}"), "\n\n").trim()
-    } catch (_: Exception) {
+        if (strict && !hasBodyText) ""
+        else result.toString().replace(Regex("\\n{3,}"), "\n\n").trim()
+    } catch (error: Exception) {
+        if (strict || error is CancellationException) throw error
         ""
     }
 

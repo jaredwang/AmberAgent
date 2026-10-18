@@ -41,6 +41,15 @@ data class ChatInputAttachmentImport(
     val readWarning: String? = null,
 )
 
+internal data class ChatInputSubmissionSnapshot(
+    val conversationId: String,
+    val parts: List<UIMessagePart>,
+    val text: String,
+    val editingMessage: Uuid?,
+    val imports: List<ChatInputAttachmentImport>,
+    val historicalAttachmentUrls: Set<String>,
+)
+
 class ChatInputState {
     val textContent = TextFieldState()
     var messageContent by mutableStateOf(listOf<UIMessagePart>())
@@ -90,6 +99,62 @@ class ChatInputState {
     fun hasUnresolvedAttachmentImports(): Boolean =
         attachmentImports.any { it.status != ChatInputAttachmentImportStatus.READY }
 
+    internal fun captureSubmission(): ChatInputSubmissionSnapshot? {
+        val conversationId = ownerConversationId ?: return null
+        val parts = getContents()
+        return ChatInputSubmissionSnapshot(
+            conversationId = conversationId,
+            parts = parts,
+            text = textContent.text.toString(),
+            editingMessage = editingMessage,
+            imports = attachmentImports.filter {
+                it.status == ChatInputAttachmentImportStatus.READY && it.part != null && it.part in parts
+            },
+            historicalAttachmentUrls = if (isEditing()) editingAttachmentUrls else emptySet(),
+        )
+    }
+
+    internal fun canSubmitCapturedAttachments(snapshot: ChatInputSubmissionSnapshot): Boolean {
+        if (!isCurrentConversation(snapshot.conversationId)) return false
+        if (snapshot.imports.any { captured ->
+                messageContent.none { it == captured.part } || attachmentImports.none { current ->
+                    current.conversationId == snapshot.conversationId &&
+                        current.id == captured.id && current.part == captured.part &&
+                        current.status == ChatInputAttachmentImportStatus.READY
+                }
+            }
+        ) return false
+        val trackedParts = snapshot.imports.mapNotNull { it.part }.toSet()
+        return snapshot.parts.all { part ->
+            val url = part.attachmentUrlOrNull()
+            url == null || part in trackedParts || part in messageContent ||
+                // Original historical attachments remain owned by their saved message,
+                // including when the user starts editing another message during validation.
+                url in snapshot.historicalAttachmentUrls
+        }
+    }
+
+    /** Transfer only this accepted snapshot out of draft ownership; never delete its files. */
+    internal fun consumeAcceptedSubmission(snapshot: ChatInputSubmissionSnapshot) {
+        if (!isCurrentConversation(snapshot.conversationId)) return
+        val capturedIds = snapshot.imports.mapTo(mutableSetOf()) { it.id }
+        val remainingImports = attachmentImports.filterNot { it.id in capturedIds }
+        val sameEditTarget = editingMessage == snapshot.editingMessage
+        if (sameEditTarget && getContents() == snapshot.parts && remainingImports.isEmpty()) {
+            clearInput()
+            return
+        }
+        attachmentImports = remainingImports
+        snapshot.imports.forEach { acceptedSourceUris.remove(it.sourceUri) }
+        if (!sameEditTarget) return
+        val submittedParts = snapshot.parts.filterNot { it is UIMessagePart.Text }.toSet()
+        val laterImportParts = remainingImports.mapNotNull { it.part }.toSet()
+        messageContent = messageContent.filterNot { it in submittedParts && it !in laterImportParts }
+        if (textContent.text.toString() == snapshot.text) {
+            textContent.setTextAndPlaceCursorAtEnd("")
+        }
+    }
+
     fun clearInput() {
         textContent.setTextAndPlaceCursorAtEnd("")
         messageContent = emptyList()
@@ -110,7 +175,21 @@ class ChatInputState {
         textContent.setTextAndPlaceCursorAtEnd(textContent.text.toString() + content)
     }
 
-    fun setContents(contents: List<UIMessagePart>) {
+    /** Replaces the draft and returns only released ready copies for caller-owned cleanup. */
+    fun setContents(contents: List<UIMessagePart>): List<Uri> {
+        val replacementUrls = contents.mapNotNull { it.attachmentUrlOrNull() }.toSet()
+        val releasedFiles = attachmentImports
+            .filter { it.status == ChatInputAttachmentImportStatus.READY }
+            .mapNotNull { imported ->
+                imported.part?.attachmentUrlOrNull()
+                    ?.takeIf { it.startsWith("file:") && it !in replacementUrls }
+                    ?.let(Uri::parse)
+            }
+            .distinct()
+        // Invalidate outstanding callbacks before replacement. The caller releases only
+        // old private copies; files still referenced by the new contents keep their owner.
+        attachmentImports = emptyList()
+        acceptedSourceUris = mutableSetOf()
         val lastTextIndex = contents.indexOfLast { it is UIMessagePart.Text }
         val text = if (lastTextIndex >= 0) {
             (contents[lastTextIndex] as UIMessagePart.Text).text
@@ -120,7 +199,8 @@ class ChatInputState {
         textContent.setTextAndPlaceCursorAtEnd(text)
         messageContent = contents.filter { it !is UIMessagePart.Text }
         editingParts = contents
-        editingAttachmentUrls = contents.mapNotNull { it.attachmentUrlOrNull() }.toSet()
+        editingAttachmentUrls = replacementUrls
+        return releasedFiles
     }
 
     fun getContents(): List<UIMessagePart> {

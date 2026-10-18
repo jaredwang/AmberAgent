@@ -94,7 +94,6 @@ private fun titleFromDeepReadUrl(url: String): String {
 private fun deepReadChatTopicId(title: String, sourceUrl: String?): String {
     val key = sourceUrl
         ?.trim()
-        ?.lowercase(Locale.ROOT)
         ?: title.trim().lowercase(Locale.ROOT)
     val digest = MessageDigest.getInstance("SHA-256")
         .digest(key.toByteArray(Charsets.UTF_8))

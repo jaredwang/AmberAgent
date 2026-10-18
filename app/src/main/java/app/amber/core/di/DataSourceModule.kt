@@ -27,12 +27,7 @@ import app.amber.agent.BuildConfig
 import app.amber.agent.R
 import app.amber.core.ai.AIRequestInterceptor
 import app.amber.core.ai.RequestLoggingInterceptor
-import app.amber.core.ai.ChatGenerationRoundEngine
-import app.amber.core.ai.DefaultRunKernel
-import app.amber.core.ai.GenerationRoundEngine
-import app.amber.core.ai.RunKernel
 import app.amber.core.ai.tools.LocalTools
-import app.amber.core.ai.transformers.TemplateTransformer
 import app.amber.core.localization.OAuthDisplayLocalizer
 import app.amber.feature.miniapp.MiniAppAiBridge
 import app.amber.feature.miniapp.MiniAppSearchBridge
@@ -57,14 +52,11 @@ import app.amber.agent.data.workspace.ArtifactRepository
 import app.amber.agent.data.db.fts.MessageFtsManager
 import app.amber.agent.data.db.fts.SimpleDictManager
 import app.amber.core.ai.mcp.McpManager
-import app.amber.feature.runtime.AgentToolDispatcher
 import app.amber.feature.runtime.CapabilityPermissionStore
-import app.amber.feature.runtime.defaultToolInvocationHooks
 import app.amber.feature.jscell.JsCellRuntime
 import app.amber.feature.jscell.JsCellStore
 import app.amber.feature.jscell.QuickJsCellEngine
 import app.amber.feature.recipe.RecipeRegistry
-import app.amber.feature.runtime.PermissionDecisionResolver
 import app.amber.feature.runtime.RoomRunTerminalStore
 import app.amber.feature.runtime.RoomToolEffectLedger
 import app.amber.feature.runtime.RunRecoveryService
@@ -311,7 +303,6 @@ val dataSourceModule = module {
 
     single { get<AgentRuntimeDatabase>().agentRuntimeDao() }
 
-    single { TemplateTransformer() }
 
     single { MiniAppSearchBridge(settingsStore = get()) }
 
@@ -593,42 +584,6 @@ val dataSourceModule = module {
             appEventBus = get(),
         )
     }
-
-    single { PermissionDecisionResolver(appContext = get<Context>()) }
-
-    single {
-        AgentToolDispatcher(
-            json = get(),
-            permissionDecisionResolver = get(),
-            hooks = defaultToolInvocationHooks(),
-        )
-    }
-
-    single {
-        ChatGenerationRoundEngine(
-            context = get(),
-            providerCatalog = get(),
-            json = get(),
-            memoryRecallStore = get(),
-            conversationRepo = get(),
-            aiLoggingManager = get(),
-            conversationContextEngine = get(),
-        )
-    }
-    single {
-        DefaultRunKernel(
-            context = get(),
-            toolDispatcher = get(),
-            roundEngine = get(),
-            toolEffectLedger = get(),
-            capabilityFlags = get(),
-            capabilityPermissionStore = get(),
-            autoApprovalGate = get(),
-            completionCheck = get(),
-        )
-    }
-    single<GenerationRoundEngine> { get<ChatGenerationRoundEngine>() }
-    single<RunKernel> { get<DefaultRunKernel>() }
 
     single<OkHttpClient> {
         val acceptLang = AcceptLanguageBuilder.fromAndroid(get())

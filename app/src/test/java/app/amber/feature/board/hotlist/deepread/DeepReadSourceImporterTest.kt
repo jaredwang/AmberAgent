@@ -13,7 +13,9 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -22,6 +24,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowContentResolver
 import java.io.File
@@ -130,10 +133,14 @@ class DeepReadSourceImporterTest {
             output.setLength(65L * 1024 * 1024)
         }
         provider.reportedSize = null
+        shadowOf(context.contentResolver).registerInputStreamSupplier(
+            Uri.parse("content://$AUTHORITY/source"),
+        ) { provider.openCountingInputStream() }
 
         val failure = assertFailure(importFile(file, "text/plain"))
 
         assertEquals(DeepReadSourceImporter.Reason.TOO_LARGE, failure.reason)
+        assertEquals("The importer must stop at the first byte over the cap", 64L * 1024 * 1024 + 1, provider.countedBytes)
         assertTemporaryFilesRemoved()
     }
 
@@ -153,12 +160,57 @@ class DeepReadSourceImporterTest {
         val file = temporaryFolder.newFile("interrupted.txt").apply {
             writeText("The first bytes arrive before the document provider loses the source stream.")
         }
-        provider.failureMode = FailureMode.READ
+        // ContentResolver rebuilds AssetFileDescriptor; its provider stream subclass is not retained.
+        shadowOf(context.contentResolver).registerInputStreamSupplier(
+            Uri.parse("content://$AUTHORITY/source"),
+        ) { provider.openInterruptedInputStream() }
 
-        val failure = assertFailure(importFile(file, "text/plain"))
+        val result = importFile(file, "text/plain")
 
+        assertTrue("The actual openInputStream stream must deliver source bytes", provider.bytesReadBeforeFailure > 0)
+        assertTrue("The actual source stream must throw on a later read", provider.readInterruptionThrown)
+        assertTrue("The interruption must follow a successful read", provider.readCalls >= 2)
+        val failure = assertFailure(result)
         assertEquals(DeepReadSourceImporter.Reason.READ_ERROR, failure.reason)
-        assertTrue("The failure must happen after source bytes were delivered", provider.bytesReadBeforeFailure > 0)
+        assertTemporaryFilesRemoved()
+    }
+
+    @Test
+    fun plainTextKeepsTheFortyThousandCharacterTruncationBoundary() = runBlocking {
+        for (length in listOf(40_000, 40_001)) {
+            val text = "x".repeat(length)
+            val file = temporaryFolder.newFile("text-$length.txt").apply { writeText(text) }
+            val result = importFile(file, "text/plain")
+            assertTrue(result is DeepReadSourceImporter.Result.Success)
+            val source = (result as DeepReadSourceImporter.Result.Success).source
+            assertEquals(text.take(40_000), source.text)
+            assertEquals(length > 40_000, source.truncated)
+            assertTemporaryFilesRemoved()
+        }
+    }
+
+    @Test
+    fun cancelledReadPropagatesAndCleansItsStreamAndTemporaryFile() {
+        val file = temporaryFolder.newFile("cancelled.txt").apply { writeText("source text") }
+        var streamClosed = false
+        shadowOf(context.contentResolver).registerInputStreamSupplier(
+            Uri.parse("content://$AUTHORITY/source"),
+        ) {
+            object : FileInputStream(file) {
+                override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                    throw CancellationException("source cancelled")
+                }
+                override fun close() {
+                    streamClosed = true
+                    super.close()
+                }
+            }
+        }
+        val failure = assertThrows(CancellationException::class.java) {
+            runBlocking { importFile(file, "text/plain") }
+        }
+        assertEquals("source cancelled", failure.message)
+        assertTrue(streamClosed)
         assertTemporaryFilesRemoved()
     }
 
@@ -188,7 +240,7 @@ class DeepReadSourceImporterTest {
             }
         }
 
-    private enum class FailureMode { NONE, OPEN, READ }
+    private enum class FailureMode { NONE, OPEN }
 
     /** Real file-backed content URIs, including providers that cannot report SIZE. */
     private class ImportSourceProvider : ContentProvider() {
@@ -197,6 +249,9 @@ class DeepReadSourceImporterTest {
         var reportedSize: Long? = null
         var failureMode = FailureMode.NONE
         var bytesReadBeforeFailure = 0
+        var readCalls = 0
+        var readInterruptionThrown = false
+        var countedBytes = 0L
 
         override fun onCreate() = true
         override fun getType(uri: Uri): String = mime
@@ -216,26 +271,28 @@ class DeepReadSourceImporterTest {
 
         override fun openAssetFile(uri: Uri, mode: String): AssetFileDescriptor {
             if (failureMode == FailureMode.OPEN) throw FileNotFoundException("Source is no longer available")
-            val sourceDescriptor = openFile(uri, mode)
-            if (failureMode != FailureMode.READ) {
-                return AssetFileDescriptor(sourceDescriptor, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
-            }
-            return object : AssetFileDescriptor(sourceDescriptor, 0, AssetFileDescriptor.UNKNOWN_LENGTH) {
-                override fun createInputStream(): FileInputStream = object : FileInputStream(file) {
-                    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-                        if (bytesReadBeforeFailure > 0) throw IOException("Source read was interrupted")
-                        return super.read(buffer, offset, minOf(length, 16)).also { count ->
-                            if (count > 0) bytesReadBeforeFailure += count
-                        }
-                    }
+            return AssetFileDescriptor(openFile(uri, mode), 0, AssetFileDescriptor.UNKNOWN_LENGTH)
+        }
 
-                    override fun close() {
-                        try {
-                            super.close()
-                        } finally {
-                            sourceDescriptor.close()
-                        }
-                    }
+        fun openCountingInputStream(): FileInputStream = object : FileInputStream(file) {
+            override fun read(buffer: ByteArray): Int = read(buffer, 0, buffer.size)
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+                super.read(buffer, offset, length).also { count ->
+                    if (count > 0) countedBytes += count
+                }
+        }
+
+        fun openInterruptedInputStream(): FileInputStream = object : FileInputStream(file) {
+            override fun read(buffer: ByteArray): Int = read(buffer, 0, buffer.size)
+
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                readCalls++
+                if (bytesReadBeforeFailure > 0) {
+                    readInterruptionThrown = true
+                    throw IOException("Source read was interrupted")
+                }
+                return super.read(buffer, offset, minOf(length, 16)).also { count ->
+                    if (count > 0) bytesReadBeforeFailure += count
                 }
             }
         }

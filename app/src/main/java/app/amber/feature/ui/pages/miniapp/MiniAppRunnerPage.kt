@@ -36,6 +36,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,6 +89,7 @@ import app.amber.feature.ui.components.ds.amberCanvas
 import app.amber.feature.ui.components.message.ChatLiveEntranceRegistry
 import app.amber.feature.ui.components.message.UIGenerationMotion
 import app.amber.feature.ui.components.ui.WorkspaceTopBar
+import app.amber.feature.ui.theme.LocalDarkMode
 import app.amber.core.utils.writeClipboardText
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
@@ -570,16 +572,16 @@ internal fun rememberMiniAppThemeProvider(): () -> MiniAppTheme {
     val background = MaterialTheme.colorScheme.background
     val foreground = MaterialTheme.colorScheme.onBackground
     val primary = MaterialTheme.colorScheme.primary
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val currentTheme by rememberUpdatedState(
+        MiniAppTheme(
+            dark = LocalDarkMode.current,
+            background = "#${background.toArgb().toUInt().toString(16).takeLast(6)}",
+            foreground = "#${foreground.toArgb().toUInt().toString(16).takeLast(6)}",
+            primary = "#${primary.toArgb().toUInt().toString(16).takeLast(6)}",
+        )
+    )
     return remember {
-        {
-            MiniAppTheme(
-                dark = isDark,
-                background = "#${background.toArgb().toUInt().toString(16).takeLast(6)}",
-                foreground = "#${foreground.toArgb().toUInt().toString(16).takeLast(6)}",
-                primary = "#${primary.toArgb().toUInt().toString(16).takeLast(6)}",
-            )
-        }
+        { currentTheme }
     }
 }
 

@@ -1,48 +1,35 @@
 package app.amber.review
 
-import app.amber.feature.runtime.AgentToolActivityStore
-import app.amber.feature.terminal.TerminalJobLog
 import app.amber.feature.terminal.TerminalOutputBuffer
-import app.amber.feature.terminal.TerminalRuntime
-import app.amber.feature.terminal.TerminalRuntimeKind
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.Continuation
 
 class TerminalUtf8OutputTest {
-    @get:Rule val temporaryFolder = TemporaryFolder()
     private val expected = "ASCII 中文🙂\nline two: café\n"
 
     @Test
     fun processReaderPreservesUtf8AcrossSingleByteReads() {
-        val runtime = ReflectionFixture.allocate<TerminalRuntime>()
-        ReflectionFixture.set(runtime, "activityStore", AgentToolActivityStore())
-        val jobType = Class.forName("app.amber.feature.terminal.TerminalJob")
-        val job = ReflectionFixture.allocate(jobType)
+        val processOwnerType = Class.forName("app.amber.feature.terminal.LocalTerminalProcess")
+        val processOwner = ReflectionFixture.allocate(processOwnerType)
         val output = TerminalOutputBuffer(1024)
-        ReflectionFixture.set(job, "id", "utf8")
-        ReflectionFixture.set(job, "runtime", TerminalRuntimeKind.ANDROID_SHELL)
-        ReflectionFixture.set(job, "output", output)
-        ReflectionFixture.set(job, "completionNotified", AtomicBoolean(false))
-        ReflectionFixture.set(job, "log", TerminalJobLog(temporaryFolder.newFile(), 4096))
-        val method = TerminalRuntime::class.java.getDeclaredMethod("readProcessOutput", jobType, Process::class.java)
-        method.isAccessible = true
+        val method = processOwnerType.getDeclaredMethod(
+            "readOutput", Process::class.java, kotlin.jvm.functions.Function0::class.java, kotlin.jvm.functions.Function1::class.java,
+        ).apply { isAccessible = true }
 
-        method.invoke(runtime, job, OutputProcess(expected))
+        method.invoke(processOwner, OutputProcess(expected), { true }, { text: String -> output.append(text) })
 
         assertEquals(expected, output.snapshot())
     }
 
     @Test
     fun persistentSessionReaderPreservesUtf8AcrossSingleByteReads() = runBlocking {
-        val runtime = ReflectionFixture.allocate<TerminalRuntime>()
+        val sessionOwnerType = Class.forName("app.amber.feature.terminal.TerminalSessionManager")
+        val sessionOwner = ReflectionFixture.allocate(sessionOwnerType)
         val sessionType = Class.forName("app.amber.feature.terminal.TerminalSession")
         val outputType = Class.forName("app.amber.feature.terminal.TerminalSessionOutput")
         val output = outputType.getDeclaredConstructor(Int::class.javaPrimitiveType).let {
@@ -52,9 +39,9 @@ class TerminalUtf8OutputTest {
         val session = ReflectionFixture.allocate(sessionType)
         ReflectionFixture.set(session, "process", OutputProcess(expected))
         ReflectionFixture.set(session, "output", output)
-        val method = TerminalRuntime::class.java.getDeclaredMethod("readSessionOutput", sessionType, Continuation::class.java)
+        val method = sessionOwnerType.getDeclaredMethod("readSessionOutput", sessionType, Continuation::class.java)
 
-        ReflectionFixture.invokeSuspend(runtime, method, session)
+        ReflectionFixture.invokeSuspend(sessionOwner, method, session)
 
         val actual = outputType.getDeclaredMethod("drain").let { it.isAccessible = true; it.invoke(output) }
         assertEquals(expected, actual)

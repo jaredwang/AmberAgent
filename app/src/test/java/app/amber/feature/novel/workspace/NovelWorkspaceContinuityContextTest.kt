@@ -17,6 +17,7 @@ import app.amber.core.ai.AILoggingManager
 import app.amber.core.ai.ChatGenerationRoundEngine
 import app.amber.core.ai.DefaultRunKernel
 import app.amber.core.ai.GenerationRunSession
+import app.amber.core.ai.toGenerationSettings
 import app.amber.core.context.AgentCapabilitySnapshotBuilder
 import app.amber.core.context.ConversationContextEngine
 import app.amber.core.context.ConversationContextRepository
@@ -167,7 +168,7 @@ class NovelWorkspaceContinuityContextTest : DurableRuntimeTestBase() {
     private suspend fun runReview(settings: Settings, gateway: CapturingGateway) {
         var reads = 0
         kernel(gateway).run(GenerationRunSession(
-            settings = settings,
+            settings = settings.toGenerationSettings(model),
             model = model,
             messages = listOf(UIMessage.system(reviewPrompt), UIMessage.user("审核本章，返回严格 JSON。")),
             tools = listOf(Tool(name = "novel_workspace_read", description = "Read manuscript", execute = {

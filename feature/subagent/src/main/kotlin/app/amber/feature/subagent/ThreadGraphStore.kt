@@ -122,6 +122,9 @@ interface ThreadGraphStore {
     /** Requeue messages claimed by a turn that was interrupted before a result landed. */
     suspend fun requeueDeliveredMessages(threadId: String): Int
 
+    /** Release only this generation's delivered but unread message IDs. */
+    suspend fun requeueUndrainedMessages(threadId: String, messageIds: List<String>): Int
+
     suspend fun markMessageDelivered(messageId: String)
 
     /** Promote all DELIVERED messages of a thread to PERSISTED. */

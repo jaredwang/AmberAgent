@@ -1,0 +1,553 @@
+{
+  "baselineAllText": {
+    "files": 2680,
+    "lines": 1289942,
+    "over1000": 110,
+    "over1500": 61,
+    "largest": {
+      "path": "app/src/main/assets/simple_dict/jieba.dict.utf8",
+      "lines": 348982,
+      "ext": ".utf8",
+      "bytes": 5071204
+    }
+  },
+  "baselineOwnProduction": {
+    "files": 1335,
+    "lines": 347820,
+    "over1000": 52,
+    "over1500": 20,
+    "largest": {
+      "path": "app/src/main/java/app/amber/core/service/ChatService.kt",
+      "lines": 4514,
+      "ext": ".kt",
+      "bytes": 210700
+    }
+  },
+  "currentOwnProduction": {
+    "files": 1609,
+    "lines": 355469,
+    "over1000": 11,
+    "over1500": 1,
+    "largest": {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspaceViewModel.kt",
+      "lines": 1564
+    }
+  },
+  "currentLargeOwnProduction": [
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspaceViewModel.kt",
+      "lines": 1564
+    },
+    {
+      "path": "app/src/main/assets/webmount/bridge.js",
+      "lines": 1487
+    },
+    {
+      "path": "feature/modelcouncil/src/main/kotlin/app/amber/feature/modelcouncil/CouncilRoomManager.kt",
+      "lines": 1470
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingModelPage.kt",
+      "lines": 1445
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt",
+      "lines": 1378
+    },
+    {
+      "path": "feature/subagent/src/main/kotlin/app/amber/feature/subagent/SubAgentManager.kt",
+      "lines": 1310
+    },
+    {
+      "path": "feature/board/impl/src/main/kotlin/app/amber/feature/board/hotlist/deepread/template/DeepReadTemplateRenderer.kt",
+      "lines": 1279
+    },
+    {
+      "path": "feature/novel/src/main/kotlin/app/amber/feature/novel/model/NovelOutcome.kt",
+      "lines": 1243
+    },
+    {
+      "path": "feature/novel/src/main/kotlin/app/amber/feature/novel/model/NovelEnums.kt",
+      "lines": 1145
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingProviderModelSettingsForm.kt",
+      "lines": 1144
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/memory/store/MemoryRepository.kt",
+      "lines": 1037
+    }
+  ],
+  "originalScope": [
+    {
+      "path": "app/src/main/java/app/amber/core/service/ChatService.kt",
+      "baseline_lines": "4514",
+      "primary_phase": "2",
+      "packet": "P2-chat-runtime",
+      "phase_plan": "B2 · 会话/队列/运行/工具/展示 owner",
+      "status": "complete_reviewed",
+      "current_lines": 646
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/richtext/Markdown.kt",
+      "baseline_lines": "3674",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · parse/cache/presentation 与 AST/HTML renderer",
+      "status": "complete_reviewed",
+      "current_lines": 109
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/message/IntelligentUiComponents.kt",
+      "baseline_lines": "2927",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1 · schema/parser/state 与按类别 renderer",
+      "status": "complete_reviewed",
+      "current_lines": 137
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspacePage.kt",
+      "baseline_lines": "2831",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · route/panes；VM queries/run/audit/commands",
+      "status": "complete_reviewed",
+      "current_lines": 618
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingAgentMemoryPage.kt",
+      "baseline_lines": "2718",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1 · 子页/editor/review/document projection；保持CAS owner",
+      "status": "complete_reviewed",
+      "current_lines": 385
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/chat/ChatPage.kt",
+      "baseline_lines": "2600",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 411
+    },
+    {
+      "path": "feature/modelcouncil/src/main/kotlin/app/amber/feature/modelcouncil/CouncilRoomManager.kt",
+      "baseline_lines": "2501",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · room/thread owner 与 planner/turn/展示",
+      "status": "complete_reviewed",
+      "current_lines": 1470
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspaceViewModel.kt",
+      "baseline_lines": "2450",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · route/panes；VM queries/run/audit/commands",
+      "status": "complete_reviewed",
+      "current_lines": 1564
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadScreen.kt",
+      "baseline_lines": "2436",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · topic/cache owner、生成路径与 reader/settings UI",
+      "status": "complete_reviewed",
+      "current_lines": 321
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetCard.kt",
+      "baseline_lines": "2363",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 三种 runtime / export / capture / receiver",
+      "status": "complete_reviewed",
+      "current_lines": 324
+    },
+    {
+      "path": "app/src/main/assets/webmount/bridge.js",
+      "baseline_lines": "2184",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · 通用 bridge 与站点 adapter；保留组合注入契约",
+      "status": "complete_reviewed",
+      "current_lines": 1487
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/sessionhome/SessionHomePage.kt",
+      "baseline_lines": "1840",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1 · 首页业务动作归位后拆 header/rail/list",
+      "status": "complete_reviewed",
+      "current_lines": 426
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/ai/generative/IntelligentUiProtocol.kt",
+      "baseline_lines": "1752",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1 · schema/parser/state 与按类别 renderer",
+      "status": "complete_reviewed",
+      "current_lines": 452
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/backup/BackupPage.kt",
+      "baseline_lines": "1705",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · RestoreSession、provider panels、归档事务职责",
+      "status": "complete_reviewed",
+      "current_lines": 419
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadAgentRunManager.kt",
+      "baseline_lines": "1697",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · topic/cache owner、生成路径与 reader/settings UI",
+      "status": "complete_reviewed",
+      "current_lines": 553
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/richtext/MarkdownNew.kt",
+      "baseline_lines": "1673",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · parse/cache/presentation 与 AST/HTML renderer",
+      "status": "complete_reviewed",
+      "current_lines": 65
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingProviderConfigPage.kt",
+      "baseline_lines": "1669",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1/B5 · provider草稿/鉴权/候选策略与纯展示",
+      "status": "complete_reviewed",
+      "current_lines": 633
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ModelList.kt",
+      "baseline_lines": "1626",
+      "primary_phase": "1",
+      "packet": "P1-model-list",
+      "phase_plan": "B1/B5 · provider草稿/鉴权/候选策略与纯展示",
+      "status": "complete_reviewed",
+      "current_lines": 535
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/board/SettingTodayBoardPage.kt",
+      "baseline_lines": "1543",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · topic/cache owner、生成路径与 reader/settings UI",
+      "status": "complete_reviewed",
+      "current_lines": 228
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/live/LiveCompanionPage.kt",
+      "baseline_lines": "1521",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · run identity owner 与 bubble/fill/notifier",
+      "status": "complete_reviewed",
+      "current_lines": 368
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/novel/workspace/NovelWorkspaceRuntime.kt",
+      "baseline_lines": "1488",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · run vs commit/recovery；write vs polish 用例",
+      "status": "complete_reviewed",
+      "current_lines": 584
+    },
+    {
+      "path": "ai/src/main/java/app/amber/ai/provider/providers/openai/ResponseAPI.kt",
+      "baseline_lines": "1468",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · request/codec 与 stream/resume；保留reconciler",
+      "status": "complete_reviewed",
+      "current_lines": 182
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt",
+      "baseline_lines": "1468",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · RestoreSession、provider panels、归档事务职责",
+      "status": "complete_reviewed",
+      "current_lines": 883
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/tools/ScreenAutomationTools.kt",
+      "baseline_lines": "1465",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · Intent协议/导航图；屏幕唯一锁与原生生命周期",
+      "status": "complete_reviewed",
+      "current_lines": 48
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingModelPage.kt",
+      "baseline_lines": "1445",
+      "primary_phase": "6",
+      "packet": "P6-cohesion-review",
+      "phase_plan": "可后做 · 单一草稿表单内聚；只拆独立 dialog/纯投影",
+      "status": "complete_reviewed",
+      "current_lines": 1445
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/councilroom/CouncilTimelineTab.kt",
+      "baseline_lines": "1419",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · room/thread owner 与 planner/turn/展示",
+      "status": "complete_reviewed",
+      "current_lines": 659
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/backup/BackupVM.kt",
+      "baseline_lines": "1418",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · RestoreSession、provider panels、归档事务职责",
+      "status": "complete_reviewed",
+      "current_lines": 822
+    },
+    {
+      "path": "feature/subagent/src/main/kotlin/app/amber/feature/subagent/SubAgentManager.kt",
+      "baseline_lines": "1394",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · room/thread owner 与 planner/turn/展示",
+      "status": "complete_reviewed",
+      "current_lines": 1310
+    },
+    {
+      "path": "app/src/main/java/app/amber/agent/RouteActivity.kt",
+      "baseline_lines": "1392",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · Intent协议/导航图；屏幕唯一锁与原生生命周期",
+      "status": "complete_reviewed",
+      "current_lines": 535
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingExperimentalWebMountPage.kt",
+      "baseline_lines": "1368",
+      "primary_phase": "5",
+      "packet": "P5-mcp-ssh-webmount-settings",
+      "phase_plan": "B5 · 需进一步深读服务/登录/job owner，再拆UI",
+      "status": "complete_reviewed",
+      "current_lines": 282
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/extensions/PromptPage.kt",
+      "baseline_lines": "1330",
+      "primary_phase": "5",
+      "packet": "P5-prompt-editor",
+      "phase_plan": "B6 · 按编辑/导入/列表交互核查后拆，当前初筛",
+      "status": "complete_reviewed",
+      "current_lines": 143
+    },
+    {
+      "path": "feature/board/impl/src/main/kotlin/app/amber/feature/board/hotlist/deepread/template/DeepReadTemplateRenderer.kt",
+      "baseline_lines": "1279",
+      "primary_phase": "6",
+      "packet": "P6-cohesion-review",
+      "phase_plan": "可保留 · 无运行状态的纯 renderer/模板，非首批",
+      "status": "complete_reviewed",
+      "current_lines": 1279
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ChatInput.kt",
+      "baseline_lines": "1264",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 705
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingMcpPage.kt",
+      "baseline_lines": "1261",
+      "primary_phase": "5",
+      "packet": "P5-mcp-ssh-webmount-settings",
+      "phase_plan": "B5 · import事务保留；拆纯UI/editor/panels",
+      "status": "complete_reviewed",
+      "current_lines": 189
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/novel/workspace/NovelWorkspaceGhostwrite.kt",
+      "baseline_lines": "1257",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · run vs commit/recovery；write vs polish 用例",
+      "status": "complete_reviewed",
+      "current_lines": 187
+    },
+    {
+      "path": "feature/novel/src/main/kotlin/app/amber/feature/novel/model/NovelOutcome.kt",
+      "baseline_lines": "1243",
+      "primary_phase": "6",
+      "packet": "P6-wire-contract-review",
+      "phase_plan": "B6 · 声明/serializer按契约整理；低优先级，可保持",
+      "status": "complete_reviewed",
+      "current_lines": 1243
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ChatInputSandbox.kt",
+      "baseline_lines": "1213",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 111
+    },
+    {
+      "path": "feature/terminal/src/main/kotlin/app/amber/feature/terminal/TerminalRuntime.kt",
+      "baseline_lines": "1213",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · job 与 interactive session 两生命周期",
+      "status": "complete_reviewed",
+      "current_lines": 812
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/message/ChatMessageTools.kt",
+      "baseline_lines": "1163",
+      "primary_phase": "3",
+      "packet": "P3-message-tools",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 364
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt",
+      "baseline_lines": "1149",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 420
+    },
+    {
+      "path": "feature/novel/src/main/kotlin/app/amber/feature/novel/model/NovelEnums.kt",
+      "baseline_lines": "1145",
+      "primary_phase": "6",
+      "packet": "P6-wire-contract-review",
+      "phase_plan": "B6 · 声明/serializer按契约整理；低优先级，可保持",
+      "status": "complete_reviewed",
+      "current_lines": 1145
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingProviderModelSettingsForm.kt",
+      "baseline_lines": "1144",
+      "primary_phase": "6",
+      "packet": "P6-cohesion-review",
+      "phase_plan": "可后做 · 单一草稿表单内聚；只拆独立 dialog/纯投影",
+      "status": "complete_reviewed",
+      "current_lines": 1144
+    },
+    {
+      "path": "web-ui/app/routes/conversations.tsx",
+      "baseline_lines": "1132",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · Web detail / composer / timeline / workbench",
+      "status": "complete_reviewed",
+      "current_lines": 378
+    },
+    {
+      "path": "feature/modelcouncil/src/main/kotlin/app/amber/feature/modelcouncil/ModelCouncilManager.kt",
+      "baseline_lines": "1122",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · room/thread owner 与 planner/turn/展示",
+      "status": "complete_reviewed",
+      "current_lines": 968
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt",
+      "baseline_lines": "1110",
+      "primary_phase": "2",
+      "packet": "P2-chat-runtime",
+      "phase_plan": "B2后续 · approval/history 或 attempt/generative policy",
+      "status": "complete_reviewed",
+      "current_lines": 769
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/ai/ChatGenerationRoundEngine.kt",
+      "baseline_lines": "1080",
+      "primary_phase": "2",
+      "packet": "P2-chat-runtime",
+      "phase_plan": "B2后续 · approval/history 或 attempt/generative policy",
+      "status": "complete_reviewed",
+      "current_lines": 596
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/components/ai/ChatInputComposers.kt",
+      "baseline_lines": "1079",
+      "primary_phase": "3",
+      "packet": "P3-novel-rendering",
+      "phase_plan": "B3 · 输入/时间线/工具展示；保留现有state owner",
+      "status": "complete_reviewed",
+      "current_lines": 761
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/SettingSshProfiles.kt",
+      "baseline_lines": "1050",
+      "primary_phase": "5",
+      "packet": "P5-mcp-ssh-webmount-settings",
+      "phase_plan": "B5 · 需进一步深读服务/登录/job owner，再拆UI",
+      "status": "complete_reviewed",
+      "current_lines": 233
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/ai/tools/ProviderConfigTools.kt",
+      "baseline_lines": "1035",
+      "primary_phase": "5",
+      "packet": "P5-provider-auth",
+      "phase_plan": "B5 · provider配置命令与OAuth依赖归位，P1仅迁表单/策略",
+      "status": "complete_reviewed",
+      "current_lines": 68
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/ui/pages/setting/components/ProviderRedesignPrimitives.kt",
+      "baseline_lines": "1017",
+      "primary_phase": "1",
+      "packet": "P1-feature-boundaries",
+      "phase_plan": "B1/B5 · provider草稿/鉴权/候选策略与纯展示",
+      "status": "complete_reviewed",
+      "current_lines": 865
+    },
+    {
+      "path": "app/src/main/java/app/amber/core/automation/AmberAccessibilityService.kt",
+      "baseline_lines": "1004",
+      "primary_phase": "5",
+      "packet": "P5-io-entry",
+      "phase_plan": "B5 · Intent协议/导航图；屏幕唯一锁与原生生命周期",
+      "status": "complete_reviewed",
+      "current_lines": 195
+    },
+    {
+      "path": "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadSectionWriterTools.kt",
+      "baseline_lines": "1003",
+      "primary_phase": "4",
+      "packet": "P4-feature-domains",
+      "phase_plan": "B4 · topic/cache owner、生成路径与 reader/settings UI",
+      "status": "complete_reviewed",
+      "current_lines": 610
+    }
+  ],
+  "originalScopeAllPresent": true
+}

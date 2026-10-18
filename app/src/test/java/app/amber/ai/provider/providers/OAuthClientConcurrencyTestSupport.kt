@@ -8,6 +8,7 @@ import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
+import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.InputStream
@@ -56,6 +57,15 @@ internal fun tokenResponseClient(
             .build()
     })
     .build()
+
+internal fun oauthJsonResponse(request: Request, body: String, statusCode: Int = 200): Response =
+    Response.Builder()
+        .request(request)
+        .protocol(Protocol.HTTP_1_1)
+        .code(statusCode)
+        .message("test")
+        .body(body.toResponseBody("application/json".toMediaType()))
+        .build()
 
 internal object TestAndroidKeyStore {
     private const val PROVIDER_NAME = "AndroidKeyStore"

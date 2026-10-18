@@ -13,6 +13,7 @@ import app.amber.core.sync.core.SyncArchiveManager
 import app.amber.core.sync.core.SyncCrypto
 import app.amber.core.sync.core.SyncExportRequest
 import app.amber.core.sync.webdav.WebDavClient
+import app.amber.core.sync.webdav.WebDavException
 import app.amber.core.sync.webdav.WebDavResourceInfo
 import java.io.File
 import app.amber.agent.R
@@ -168,8 +169,13 @@ class WebDavSyncProvider(
 
     override suspend fun deleteSnapshot(snapshotId: String) = withContext(Dispatchers.IO) {
         val client = client(config())
-        client.delete(snapshotArchiveName(snapshotId)).getOrThrow()
-        runCatching { client.delete(snapshotSidecarName(snapshotId)) }.getOrNull()
+        // Keep the sidecar discoverable after an archive failure; a retry may
+        // find the archive already gone but still needs to remove its sidecar.
+        for (name in listOf(snapshotArchiveName(snapshotId), snapshotSidecarName(snapshotId))) {
+            client.delete(name).getOrElse { error ->
+                if (error !is WebDavException || error.statusCode != 404) throw error
+            }
+        }
         Unit
     }
 

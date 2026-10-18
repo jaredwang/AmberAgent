@@ -1,19 +1,14 @@
 package app.amber.core.ai.tools
 
 import android.content.Context
-import app.amber.ai.core.MessageRole
 import app.amber.ai.core.Tool
-import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.LocalToolOption
 import app.amber.core.event.AppEventBus
-import app.amber.core.repository.ConversationRepository
 import app.amber.feature.system.AgentPermissionBroker
 import app.amber.feature.tools.AgentCronTools
 import app.amber.feature.tools.ICloudDriveTools
-import app.amber.feature.webmount.core.WebMountManager
-import app.amber.feature.webmount.tools.WebMountPrimitiveTools
-import app.amber.feature.webmount.tools.withWebMountScope
 import app.amber.feature.tools.ExternalFileTools
+import app.amber.feature.webmount.tools.WebMountLocalTools
 import app.amber.feature.tools.ScreenAutomationTools
 import app.amber.feature.tools.SystemAccessTools
 import app.amber.feature.tools.TerminalTools
@@ -24,11 +19,8 @@ import app.amber.feature.reminder.ReminderTools
 import app.amber.feature.prompts.AgentPromptConfigRepository
 import app.amber.feature.board.hotlist.deepread.DeepReadPlaybookRepository
 import app.amber.core.settings.prefs.SettingsAggregator
-import app.amber.core.settings.getCurrentImageGenerationModel
 import app.amber.core.utils.appLocale
-import app.amber.core.repository.ImageGenerationRepository
 import app.amber.feature.webview.WebViewOperationStore
-import org.koin.core.context.GlobalContext
 import kotlin.uuid.Uuid
 
 class LocalTools(
@@ -44,14 +36,11 @@ class LocalTools(
     private val webViewOperationStore: WebViewOperationStore,
     private val iCloudDriveTools: ICloudDriveTools,
     private val agentCronTools: AgentCronTools,
-    private val webMountPrimitiveTools: WebMountPrimitiveTools,
-    private val webMountManager: WebMountManager,
-    private val userSiteRegistry: app.amber.feature.webmount.usersites.UserSiteRegistry,
+    private val webMountTools: WebMountLocalTools,
     private val settingsStore: SettingsAggregator,
-    private val imageGenerationRepository: ImageGenerationRepository,
+    private val imageGenerationTools: ImageGenerationLocalTools,
     private val promptConfigRepository: AgentPromptConfigRepository,
     private val deepReadPlaybookRepository: DeepReadPlaybookRepository,
-    private val conversationRepository: ConversationRepository,
     private val healthSummaryReader: app.amber.feature.health.HealthSummaryReader,
     private val reminderTools: ReminderTools,
     private val jevDecisionCoordinator: app.amber.core.jev.JevDecisionCoordinator,
@@ -114,33 +103,6 @@ class LocalTools(
         createAgentPromptConfigTool(settingsStore, promptConfigRepository)
     }
 
-    private fun buildImageGenTool(conversationId: Uuid): Tool =
-        createImageGenTool(
-            conversationId = conversationId,
-            settingsStore = settingsStore,
-            imageGenerationRepository = imageGenerationRepository,
-            // P6-02: for mode=edit the model cannot know local file URLs, so
-            // the app resolves the source from the user's latest message (the
-            // UI's 修改 entry sends text + the source image as an attachment).
-            sourceImageResolver = { resolveLatestUserMessageImage(conversationId) },
-        )
-
-    /**
-     * P6-02: the newest user message's last local image part (file:// URL).
-     * This is the controlled attachment reference the edit path validates —
-     * only images already in this conversation qualify.
-     */
-    private suspend fun resolveLatestUserMessageImage(conversationId: Uuid): String? {
-        val conversation = conversationRepository.getConversationById(conversationId) ?: return null
-        return conversation.messageNodes.asReversed().firstNotNullOfOrNull { node ->
-            val message = node.messages.getOrNull(node.selectIndex) ?: return@firstNotNullOfOrNull null
-            if (message.role != MessageRole.USER) return@firstNotNullOfOrNull null
-            message.parts.filterIsInstance<UIMessagePart.Image>()
-                .lastOrNull { it.url.startsWith("file://") && it.url.isNotBlank() }
-                ?.url
-        }
-    }
-
     fun getTools(
         options: List<LocalToolOption>,
         conversationId: Uuid? = null,
@@ -185,45 +147,7 @@ class LocalTools(
         if (options.contains(LocalToolOption.ICloudDrive)) {
             tools.addAll(iCloudDriveTools.getTools())
         }
-        // WebMount is owned by the global toggles on its settings page. The
-        // removed multi-assistant configuration must not bypass those toggles.
-        val webMountActive = webMountManager.globalEnabled
-        if (webMountActive) {
-            // `wm_eval` is gated by the separate global WebMountEval toggle.
-            val includeEval = webMountManager.evalEnabled
-            tools.addAll(
-                webMountPrimitiveTools.getTools(
-                    includeEval = includeEval,
-                    conversationId = conversationId?.toString(),
-                    runId = runId,
-                )
-            )
-            // Plan v2: adapter tools are gated by the user's site list.
-            // If the user deleted a site (e.g. removed Bilibili), its adapter's
-            // tools (`bilibili_*`) drop out of the agent catalog automatically.
-            // The 7 seed sites are present by default after first launch, so
-            // existing behaviour is preserved.
-            val activeAdapterIds = userSiteRegistry.activeNativeAdapterIds()
-            val gatedAdapterTools = webMountManager.allToolsByAdapter().asSequence()
-                .filter { (adapterId, _) -> adapterId in activeAdapterIds }
-                .flatMap { it.value.asSequence() }
-                // Feishu's visible-page fallbacks use a pooled WebView too;
-                // carry the same host-owned identity fields into those two
-                // tools while leaving its OpenAPI-only tools unchanged.
-                .map { tool ->
-                    if (tool.name !in FEISHU_WEBMOUNT_SCOPED_TOOLS) {
-                        tool
-                    } else {
-                        tool.copy(
-                            execute = { input ->
-                                tool.execute(input.withWebMountScope(conversationId?.toString(), runId))
-                            },
-                        )
-                    }
-                }
-                .toList()
-            tools.addAll(gatedAdapterTools)
-        }
+        tools.addAll(webMountTools.getTools(conversationId?.toString(), runId))
         tools.add(permissionsStatusTool)
         tools.add(jevStatusTool)
         tools.add(healthSummaryTool)
@@ -234,13 +158,7 @@ class LocalTools(
         tools.addAll(deepReadPlaybookTools.getTools())
         tools.add(deepReadOpenTool)
 
-        // generate_image auto-appears whenever the global setting resolves to
-        // a real image-gen model. The tool needs
-        // a concrete conversationId to scope its file output, so we skip it
-        // for the debug catalog path (conversationId == null).
-        if (conversationId != null && settingsStore.settingsFlow.value.getCurrentImageGenerationModel() != null) {
-            tools.add(buildImageGenTool(conversationId))
-        }
+        imageGenerationTools.getTool(conversationId)?.let(tools::add)
 
         return tools
     }
@@ -252,7 +170,7 @@ class LocalTools(
         reason: String = "run ended",
         preservePendingHandoff: Boolean = false,
     ) {
-        webMountPrimitiveTools.endRun(
+        webMountTools.endRun(
             runId = runId,
             conversationId = conversationId,
             reason = reason,
@@ -261,8 +179,3 @@ class LocalTools(
     }
 
 }
-
-private val FEISHU_WEBMOUNT_SCOPED_TOOLS = setOf(
-    "feishu_docs_snapshot",
-    "feishu_docs_network_summary",
-)

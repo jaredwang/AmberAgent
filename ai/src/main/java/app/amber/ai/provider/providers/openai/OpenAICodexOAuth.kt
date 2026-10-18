@@ -113,13 +113,45 @@ class OpenAICodexOAuthClient(
 
     private companion object {
         val refreshMutexes = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
+        val generations = java.util.concurrent.ConcurrentHashMap<String, Long>()
+        val generationLocks = java.util.concurrent.ConcurrentHashMap<String, Any>()
     }
 
     fun getCached(providerId: Uuid): OpenAICodexAuthTokens? = authStore.get(providerId)
 
-    fun logout(providerId: Uuid) {
+    fun logout(providerId: Uuid) = synchronized(generationLock(providerId)) {
+        val key = providerId.toString()
+        generations[key] = (generations[key] ?: 0L) + 1L
         authStore.clear(providerId)
     }
+
+    private fun generationLock(id: Uuid): Any =
+        generationLocks.getOrPut(id.toString()) { Any() }
+
+    private fun generation(id: Uuid): Long = synchronized(generationLock(id)) {
+        generations[id.toString()] ?: 0L
+    }
+
+    private fun beginAuthorization(id: Uuid): Long = synchronized(generationLock(id)) {
+        val next = (generations[id.toString()] ?: 0L) + 1L
+        generations[id.toString()] = next
+        next
+    }
+
+    private fun saveIfCurrent(
+        id: Uuid,
+        expectedGeneration: Long,
+        tokens: OpenAICodexAuthTokens,
+        advanceGeneration: Boolean = false,
+    ): Boolean = synchronized(generationLock(id)) {
+        if ((generations[id.toString()] ?: 0L) != expectedGeneration) return@synchronized false
+        authStore.save(id, tokens)
+        // A completed login also retires refreshes begun while that login was in flight.
+        if (advanceGeneration) generations[id.toString()] = expectedGeneration + 1L
+        true
+    }
+
+    private fun staleSession(): Nothing = error("Codex OAuth session changed; discarded stale response. Please retry.")
 
     suspend fun requestDeviceCode(): OpenAICodexDeviceAuthorization {
         val requestBody = json.encodeToString(
@@ -153,6 +185,7 @@ class OpenAICodexOAuthClient(
     }
 
     suspend fun pollDeviceCode(providerId: Uuid, authorization: OpenAICodexDeviceAuthorization): OpenAICodexAuthTokens {
+        val loginGeneration = beginAuthorization(providerId)
         val startedAt = System.currentTimeMillis()
         while (System.currentTimeMillis() - startedAt < DEVICE_LOGIN_TIMEOUT_MS) {
             val requestBody = json.encodeToString(
@@ -174,7 +207,7 @@ class OpenAICodexOAuthClient(
                 response.isSuccessful -> {
                     val code = json.decodeFromString<DeviceCodeSuccessResponse>(body)
                     val tokens = exchangeAuthorizationCode(code)
-                    authStore.save(providerId, tokens)
+                    if (!saveIfCurrent(providerId, loginGeneration, tokens, advanceGeneration = true)) staleSession()
                     return tokens
                 }
 
@@ -218,6 +251,7 @@ class OpenAICodexOAuthClient(
     }
 
     suspend fun refresh(providerId: Uuid): OpenAICodexAuthTokens = refreshMutex(providerId).withLock {
+        val generationAtStart = generation(providerId)
         val current = authStore.get(providerId)
             ?: error("Codex OAuth is not signed in. Open the OpenAI provider settings and sign in first.")
 
@@ -246,7 +280,7 @@ class OpenAICodexOAuthClient(
             idToken = idToken,
             fallback = current,
         )
-        authStore.save(providerId, merged)
+        if (!saveIfCurrent(providerId, generationAtStart, merged)) staleSession()
         merged
     }
 

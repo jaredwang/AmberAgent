@@ -11,6 +11,7 @@ import app.amber.core.memory.recall.MemoryRecallFreshness
 import app.amber.core.memory.recall.MemoryRecallStore
 import app.amber.core.settings.AgentRuntimeSetting
 import app.amber.core.settings.Settings
+import app.amber.core.ai.toMemoryRecallSettings
 import java.time.LocalDate
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
@@ -297,7 +298,7 @@ class MemoryRecallStoreTest {
                 agentRuntime = AgentRuntimeSetting(
                     memoryRecall = MemoryRecallSetting(maxItems = 2, maxPromptChars = 256),
                 )
-            ),
+            ).toMemoryRecallSettings(),
             messages = listOf(UIMessage.user("继续 AmberAgent 项目")),
             records = listOf(
                 record(
@@ -320,12 +321,12 @@ class MemoryRecallStoreTest {
         assertEquals(listOf(2), ranked.map { it.record.id })
     }
 
-    private fun settings(maxItems: Int): Settings =
+    private fun settings(maxItems: Int) =
         Settings(
             agentRuntime = AgentRuntimeSetting(
                 memoryRecall = MemoryRecallSetting(maxItems = maxItems, maxPromptChars = 2_000),
             )
-        )
+        ).toMemoryRecallSettings()
 
     private fun candidate(
         scope: MemoryScope,

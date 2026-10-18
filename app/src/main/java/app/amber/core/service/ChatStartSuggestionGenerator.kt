@@ -1,6 +1,7 @@
 package app.amber.core.service
 
 import app.amber.ai.core.ReasoningLevel
+import app.amber.core.ai.toMemoryRecallSettings
 import app.amber.ai.provider.ProviderCatalog
 import app.amber.ai.provider.TextGenerationParams
 import app.amber.ai.ui.UIMessage
@@ -97,14 +98,14 @@ class ChatStartSuggestionGenerator(
                     it.sourceMemoryIds.all { id -> id in activeIds }
                 }
             }
-            val ranked = MemoryRecallStore.scoreAll(settings, emptyList(), active, now).selections
+            val ranked = MemoryRecallStore.scoreAll(emptyList(), active, now).selections
             // Starters need recent project context as well as stable preferences.
             // Preserve pinned priority and apply the same item/character budget.
             val recentProjects = ranked.filter { it.record.kind == MemoryKind.PROJECT }
                 .sortedByDescending { it.record.updatedAt }.take(2)
             val selected = MemoryRecallStore.budgeted(
                 (ranked.filter { it.record.pinned } + recentProjects + ranked).distinctBy { it.record.id },
-                settings,
+                settings.toMemoryRecallSettings(),
             ).map { it.record }
             return MemoryPromptBuilder.buildMemoryContext(
                 records = selected,

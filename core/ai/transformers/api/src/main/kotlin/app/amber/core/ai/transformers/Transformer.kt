@@ -11,8 +11,8 @@ import app.amber.core.settings.Settings
 class TransformerContext(
     val context: Context,
     val model: Model,
-    /** Global Amber runtime settings for this transformation. */
-    val settings: Settings,
+    /** Immutable values from the settings snapshot chosen for this run. */
+    val settings: TransformerSettings,
     val processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
     val forceImageToText: Boolean = false,
 )
@@ -70,7 +70,7 @@ suspend fun List<UIMessage>.transforms(
     transformers: List<MessageTransformer>,
     context: Context,
     model: Model,
-    settings: Settings,
+    settings: TransformerSettings,
     processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
     forceImageToText: Boolean = false,
 ): List<UIMessage> {
@@ -92,7 +92,7 @@ suspend fun List<UIMessage>.visualTransforms(
     transformers: List<MessageTransformer>,
     context: Context,
     model: Model,
-    settings: Settings,
+    settings: TransformerSettings,
 ): List<UIMessage> {
     val ctx = TransformerContext(context, model, settings)
     return transformers.fold(this) { acc, transformer ->
@@ -116,7 +116,7 @@ suspend fun List<UIMessage>.visualTransformsStreamingTail(
     transformers: List<MessageTransformer>,
     context: Context,
     model: Model,
-    settings: Settings,
+    settings: TransformerSettings,
 ): List<UIMessage> {
     val tailIndex = indexOfLast { it.role == MessageRole.ASSISTANT }
     if (tailIndex < 0) return this
@@ -148,7 +148,7 @@ suspend fun List<UIMessage>.onGenerationFinish(
     transformers: List<MessageTransformer>,
     context: Context,
     model: Model,
-    settings: Settings,
+    settings: TransformerSettings,
 ): List<UIMessage> {
     val ctx = TransformerContext(context, model, settings)
     return transformers.fold(this) { acc, transformer ->
@@ -165,6 +165,28 @@ suspend fun List<UIMessage>.onGenerationFinish(
         }
     }
 }
+
+// Settings-owning callers map once at this boundary; transforms never re-read a settings store.
+suspend fun List<UIMessage>.transforms(
+    transformers: List<MessageTransformer>,
+    context: Context,
+    model: Model,
+    settings: Settings,
+    processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
+    forceImageToText: Boolean = false,
+): List<UIMessage> = transforms(transformers, context, model, settings.toTransformerSettings(), processingStatus, forceImageToText)
+
+suspend fun List<UIMessage>.visualTransforms(
+    transformers: List<MessageTransformer>, context: Context, model: Model, settings: Settings,
+): List<UIMessage> = visualTransforms(transformers, context, model, settings.toTransformerSettings())
+
+suspend fun List<UIMessage>.visualTransformsStreamingTail(
+    transformers: List<MessageTransformer>, context: Context, model: Model, settings: Settings,
+): List<UIMessage> = visualTransformsStreamingTail(transformers, context, model, settings.toTransformerSettings())
+
+suspend fun List<UIMessage>.onGenerationFinish(
+    transformers: List<MessageTransformer>, context: Context, model: Model, settings: Settings,
+): List<UIMessage> = onGenerationFinish(transformers, context, model, settings.toTransformerSettings())
 
 internal fun validateTransformerInvariants(
     before: List<UIMessage>,

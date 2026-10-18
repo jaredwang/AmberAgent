@@ -216,26 +216,39 @@ class ConversationHistoryTools(
                 (matchIndex - radius).coerceAtLeast(0),
                 (matchIndex + radius + 1).coerceAtMost(indexed.size)
             )
-            val transcript = buildTranscript(selected.map { it.message }, includeTools, maxChars)
+            var remainingChars = maxChars
+            var truncated = false
+            val returnedMessages = buildJsonArray {
+                for (item in selected) {
+                    if (remainingChars == 0) {
+                        truncated = true
+                        break
+                    }
+                    val text = formatMessage(item.message, includeTools)
+                    val returnedText = text.take(remainingChars)
+                    add(buildJsonObject {
+                        put("node_id", item.nodeId)
+                        put("node_index", item.nodeIndex)
+                        put("message_index", item.messageIndex)
+                        put("message_id", item.message.id.toString())
+                        put("role", item.message.role.name.lowercase())
+                        put("text", returnedText)
+                    })
+                    remainingChars -= returnedText.length
+                    if (returnedText.length < text.length) {
+                        truncated = true
+                        break
+                    }
+                }
+            }
             val sessionSummary = conversation.toSessionSummary()
-            if (grantId.isNotBlank()) grantStore.recordUse(grantId, transcript.length)
+            if (grantId.isNotBlank()) grantStore.recordUse(grantId, maxChars - remainingChars)
             listOf(UIMessagePart.Text(buildJsonObject {
                 put("status", "ok")
                 put("session", sessionSummary)
                 put("source_id", sourceId)
-                put("messages", buildJsonArray {
-                    selected.forEach { item ->
-                        add(buildJsonObject {
-                            put("node_id", item.nodeId)
-                            put("node_index", item.nodeIndex)
-                            put("message_index", item.messageIndex)
-                            put("message_id", item.message.id.toString())
-                            put("role", item.message.role.name.lowercase())
-                            put("text", formatMessage(item.message, includeTools).take(8_000))
-                        })
-                    }
-                })
-                put("truncated", transcript.length >= maxChars)
+                put("messages", returnedMessages)
+                put("truncated", truncated)
             }.toString()))
         }
     )
@@ -293,11 +306,10 @@ class ConversationHistoryTools(
                 append(formatMessage(message, includeTools))
             }.trim()
             if (line.isBlank()) continue
-            if (builder.length + line.length + 2 > maxChars) {
-                builder.append("\n...[truncated]...")
-                break
-            }
-            builder.append(line).append("\n\n")
+            val separator = if (builder.isEmpty()) "" else "\n\n"
+            val remainingChars = maxChars - builder.length
+            if (remainingChars <= 0) break
+            builder.append((separator + line).take(remainingChars))
         }
         return builder.toString().trim().take(maxChars)
     }

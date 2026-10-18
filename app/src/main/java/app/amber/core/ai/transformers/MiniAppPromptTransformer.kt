@@ -17,7 +17,7 @@ object MiniAppPromptTransformer : InputMessageTransformer, KoinComponent {
         messages: List<UIMessage>,
     ): List<UIMessage> {
         val lastUserIndex = messages.indexOfLast { it.role == MessageRole.USER }
-        if (!ctx.settings.agentRuntime.miniApp.enabled) return messages
+        if (!ctx.settings.miniAppEnabled) return messages
         if (lastUserIndex < 0) return messages
         val message = messages[lastUserIndex]
         val textIndex = message.parts.indexOfLast { it is UIMessagePart.Text }

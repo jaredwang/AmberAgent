@@ -5,11 +5,14 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class OfficeParserFixtureTest {
     @Test
     fun docxReadsParagraphListAndTable() {
@@ -34,6 +37,7 @@ class OfficeParserFixtureTest {
         assertTrue(text.contains("Paragraph"))
         assertTrue(text.contains("- Item"))
         assertTrue(text.contains("| Head | Value |"))
+        assertEquals(text, DocxParser.extractText(file))
     }
 
     @Test
@@ -102,6 +106,7 @@ class OfficeParserFixtureTest {
         assertTrue(text.contains("Cell\nAfter"))
         assertTrue(text.contains("Second"))
         assertTrue(!text.contains("Speaker Notes"))
+        assertEquals("Optional corrupt notes must not discard readable slides", text, PptxParser.extractText(file))
         assertTrue(PptxParser.parse(file, maxChars = 30).contains("[TRUNCATED: PPTX text exceeds 30 characters]"))
     }
 
@@ -117,6 +122,7 @@ class OfficeParserFixtureTest {
         )
 
         assertEquals("No readable slides in PPTX file", PptxParser.parse(file))
+        assertEquals("", PptxParser.extractText(file))
     }
 
     @Test
@@ -170,6 +176,7 @@ class OfficeParserFixtureTest {
         val text = EpubParser.parse(file)
 
         assertTrue(text.indexOf("Beta") < text.indexOf("Alpha"))
+        assertEquals(text, EpubParser.extractText(file))
         val truncated = EpubParser.parse(file, maxChars = 5)
         assertTrue(truncated, truncated.contains("[TRUNCATED: EPUB text exceeds 5 characters]"))
     }
@@ -188,6 +195,7 @@ class OfficeParserFixtureTest {
         )
 
         assertEquals("café & <tea> \"quoted\" 'apostrophe' tea\u00a0time… 中文", EpubParser.parse(file))
+        assertEquals(EpubParser.parse(file), EpubParser.extractText(file))
     }
 
     @Test
@@ -203,6 +211,85 @@ class OfficeParserFixtureTest {
         )
 
         assertEquals("## Heading\n\nFirst *line*.\n\nSecond.", EpubParser.parse(file))
+        assertEquals(EpubParser.parse(file), EpubParser.extractText(file))
+    }
+
+    @Test
+    fun strictReadersThrowForDamagedArchivesWhileLegacyCallsKeepTheirDiagnostics() {
+        val file = File.createTempFile("damaged-office-", ".zip").apply {
+            writeText("not an archive")
+            deleteOnExit()
+        }
+        assertTrue(DocxParser.parse(file).startsWith("Error parsing DOCX file:"))
+        assertTrue(PptxParser.parse(file).startsWith("Error parsing PPTX file:"))
+        assertTrue(EpubParser.parse(file).startsWith("Error parsing EPUB file:"))
+        assertThrows(Exception::class.java) { DocxParser.extractText(file) }
+        assertThrows(Exception::class.java) { PptxParser.extractText(file) }
+        assertThrows(Exception::class.java) { EpubParser.extractText(file) }
+    }
+
+    @Test
+    fun strictDocxThrowsForBrokenBodyXmlAndLeavesLegacyDiagnosticUnchanged() {
+        val file = zipFixture("word/document.xml" to "<document><body><p>")
+        assertTrue(DocxParser.parse(file).startsWith("Error parsing document XML:"))
+        assertThrows(Exception::class.java) { DocxParser.extractText(file) }
+    }
+
+    @Test
+    fun strictPptxDoesNotTreatAnEmptySlideLabelAsDocumentText() {
+        val file = zipFixture("ppt/slides/slide1.xml" to slideXml(""))
+        assertEquals("## Slide 1", PptxParser.parse(file))
+        assertEquals("", PptxParser.extractText(file))
+    }
+
+    @Test
+    fun strictEpubEmptySpineHasNoBodyAndKeepsLegacyNoContentMessage() {
+        val file = zipFixture(
+            "META-INF/container.xml" to "<container><rootfiles><rootfile full-path=\"content.opf\"/></rootfiles></container>",
+            "content.opf" to "<package><manifest/><spine/></package>",
+        )
+        assertEquals("No readable content found in EPUB file", EpubParser.parse(file))
+        assertEquals("", EpubParser.extractText(file))
+    }
+
+    @Test
+    fun strictDocxDoesNotTreatEmptyTableMarkupAsBody() {
+        val file = zipFixture("word/document.xml" to """
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+              <w:tbl><w:tr><w:tc><w:p/></w:tc><w:tc><w:p/></w:tc></w:tr></w:tbl>
+            </w:body></w:document>
+        """.trimIndent())
+        assertEquals("|  |  | \n| --- | --- |", DocxParser.parse(file))
+        assertEquals("", DocxParser.extractText(file))
+    }
+
+    @Test
+    fun strictPptxDoesNotTreatEmptyTableMarkupAsBody() {
+        val file = zipFixture("ppt/slides/slide1.xml" to """
+            <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree>
+              <p:graphicFrame><a:graphic><a:graphicData><a:tbl><a:tr>
+                <a:tc><a:txBody><a:p/></a:txBody></a:tc><a:tc><a:txBody><a:p/></a:txBody></a:tc>
+              </a:tr></a:tbl></a:graphicData></a:graphic></p:graphicFrame>
+            </p:spTree></p:cSld></p:sld>
+        """.trimIndent())
+        assertEquals("## Slide 1\n\n|  |  | \n| --- | --- |", PptxParser.parse(file))
+        assertEquals("", PptxParser.extractText(file))
+    }
+
+    @Test
+    fun strictEpubDoesNotTreatEmptyHeadingsOrListItemsAsBody() {
+        for ((body, legacy) in listOf("<h1/>" to "#", "<ul><li/></ul>" to "-")) {
+            val file = epubFixture(body)
+            assertEquals(legacy, EpubParser.parse(file))
+            assertEquals("", EpubParser.extractText(file))
+        }
+        for ((body, text) in listOf(
+            "<p>#</p>" to "#",
+            "<p>-</p>" to "-",
+            "<img alt=\"A diagram\"/>" to "[image: A diagram]",
+        )) {
+            assertEquals(text, EpubParser.extractText(epubFixture(body)))
+        }
     }
 
     private fun epubFixture(body: String): File = zipFixture(
@@ -216,11 +303,13 @@ class OfficeParserFixtureTest {
               <spine><itemref idref="chapter"/></spine>
             </package>
         """.trimIndent(),
-        "OPS/chapter.xhtml" to """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-            <html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title></head><body>$body</body></html>
-        """.trimIndent(),
+        "OPS/chapter.xhtml" to (
+            """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+            """.trimIndent() + "\n" +
+                """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Fixture</title></head><body>$body</body></html>"""
+        ),
     )
 
     private fun slideXml(text: String): String = """

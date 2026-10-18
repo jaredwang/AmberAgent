@@ -128,17 +128,20 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
         runner: SubAgentRunner = fakeRunner,
         flags: CapabilityFlags? = threadGraphFlags,
         restoreWriteGate: SyncRestoreWriteGate? = null,
+        turnAgentRegistered: Boolean = true,
     ): SubAgentManager {
         val payloads = SubAgentTurnPayloads()
         lastPayloads = payloads
         val registry = InMemoryAgentRegistry().apply {
-            register(
-                descriptor = SubAgentTurnDescriptor.value,
-                inputClass = SubAgentTurnInput::class,
-                inputSerializer = SubAgentTurnInput.serializer(),
-                artifactSerializer = SubAgentResult.serializer(),
-                factory = { SubAgentTurnAgent(runner, payloads) },
-            )
+            if (turnAgentRegistered) {
+                register(
+                    descriptor = SubAgentTurnDescriptor.value,
+                    inputClass = SubAgentTurnInput::class,
+                    inputSerializer = SubAgentTurnInput.serializer(),
+                    artifactSerializer = SubAgentResult.serializer(),
+                    factory = { SubAgentTurnAgent(runner, payloads) },
+                )
+            }
         }
         val runtimeDb = Room.inMemoryDatabaseBuilder(context, AgentRuntimeDatabase::class.java)
             .allowMainThreadQueries()
@@ -847,6 +850,50 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
     // ── send_message: queued / delivered / persisted ──────────────────────
 
     @Test
+    fun missingTurnAgentRemovesTheRegisteredPayloadAndSettlesTheFailedThread(): Unit = runBlocking {
+        val manager = manager(turnAgentRegistered = false)
+        val finishedScopes = CopyOnWriteArrayList<String>()
+        val started = manager.start(
+            parentConversationId = conversationId,
+            input = startInput("Missing turn handler"),
+            parentTools = parentTools(),
+            parentRunId = "parent_run_1",
+            onRunFinished = { scopeId, _, _ -> finishedScopes += scopeId },
+        )
+        assertEquals("launch_failed", started["code"]?.jsonPrimitive?.contentOrNull)
+        assertTrue(lastPayloads!!.snapshot().isEmpty())
+        assertTrue(fakeRunner.calls.isEmpty())
+        val persisted = RoomThreadGraphStore(database.threadGraphDao()).listNodesByRootRun("parent_run_1").single()
+        assertEquals(SubAgentRunStatus.FAILED.name, persisted.status)
+        assertEquals(1, finishedScopes.size)
+        awaitDurableTaskSnapshot(persisted.threadId, AgentTaskStatus.FAILED)
+    }
+
+    @Test
+    fun turnTimeoutKeepsTheManagersTerminalAndRemovesThePayloadAfterSettlement() = runBlocking {
+        settingsStore.update { settings -> settings.copy(agentRuntime = settings.agentRuntime.copy(
+            subAgent = settings.agentRuntime.subAgent.copy(timeoutMs = 1_000),
+        )) }
+        val manager = manager()
+        fakeRunner.gate = CompletableDeferred()
+        val finishedScopes = CopyOnWriteArrayList<String>()
+        val started = manager.start(
+            parentConversationId = conversationId,
+            input = startInput("Timeout the actual turn observer"),
+            parentTools = parentTools(),
+            parentRunId = "parent_run_1",
+            onRunFinished = { scopeId, _, _ -> finishedScopes += scopeId },
+        )
+        val threadId = started["run_id"]!!.jsonPrimitive.content
+        awaitTerminal(manager, threadId)
+        awaitDurableTaskSnapshot(threadId, AgentTaskStatus.TIMED_OUT)
+        withTimeout(5_000) { while (lastPayloads!!.snapshot().isNotEmpty()) delay(10) }
+        assertEquals(SubAgentRunStatus.TIMED_OUT, manager.snapshot(threadId)?.status)
+        assertEquals("timed_out", RoomThreadGraphStore(database.threadGraphDao()).getResult(threadId)?.terminalReason)
+        assertEquals(1, finishedScopes.size)
+    }
+
+    @Test
     fun sendMessageToLiveThreadIsDeliveredAndPersistedWithResult() = runBlocking {
         val manager = manager()
         fakeRunner.gate = CompletableDeferred()
@@ -911,6 +958,68 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
         awaitTerminal(manager, threadId)
         awaitMessageDeliveryState(store, messageId, ThreadDeliveryState.PERSISTED)
         assertEquals(listOf("This arrived during the final answer"), fakeRunner.receivedSteerMessages.toList())
+    }
+
+    @Test
+    fun duplicateTextMessagesSettleByConsumedIdentityAndReplayOnlyTheUnreadOne() = runBlocking {
+        val manager = manager()
+        fakeRunner.gate = CompletableDeferred()
+        fakeRunner.consumeSteerBeforeReturn = false
+        val started = manager.start(conversationId, startInput("Duplicate mailbox input"), parentTools(), "parent_run_1")
+        val threadId = started["run_id"]!!.jsonPrimitive.content
+        awaitLive(threadId)
+        val first = manager.sendMessage(threadId, "same message")
+        val firstId = first["message_id"]!!.jsonPrimitive.content
+        assertEquals(listOf("same message"), fakeRunner.calls.single().consumeSteerMessages().map { it.toText() })
+        val second = manager.sendMessage(threadId, "same message")
+        val secondId = second["message_id"]!!.jsonPrimitive.content
+        assertNotEquals(firstId, secondId)
+        val store = RoomThreadGraphStore(database.threadGraphDao())
+        assertEquals(ThreadDeliveryState.DELIVERED.name, store.getMessage(firstId)?.deliveryState)
+        assertEquals(ThreadDeliveryState.DELIVERED.name, store.getMessage(secondId)?.deliveryState)
+
+        fakeRunner.gate!!.complete(SubAgentResult(status = SubAgentRunStatus.COMPLETED, summary = "first result"))
+        awaitTerminal(manager, threadId)
+        awaitDurableTaskSnapshot(threadId, AgentTaskStatus.COMPLETED)
+        assertEquals(ThreadDeliveryState.PERSISTED.name, store.getMessage(firstId)?.deliveryState)
+        assertEquals(ThreadDeliveryState.QUEUED.name, store.getMessage(secondId)?.deliveryState)
+
+        fakeRunner.gate = null
+        fakeRunner.consumeSteerBeforeReturn = true
+        manager.followup(conversationId, threadId, buildJsonObject {
+            put("task", buildJsonObject { put("objective", "Consume the unread duplicate") })
+        }, parentTools(), "parent_run_1")
+        awaitTerminal(manager, threadId)
+        awaitMessageDeliveryState(store, secondId, ThreadDeliveryState.PERSISTED)
+        assertEquals(listOf("same message"), fakeRunner.receivedSteerMessages.toList())
+        assertEquals(ThreadDeliveryState.PERSISTED.name, store.getMessage(firstId)?.deliveryState)
+    }
+
+    @Test
+    fun anOldGenerationDrainCannotStealItsFollowupsNewMailboxMessage() = runBlocking {
+        val manager = manager()
+        fakeRunner.gate = CompletableDeferred()
+        val started = manager.start(conversationId, startInput("Old drain identity"), parentTools(), "parent_run_1")
+        val threadId = started["run_id"]!!.jsonPrimitive.content
+        awaitLive(threadId)
+        val oldDrain = fakeRunner.calls.single().consumeSteerMessages
+        manager.interrupt(threadId)
+
+        fakeRunner.gate = CompletableDeferred()
+        manager.followup(conversationId, threadId, buildJsonObject {
+            put("task", buildJsonObject { put("objective", "New generation") })
+        }, parentTools(), "parent_run_1")
+        awaitLive(threadId)
+        val sent = manager.sendMessage(threadId, "belongs to the followup")
+        val messageId = sent["message_id"]!!.jsonPrimitive.content
+        val store = RoomThreadGraphStore(database.threadGraphDao())
+        assertEquals(emptyList<UIMessage>(), oldDrain())
+        assertEquals(ThreadDeliveryState.DELIVERED.name, store.getMessage(messageId)?.deliveryState)
+
+        fakeRunner.gate!!.complete(SubAgentResult(status = SubAgentRunStatus.COMPLETED, summary = "new result"))
+        awaitTerminal(manager, threadId)
+        awaitMessageDeliveryState(store, messageId, ThreadDeliveryState.PERSISTED)
+        assertEquals(listOf("belongs to the followup"), fakeRunner.receivedSteerMessages.toList())
     }
 
     @Test
@@ -1198,6 +1307,7 @@ class FakeSubAgentRunner : SubAgentRunner {
         val previousAnswer: String,
         /** Step 3: the run scope's protocol event writer passed through. */
         val events: AgentEventWriter?,
+        val consumeSteerMessages: suspend () -> List<UIMessage>,
     )
 
     val calls = CopyOnWriteArrayList<CapturedCall>()
@@ -1229,6 +1339,7 @@ class FakeSubAgentRunner : SubAgentRunner {
             onTerminal = onTerminal,
             previousAnswer = previousAnswer,
             events = events,
+            consumeSteerMessages = consumeSteerMessages,
         )
         if (emitToolOnlyPart) {
             liveParts.value = listOf(

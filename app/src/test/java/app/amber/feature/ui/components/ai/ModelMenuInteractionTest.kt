@@ -3,14 +3,21 @@ package app.amber.feature.ui.components.ai
 import android.app.Application
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
@@ -250,4 +257,152 @@ class ModelMenuInteractionTest {
         // Its first row must be visible even though the earlier provider owns many hidden rows.
         compose.onNodeWithText("target-model").assertIsDisplayed()
     }
+
+    @Test
+    fun modelList_providerBadgeTargetsHeaderWhenSearchFiltersOutFirstProvider() {
+        val providers = listOf(
+            catalogProvider("First provider", "excluded"),
+            catalogProvider("Second provider", "match"),
+        )
+        renderModelList(providers)
+
+        compose.onNode(hasSetTextAction()).performTextInput("match")
+        // Calibrate the physical header anchor with a direct list action. Scroll
+        // semantics expose a distance estimate, not a stable item-index encoding.
+        verticalList().performScrollToIndex(1)
+        val expectedTop = headerTop("second-provider")
+        verticalList().performScrollToIndex(0)
+        compose.onNodeWithText("Second provider").performClick()
+        compose.waitForIdle()
+
+        // The filtered first group emits no header, but the second provider still has
+        // its leading group gap. Jumping to that gap leaves the header below the top.
+        assertEquals(expectedTop, headerTop("second-provider"), 0.5f)
+    }
+
+    @Test
+    fun modelList_providerBadgeUsesExpansionFromUpdatedCurrentModel() {
+        val providers = listOf(
+            catalogProvider("First provider", "first"),
+            catalogProvider("Second provider", "second"),
+        )
+        var selectedModel by mutableStateOf(providers.first().models.first().id)
+        renderModelList(providers, currentModel = { selectedModel })
+
+        compose.runOnIdle { selectedModel = providers[1].models.first().id }
+        verticalList().performScrollToIndex(2)
+        val expectedTop = headerTop("second-provider")
+        verticalList().performScrollToIndex(0)
+        compose.onNodeWithText("Second provider").performClick()
+        compose.waitForIdle()
+
+        // The previous provider now contains only its collapsed header. The next
+        // header follows that header and its gap, irrespective of its old row count.
+        assertEquals(expectedTop, headerTop("second-provider"), 0.5f)
+    }
+
+    @Test
+    fun modelList_badgeFollowsProviderHeaderAfterEarlierGroupIsCollapsed() {
+        val providers = List(6) { index ->
+            catalogProvider("Provider $index long badge", "model-$index")
+        }
+        renderModelList(providers)
+
+        compose.onNodeWithText("provider-0-long-badge").performClick()
+        compose.onNodeWithText("model-0-0").assertDoesNotExist()
+        val expectedBadgeLeft = expectedThirdBadgeLeft()
+        // The collapsed first group contributes one item, the second contributes
+        // gap/header/20 models, then the third group's gap and header occupy 23/24.
+        verticalList().performScrollToIndex(24)
+
+        assertThirdBadgeFollows(expectedBadgeLeft)
+    }
+
+    @Test
+    fun modelList_badgeFollowsProviderHeaderAfterSearchChangesGroupPositions() {
+        val providers = List(6) { index ->
+            catalogProvider(
+                "Provider $index long badge",
+                if (index == 0) "excluded" else "match-$index",
+            )
+        }
+        renderModelList(providers)
+
+        compose.onNode(hasSetTextAction()).performTextInput("match")
+        val expectedBadgeLeft = expectedThirdBadgeLeft()
+        // Only providers 1..5 remain: gap/header/20 models, then gap/header.
+        verticalList().performScrollToIndex(23)
+
+        assertThirdBadgeFollows(expectedBadgeLeft)
+    }
+
+    private fun catalogProvider(name: String, modelPrefix: String) = ProviderSetting.OpenAI(
+        name = name,
+        models = List(20) { index ->
+            Model(
+                modelId = "$modelPrefix-$index",
+                displayName = "$modelPrefix-$index",
+                type = ModelType.CHAT,
+            )
+        },
+    )
+
+    private fun renderModelList(
+        providers: List<ProviderSetting>,
+        currentModel: @Composable () -> kotlin.uuid.Uuid? = { null },
+    ) {
+        compose.setContent {
+            CompositionLocalProvider(
+                LocalNavController provides Navigator(mutableListOf(Screen.SessionHome)),
+            ) {
+                Column(Modifier.height(600.dp)) {
+                    ModelList(
+                        currentModel = currentModel(),
+                        providers = providers,
+                        modelType = ModelType.CHAT,
+                        onSelect = {},
+                        onDismiss = {},
+                        favoriteModelIds = emptyList(),
+                        onFavoriteModelsChange = {},
+                    )
+                }
+            }
+        }
+    }
+
+    private fun verticalList() = compose.onNode(SemanticsMatcher("vertical model list") {
+        it.config.contains(SemanticsProperties.VerticalScrollAxisRange)
+    })
+
+    private fun headerTop(label: String): Float {
+        compose.onNodeWithText(label).assertIsDisplayed()
+        return compose.onNodeWithText(label).fetchSemanticsNode().boundsInRoot.top
+    }
+
+    private fun horizontalList() = compose.onNode(SemanticsMatcher("provider badge row") {
+        it.config.contains(SemanticsProperties.HorizontalScrollAxisRange)
+    })
+
+    private fun expectedThirdBadgeLeft(): Float {
+        horizontalList().performScrollToIndex(2)
+        val expected = compose.onNodeWithText("Provider 2 long badge")
+            .fetchSemanticsNode().boundsInRoot.left
+        horizontalList().performScrollToIndex(0)
+        return expected
+    }
+
+    private fun assertThirdBadgeFollows(expectedLeft: Float) {
+        // Assert the visible badge anchor itself, independent of scroll-range units.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("Provider 2 long badge").fetchSemanticsNodes()
+                .any { kotlin.math.abs(it.boundsInRoot.left - expectedLeft) <= 0.5f }
+        }
+        compose.onNodeWithText("Provider 2 long badge").assertIsDisplayed()
+        assertEquals(
+            expectedLeft,
+            compose.onNodeWithText("Provider 2 long badge").fetchSemanticsNode().boundsInRoot.left,
+            0.5f,
+        )
+    }
+
 }

@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
 import androidx.core.graphics.drawable.IconCompat
@@ -722,14 +723,24 @@ class AgentLiveStatusNotifier(
         conversationId: Uuid,
         requestOffset: Int,
         mutable: Boolean = false,
-    ): PendingIntent =
-        PendingIntent.getBroadcast(
+    ): PendingIntent {
+        // Extras do not participate in PendingIntent identity. An older action
+        // must keep the run and approval token that the user originally saw.
+        intent.data = Uri.Builder()
+            .scheme("amberagent-notification")
+            .authority(conversationId.toString())
+            .appendPath(intent.getStringExtra(AgentNotificationActionReceiver.EXTRA_RUN_ID).orEmpty())
+            .appendPath(intent.getStringExtra(AgentNotificationActionReceiver.EXTRA_TOOL_CALL_ID).orEmpty())
+            .appendPath(intent.getStringExtra(AgentNotificationActionReceiver.EXTRA_APPROVAL_TOKEN).orEmpty())
+            .build()
+        return PendingIntent.getBroadcast(
             context,
             conversationId.hashCode() + requestOffset,
             intent,
             (if (mutable) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_IMMUTABLE) or
                 PendingIntent.FLAG_UPDATE_CURRENT,
         )
+    }
 
     // ---- 语义 ----
 

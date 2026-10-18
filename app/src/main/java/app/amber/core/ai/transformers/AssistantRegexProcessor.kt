@@ -64,7 +64,11 @@ private object AssistantRegexProgramCache {
         scope: AssistantAffectScope,
         visual: Boolean,
     ): AssistantRegexProgram {
-        val key = AssistantRegexProgramKey.of(regexes, scope, visual)
+        val key = AssistantRegexProgramKey(
+            scope = scope,
+            visual = visual,
+            regexes = regexes.toList(),
+        )
         synchronized(lock) {
             entries[key]?.let { return it }
         }
@@ -98,7 +102,10 @@ private object AssistantRegexProgramCache {
             nativePatterns = Array(applicable.size) { applicable[it].findRegex },
             nativeReplacements = Array(applicable.size) { applicable[it].replaceString },
             containsJvmOnlySyntax = containsJvmOnlyRegexSyntax(applicable) ||
-                compiledRules.any { it.regex == null },
+                compiledRules.any { rule ->
+                    val regex = rule.regex
+                    regex == null || hasNonPortableNumericReference(regex, rule.replacement)
+                },
         )
     }
 }
@@ -106,31 +113,9 @@ private object AssistantRegexProgramCache {
 private data class AssistantRegexProgramKey(
     val scope: AssistantAffectScope,
     val visual: Boolean,
-    val signature: Int,
-) {
-    companion object {
-        fun of(
-            regexes: List<AssistantRegex>,
-            scope: AssistantAffectScope,
-            visual: Boolean,
-        ): AssistantRegexProgramKey {
-            var signature = 1
-            regexes.forEach { regex ->
-                signature = 31 * signature + regex.id.hashCode()
-                signature = 31 * signature + regex.enabled.hashCode()
-                signature = 31 * signature + regex.findRegex.hashCode()
-                signature = 31 * signature + regex.replaceString.hashCode()
-                signature = 31 * signature + regex.affectingScope.hashCode()
-                signature = 31 * signature + regex.visualOnly.hashCode()
-            }
-            return AssistantRegexProgramKey(
-                scope = scope,
-                visual = visual,
-                signature = signature,
-            )
-        }
-    }
-}
+    // Keep rule values for equality: different edits can have the same hash.
+    val regexes: List<AssistantRegex>,
+)
 
 private data class AssistantRegexProgram(
     val compiledRules: List<CompiledAssistantRegex>,
@@ -179,8 +164,12 @@ private data class CompiledAssistantRegex(
  * - possessive quantifier: `?+`, `*+`, `++`
  *
  * Detects, in **replacement** strings:
- * - literal-dollar Java syntax: `\$`
- * - named-group Java syntax: `$<name>` (Rust uses `${name}` or `$name`)
+ * - backslash escaping (Rust treats replacement backslashes literally)
+ * - `$<...>` (not a valid Java replacement reference)
+ * - an unbraced numeric reference followed by identifier text, e.g. `$1bar`
+ *
+ * Numeric references beyond the compiled capture count are checked separately:
+ * Java rejects or shortens them, while Rust can expand them to empty text.
  *
  * Pure prefilter — no compilation, no DFA, no allocations beyond the
  * `Regex.containsMatchIn` internal state. Safe to run per-message.
@@ -196,5 +185,15 @@ private val JVM_ONLY_PATTERN_SYNTAX = Regex(
     """\(\?<[=!]|\(\?[=!]|\(\?>|\\[1-9]|[?*+]\+"""
 )
 private val JVM_ONLY_REPLACEMENT_SYNTAX = Regex(
-    """\\\$|\$<"""
+    """\\|\$<|\$[0-9]+[A-Za-z_]"""
 )
+
+private val NUMERIC_REPLACEMENT_REFERENCE = Regex("""\$([0-9]+)""")
+
+private fun hasNonPortableNumericReference(regex: Regex, replacement: String): Boolean {
+    val groupCount = regex.toPattern().matcher("").groupCount()
+    return NUMERIC_REPLACEMENT_REFERENCE.findAll(replacement).any { reference ->
+        val group = reference.groupValues[1].toIntOrNull()
+        group == null || group > groupCount
+    }
+}

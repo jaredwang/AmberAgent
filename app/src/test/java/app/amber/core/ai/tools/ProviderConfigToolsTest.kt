@@ -2,6 +2,8 @@ package app.amber.core.ai.tools
 
 import android.app.Application
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.amber.agent.R
 import app.amber.ai.core.Tool
@@ -46,6 +48,9 @@ import app.amber.feature.tools.ToolRisk
 import app.amber.feature.tools.ToolSearchIndex
 import java.io.File
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -72,6 +77,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import kotlin.uuid.Uuid
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * P0–P2 agent provider-config tools contract tests（对齐 iOS §6 / §10-11）。
@@ -92,6 +98,7 @@ class ProviderConfigToolsTest {
     private lateinit var context: Context
     private lateinit var testRoot: File
     private lateinit var settingsStore: SettingsAggregator
+    private lateinit var settingsDataStore: PausingSettingsDataStore
     private lateinit var secretStore: SecretStore
     private lateinit var secretBackend: SecretStoreBackend
     private lateinit var providerCatalog: ProviderCatalog
@@ -160,9 +167,9 @@ class ProviderConfigToolsTest {
             },
         )
         val appScope = AppScope()
-        val dataStore = PreferenceDataStoreFactory.create {
+        val dataStore = PausingSettingsDataStore(PreferenceDataStoreFactory.create {
             File(testRoot, "settings.preferences_pb")
-        }
+        }).also { settingsDataStore = it }
         settingsStore = SettingsAggregator(
             dataStore = dataStore,
             uiPrefs = UIPrefs(dataStore, appScope),
@@ -663,6 +670,29 @@ class ProviderConfigToolsTest {
     // ------------------------------------------------------------------
 
     @Test
+    fun `queued apply preserves an unrelated settings change committed while it waited`() = runBlocking {
+        seed(app.amber.core.settings.Settings.dummy().copy(init = false, providers = listOf(openAiProvider)))
+        val barrier = settingsDataStore.pauseNextWrite()
+        val unrelatedWriter = async {
+            settingsStore.update { current -> current.copy(displaySetting = current.displaySetting.copy(userNickname = "Concurrent User")) }
+        }
+        withTimeout(5_000) { barrier.entered.await() }
+        // Undispatched execution reaches the held write mutex after the real tool has read/prepared its input.
+        val apply = async(start = CoroutineStart.UNDISPATCHED) {
+            runTool(tool(TOOL_PROVIDER_CONFIG_APPLY), """{"provider_id":"${openAiProvider.id}","enabled":false}""")
+        }
+        barrier.release.complete(Unit)
+        withTimeout(5_000) { unrelatedWriter.await() }
+
+        val result = withTimeout(5_000) { apply.await() }
+
+        val persisted = settingsStore.settingsFlow.value
+        assertEquals("Concurrent User", persisted.displaySetting.userNickname)
+        assertFalse(persisted.providers.single().enabled)
+        assertEquals("ok", result["status"]?.jsonPrimitive?.contentOrNull)
+    }
+
+    @Test
     fun `refresh merge keeps existing models and appends new ones`() = runBlocking {
         seed(app.amber.core.settings.Settings.dummy().copy(init = false, providers = listOf(openAiProvider)))
         val fetched = listOf(
@@ -733,6 +763,82 @@ class ProviderConfigToolsTest {
         assertEquals("failed", result["status"]?.jsonPrimitive?.contentOrNull)
         assertTrue(result["error"]!!.jsonPrimitive.contentOrNull.orEmpty().contains("provider not found"))
         assertEquals(false, result["written"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull())
+    }
+
+    @Test
+    fun `refresh rejects a late catalog when the same provider endpoint changed`() = runBlocking {
+        seed(app.amber.core.settings.Settings.dummy().copy(init = false, providers = listOf(openAiProvider)))
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val fetcher = ProviderModelFetcher { requested ->
+            assertEquals(openAiProvider.baseUrl, (requested as ProviderSetting.OpenAI).baseUrl)
+            entered.complete(Unit)
+            release.await()
+            listOf(Model(modelId = "old-endpoint-model", displayName = "Old endpoint model"))
+        }
+        val refresh = async {
+            runTool(tool(TOOL_PROVIDER_REFRESH_MODELS, fetcher), """{"provider_id":"${openAiProvider.id}"}""")
+        }
+        try {
+            withTimeout(5_000) { entered.await() }
+            settingsStore.update { current -> current.copy(providers = current.providers.map { provider ->
+                if (provider.id == openAiProvider.id) {
+                    (provider as ProviderSetting.OpenAI).copy(baseUrl = "https://new-endpoint.example.com/v1")
+                } else provider
+            }) }
+        } finally {
+            release.complete(Unit)
+        }
+
+        val result = withTimeout(5_000) { refresh.await() }
+
+        val persisted = settingsStore.settingsFlow.value.providers.single() as ProviderSetting.OpenAI
+        assertEquals("https://new-endpoint.example.com/v1", persisted.baseUrl)
+        assertEquals(openAiProvider.models.map { it.id }, persisted.models.map { it.id })
+        assertEquals("failed", result["status"]?.jsonPrimitive?.contentOrNull)
+        assertEquals(false, result["written"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull())
+    }
+
+    @Test
+    fun `refresh rejects a late catalog when the same provider secret changed`() = runBlocking {
+        val oldKey = "sk-old-catalog-key-123456"
+        val newKey = "sk-new-catalog-key-987654"
+        seed(app.amber.core.settings.Settings.dummy().copy(
+            init = false,
+            providers = listOf(openAiProvider.copy(apiKey = oldKey)),
+        ))
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val fetcher = ProviderModelFetcher { requested ->
+            assertEquals(oldKey, (requested as ProviderSetting.OpenAI).apiKey)
+            entered.complete(Unit)
+            release.await()
+            listOf(Model(modelId = "old-account-model", displayName = "Old account model"))
+        }
+        val refresh = async {
+            runTool(tool(TOOL_PROVIDER_REFRESH_MODELS, fetcher), """{"provider_id":"${openAiProvider.id}"}""")
+        }
+        try {
+            withTimeout(5_000) { entered.await() }
+            settingsStore.update { current -> current.copy(providers = current.providers.map { provider ->
+                if (provider.id == openAiProvider.id) {
+                    (provider as ProviderSetting.OpenAI).copy(apiKey = newKey)
+                } else provider
+            }) }
+        } finally {
+            release.complete(Unit)
+        }
+
+        val result = withTimeout(5_000) { refresh.await() }
+
+        val persisted = settingsStore.settingsFlow.value.providers.single() as ProviderSetting.OpenAI
+        assertEquals(newKey, persisted.apiKey)
+        assertTrue(secretStore.has(apiKeyDescriptor(openAiProvider.id)))
+        assertEquals(openAiProvider.models.map { it.id }, persisted.models.map { it.id })
+        assertEquals("failed", result["status"]?.jsonPrimitive?.contentOrNull)
+        assertEquals(false, result["written"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull())
+        assertFalse(result.toString().contains(oldKey))
+        assertFalse(result.toString().contains(newKey))
     }
 
     // ------------------------------------------------------------------
@@ -926,4 +1032,28 @@ private fun ProviderSetting.apiKeyValueForTest(): String = when (this) {
     is ProviderSetting.OpenAI -> apiKey
     is ProviderSetting.Google -> apiKey
     is ProviderSetting.Claude -> apiKey
+}
+
+/** Transparent real DataStore adapter; one test may hold an existing write before the next tool queues. */
+private class PausingSettingsDataStore(
+    private val delegate: DataStore<Preferences>,
+) : DataStore<Preferences> by delegate {
+    class WriteBarrier {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+    }
+
+    private val nextWrite = AtomicReference<WriteBarrier?>()
+
+    fun pauseNextWrite(): WriteBarrier = WriteBarrier().also {
+        check(nextWrite.compareAndSet(null, it))
+    }
+
+    override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
+        nextWrite.getAndSet(null)?.let { barrier ->
+            barrier.entered.complete(Unit)
+            barrier.release.await()
+        }
+        return delegate.updateData(transform)
+    }
 }

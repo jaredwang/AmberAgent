@@ -61,8 +61,8 @@ class SyncArchiveTableCoverageTest {
     @Test
     fun exportReadsAllDatabaseTablesFromOneSnapshot() {
         val source = listOf(
-            File("app/src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt"),
-            File("src/main/java/app/amber/core/sync/core/SyncArchiveManager.kt"),
+            File("app/src/main/java/app/amber/core/sync/core/SyncPayloadExporter.kt"),
+            File("src/main/java/app/amber/core/sync/core/SyncPayloadExporter.kt"),
         ).first { it.isFile }.readText()
 
         assertTrue(source.contains("db.beginTransactionNonExclusive()"))

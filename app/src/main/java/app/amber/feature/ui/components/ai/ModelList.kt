@@ -1,55 +1,35 @@
 package app.amber.feature.ui.components.ai
 
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,428 +40,33 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
-import androidx.compose.ui.util.fastForEach
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import app.amber.ai.provider.GoogleAuthMode
 import app.amber.ai.provider.Modality
 import app.amber.ai.provider.Model
-import app.amber.ai.provider.ModelAbility
 import app.amber.ai.provider.ModelType
-import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.provider.providers.isCodexOAuthReviewModel
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Check
-import com.composables.icons.lucide.WandSparkles
-import com.composables.icons.lucide.ArrowDown
-import com.composables.icons.lucide.ArrowRight
-import com.composables.icons.lucide.Brain
 import com.composables.icons.lucide.X
-import com.composables.icons.lucide.GripHorizontal
-import com.composables.icons.lucide.Heart
-import com.composables.icons.lucide.Images
-import com.composables.icons.lucide.MessageCircle
 import com.composables.icons.lucide.Search
-import com.composables.icons.lucide.Type
-import com.composables.icons.lucide.Hammer
-import com.composables.icons.lucide.Wrench
 import app.amber.agent.R
-import app.amber.agent.Screen
-import app.amber.core.settings.findModelById
-import app.amber.core.settings.findProvider
-import app.amber.core.settings.prefs.SettingsAggregator
-import app.amber.feature.ui.components.ui.AutoAIIcon
-import app.amber.feature.ui.components.ui.Tag
-import app.amber.feature.ui.components.ui.TagType
 import app.amber.feature.ui.components.ui.icons.HeartIcon
-import app.amber.feature.ui.components.ui.workspaceColors
-import app.amber.feature.ui.components.ds.pressable
-import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import app.amber.feature.ui.theme.extendColors
-import app.amber.feature.ui.pages.setting.components.providerSlugLabel
-import app.amber.core.utils.formatNumber
-import app.amber.core.utils.toDp
-import org.koin.compose.koinInject
-import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.uuid.Uuid
-
-@Composable
-fun ModelSelector(
-    modelId: Uuid?,
-    providers: List<ProviderSetting>,
-    type: ModelType,
-    modifier: Modifier = Modifier,
-    onlyIcon: Boolean = false,
-    compact: Boolean = false,
-    minimalText: Boolean = false,
-    /** V3 settings-models.jsx inline 触发器：logo 块 + accent 模型名 + chevron-down。
-     *  优先级排在 minimalText / compact 之后（互斥）。 */
-    inline: Boolean = false,
-    enabled: Boolean = true,
-    allowClear: Boolean = false,
-    emptyLabel: String? = null,
-    clearContentDescription: String? = null,
-    preferredInputModality: Modality? = null,
-    onClear: (() -> Unit)? = null,
-    /** Fully custom trigger; receives the open-picker callback. Null = built-in triggers. */
-    customTrigger: (@Composable (openPicker: () -> Unit) -> Unit)? = null,
-    onSelect: (Model) -> Unit
-) {
-    var popup by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val visibleProviders = providers
-    val modelIndex = remember(visibleProviders, type) {
-        visibleProviders.buildModelProviderIndex(type)
-    }
-    val model = modelId?.let { modelIndex[it]?.model }
-
-    if (!onlyIcon) {
-        if (customTrigger != null) {
-            customTrigger { popup = true }
-        } else if (minimalText) {
-            // Graphite §6.2 model-menu trigger: MONO model-id (LocalAmberType.meta) + small
-            // dropdown chevron icon. Capsule ripple (.clip(CircleShape) before .clickable).
-            val tokens = LocalAmberTokens.current
-            Row(
-                modifier = modifier
-                    .heightIn(min = 48.dp)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
-                    .clickable(enabled = enabled) { popup = true }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = model?.modelId
-                        ?: emptyLabel
-                        ?: stringResource(R.string.model_list_select_model),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = LocalAmberType.current.meta.copy(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                    ),
-                    color = tokens.ink,
-                )
-                Icon(
-                    imageVector = Lucide.ArrowDown,
-                    contentDescription = null,
-                    tint = tokens.ink3,
-                    modifier = Modifier.size(14.dp),
-                )
-            }
-        } else if (inline) {
-            // settings-models.jsx 设计稿：22dp logo + 14.5sp accent W500 model name + 12dp chevron-down
-            val inlineTokens = LocalAmberTokens.current
-            Row(
-                modifier = modifier
-                    .heightIn(min = 48.dp)
-                    .clickable(enabled = enabled) { popup = true },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                // V3: 去掉 logo 小方框 (用户反馈"图标太小不匹配方框, 去掉"). 直接 model 名 + 下拉.
-                Text(
-                    text = model?.displayName
-                        ?: emptyLabel
-                        ?: stringResource(R.string.model_list_select_model),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 14.5.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.2.sp,
-                    color = inlineTokens.accent,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Icon(
-                    imageVector = Lucide.ArrowDown,
-                    contentDescription = null,
-                    tint = inlineTokens.accent,
-                    modifier = Modifier.size(12.dp),
-                )
-                if (allowClear && model != null) {
-                    IconButton(
-                        onClick = { onClear?.invoke() ?: onSelect(Model()) },
-                        enabled = enabled,
-                        modifier = Modifier.size(48.dp),
-                    ) {
-                        Icon(
-                            imageVector = Lucide.X,
-                            contentDescription = clearContentDescription ?: stringResource(R.string.clear),
-                            tint = inlineTokens.ink4,
-                            modifier = Modifier.size(14.dp),
-                        )
-                    }
-                }
-            }
-        } else if (compact) {
-            val workspace = workspaceColors()
-            val chipShape = RoundedCornerShape(12.dp)
-            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                Surface(
-                    onClick = { popup = true },
-                    enabled = enabled,
-                    modifier = modifier
-                        .height(32.dp)
-                        .widthIn(max = 156.dp),
-                    shape = chipShape,
-                    color = workspace.paper,
-                    contentColor = workspace.ink,
-                    border = BorderStroke(1.dp, workspace.hairline),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(horizontal = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = model?.compactDisplayName()
-                                ?: emptyLabel
-                                ?: stringResource(R.string.model_list_select_model),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        )
-                    }
-                }
-            }
-        } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(
-                    onClick = {
-                        popup = true
-                    },
-                    modifier = modifier,
-                    enabled = enabled,
-                ) {
-                    model?.modelId?.let {
-                        AutoAIIcon(
-                            it, Modifier
-                                .padding(end = 4.dp)
-                                .size(36.dp),
-                            color = Color.Transparent
-                        )
-                    }
-                    Text(
-                        text = model?.displayName
-                            ?: emptyLabel
-                            ?: stringResource(R.string.model_list_select_model),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                if (allowClear && model != null) {
-                    IconButton(
-                        onClick = {
-                            onClear?.invoke() ?: onSelect(Model())
-                        },
-                        enabled = enabled,
-                    ) {
-                        Icon(
-                            imageVector = Lucide.X,
-                            contentDescription = clearContentDescription ?: stringResource(R.string.clear)
-                        )
-                    }
-                }
-            }
-        }
-    } else {
-        IconButton(
-            onClick = {
-                popup = true
-            },
-            enabled = enabled,
-        ) {
-            if (model != null) {
-                AutoAIIcon(
-                    modifier = Modifier.size(36.dp),
-                    name = model.modelId,
-                    color = Color.Transparent
-                )
-            } else {
-                Icon(
-                    imageVector = Lucide.Brain,
-                    contentDescription = stringResource(R.string.setting_model_page_chat_model),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-
-    if (popup) {
-        val settingsStore: SettingsAggregator = koinInject()
-        val settings by settingsStore.settingsFlow.collectAsStateWithLifecycle()
-        val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-        val tokens = LocalAmberTokens.current
-        val filteredProviderSettings = remember(visibleProviders, type) {
-            visibleProviders.fastFilter {
-                it.enabled && it.models.fastAny { model -> model.type == type }
-            }
-        }
-        // Selector shell follows the raised sheet/card treatment in the model
-        // picker reference; search and favorites remain available to callers.
-        ModalBottomSheet(
-            onDismissRequest = { popup = false },
-            sheetState = state,
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(
-                topStart = 22.dp,
-                topEnd = 22.dp,
-                bottomStart = 0.dp,
-                bottomEnd = 0.dp,
-            ),
-            containerColor = tokens.raised,
-            scrimColor = chatTheme.sheetBackdrop,
-            dragHandle = {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 4.dp)
-                        .width(36.dp)
-                        .height(4.dp)
-                        .background(tokens.line2),
-                )
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight(0.7f)
-                    .imePadding(),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 8.dp, bottom = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.model_list_select_model),
-                        style = LocalAmberType.current.screenTitle,
-                        color = tokens.ink,
-                    )
-                    Text(
-                        text = stringResource(
-                            when (type) {
-                                ModelType.CHAT -> R.string.setting_model_page_chat_model
-                                ModelType.IMAGE -> R.string.setting_model_page_image_gen_model
-                                ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-                            }
-                        ),
-                        style = LocalAmberType.current.meta.copy(fontSize = 12.sp),
-                        color = tokens.ink3,
-                    )
-                }
-                // ── Search field lives inside ModelList (it owns searchKeywords) ──
-                ModelList(
-                    currentModel = modelId,
-                    providers = filteredProviderSettings,
-                    modelType = type,
-                    preferredInputModality = preferredInputModality,
-                    favoriteModelIds = settings.favoriteModels,
-                    onFavoriteModelsChange = { ids ->
-                        scope.launch {
-                            settingsStore.update { current -> current.copy(favoriteModels = ids) }
-                        }
-                    },
-                    onSelect = { selectedModel ->
-                        onSelect(selectedModel)
-                        scope.launch {
-                            state.hide()
-                            popup = false
-                        }
-                    },
-                    onDismiss = {
-                        scope.launch {
-                            state.hide()
-                            popup = false
-                        }
-                    },
-                )
-            }
-        }
-    }
-}
-
-private fun Model.compactDisplayName(): String {
-    val raw = displayName.ifBlank { modelId }.trim()
-    if (raw.isBlank()) return raw
-    val tokens = raw.split('-', '_', ' ')
-        .filter { it.isNotBlank() }
-    val displayTokens = buildList {
-        var index = 0
-        while (index < tokens.size) {
-            val token = tokens[index]
-            val next = tokens.getOrNull(index + 1)
-            if (token.all { it.isDigit() } && next?.all { it.isDigit() } == true) {
-                add("$token.$next")
-                index += 2
-            } else {
-                add(token)
-                index += 1
-            }
-        }
-    }
-    return displayTokens
-        .joinToString(" ") { token ->
-            when {
-                token.equals("deepseek", ignoreCase = true) -> "DeepSeek"
-                token.equals("gpt", ignoreCase = true) -> "GPT"
-                token.equals("claude", ignoreCase = true) -> "Claude"
-                token.equals("gemini", ignoreCase = true) -> "Gemini"
-                token.equals("qwen", ignoreCase = true) -> "Qwen"
-                token.matches(Regex("(?i)v\\d+")) -> token.uppercase()
-                token.length <= 2 && token.any { it.isDigit() } -> token.uppercase()
-                else -> token.replaceFirstChar { char -> char.uppercaseChar() }
-            }
-        }
-}
-
-private fun List<Model>.prioritizeInputModality(modality: Modality?): List<Model> =
-    if (modality == null) {
-        this
-    } else {
-        sortedWith(compareByDescending<Model> { modality in it.inputModalities }.thenBy { it.displayName })
-    }
-
-private data class ModelWithProvider(
-    val model: Model,
-    val provider: ProviderSetting,
-)
-
-private fun List<ProviderSetting>.buildModelProviderIndex(modelType: ModelType): Map<Uuid, ModelWithProvider> =
-    buildMap {
-        this@buildModelProviderIndex.fastForEach { provider ->
-            provider.models.fastForEach { model ->
-                if (model.type == modelType && !provider.isHiddenCodexOAuthModel(model)) {
-                    putIfAbsent(model.id, ModelWithProvider(model, provider))
-                }
-            }
-        }
-    }
 
 @Composable
 internal fun ColumnScope.ModelList(
@@ -514,11 +99,7 @@ internal fun ColumnScope.ModelList(
     }
 
     val typeFilteredModelsByProvider = remember(providers, modelType, preferredInputModality) {
-        providers.associate { provider ->
-            provider.id to provider.models.fastFilter {
-                it.type == modelType && !provider.isHiddenCodexOAuthModel(it)
-            }.prioritizeInputModality(preferredInputModality)
-        }
+        providers.pickerModelsByProvider(modelType, preferredInputModality)
     }
 
     val searchFilteredModelsByProvider = remember(typeFilteredModelsByProvider, searchKeywords) {
@@ -638,6 +219,7 @@ internal fun ColumnScope.ModelList(
     val haptic = LocalHapticFeedback.current
 
     val providerPositions = remember(
+        currentModel,
         providers,
         favoriteModels,
         searchFilteredModelsByProvider,
@@ -653,19 +235,20 @@ internal fun ColumnScope.ModelList(
             currentIndex += favoriteModels.size // favorite models
         }
 
-        var hasProviderGroup = false
-        providers.mapNotNull { provider ->
+        providers.mapIndexedNotNull { providerIndex, provider ->
             val groupModels = searchFilteredModelsByProvider[provider.id].orEmpty()
-            if (groupModels.isEmpty()) return@mapNotNull null
-            if (hasProviderGroup || favoriteModels.isNotEmpty()) currentIndex += 1 // group gap
+            if (groupModels.isEmpty()) return@mapIndexedNotNull null
+            // Match the LazyColumn's original provider index, including filtered groups.
+            if (providerIndex > 0 || favoriteModels.isNotEmpty()) currentIndex += 1 // group gap
             val position = currentIndex
             currentIndex += 1 // provider header
             val expanded = expandedProviders[provider.id]
-                ?: searchKeywords.isNotBlank()
-                || groupModels.any { it.id == currentModel }
-                || currentModel == null
+                ?: (
+                    searchKeywords.isNotBlank() ||
+                        groupModels.any { it.id == currentModel } ||
+                        currentModel == null
+                    )
             if (expanded) currentIndex += groupModels.size
-            hasProviderGroup = true
             provider.id to position
         }.toMap()
     }
@@ -780,7 +363,7 @@ internal fun ColumnScope.ModelList(
                     style = LocalAmberType.current.meta.copy(
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.15.sp * (stringResource(R.string.model_list_favorite).length),
+                        letterSpacing = 0.15.em,
                     ),
                     color = tokens.ink3,
                     modifier = Modifier
@@ -826,9 +409,11 @@ internal fun ColumnScope.ModelList(
 
             val providerActive = groupModels.fastAny { it.id == currentModel }
             val expanded = expandedProviders[providerSetting.id]
-                ?: searchKeywords.isNotBlank()
-                || providerActive
-                || currentModel == null
+                ?: (
+                    searchKeywords.isNotBlank() ||
+                        providerActive ||
+                        currentModel == null
+                    )
             if (providerIndex > 0 || favoriteModels.isNotEmpty()) {
                 item(key = "group-gap:${providerSetting.id}") {
                     Spacer(Modifier.height(8.dp))
@@ -883,7 +468,7 @@ internal fun ColumnScope.ModelList(
 
     // 供应商Badge行
     val providerBadgeListState = rememberLazyListState()
-    LaunchedEffect(lazyListState) {
+    LaunchedEffect(lazyListState, providerPositions, providers) {
         // 当LazyColumn滚动时，LazyRow也跟随滚动
         snapshotFlow { lazyListState.firstVisibleItemIndex }
             .distinctUntilChanged()
@@ -891,7 +476,7 @@ internal fun ColumnScope.ModelList(
             .collect { index ->
                 if (index > 0) {
                     val currentProvider = providerPositions.entries.findLast {
-                        index > it.value
+                        index >= it.value
                     }
                     val index = providers.indexOfFirst { it.id == currentProvider?.key }
                     if (index >= 0) {
@@ -946,681 +531,5 @@ internal fun ColumnScope.ModelList(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ProviderAccordionModelPicker(
-    currentModel: Uuid?,
-    providers: List<ProviderSetting>,
-    modelType: ModelType,
-    onSelect: (Model) -> Unit,
-    modifier: Modifier = Modifier,
-    preferredInputModality: Modality? = null,
-    clearLabel: String? = null,
-    onClear: (() -> Unit)? = null,
-    dense: Boolean = false,
-) {
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    val tokens = LocalAmberTokens.current
-    val providerFontSize = if (dense) 13.sp else 14.sp
-    val modelFontSize = if (dense) 13.sp else 14.sp
-    val contextFontSize = if (dense) 11.sp else 11.5.sp
-    val providerVerticalPadding = if (dense) 7.dp else 11.dp
-    val modelVerticalPadding = if (dense) 6.dp else 9.dp
-    val trailingSlotWidth = 42.dp
-    val trailingEndPadding = if (dense) 0.dp else 6.dp
-    val providerStartPadding = if (dense) 30.dp else 14.dp
-    val modelStartPadding = if (dense) 54.dp else 28.dp
-    val typeFilteredModelsByProvider = remember(providers, modelType, preferredInputModality) {
-        providers.associate { provider ->
-            provider.id to provider.models.fastFilter {
-                it.type == modelType && !provider.isHiddenCodexOAuthModel(it)
-            }.prioritizeInputModality(preferredInputModality)
-        }
-    }
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        if (clearLabel != null && onClear != null) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onClear)
-                    .padding(
-                        start = providerStartPadding,
-                        end = trailingEndPadding,
-                        top = providerVerticalPadding,
-                        bottom = providerVerticalPadding,
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = clearLabel,
-                    style = LocalAmberType.current.meta.copy(
-                        fontSize = providerFontSize,
-                        fontWeight = if (currentModel == null) FontWeight.SemiBold else FontWeight.Medium,
-                    ),
-                    color = if (currentModel == null) chatTheme.accent else tokens.ink2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-
-        providers.fastForEach { providerSetting ->
-            val groupModels = typeFilteredModelsByProvider[providerSetting.id].orEmpty()
-            if (groupModels.isEmpty()) return@fastForEach
-
-            val providerActive = groupModels.fastAny { it.id == currentModel }
-            var expanded by remember(providerSetting.id) {
-                mutableStateOf(providerActive)
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(
-                        start = providerStartPadding,
-                        end = trailingEndPadding,
-                        top = providerVerticalPadding,
-                        bottom = providerVerticalPadding,
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = providerSetting.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontSize = providerFontSize,
-                        fontWeight = if (providerActive) FontWeight.SemiBold else FontWeight.Medium,
-                    ),
-                    color = if (providerActive) chatTheme.accent else tokens.ink2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    text = if (expanded) "−" else "+",
-                    style = LocalAmberType.current.meta.copy(
-                        fontSize = if (dense) 16.sp else 18.sp,
-                        fontWeight = FontWeight.Medium,
-                    ),
-                    color = tokens.ink3,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                    modifier = Modifier.width(trailingSlotWidth),
-                )
-            }
-            androidx.compose.animation.AnimatedVisibility(
-                visible = expanded,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(Modifier.fillMaxWidth()) {
-                    groupModels.fastForEach { model ->
-                        ModelItemRow(
-                            model = model,
-                            providerSetting = providerSetting,
-                            isActive = model.id == currentModel,
-                            onSelect = onSelect,
-                            onDismiss = {},
-                            modelFontSize = modelFontSize,
-                            contextFontSize = contextFontSize,
-                            verticalPadding = modelVerticalPadding,
-                            endPadding = trailingEndPadding,
-                            startPadding = modelStartPadding,
-                            contextWidth = trailingSlotWidth,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PickerProviderHeader(
-    provider: ProviderSetting,
-    modelCount: Int,
-    active: Boolean,
-    expanded: Boolean,
-    onClick: () -> Unit,
-    showTopCorners: Boolean,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    val accent = app.amber.feature.ui.pages.chat.LocalChatTheme.current.accent
-    val shape = RoundedCornerShape(
-        topStart = if (showTopCorners) 14.dp else 0.dp,
-        topEnd = if (showTopCorners) 14.dp else 0.dp,
-        bottomStart = if (expanded) 0.dp else 14.dp,
-        bottomEnd = if (expanded) 0.dp else 14.dp,
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(t.surface)
-            .border(1.dp, t.line.copy(alpha = 0.42f), shape)
-            .pressable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(
-            text = provider.providerSlugLabel(),
-            style = type.meta.copy(
-                fontSize = 13.sp,
-                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
-            ),
-            color = if (active) accent else t.ink,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = modelCount.toString(),
-            style = type.meta.copy(fontSize = 11.sp, fontFeatureSettings = "tnum"),
-            color = t.ink3,
-            maxLines = 1,
-        )
-        Icon(
-            imageVector = Lucide.ArrowRight,
-            contentDescription = null,
-            tint = t.ink3,
-            modifier = Modifier
-                .size(18.dp)
-                .graphicsLayer { rotationZ = if (expanded) 90f else 0f },
-        )
-    }
-}
-
-@Composable
-private fun PickerModelRow(
-    model: Model,
-    providerSetting: ProviderSetting,
-    isActive: Boolean,
-    onSelect: (Model) -> Unit,
-    onDismiss: () -> Unit,
-    isLast: Boolean,
-    favorite: Boolean,
-    onToggleFavorite: () -> Unit,
-) {
-    val t = LocalAmberTokens.current
-    val shape = RoundedCornerShape(
-        bottomStart = if (isLast) 14.dp else 0.dp,
-        bottomEnd = if (isLast) 14.dp else 0.dp,
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(t.surface)
-            .border(1.dp, t.line.copy(alpha = 0.42f), shape),
-    ) {
-        ModelItemRow(
-            model = model,
-            providerSetting = providerSetting,
-            isActive = isActive,
-            onSelect = onSelect,
-            onDismiss = onDismiss,
-            startPadding = 14.dp,
-            endPadding = 2.dp,
-            tail = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    if (isActive) {
-                        Icon(
-                            imageVector = Lucide.Check,
-                            contentDescription = null,
-                            tint = t.accent,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    FavoriteToggleIcon(
-                        favorite = favorite,
-                        isActive = isActive,
-                        onToggle = onToggleFavorite,
-                    )
-                }
-            },
-        )
-        if (!isLast) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(t.line),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ModelItem(
-    model: Model,
-    providerSetting: ProviderSetting,
-    select: Boolean,
-    onSelect: (Model) -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-    tail: @Composable RowScope.() -> Unit = {},
-    dragHandle: @Composable (RowScope.() -> Unit)? = null,
-    // V3 active 模型的 thinking-level segment（slot）
-    thinkingSegment: (@Composable () -> Unit)? = null,
-) {
-    val navController = LocalNavController.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    val tokens = LocalAmberTokens.current
-    // Amber Redesign §5: selected = accent text + weight 700, NO fill block / NO
-    // border / NO check. §2: row = 0 radius full-bleed. §3: hairline between rows
-    // (added by the caller's list; this row itself is borderless).
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                enabled = true,
-                onLongClick = {
-                    onDismiss()
-                    navController.navigate(
-                        Screen.SettingProviderDetail(providerSetting.id.toString())
-                    )
-                },
-                onClick = { onSelect(model) },
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-            ),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 11.dp),
-        ) {
-            // §6: mono model name, accent + 700 only when selected.
-            Text(
-                text = model.displayName,
-                style = LocalAmberType.current.meta.copy(
-                    fontSize = 14.sp,
-                    fontWeight = if (select) FontWeight.Bold else FontWeight.Medium,
-                ),
-                color = if (select) chatTheme.accent else chatTheme.ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            // §6: right-aligned mono context number (tabular-nums)
-            model.contextWindowTokens?.let { ctx ->
-                Text(
-                    text = ctx.formatNumber(),
-                    style = LocalAmberType.current.meta.copy(
-                        fontSize = 11.5.sp,
-                        fontFeatureSettings = "tnum",
-                    ),
-                    color = tokens.ink3,
-                    maxLines = 1,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                    modifier = Modifier.width(42.dp),
-                )
-            }
-            tail()
-        }
-        // ── 第二行：thinking-level segment（仅 active + REASONING 时显示）
-        thinkingSegment?.let {
-            Box(modifier = Modifier.padding(top = 6.dp)) {
-                it()
-            }
-        }
-    }
-}
-
-/**
- * V3 model-picker.jsx CapIcon —— 14dp monochrome stroke 风的 capability 图标行。
- * 每个模型固定显示 chat，按 abilities 加 tool/sci，按 modalities 加 T>I/I>T 等。
- */
-@Composable
-private fun V3CapabilityIcons(model: Model, tint: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // chat — 所有 CHAT 模型默认显示
-        if (model.type == ModelType.CHAT) {
-            Icon(
-                imageVector = Lucide.MessageCircle,
-                contentDescription = "chat",
-                modifier = Modifier.size(14.dp),
-                tint = tint,
-            )
-        }
-        // T>T or T>I —— 按 input/output modalities 推断
-        val hasImg = model.outputModalities.fastAny { it == Modality.IMAGE } ||
-            model.inputModalities.fastAny { it == Modality.IMAGE }
-        Icon(
-            imageVector = if (hasImg) Lucide.Images else Lucide.Type,
-            contentDescription = if (hasImg) "image" else "text",
-            modifier = Modifier.size(14.dp),
-            tint = tint,
-        )
-        // tool wrench —— TOOL ability
-        if (model.abilities.contains(app.amber.ai.provider.ModelAbility.TOOL)) {
-            Icon(
-                imageVector = Lucide.Wrench,
-                contentDescription = "tool",
-                modifier = Modifier.size(14.dp),
-                tint = tint,
-            )
-        }
-        // sci/magic —— REASONING ability（设计稿是原子/sci 图标，库里最接近 AiMagic）
-        if (model.abilities.contains(app.amber.ai.provider.ModelAbility.REASONING)) {
-            Icon(
-                imageVector = Lucide.WandSparkles,
-                contentDescription = "reasoning",
-                modifier = Modifier.size(14.dp),
-                tint = tint,
-            )
-        }
-    }
-}
-
-@Composable
-fun ModelTypeTag(model: Model) {
-    Tag(
-        type = TagType.INFO
-    ) {
-        Text(
-            text = stringResource(
-                when (model.type) {
-                    ModelType.CHAT -> R.string.setting_provider_page_chat_model
-                    ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-                    ModelType.IMAGE -> R.string.setting_provider_page_image_model
-                }
-            )
-        )
-    }
-}
-
-@Composable
-fun ModelModalityTag(model: Model) {
-    Tag(
-        type = TagType.SUCCESS
-    ) {
-        model.inputModalities.fastForEach { modality ->
-            Icon(
-                imageVector = when (modality) {
-                    Modality.TEXT -> Lucide.Type
-                    Modality.IMAGE -> Lucide.Images
-                    Modality.AUDIO -> Lucide.Type
-                },
-                contentDescription = null,
-                modifier = Modifier
-                    .size(LocalTextStyle.current.lineHeight.toDp())
-                    .padding(1.dp)
-            )
-        }
-        Icon(
-            imageVector = Lucide.ArrowRight,
-            contentDescription = null,
-            modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-        )
-        model.outputModalities.fastForEach { modality ->
-            Icon(
-                imageVector = when (modality) {
-                    Modality.TEXT -> Lucide.Type
-                    Modality.IMAGE -> Lucide.Images
-                    Modality.AUDIO -> Lucide.Type
-                },
-                contentDescription = null,
-                modifier = Modifier
-                    .size(LocalTextStyle.current.lineHeight.toDp())
-                    .padding(1.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun ModelAbilityTag(model: Model) {
-    model.abilities.fastForEach { ability ->
-        when (ability) {
-            ModelAbility.TOOL -> {
-                Tag(
-                    type = TagType.WARNING
-                ) {
-                    Icon(
-                        imageVector = Lucide.Hammer,
-                        contentDescription = null,
-                        modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp())
-                    )
-                }
-            }
-
-            ModelAbility.REASONING -> {
-                Tag(
-                    type = TagType.INFO
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.deepthink),
-                        contentDescription = null,
-                        modifier = Modifier.size(LocalTextStyle.current.lineHeight.toDp()),
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun ProviderSetting.isCodexOAuthProvider(): Boolean {
-    return this is ProviderSetting.OpenAI && authMode == OpenAIAuthMode.CODEX_OAUTH
-}
-
-private fun ProviderSetting.isHiddenCodexOAuthModel(model: Model): Boolean {
-    return isCodexOAuthProvider() && model.isCodexOAuthReviewModel()
-}
-
-// V3: hasUsableAuth 已迁到 app.amber.ai.provider.hasUsableAuth (ai/ProviderSetting.kt),
-// picker (这里) 和 data 层 fallback 共用同一份判定 (避免 picker 显示但 fallback 漏选
-// 出无 auth 的模型). 调用方直接 import app.amber.ai.provider.hasUsableAuth.
-
-/**
- * Phase 3.5 thinking-level segment —— model-picker.jsx 的 ThinkingLevel 段控。
- *
- * 设计稿用 off/on/low/med/high/xhigh/max 等不同模型不同段集。Kotlin 这边统一用
- * [ReasoningLevel] 7 个值，但 XHIGH 跟 HIGH 视觉太接近，UI 上跳过；展示 6 段：
- *   OFF | AUTO | LOW | MEDIUM | HIGH | MAX
- *
- * 主题感知：active 段填 chatTheme.accent + onAccent 文字；非 active 文字 chatTheme.ink；
- *           容器 chatTheme.searchBarBg + hair 1dp 描边。
- */
-/**
- * 按模型推断 reasoning level 段集。
- *
- * 来源：
- *  - DeepSeek: off/high/max (https://api-docs.deepseek.com/zh-cn/guides/thinking_mode)
- *  - OpenAI gpt-5: low/medium/high/xhigh
- *  - Anthropic claude: low/medium/high/xhigh/max
- *  - Kimi / GLM: off/auto (2 段)
- *  - 默认: off/auto/low/med/high/max (6 段)
- */
-internal fun reasoningLevelsForModel(model: Model): List<Pair<app.amber.ai.core.ReasoningLevel, String>> {
-    val id = model.modelId.lowercase()
-    return when {
-        id.contains("deepseek") -> listOf(
-            app.amber.ai.core.ReasoningLevel.OFF to "off",
-            app.amber.ai.core.ReasoningLevel.HIGH to "high",
-            app.amber.ai.core.ReasoningLevel.MAX to "max",
-        )
-        // Claude (Anthropic) extended thinking + adaptive auto：
-        // Anthropic 在 claude-sonnet-4.5 / opus-4.1 起暴露 thinking_budget=auto，模型自己
-        // 决定多少 token 用来思考（无人工指定 budget）。设计稿 model-picker.jsx 标 auto
-        // 作为首段，方便用户日常聊天直接选 "让 Claude 自己决定" 而不用挑 low/med/high。
-        // 段集：auto / low / med / high / xhigh / max (6 段)
-        id.contains("claude") -> listOf(
-            app.amber.ai.core.ReasoningLevel.AUTO to "auto",
-            app.amber.ai.core.ReasoningLevel.LOW to "low",
-            app.amber.ai.core.ReasoningLevel.MEDIUM to "med",
-            app.amber.ai.core.ReasoningLevel.HIGH to "high",
-            app.amber.ai.core.ReasoningLevel.XHIGH to "xhigh",
-            app.amber.ai.core.ReasoningLevel.MAX to "max",
-        )
-        id.contains("gpt") || id.contains("codex") || id.contains("o1") || id.contains("o3") || id.contains("o4") -> listOf(
-            app.amber.ai.core.ReasoningLevel.LOW to "low",
-            app.amber.ai.core.ReasoningLevel.MEDIUM to "med",
-            app.amber.ai.core.ReasoningLevel.HIGH to "high",
-            app.amber.ai.core.ReasoningLevel.XHIGH to "xhigh",
-        )
-        id.contains("kimi") || id.contains("glm") || id.contains("zhipu") -> listOf(
-            app.amber.ai.core.ReasoningLevel.OFF to "off",
-            app.amber.ai.core.ReasoningLevel.AUTO to "auto",
-        )
-        else -> listOf(
-            app.amber.ai.core.ReasoningLevel.OFF to "off",
-            app.amber.ai.core.ReasoningLevel.AUTO to "auto",
-        )
-    }
-}
-
-@Composable
-internal fun ThinkingLevelSegment(
-    levels: List<Pair<app.amber.ai.core.ReasoningLevel, String>>,
-    current: app.amber.ai.core.ReasoningLevel,
-    onChange: (app.amber.ai.core.ReasoningLevel) -> Unit,
-) {
-    val theme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    // V3 紧凑段控: 外 padding 1.5dp + 内段 vertical 1dp + 字号 10sp (再压扁一档)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(androidx.compose.foundation.shape.CircleShape)
-            .background(theme.surface)
-            .border(
-                BorderStroke(1.dp, theme.hair),
-                shape = androidx.compose.foundation.shape.CircleShape,
-            )
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        levels.forEach { (level, label) ->
-            val isActive = level == current
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(androidx.compose.foundation.shape.CircleShape)
-                    .background(if (isActive) theme.accent else androidx.compose.ui.graphics.Color.Transparent)
-                    .clickable { onChange(level) }
-                    .padding(vertical = 5.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = label,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.2.sp,
-                    lineHeight = 13.sp,
-                    color = if (isActive) theme.onAccent else theme.ink,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-}
-
-/** V3 grouped 卡内的 model 行 —— ModelItem 但去掉外层 Card 包装，仅渲染内容行。
- *  设计稿：同 provider 多 model 在一张 SubCard 内用 hairline 分隔，所以单行不需要自己的 Card。
- */
-@Composable
-private fun ModelItemRow(
-    model: Model,
-    providerSetting: ProviderSetting,
-    onSelect: (Model) -> Unit,
-    onDismiss: () -> Unit,
-    isActive: Boolean = false,
-    modelFontSize: androidx.compose.ui.unit.TextUnit = 14.sp,
-    contextFontSize: androidx.compose.ui.unit.TextUnit = 11.5.sp,
-    verticalPadding: androidx.compose.ui.unit.Dp = 9.dp,
-    endPadding: androidx.compose.ui.unit.Dp = 6.dp,
-    startPadding: androidx.compose.ui.unit.Dp = 28.dp,
-    contextWidth: androidx.compose.ui.unit.Dp = 42.dp,
-    tail: @Composable RowScope.() -> Unit = {},
-) {
-    val navController = LocalNavController.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    val tokens = LocalAmberTokens.current
-    // Graphite §6.2 row: mono "name … ctx", accent only when selected, no logo/check/badge.
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                enabled = true,
-                onLongClick = {
-                    onDismiss()
-                    navController.navigate(
-                        Screen.SettingProviderDetail(providerSetting.id.toString())
-                    )
-                },
-                onClick = { onSelect(model) },
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-            )
-            .padding(start = startPadding, end = endPadding, top = verticalPadding, bottom = verticalPadding),
-    ) {
-        Text(
-            text = model.displayName,
-            style = LocalAmberType.current.meta.copy(
-                fontSize = modelFontSize,
-                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-            ),
-            color = if (isActive) chatTheme.accent else chatTheme.ink,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        model.contextWindowTokens?.let { ctx ->
-            Text(
-                text = ctx.formatNumber(),
-                style = LocalAmberType.current.meta.copy(
-                    fontSize = contextFontSize,
-                    fontFeatureSettings = "tnum",
-                ),
-                color = tokens.ink3,
-                maxLines = 1,
-                textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                modifier = Modifier.width(contextWidth),
-            )
-        }
-        tail()
-    }
-}
-
-/** 收藏图标 —— 主题色感知的心形 */
-@Composable
-private fun FavoriteToggleIcon(
-    favorite: Boolean,
-    isActive: Boolean,
-    onToggle: () -> Unit,
-) {
-    val chatTheme = app.amber.feature.ui.pages.chat.LocalChatTheme.current
-    IconButton(onClick = onToggle) {
-        Icon(
-            imageVector = if (favorite) HeartIcon else Lucide.Heart,
-            contentDescription = stringResource(
-                if (favorite) R.string.favorite_remove else R.string.favorite_add
-            ),
-            modifier = Modifier.size(20.dp),
-            tint = when {
-                favorite -> chatTheme.accent
-                isActive -> chatTheme.accent
-                else -> chatTheme.inkSoft
-            },
-        )
     }
 }

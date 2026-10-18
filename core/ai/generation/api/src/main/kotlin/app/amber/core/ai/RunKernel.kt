@@ -4,7 +4,6 @@ import app.amber.core.ai.transformers.InputMessageTransformer
 import app.amber.core.ai.transformers.OutputMessageTransformer
 import app.amber.core.model.AssistantMemory
 import app.amber.core.model.Conversation
-import app.amber.core.settings.Settings
 import app.amber.feature.runtime.ToolInvocationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,8 +33,8 @@ interface RunKernel {
  * signature stays stable as loop concerns evolve.
  */
 class GenerationRunSession(
-    /** Global Amber runtime settings for this generation. */
-    val settings: Settings,
+    /** Values captured from the caller's final model and settings snapshot. */
+    val settings: GenerationSettings,
     val model: Model,
     val messages: List<UIMessage>,
     val inputTransformers: List<InputMessageTransformer> = emptyList(),

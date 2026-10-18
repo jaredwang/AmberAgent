@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.last
 import app.amber.ai.ui.UIMessage
 import app.amber.core.ai.GenerationChunk
 import app.amber.core.ai.GenerationRunSession
+import app.amber.core.ai.toGenerationSettings
 import app.amber.core.ai.GenerationTerminal
 import app.amber.core.ai.RunKernel
 import app.amber.core.service.ConversationAccess
@@ -57,7 +58,7 @@ class ChatTurnAgent(
 
             kernel.run(
                 GenerationRunSession(
-                    settings = session.settings,
+                    settings = session.settings.toGenerationSettings(session.model),
                     model = session.model,
                     messages = session.messages,
                     inputTransformers = session.inputTransformers,

@@ -1,6 +1,7 @@
 package app.amber.core.settings
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,7 @@ internal fun <T> Flow<T>.toMutableStateFlow(
         runCatching {
             this@toMutableStateFlow.collect { stateFlow.value = it }
         }.onFailure {
+            if (it is CancellationException) throw it
             it.printStackTrace()
             Log.e("SettingsFlowExt", "Error while collecting settings flow: ${it.message}", it)
             Runtime.getRuntime().halt(1)

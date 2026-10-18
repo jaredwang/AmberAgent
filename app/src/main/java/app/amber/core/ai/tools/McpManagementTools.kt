@@ -21,6 +21,7 @@ import app.amber.core.ai.mcp.McpImportTransaction
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.ai.mcp.McpStatus
 import app.amber.core.ai.mcp.RealMcpConnectPreflight
+import app.amber.core.ai.mcp.publishMcpImport
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.files.SkillManager
 import app.amber.feature.runtime.CasLedger
@@ -42,11 +43,7 @@ fun createMcpManagementTools(
                     .map { it.commonOptions.name }
                     .toSet()
             },
-            publish = { configs ->
-                settingsStore.update { settings ->
-                    settings.copy(mcpServers = settings.mcpServers + configs)
-                }
-            },
+            publish = settingsStore::publishMcpImport,
         )
     }
 

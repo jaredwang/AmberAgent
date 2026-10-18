@@ -29,6 +29,7 @@ import kotlin.uuid.Uuid
 import app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobs
 import app.amber.feature.novelworkspace.NovelWorkspaceLedger
 import app.amber.feature.novelworkspace.NovelWorkspaceProjectRepository
+import app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundary
 import app.amber.feature.novelworkspace.NovelWorkspaceStore
 import app.amber.feature.novelworkspace.NovelWorkspaceUnresolvedStore
 import kotlinx.coroutines.CancellationException
@@ -83,6 +84,7 @@ class NovelWorkspaceGhostwriteWorker(
     }
 
     private suspend fun runJob(directory: java.io.File, jobId: String, executionId: String): Result {
+        val restoreEpoch = NovelWorkspaceRestoreBoundary.currentEpoch()
         val job = NovelWorkspaceGhostwriteJobs.load(directory, jobId) ?: return Result.success()
         if (job.executionKey != executionId) return Result.success()
         if (job.isTerminal) return Result.success()
@@ -90,8 +92,35 @@ class NovelWorkspaceGhostwriteWorker(
 
         val committedProgress = NovelWorkspaceGhostwriteJobs.progress(job, NovelWorkspaceStore(directory))
         if (committedProgress >= job.targetChapterCount) {
-            finishJob(directory, job.id, executionId, NovelWorkspaceGhostwriteJob.STATUS_COMPLETED, null)
-            return Result.success()
+            val completed = NovelWorkspaceRestoreBoundary.write(restoreEpoch) {
+                NovelWorkspaceGhostwriteJobs.withRunningOwner(directory, job.id, executionId) {
+                    if (job.mode == NovelWorkspaceGhostwriteMode.Polish) {
+                        // The final prose commit can survive a crash before its paired pointer.
+                        NovelWorkspaceChapterCommits.repairDanglingPolishPointer(directory, job.branchSlug)
+                        if (NovelWorkspaceLedger.isPlotStale(
+                                NovelWorkspaceStore(directory),
+                                NovelWorkspaceLedger.load(directory),
+                                job.branchSlug,
+                            )
+                        ) {
+                            finishJob(
+                                directory,
+                                job.id,
+                                executionId,
+                                NovelWorkspaceGhostwriteJob.STATUS_FAILED,
+                                applicationContext.getString(
+                                    R.string.novel_ghostwrite_error_stale_plot,
+                                    taskLabel(job),
+                                ),
+                            )
+                            return@withRunningOwner false
+                        }
+                    }
+                    finishJob(directory, job.id, executionId, NovelWorkspaceGhostwriteJob.STATUS_COMPLETED, null)
+                    true
+                }
+            }
+            return if (completed == false) Result.failure() else Result.success()
         }
 
         // Inject the DI-built coordinator (it owns the runtime) instead of building our own.
@@ -253,11 +282,11 @@ class NovelWorkspaceGhostwriteWorker(
         }
 
         return when (result) {
-            is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed -> {
+            is NovelWorkspaceBatchResult.Completed -> {
                 finishJob(directory, job.id, executionId, NovelWorkspaceGhostwriteJob.STATUS_COMPLETED, null)
                 Result.success()
             }
-            is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed -> {
+            is NovelWorkspaceBatchResult.Failed -> {
                 val recoveredCommit = if (job.isVersionBound) {
                     runCatching {
                         coordinator.reconcileReviewedChapter(directory, job.id, executionId)
@@ -295,7 +324,7 @@ class NovelWorkspaceGhostwriteWorker(
                     Result.failure()
                 }
             }
-            is NovelWorkspaceGhostwriteCoordinator.BatchResult.Stopped -> Result.success()
+            is NovelWorkspaceBatchResult.Stopped -> Result.success()
         }
     }
 

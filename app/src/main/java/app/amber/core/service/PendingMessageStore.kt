@@ -19,8 +19,8 @@ private const val BASE_DIR = "amberagent/message-queue"
  * an in-flight generation) and an append-only audit log of queue events.
  *
  * Extracted from ChatService in M1.3.1 — pure file IO concern, no
- * cross-cutting state. ChatService holds the in-memory ConversationSession;
- * this class owns the on-disk mirror so the queue survives process death.
+ * cross-cutting state. PendingMessageQueue holds the live queue and orders
+ * writes; this class owns its on-disk representation across process death.
  *
  * - `<filesDir>/amberagent/message-queue/<conversationId>.json` — current queue
  * - `<filesDir>/amberagent/message-queue/<conversationId>.events.jsonl` — audit

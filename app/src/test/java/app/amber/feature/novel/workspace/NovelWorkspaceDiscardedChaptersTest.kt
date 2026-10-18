@@ -82,10 +82,10 @@ class NovelWorkspaceDiscardedChaptersTest {
     private fun snapshot(directory: File) = checkNotNull(NovelWorkspaceDiscardedChapters.snapshot(directory, "B-1", "主线"))
 
     private fun discard(directory: File, snapshot: NovelWorkspaceDiscardedChapters.Snapshot = snapshot(directory)) =
-        NovelWorkspaceDiscardedChapters.discard(runtime(), directory, "B-1", "主线", chapterPath, snapshot.headId, snapshot.treeDigest)
+        NovelWorkspaceDiscardedChapters.discard(directory, "B-1", "主线", chapterPath, snapshot.headId, snapshot.treeDigest)
 
     private fun restore(directory: File, snapshot: NovelWorkspaceDiscardedChapters.Snapshot = snapshot(directory)) =
-        NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-1", "主线", discardedPath, snapshot.headId, snapshot.treeDigest)
+        NovelWorkspaceDiscardedChapters.restore(directory, "B-1", "主线", discardedPath, snapshot.headId, snapshot.treeDigest)
 
     private fun assertRejected(block: () -> Unit) {
         try {
@@ -154,9 +154,9 @@ class NovelWorkspaceDiscardedChaptersTest {
                 val currentTree = store.fileTree()
                 assertRejected {
                     if (operation == "discard") {
-                        NovelWorkspaceDiscardedChapters.discard(runtime(), directory, "B-1", "主线", chapterPath, expectedHead, before.treeDigest)
+                        NovelWorkspaceDiscardedChapters.discard(directory, "B-1", "主线", chapterPath, expectedHead, before.treeDigest)
                     } else {
-                        NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-1", "主线", discardedPath, expectedHead, before.treeDigest)
+                        NovelWorkspaceDiscardedChapters.restore(directory, "B-1", "主线", discardedPath, expectedHead, before.treeDigest)
                     }
                 }
                 assertEquals(currentTree, store.fileTree())
@@ -201,20 +201,20 @@ class NovelWorkspaceDiscardedChaptersTest {
         assertNull(NovelWorkspaceDiscardedChapters.read(directory, "支线", legacyPath))
         assertNull(NovelWorkspaceDiscardedChapters.read(directory, "支线", branchLegacyPath))
         assertRejected {
-            NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-2", "支线", legacyPath, other.headId, other.treeDigest)
+            NovelWorkspaceDiscardedChapters.restore(directory, "B-2", "支线", legacyPath, other.headId, other.treeDigest)
         }
         assertRejected {
-            NovelWorkspaceDiscardedChapters.discard(runtime(), directory, "B-2", "支线", chapterPath, other.headId, other.treeDigest)
+            NovelWorkspaceDiscardedChapters.discard(directory, "B-2", "支线", chapterPath, other.headId, other.treeDigest)
         }
         assertEquals(rawChapter, NovelWorkspaceStore(directory).read(chapterPath))
 
         NovelWorkspaceBranches.ActiveBranchStore.save(NovelWorkspaceBranches.NovelWorkspaceActiveBranch("主线"), directory)
         val main = snapshot(directory)
-        NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-1", "主线", legacyPath, main.headId, main.treeDigest)
+        NovelWorkspaceDiscardedChapters.restore(directory, "B-1", "主线", legacyPath, main.headId, main.treeDigest)
         assertEquals(legacyRaw, NovelWorkspaceStore(directory).read("branches/主线/chapters/004-旧废稿.md"))
         assertNull(NovelWorkspaceStore(directory).read(legacyPath))
         val branchLegacy = snapshot(directory)
-        NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-1", "主线", branchLegacyPath, branchLegacy.headId, branchLegacy.treeDigest)
+        NovelWorkspaceDiscardedChapters.restore(directory, "B-1", "主线", branchLegacyPath, branchLegacy.headId, branchLegacy.treeDigest)
         assertEquals(branchLegacyRaw, NovelWorkspaceStore(directory).read("branches/主线/chapters/006-旧分支废稿.md"))
         assertNull(NovelWorkspaceStore(directory).read(branchLegacyPath))
     }
@@ -226,12 +226,12 @@ class NovelWorkspaceDiscardedChaptersTest {
         val raw = chapter(4, "嵌套")
         val directory = project("nested", listOf(NovelWorkspaceFile(nestedPath, raw)))
         val before = snapshot(directory)
-        NovelWorkspaceDiscardedChapters.discard(runtime(), directory, "B-1", "主线", nestedPath, before.headId, before.treeDigest)
+        NovelWorkspaceDiscardedChapters.discard(directory, "B-1", "主线", nestedPath, before.headId, before.treeDigest)
         val discarded = snapshot(directory)
         assertEquals(nestedPath, discarded.entries.single().sourcePath)
         assertEquals(raw, NovelWorkspaceStore(directory).read(nestedDiscardedPath))
 
-        NovelWorkspaceDiscardedChapters.restore(runtime(), directory, "B-1", "主线", nestedDiscardedPath, discarded.headId, discarded.treeDigest)
+        NovelWorkspaceDiscardedChapters.restore(directory, "B-1", "主线", nestedDiscardedPath, discarded.headId, discarded.treeDigest)
         assertEquals(raw, NovelWorkspaceStore(directory).read(nestedPath))
         assertNull(NovelWorkspaceStore(directory).read(nestedDiscardedPath))
     }

@@ -3,17 +3,13 @@ package app.amber.feature.ui.pages.sessionhome
 import android.util.Log
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.amber.core.files.FilesManager
-import app.amber.core.model.Avatar
 import app.amber.core.model.Conversation
 import app.amber.core.repository.ConversationRepository
 import app.amber.core.service.ChatService
-import app.amber.core.settings.Settings
-import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.feature.home.ContinueCandidate
+import app.amber.feature.home.ContinueRoute
 import app.amber.feature.home.ContinueCandidateAggregator
 import app.amber.feature.home.ContinueDismissStore
 import app.amber.feature.home.DEFAULT_DISMISS_DURATION
@@ -41,16 +37,15 @@ import kotlinx.coroutines.launch
 
 /**
  * SessionHome 首页的 ViewModel：为会话面板提供列表所需的业务操作
- * （运行中任务、删除/置顶/重命名会话、更新设置），以及 P8-08 首页
+ * （运行中任务、删除/置顶会话、创建议会），以及 P8-08 首页
  * 「继续」聚合（[continueCandidates] + [dismissContinueCandidate]）。
  *
  * 会话摘要由本页分页观察；首页的快速筛选只在这些摘要上运行。
  */
 class SessionHomeVM(
-    private val settingsStore: SettingsAggregator,
     private val conversationRepo: ConversationRepository,
     private val chatService: ChatService,
-    private val filesManager: FilesManager,
+    private val councilRoomCreator: HomeCouncilRoomCreator,
     private val continueAggregator: ContinueCandidateAggregator,
     private val continueDismissStore: ContinueDismissStore,
 ) : ViewModel() {
@@ -153,22 +148,13 @@ class SessionHomeVM(
         }
     }
 
-    fun updateSettings(newSettings: Settings) {
-        viewModelScope.launch {
-            val oldSettings = settingsStore.settingsFlow.first()
-            checkUserAvatarDelete(oldSettings, newSettings)
-            settingsStore.update(newSettings)
-        }
-    }
+    suspend fun createCouncilRoom(objective: String) = councilRoomCreator.create(objective)
 
-    private fun checkUserAvatarDelete(oldSettings: Settings, newSettings: Settings) {
-        val oldAvatar = oldSettings.displaySetting.userAvatar
-        val newAvatar = newSettings.displaySetting.userAvatar
-
-        if (oldAvatar is Avatar.Image && oldAvatar != newAvatar) {
-            filesManager.deleteChatFiles(listOf(oldAvatar.url.toUri()))
+    suspend fun canOpenContinue(route: ContinueRoute): Boolean =
+        canOpenContinueRoute(route) { conversationId ->
+            val id = runCatching { Uuid.parse(conversationId) }.getOrNull()
+            id != null && conversationRepo.existsConversationById(id)
         }
-    }
 
     fun deleteConversation(conversation: Conversation) {
         viewModelScope.launch {

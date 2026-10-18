@@ -249,8 +249,8 @@ class NovelWorkspacePolishBatchTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
-        assertEquals(2, (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed).chaptersWritten)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
+        assertEquals(2, (result as NovelWorkspaceBatchResult.Completed).chaptersWritten)
 
         val store = NovelWorkspaceStore(dir)
         assertEquals("润色后的第 1 章正文，文字更凝练，情节一字未动。", bodyOf(store, chapterPaths.getValue(1)))
@@ -322,7 +322,7 @@ class NovelWorkspacePolishBatchTest {
             },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Stopped)
+        assertTrue(result is NovelWorkspaceBatchResult.Stopped)
         val store = NovelWorkspaceStore(dir)
         // The paused execution left nothing behind: no 润色 commit, no chapter change.
         assertFalse(
@@ -343,8 +343,8 @@ class NovelWorkspacePolishBatchTest {
             model = Model(),
             isPaused = { false },
         ) { }
-        assertTrue(secondResult is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
-        assertEquals(2, (secondResult as NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed).chaptersWritten)
+        assertTrue(secondResult is NovelWorkspaceBatchResult.Completed)
+        assertEquals(2, (secondResult as NovelWorkspaceBatchResult.Completed).chaptersWritten)
         assertTrue(bodyOf(store, chapterPaths.getValue(1)).startsWith("这段润色正文"))
         // Old token can no longer act as the owner.
         assertNull(
@@ -382,8 +382,8 @@ class NovelWorkspacePolishBatchTest {
             }
         }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Stopped)
-        assertEquals(1, (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Stopped).chaptersWritten)
+        assertTrue(result is NovelWorkspaceBatchResult.Stopped)
+        assertEquals(1, (result as NovelWorkspaceBatchResult.Stopped).chaptersWritten)
         val messages = NovelWorkspaceLedger.load(dir).commits.map { it.message }
         // Exactly one chapter pair (润色 + 剧情指针) landed before the cancel.
         assertEquals(1, messages.count { it == NovelWorkspaceLedger.Message.POLISH })
@@ -416,8 +416,8 @@ class NovelWorkspacePolishBatchTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
-        assertEquals(1, (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed).chaptersWritten)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
+        assertEquals(1, (result as NovelWorkspaceBatchResult.Completed).chaptersWritten)
         // 1 failed attempt + 1 successful retry for chapter 1; the range ends there.
         assertEquals(2, generator.calls)
         assertFalse(NovelWorkspaceLedger.isPlotStale(NovelWorkspaceStore(dir), NovelWorkspaceLedger.load(dir), "主线"))
@@ -451,9 +451,9 @@ class NovelWorkspacePolishBatchTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertTrue(
-            (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed).error.contains("未完成章节润色"),
+            (result as NovelWorkspaceBatchResult.Failed).error.contains("未完成章节润色"),
         )
         assertEquals(2, filler.calls)
         val store = NovelWorkspaceStore(dir)
@@ -500,9 +500,9 @@ class NovelWorkspacePolishBatchTest {
         ) { }
 
         // 两轮无产出后由 no-progress guard 终止，第 1 章的润色成果保留。
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertTrue(
-            (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed).error.contains("未完成章节润色"),
+            (result as NovelWorkspaceBatchResult.Failed).error.contains("未完成章节润色"),
         )
         assertEquals(3, kernel.calls)
         assertEquals("润色后的第 1 章正文，文字更凝练。", bodyOf(NovelWorkspaceStore(dir), chapterPaths.getValue(1)))
@@ -543,7 +543,7 @@ class NovelWorkspacePolishBatchTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         val store = NovelWorkspaceStore(dir)
         val fields = fieldsOf(store, chapterPaths.getValue(1))
         assertEquals("C-1", fields["id"])
@@ -592,8 +592,8 @@ class NovelWorkspacePolishBatchTest {
             isPaused = { false },
         ) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
-        assertEquals(3, (result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed).chaptersWritten)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
+        assertEquals(3, (result as NovelWorkspaceBatchResult.Completed).chaptersWritten)
         // 入口补发只补指针：第 1 章没有被重新润色（turn 只落在第 2、3 章）。
         assertEquals(listOf("请润色第 2 章。", "请润色第 3 章。"), generator.userTexts)
         val messages = NovelWorkspaceLedger.load(dir).commits.map { it.message }
@@ -673,8 +673,8 @@ class NovelWorkspacePolishBatchTest {
 
         val result = coordinator.runBatch(job, dir, "B-1", Settings(), Model(), isPaused = { false }) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
-        assertTrue((result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed).error.contains("人物结局被改变"))
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
+        assertTrue((result as NovelWorkspaceBatchResult.Failed).error.contains("人物结局被改变"))
         assertEquals(1, generator.calls)
         assertEquals(1, generator.reviewCalls)
         assertEquals(before, NovelWorkspaceStore(dir).read(chapterPaths.getValue(1)))
@@ -692,7 +692,7 @@ class NovelWorkspacePolishBatchTest {
 
         val result = coordinator.runBatch(job, dir, "B-1", Settings(), Model(), isPaused = { false }) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertEquals(before, NovelWorkspaceStore(dir).read(chapterPaths.getValue(1)))
         assertEquals(1, generator.calls)
         assertEquals(1, generator.reviewCalls)
@@ -711,7 +711,7 @@ class NovelWorkspacePolishBatchTest {
 
         val result = coordinator.runBatch(job, dir, "B-1", Settings(), Model(), isPaused = { false }) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
         assertEquals("其他写入的新正文。", NovelWorkspaceStore(dir).read(path))
         assertEquals(0, NovelWorkspaceLedger.load(dir).commits.count { it.message == NovelWorkspaceLedger.Message.POLISH })
     }
@@ -769,7 +769,7 @@ class NovelWorkspacePolishBatchTest {
             committing = NovelWorkspaceGhostwriteJobs.load(dir, job.id)?.stage == app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteStage.Committing
         }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Completed)
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
         assertEquals(1, generator.calls)
         assertEquals(1, generator.reviewCalls)
         assertTrue(reviewing)
@@ -789,7 +789,7 @@ class NovelWorkspacePolishBatchTest {
         val coordinator = polishCoordinator(NovelWorkspaceRuntime(generator), testScheduler)
         val job = persistedJob(dir, coordinator.newPolishJob(dir, "主线", 1, 2))
         val first = coordinator.runBatch(job, dir, "B-1", Settings(), Model(), isPaused = { false }) { }
-        assertTrue(first is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
+        assertTrue(first is NovelWorkspaceBatchResult.Failed)
         NovelWorkspaceGhostwriteJobs.transition(dir, job.id, setOf(NovelWorkspaceGhostwriteJob.STATUS_RUNNING), NovelWorkspaceGhostwriteJob.STATUS_FAILED)
         NovelWorkspaceRuntime(NoopKernel).saveChapterEdit(dir, "B-1", "主线", chapterPaths.getValue(3), "陈桥", "最后一章发生新的故事事件。")
         val beforePointerCount = NovelWorkspaceLedger.load(dir).commits.count { it.message == NovelWorkspaceLedger.Message.PLOT_POINTER }
@@ -798,8 +798,8 @@ class NovelWorkspacePolishBatchTest {
 
         val result = coordinator.runBatch(restarted, dir, "B-1", Settings(), Model(), isPaused = { false }) { }
 
-        assertTrue(result is NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed)
-        assertTrue((result as NovelWorkspaceGhostwriteCoordinator.BatchResult.Failed).error.contains("剧情落后"))
+        assertTrue(result is NovelWorkspaceBatchResult.Failed)
+        assertTrue((result as NovelWorkspaceBatchResult.Failed).error.contains("剧情落后"))
         assertEquals(callsBeforeRetry, generator.calls)
         assertTrue(NovelWorkspaceLedger.isPlotStale(NovelWorkspaceStore(dir), NovelWorkspaceLedger.load(dir), "主线"))
         assertEquals(beforePointerCount, NovelWorkspaceLedger.load(dir).commits.count { it.message == NovelWorkspaceLedger.Message.PLOT_POINTER })

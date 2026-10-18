@@ -70,16 +70,7 @@ class JevCouncilPoolRanker(private val runtime: JevRuntime) : CouncilPoolRanker 
                     instructions = "Is the model with id $modelId in state.models a suitable council seat for state.objective given its capabilities?",
                 )
             }
-            val anchor = buildString {
-                append("route|")
-                append(objective.take(300))
-                append('|')
-                append(context.take(200))
-                append('|')
-                append(chunk.joinToString(",") { it.first.toString() })
-                append('|')
-                append(chunkIndex)
-            }
+            val anchor = "route|$chunkIndex|$state"
             val outcome = runtime.decide(
                 purpose = purpose,
                 runKey = null,

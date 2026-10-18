@@ -1,38 +1,20 @@
 package app.amber.feature.ui.pages.setting
 
-import android.webkit.CookieManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import app.amber.feature.ui.components.ui.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -40,53 +22,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.MessageCircleQuestion
-import com.composables.icons.lucide.X
-import com.composables.icons.lucide.MessageSquare
-import com.composables.icons.lucide.Github
 import com.composables.icons.lucide.Globe
-import com.composables.icons.lucide.Lightbulb
-import com.composables.icons.lucide.Newspaper
-import com.composables.icons.lucide.NotebookPen
-import com.composables.icons.lucide.CirclePlay
 import app.amber.agent.R
+import app.amber.core.utils.plus
 import app.amber.agent.Screen
 import app.amber.feature.ui.components.webmount.WebMountTaskCard
 import app.amber.feature.ui.context.LocalNavController
-import app.amber.feature.webmount.core.WebMountCapability
 import app.amber.feature.webmount.core.WebMountManager
-import app.amber.feature.webmount.core.WebMountStationState
-import app.amber.feature.webmount.core.WebMountStatus
 import app.amber.feature.webmount.cookie.WebMountCookieProvider
-import app.amber.feature.webmount.login.WebMountLoginController
-import app.amber.feature.webmount.login.WebMountLoginDetector
-import app.amber.feature.webmount.login.WebMountLoginStatus
-import app.amber.feature.webmount.login.WebMountLoginTarget
-import app.amber.feature.webmount.login.WebMountLoginWebViewState
-import app.amber.feature.webmount.oauth.OAuthAppCredentials
 import app.amber.feature.webmount.oauth.WebMountOAuthClient
 import app.amber.feature.webmount.oauth.WebMountOAuthTokenStore
 import app.amber.feature.webmount.usersites.AuthKind
-import app.amber.feature.webmount.usersites.UserSite
 import app.amber.feature.webmount.usersites.UserSiteRegistry
-import app.amber.feature.webmount.usersites.userSiteId
 import app.amber.feature.webmount.primitives.WebMountSessionOwner
-import app.amber.feature.ui.components.ui.workspaceColors
 import app.amber.feature.ui.context.LocalToaster
-import app.amber.core.utils.plus
 import org.koin.compose.koinInject
 
 /**
@@ -102,67 +54,34 @@ import org.koin.compose.koinInject
  * all; per-site rows handle login / sign-out / delete.
  */
 @Composable
-fun SettingExperimentalWebMountPage(
-    webMountManager: WebMountManager = koinInject(),
-    oauthClient: WebMountOAuthClient = koinInject(),
-    oauthStore: WebMountOAuthTokenStore = koinInject(),
-    userSiteRegistry: UserSiteRegistry = koinInject(),
-    cookieProvider: WebMountCookieProvider = koinInject(),
-    profileRegistry: app.amber.feature.webmount.profile.ProfileRegistry = koinInject(),
-    settingsStore: app.amber.core.settings.prefs.SettingsAggregator = koinInject(),
-) {
-    val states by webMountManager.states.collectAsStateWithLifecycle()
-    val sites by userSiteRegistry.sites.collectAsStateWithLifecycle()
-    val globalEnabled by webMountManager.globalEnabledFlow.collectAsStateWithLifecycle()
-    val evalEnabled by webMountManager.evalEnabledFlow.collectAsStateWithLifecycle()
+fun SettingExperimentalWebMountPage() {
+    val webMountManager: WebMountManager = koinInject()
+    val oauthClient: WebMountOAuthClient = koinInject()
+    val oauthStore: WebMountOAuthTokenStore = koinInject()
+    val userSiteRegistry: UserSiteRegistry = koinInject()
+    val cookieProvider: WebMountCookieProvider = koinInject()
+    val profileRegistry: app.amber.feature.webmount.profile.ProfileRegistry = koinInject()
+    val settingsStore: app.amber.core.settings.prefs.SettingsAggregator = koinInject()
     val webMountSessionOwner: WebMountSessionOwner = koinInject()
     val webMountSessions by webMountSessionOwner.sessions.collectAsStateWithLifecycle()
     val navController = LocalNavController.current
     val toaster = LocalToaster.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    // Per-site UI state.
-    var busyStations by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var loginDialogSite by remember { mutableStateOf<UserSite?>(null) }
-    // Pre-login cookie snapshot — captured the moment user taps Sign-in.
-    // The dismiss handler diffs against post-snapshot to infer the session
-    // cookie name and backfills site.loginCookieName when it was empty.
-    var preLoginCookies by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var oauthEditDialog by remember { mutableStateOf<UserSite?>(null) }
-    var addSiteDialogOpen by remember { mutableStateOf(false) }
-    // Phase 2 Plan v2 review B-1 fix: cookie-state revision counter. The
-    // login dialog dismiss + sign-out actions bump this; UserSiteCard reads
-    // it inside its `loggedIn` computation so rows re-probe CookieManager
-    // on every state change instead of caching the answer for the page's
-    // lifetime.
-    var cookieRevision by remember { mutableStateOf(0) }
-
-    // Forces OAuth section to recompose when token store updates.
-    var oauthRevision by remember { mutableStateOf(0) }
-    LaunchedEffect(oauthStore) {
-        oauthStore.updates.collectLatest { oauthRevision++ }
+    val session = remember(
+        webMountManager, oauthClient, oauthStore, userSiteRegistry,
+        cookieProvider, profileRegistry, settingsStore, context, scope, toaster,
+    ) {
+        WebMountSettingsSession(
+            context, webMountManager, oauthClient, oauthStore,
+            userSiteRegistry, cookieProvider, profileRegistry, settingsStore, scope,
+        ) { toaster.show(it) }
     }
-
-    val signedInTemplate = stringResource(R.string.setting_webmount_login_dialog_signed_in)
-    val notReadyTemplate = stringResource(R.string.setting_webmount_login_dialog_not_ready)
-    val unknownStatusTemplate = stringResource(R.string.setting_webmount_login_dialog_unknown_status)
-    val signedOutTemplate = stringResource(R.string.setting_webmount_signed_out_toast)
-    val noCookiesMessage = stringResource(R.string.setting_webmount_signed_out_nothing)
-    val deletedTemplate = stringResource(R.string.setting_webmount_site_deleted_toast)
-    val addedTemplate = stringResource(R.string.setting_webmount_site_added_toast)
-    val duplicateMessage = stringResource(R.string.setting_webmount_add_site_duplicate)
-    val noNativeTestHint = stringResource(R.string.setting_webmount_site_no_native_test_hint)
-    val restoredTemplate = stringResource(R.string.setting_webmount_restore_seed_toast)
-    val nothingToRestore = stringResource(R.string.setting_webmount_restore_seed_none)
-    val appIdRequiredMessage = stringResource(R.string.setting_webmount_oauth_app_id_required)
-    val connectedTemplate = stringResource(R.string.setting_webmount_oauth_connected_toast)
-    val disconnectedTemplate = stringResource(R.string.setting_webmount_oauth_disconnected_toast)
-    val failedTemplate = stringResource(R.string.setting_webmount_oauth_failed_toast)
-    val slashInstalledMessage = stringResource(R.string.setting_webmount_slash_installed)
-    val slashAlreadyInstalledMessage = stringResource(R.string.setting_webmount_slash_already_installed)
-    val inferredCookieSavedTemplate = stringResource(R.string.setting_webmount_inferred_cookie_saved)
-    val cookieValidatingTemplate = stringResource(R.string.setting_webmount_cookie_validating)
+    val states by session.states.collectAsStateWithLifecycle()
+    val sites by session.sites.collectAsStateWithLifecycle()
+    val globalEnabled by session.globalEnabled.collectAsStateWithLifecycle()
+    val evalEnabled by session.evalEnabled.collectAsStateWithLifecycle()
+    LaunchedEffect(session) { session.observeOAuthUpdates() }
 
     ExperimentalSettingsScaffold(
         title = stringResource(R.string.setting_webmount_title),
@@ -180,7 +99,7 @@ fun SettingExperimentalWebMountPage(
                     trailing = {
                         Switch(
                             checked = globalEnabled,
-                            onCheckedChange = { webMountManager.setGlobalEnabled(it) },
+                            onCheckedChange = { session.setGlobalEnabled(it) },
                         )
                     },
                 )
@@ -225,7 +144,7 @@ fun SettingExperimentalWebMountPage(
                         Switch(
                             checked = evalEnabled,
                             enabled = globalEnabled,
-                            onCheckedChange = { webMountManager.setEvalEnabled(it) },
+                            onCheckedChange = { session.setEvalEnabled(it) },
                         )
                     }
                     // One-tap install for the /webmount slash command. Adds a
@@ -237,14 +156,7 @@ fun SettingExperimentalWebMountPage(
                             text = stringResource(R.string.setting_webmount_install_slash_command),
                             enabled = globalEnabled,
                             primary = true,
-                            onClick = {
-                                scope.launch {
-                                    val installed = installWebMountSlashCommand(context, settingsStore)
-                                    toaster.show(
-                                        if (installed) slashInstalledMessage else slashAlreadyInstalledMessage
-                                    )
-                                }
-                            },
+                            onClick = { session.installSlash() },
                         )
                     }
                 }
@@ -277,18 +189,12 @@ fun SettingExperimentalWebMountPage(
                             text = stringResource(R.string.setting_webmount_add_site),
                             enabled = true,
                             primary = true,
-                            onClick = { addSiteDialogOpen = true },
+                            onClick = { session.addSiteDialogOpen = true },
                         )
                         ExperimentActionButton(
                             text = stringResource(R.string.setting_webmount_restore_seed),
                             enabled = true,
-                            onClick = {
-                                val added = userSiteRegistry.restoreMissingSeeds()
-                                toaster.show(
-                                    if (added > 0) restoredTemplate.format(added)
-                                    else nothingToRestore
-                                )
-                            },
+                            onClick = { session.restoreExamples() },
                         )
                     }
                     if (sites.isEmpty()) {
@@ -296,112 +202,29 @@ fun SettingExperimentalWebMountPage(
                     } else {
                         sites.forEachIndexed { index, site ->
                             // Recompose OAuth-dependent state when token store updates.
-                            @Suppress("UNUSED_EXPRESSION") oauthRevision
-                            val oauthProviderId = site.oauthProviderId ?: site.id
+                            @Suppress("UNUSED_EXPRESSION") session.oauthRevision
                             UserSiteCard(
                                 site = site,
                                 stationState = states[site.id],
-                                cookieProvider = cookieProvider,
-                                oauthStore = oauthStore,
-                                webMountManager = webMountManager,
-                                profileRegistry = profileRegistry,
-                                cookieRevision = cookieRevision,
-                                busy = site.id in busyStations,
+                                auth = session.siteAuth(site),
+                                busy = site.id in session.busyStations,
                                 onSignIn = if (site.authKind != AuthKind.ANONYMOUS) {
-                                    {
-                                        // Capture pre-login cookies so we can
-                                        // diff after the dialog dismisses and
-                                        // infer the session cookie name.
-                                        val urls = collectKnownUrlsFor(site, webMountManager, profileRegistry)
-                                        preLoginCookies = cookieProvider.snapshotCookieEntries(urls)
-                                        loginDialogSite = site
-                                    }
+                                    { session.signIn(site) }
                                 } else null,
                                 onSignOut = if (site.authKind != AuthKind.ANONYMOUS) {
-                                    {
-                                        val urls = collectKnownUrlsFor(site, webMountManager, profileRegistry)
-                                        val cleared = cookieProvider.clearCookiesFor(
-                                            urls,
-                                            WebMountLoginTarget.fromUserSite(site, webMountManager, profileRegistry).manualCookieFields,
-                                        )
-                                        if (site.authKind == AuthKind.OAUTH) {
-                                            oauthClient.disconnect(oauthProviderId)
-                                            oauthRevision++
-                                        }
-                                        cookieRevision++
-                                        toaster.show(
-                                            if (cleared > 0) signedOutTemplate.format(site.displayName, cleared)
-                                            else noCookiesMessage.format(site.displayName)
-                                        )
-                                    }
+                                    { session.signOut(site) }
                                 } else null,
                                 onConnect = if (site.authKind == AuthKind.OAUTH) {
-                                    {
-                                        if (site.id !in busyStations) {
-                                            busyStations = busyStations + site.id
-                                            scope.launch {
-                                                try {
-                                                    val result = oauthClient.connect(oauthProviderId)
-                                                    when (result) {
-                                                        is WebMountOAuthClient.ConnectResult.Success ->
-                                                            toaster.show(connectedTemplate.format(site.displayName))
-                                                        is WebMountOAuthClient.ConnectResult.NotConfigured ->
-                                                            toaster.show(result.reason)
-                                                        is WebMountOAuthClient.ConnectResult.Failed ->
-                                                            toaster.show(failedTemplate.format(result.reason))
-                                                    }
-                                                } catch (error: CancellationException) {
-                                                    throw error
-                                                } catch (error: Exception) {
-                                                    toaster.show(error.message ?: error.toString())
-                                                } finally {
-                                                    busyStations = busyStations - site.id
-                                                }
-                                            }
-                                        }
-                                    }
+                                    { session.connect(site) }
                                 } else null,
                                 onDisconnect = if (site.authKind == AuthKind.OAUTH) {
-                                    {
-                                        oauthClient.disconnect(oauthProviderId)
-                                        toaster.show(disconnectedTemplate.format(site.displayName))
-                                    }
+                                    { session.disconnect(site) }
                                 } else null,
                                 onEditOAuth = if (site.authKind == AuthKind.OAUTH) {
-                                    { oauthEditDialog = site }
+                                    { session.editOAuth(site) }
                                 } else null,
-                                onTest = {
-                                    if (site.nativeAdapterId != null) {
-                                        busyStations = busyStations + site.id
-                                        scope.launch {
-                                            runCatching { webMountManager.probe(site.id) }
-                                                .onFailure { toaster.show(it.message ?: it.toString()) }
-                                            busyStations = busyStations - site.id
-                                        }
-                                    } else {
-                                        toaster.show(noNativeTestHint)
-                                    }
-                                },
-                                onDelete = {
-                                    // B-5 fix: drop the authKind guard so a
-                                    // site whose kind flipped during its
-                                    // lifetime (e.g. once OAuth, now COOKIE)
-                                    // doesn't leak OAuth state. clearToken /
-                                    // clearCredentials are no-ops when no
-                                    // entry exists.
-                                    oauthStore.clearToken(oauthProviderId)
-                                    oauthStore.clearCredentials(oauthProviderId)
-                                    val urls = collectKnownUrlsFor(site, webMountManager, profileRegistry)
-                                    cookieProvider.clearCookiesFor(
-                                        urls,
-                                        WebMountLoginTarget.fromUserSite(site, webMountManager, profileRegistry).manualCookieFields,
-                                    )
-                                    profileRegistry.remove(site.id)
-                                    if (userSiteRegistry.remove(site.id)) {
-                                        cookieRevision++
-                                        toaster.show(deletedTemplate.format(site.displayName))
-                                    }
-                                },
+                                onTest = { session.testSite(site) },
+                                onDelete = { session.deleteSite(site) },
                             )
                             if (index != sites.lastIndex) ExperimentDivider(startPadding = 44.dp)
                         }
@@ -413,956 +236,47 @@ fun SettingExperimentalWebMountPage(
 
     // Dialogs --------------------------------------------------------------
 
-    loginDialogSite?.let { site ->
+    session.loginDialogSite?.let { site ->
         val target = remember(site, webMountManager, profileRegistry) {
-            WebMountLoginTarget.fromUserSite(site, webMountManager, profileRegistry)
+            session.loginTarget(site)
         }
         WebMountLoginDialog(
             target = target,
             cookieProvider = cookieProvider,
             webMountManager = webMountManager,
-            onClearSession = {
-                val urls = target.urls
-                val cleared = cookieProvider.clearCookiesFor(urls, target.manualCookieFields)
-                if (site.authKind == AuthKind.OAUTH) {
-                    oauthClient.disconnect(site.oauthProviderId ?: site.id)
-                    oauthRevision++
-                }
-                cookieRevision++
-                preLoginCookies = emptyMap()
-                toaster.show(
-                    if (cleared > 0) signedOutTemplate.format(site.displayName, cleared)
-                    else noCookiesMessage.format(site.displayName)
-                )
-            },
-            onVerifiedLogin = {
-                cookieRevision++
-            },
-            onDismiss = {
-                CookieManager.getInstance().flush()
-                loginDialogSite = null
-                cookieRevision++
-
-                val postCookies = cookieProvider.snapshotCookieEntries(target.urls)
-                val newCookies = postCookies.filterKeys { it !in preLoginCookies }
-                preLoginCookies = emptyMap()
-                val preferredCookieNames = target.candidateCookieNames
-
-                // If the user didn't configure a cookie name AND we detected a
-                // newly-set session-like cookie during the login session, save
-                // it back so the row's "logged_in" badge starts working without
-                // any further intervention. Toast tells the user what happened.
-                val autoInferredName: String?
-                val savedCookieMissing = site.loginCookieName?.let { postCookies[it] == null } ?: true
-                autoInferredName = if (site.loginCookieName.isNullOrBlank() || savedCookieMissing) {
-                    val guessSourceCookies = if (preferredCookieNames.isNotEmpty()) postCookies else newCookies
-                    cookieProvider.guessSessionCookieName(
-                        newCookies = guessSourceCookies,
-                        preferredNames = preferredCookieNames,
-                    )
-                } else {
-                    null
-                }
-
-                val effectiveCookieNames = buildList {
-                    autoInferredName?.let { add(it) }
-                    addAll(preferredCookieNames)
-                }.distinct()
-                val snapshot = cookieProvider.snapshotCookies(target.urls)
-                val status = WebMountLoginDetector.evaluate(target, null, snapshot)
-                val captured = when {
-                    status is WebMountLoginStatus.SignedIn -> true
-                    target.stationId != null -> false
-                    effectiveCookieNames.isNotEmpty() -> effectiveCookieNames.any { postCookies[it] != null }
-                    else -> null
-                }
-
-                fun persistInferredCookie() {
-                    autoInferredName?.let { inferred ->
-                        userSiteRegistry.update(site.id) { it.copy(loginCookieName = inferred) }
-                    }
-                }
-
-                fun successMessage(): String {
-                    return if (autoInferredName != null) {
-                        inferredCookieSavedTemplate.format(autoInferredName, site.displayName)
-                    } else {
-                        signedInTemplate.format(site.displayName)
-                    }
-                }
-
-                val stationId = target.stationId
-                if (status is WebMountLoginStatus.SignedIn && stationId != null) {
-                    toaster.show(cookieValidatingTemplate.format(site.displayName))
-                    scope.launch {
-                        val state = runCatching { webMountManager.probe(stationId) }.getOrNull()
-                        cookieRevision++
-                        if (state == null || state.status == WebMountStatus.ERROR || state.status == WebMountStatus.LOGIN_REQUIRED) {
-                            toaster.show(state?.message ?: notReadyTemplate.format(site.displayName))
-                        } else {
-                            persistInferredCookie()
-                            toaster.show(successMessage())
-                        }
-                    }
-                } else {
-                    if (captured == true) persistInferredCookie()
-                    val message = when {
-                        captured == true -> successMessage()
-                        captured == false -> notReadyTemplate.format(site.displayName)
-                        else -> unknownStatusTemplate.format(site.displayName)
-                    }
-                    toaster.show(message)
-                }
-            },
+            onClearSession = { session.clearLogin(site, target) },
+            onVerifiedLogin = { session.verifiedLogin() },
+            onDismiss = { session.dismissLogin(site, target) },
         )
     }
 
-    oauthEditDialog?.let { site ->
+    session.oauthEditDialog?.let { site ->
         // Bug fix: OAuth providers are keyed by their own id ("feishu"), not
         // the UserSite id ("feishu_docs"). Use the explicit oauthProviderId
         // mapping with site.id as a fallback for sites where they match.
         val providerId = site.oauthProviderId ?: site.id
-        val provider = oauthClient.provider(providerId)
+        val provider = session.oauthProvider(providerId)
         if (provider == null) {
-            oauthEditDialog = null
+            session.oauthEditDialog = null
         } else {
-            @Suppress("UNUSED_EXPRESSION") oauthRevision
-            val existing = oauthStore.getCredentials(providerId)
+            @Suppress("UNUSED_EXPRESSION") session.oauthRevision
+            val existing = session.oauthCredentials(providerId)
             OAuthEditDialog(
                 siteName = site.displayName,
                 initialAppId = existing?.appId.orEmpty(),
                 initialAppSecret = existing?.appSecret.orEmpty(),
                 initialScope = existing?.scope.orEmpty(),
                 providerHint = provider.setupHint(context),
-                onDismiss = { oauthEditDialog = null },
-                onSave = { appId, appSecret, scopeText ->
-                    if (appId.isBlank()) {
-                        toaster.show(appIdRequiredMessage)
-                    } else {
-                        oauthStore.putCredentials(
-                            providerId,
-                            OAuthAppCredentials(
-                                provider = providerId,
-                                appId = appId.trim(),
-                                appSecret = appSecret.trim().ifBlank { null },
-                                scope = scopeText.trim().ifBlank { null },
-                            ),
-                        )
-                        oauthEditDialog = null
-                    }
-                },
+                onDismiss = { session.oauthEditDialog = null },
+                onSave = { appId, appSecret, scopeText -> session.saveOAuth(providerId, appId, appSecret, scopeText) },
             )
         }
     }
 
-    if (addSiteDialogOpen) {
+    if (session.addSiteDialogOpen) {
         AddCustomSiteDialog(
-            onDismiss = { addSiteDialogOpen = false },
-            onAdd = { name, url, needsLogin, cookieName ->
-                val ok = userSiteRegistry.add(
-                    UserSite(
-                        id = userSiteId(name),
-                        displayName = name,
-                        homepageUrl = url,
-                        authKind = if (needsLogin) AuthKind.COOKIE else AuthKind.ANONYMOUS,
-                        loginCookieName = cookieName?.takeIf { it.isNotBlank() },
-                        nativeAdapterId = null,
-                        iconKey = null,
-                    )
-                )
-                if (ok) {
-                    addSiteDialogOpen = false
-                    toaster.show(addedTemplate.format(name))
-                } else {
-                    toaster.show(duplicateMessage)
-                }
-            },
+            onDismiss = { session.addSiteDialogOpen = false },
+            onAdd = { name, url, needsLogin, cookieName -> session.addSite(name, url, needsLogin, cookieName) },
         )
     }
-}
-
-// ----------------------------------------------------------------------------
-// One site row — the entire user-facing model of a website
-// ----------------------------------------------------------------------------
-
-@Composable
-private fun UserSiteCard(
-    site: UserSite,
-    stationState: WebMountStationState?,
-    cookieProvider: WebMountCookieProvider,
-    oauthStore: WebMountOAuthTokenStore,
-    webMountManager: WebMountManager,
-    profileRegistry: app.amber.feature.webmount.profile.ProfileRegistry,
-    /** Bumped by the parent on cookie-state changes so this row re-probes. */
-    cookieRevision: Int,
-    busy: Boolean,
-    onSignIn: (() -> Unit)?,
-    onSignOut: (() -> Unit)?,
-    onConnect: (() -> Unit)?,
-    onDisconnect: (() -> Unit)?,
-    onEditOAuth: (() -> Unit)?,
-    onTest: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val workspace = workspaceColors()
-    // Plan v2 review B-1 + W-1 fix: probe the FULL known URL set on every
-    // recomposition (no remember cache). The login dialog dismiss + sign-out
-    // + delete actions all bump `cookieRevision` so this row sees a fresh
-    // CookieManager snapshot. The URL set matches what onSignOut /
-    // onDismiss probe — no asymmetry between the row label and the toast.
-    @Suppress("UNUSED_EXPRESSION") cookieRevision
-    val loggedIn = run {
-        val loginTarget = WebMountLoginTarget.fromUserSite(site, webMountManager, profileRegistry)
-        val urls = loginTarget.urls
-        if (urls.isEmpty()) {
-            null
-        } else {
-            val snapshot = cookieProvider.snapshotCookies(urls)
-            val requiredSets = loginTarget.requiredCookieSets
-            when {
-                requiredSets.any { snapshot.containsAll(it) } -> true
-                requiredSets.isNotEmpty() -> false
-                else -> loginTarget.candidateCookieNames.takeIf { it.isNotEmpty() }
-                    ?.any { snapshot.valuesByName(it).isNotEmpty() }
-            }
-        }
-    }
-    val oauthProviderIdLocal = site.oauthProviderId ?: site.id
-    val oauthToken = if (site.authKind == AuthKind.OAUTH) {
-        oauthStore.getToken(oauthProviderIdLocal)
-    } else null
-    // Keep physical token presence separate from local validity. An expired
-    // token can still be refreshed by WebMountOAuthClient when credentials and
-    // a refresh token are available; the list must not perform that network
-    // operation itself.
-    val hasToken = oauthToken != null
-    val tokenExpired = oauthToken?.isExpired() == true
-    val hasCredentials = if (site.authKind == AuthKind.OAUTH) {
-        oauthStore.getCredentials(oauthProviderIdLocal) != null
-    } else false
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = RoundedCornerShape(9.dp),
-                color = workspace.row,
-                contentColor = workspace.muted,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(iconForIconKey(site.iconKey), contentDescription = null)
-                }
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = site.displayName,
-                    style = app.amber.feature.ui.theme.LocalAmberType.current.body,
-                    color = workspace.ink,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = site.homepageUrl,
-                    style = app.amber.feature.ui.theme.LocalAmberType.current.meta,
-                    color = workspace.faint,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            SiteStatusPill(
-                authKind = site.authKind,
-                stationState = stationState,
-                loggedIn = loggedIn,
-                hasToken = hasToken,
-                tokenExpired = tokenExpired,
-                hasCredentials = hasCredentials,
-            )
-        }
-
-        stationState?.message?.takeIf { it.isNotBlank() }?.let { msg ->
-            ExperimentNote(text = msg)
-        }
-        ExperimentActionRow {
-            if (onSignIn != null) {
-                ExperimentActionButton(
-                    text = stringResource(
-                        if (loggedIn == true) R.string.setting_webmount_sign_in_again
-                        else R.string.setting_webmount_sign_in
-                    ),
-                    primary = true,
-                    enabled = !busy,
-                    onClick = onSignIn,
-                )
-            }
-            val clearState = onSignOut
-            val showClearState = clearState != null && (
-                loggedIn == true || hasToken || site.authKind == AuthKind.OAUTH
-                )
-            if (showClearState) {
-                ExperimentActionButton(
-                    text = stringResource(
-                        if (loggedIn == true || hasToken) R.string.setting_webmount_sign_out
-                        else R.string.setting_webmount_clear_session
-                    ),
-                    enabled = !busy,
-                    onClick = clearState,
-                )
-            }
-            if (onConnect != null && (!hasToken || tokenExpired)) {
-                ExperimentActionButton(
-                    text = stringResource(R.string.setting_webmount_oauth_connect),
-                    primary = true,
-                    enabled = !busy && hasCredentials,
-                    onClick = onConnect,
-                )
-            }
-            if (onDisconnect != null && hasToken) {
-                ExperimentActionButton(
-                    text = stringResource(R.string.setting_webmount_oauth_disconnect),
-                    enabled = !busy,
-                    onClick = onDisconnect,
-                )
-            }
-            if (onEditOAuth != null) {
-                ExperimentActionButton(
-                    text = stringResource(R.string.setting_webmount_oauth_edit_credentials),
-                    enabled = !busy,
-                    onClick = onEditOAuth,
-                )
-            }
-            ExperimentActionButton(
-                text = stringResource(R.string.setting_webmount_test),
-                enabled = !busy && site.nativeAdapterId != null,
-                onClick = onTest,
-            )
-            ExperimentActionButton(
-                text = stringResource(R.string.setting_webmount_delete_site),
-                enabled = !busy,
-                onClick = onDelete,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SiteStatusPill(
-    authKind: AuthKind,
-    stationState: WebMountStationState?,
-    loggedIn: Boolean?,
-    hasToken: Boolean,
-    tokenExpired: Boolean,
-    hasCredentials: Boolean,
-) {
-    val workspace = workspaceColors()
-    // Plan v2 review W-3 fix: operational status (DEGRADED / ERROR) takes
-    // precedence over auth state. A signed-in user being rate-limited wants
-    // to see "Rate-limited" — sign-in is a prerequisite, not the actionable
-    // info. ANONYMOUS sites still surface "Public" because they have no
-    // notion of signed-in/out, but their station status (if any) is still
-    // surfaced via DEGRADED / ERROR branches below.
-    val (color, labelRes) = when {
-        stationState?.status == WebMountStatus.ERROR ->
-            MaterialTheme.colorScheme.error to R.string.setting_webmount_pill_error
-        stationState?.status == WebMountStatus.DEGRADED ->
-            workspace.muted to R.string.setting_webmount_pill_rate_limited
-        authKind == AuthKind.ANONYMOUS ->
-            workspace.blue to R.string.setting_webmount_pill_public
-        authKind == AuthKind.OAUTH && hasToken && !tokenExpired ->
-            workspace.blue to R.string.setting_webmount_pill_connected
-        authKind == AuthKind.OAUTH && hasCredentials ->
-            workspace.muted to R.string.setting_webmount_pill_ready
-        authKind == AuthKind.OAUTH ->
-            workspace.faint to R.string.setting_webmount_pill_needs_setup
-        loggedIn == true ->
-            workspace.blue to R.string.setting_webmount_pill_signed_in
-        loggedIn == false ->
-            workspace.muted to R.string.setting_webmount_pill_signed_out
-        else ->
-            workspace.faint to R.string.setting_webmount_pill_unknown
-    }
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = color.copy(alpha = 0.12f),
-        contentColor = color,
-        border = BorderStroke(1.dp, color.copy(alpha = 0.25f)),
-    ) {
-        Text(
-            text = stringResource(labelRes),
-            style = app.amber.feature.ui.theme.LocalAmberType.current.meta,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-        )
-    }
-}
-
-// ----------------------------------------------------------------------------
-// Dialogs
-// ----------------------------------------------------------------------------
-
-/**
- * iCloud-style login card. 16dp-inset Box around a 90%-height Surface
- * with a header row (title + X close) and a WebView filling the rest.
- */
-@Composable
-private fun WebMountLoginDialog(
-    target: WebMountLoginTarget,
-    cookieProvider: WebMountCookieProvider,
-    webMountManager: WebMountManager,
-    onClearSession: (() -> Unit)?,
-    onVerifiedLogin: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var webState by remember(target.id) {
-        mutableStateOf(WebMountLoginWebViewState(currentUrl = target.startUrl))
-    }
-    var loginStatus by remember(target.id) {
-        mutableStateOf<WebMountLoginStatus>(WebMountLoginStatus.Waiting)
-    }
-    var verifying by remember(target.id) { mutableStateOf(false) }
-    val controller = remember(target.id, target.startUrl, target.urls) {
-        WebMountLoginController(
-            context = context,
-            target = target,
-            cookieProvider = cookieProvider,
-            onStateChange = { webState = it },
-            onLoginStatus = { loginStatus = it },
-        )
-    }
-    DisposableEffect(controller) {
-        controller.start()
-        onDispose { controller.destroy() }
-    }
-
-    fun acceptIfSignedIn(
-        status: WebMountLoginStatus,
-        onAccepted: (Boolean) -> Unit = {},
-    ) {
-        if (status !is WebMountLoginStatus.SignedIn) {
-            loginStatus = status
-            onAccepted(false)
-            return
-        }
-        val stationId = target.stationId
-        if (stationId == null) {
-            onAccepted(true)
-            onVerifiedLogin()
-            onDismiss()
-            return
-        }
-        verifying = true
-        scope.launch {
-            val state = runCatching { webMountManager.probe(stationId) }
-                .getOrNull()
-            verifying = false
-            if (state == null || state.status == WebMountStatus.ERROR || state.status == WebMountStatus.LOGIN_REQUIRED) {
-                loginStatus = WebMountLoginStatus.Failed(
-                    state?.message ?: "Cookie exists, but ${target.displayName} probe did not confirm the session.",
-                )
-                onAccepted(false)
-            } else {
-                onAccepted(true)
-                onVerifiedLogin()
-                onDismiss()
-            }
-        }
-    }
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            securePolicy = SecureFlagPolicy.SecureOn,
-        ),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.9f),
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 6.dp,
-                shadowElevation = 12.dp,
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, top = 12.dp, end = 12.dp, bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.setting_webmount_login_dialog_title, target.displayName),
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (onClearSession != null) {
-                            TextButton(
-                                onClick = {
-                                    onClearSession()
-                                    controller.clearSession()
-                                },
-                            ) {
-                                Text(stringResource(R.string.setting_webmount_clear_session))
-                            }
-                        }
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Lucide.X,
-                                contentDescription = stringResource(R.string.update_card_close),
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
-                    }
-                    WebMountLoginNavigationBar(
-                        state = webState,
-                        verifying = verifying,
-                        onBack = controller::goBack,
-                        onForward = controller::goForward,
-                        onReload = controller::reload,
-                        onDone = {
-                            acceptIfSignedIn(controller.manualCheck())
-                        },
-                    )
-                    if (webState.progress in 1..99) {
-                        LinearProgressIndicator(
-                            progress = { webState.progress / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    Text(
-                        text = loginStatusLabel(loginStatus, verifying),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                    )
-                    webState.blockedNavigation?.let { blocked ->
-                        Text(
-                            text = stringResource(R.string.setting_webmount_app_open_blocked, blocked.take(80)),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp),
-                        )
-                    }
-                    if (webState.renderProcessGone) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.setting_webmount_login_page_crashed),
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f),
-                            )
-                            TextButton(onClick = controller::reload) {
-                                Text(stringResource(R.string.setting_webmount_reload))
-                            }
-                        }
-                    }
-                    key(webState.webViewGeneration) {
-                        AndroidView(
-                            factory = { controller.webView },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                        )
-                    }
-                    CookieImportFallback(
-                        target = target,
-                        enabled = !verifying,
-                        onImport = { cookies, onFinished ->
-                            controller.importCookies(cookies) { status ->
-                                acceptIfSignedIn(status, onAccepted = onFinished)
-                            }
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WebMountLoginNavigationBar(
-    state: WebMountLoginWebViewState,
-    verifying: Boolean,
-    onBack: () -> Unit,
-    onForward: () -> Unit,
-    onReload: () -> Unit,
-    onDone: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TextButton(enabled = state.canGoBack && !verifying, onClick = onBack) { Text("←") }
-        TextButton(enabled = state.canGoForward && !verifying, onClick = onForward) { Text("→") }
-        TextButton(enabled = !verifying, onClick = onReload) { Text("↻") }
-        Text(
-            text = state.currentUrl,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        TextButton(enabled = !verifying, onClick = onDone) {
-            Text(
-                if (verifying) stringResource(R.string.setting_webmount_verifying)
-                else stringResource(R.string.webmount_inline_login_done)
-            )
-        }
-    }
-}
-
-@Composable
-private fun CookieImportFallback(
-    target: WebMountLoginTarget,
-    enabled: Boolean,
-    onImport: (Map<String, String>, (Boolean) -> Unit) -> Unit,
-) {
-    var expanded by remember(target.id) { mutableStateOf(false) }
-    var rawCookie by remember(target.id) { mutableStateOf("") }
-    var fieldValues by remember(target.id) { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var importing by remember(target.id) { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        TextButton(onClick = { expanded = !expanded }) {
-            Text(
-                stringResource(
-                    if (expanded) R.string.setting_webmount_cookie_import_collapse
-                    else R.string.setting_webmount_cookie_import_expand
-                )
-            )
-        }
-        if (expanded) {
-            OutlinedTextField(
-                value = rawCookie,
-                onValueChange = { rawCookie = it },
-                label = { Text(stringResource(R.string.setting_webmount_cookie_line_label)) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
-                minLines = 1,
-                maxLines = 3,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            target.manualCookieFields.forEach { field ->
-                OutlinedTextField(
-                    value = fieldValues[field.name].orEmpty(),
-                    onValueChange = { value -> fieldValues = fieldValues + (field.name to value) },
-                    label = { Text(field.name + if (field.required) " *" else "") },
-                    supportingText = {
-                        if (field.description.isNotBlank()) Text(field.description)
-                    },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(
-                    enabled = enabled && !importing,
-                    onClick = {
-                        val parsed = WebMountLoginController.parseCookieInput(rawCookie)
-                        val keyed = fieldValues
-                            .mapValues { it.value.trim() }
-                            .filterValues { it.isNotBlank() }
-                        val combined = parsed + keyed
-                        if (combined.isEmpty()) return@TextButton
-                        importing = true
-                        onImport(combined) { success ->
-                            importing = false
-                            if (success) {
-                                rawCookie = ""
-                                fieldValues = emptyMap()
-                            }
-                        }
-                    },
-                ) {
-                    Text(
-                        stringResource(
-                            if (importing) R.string.setting_webmount_importing
-                            else R.string.setting_webmount_import
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun loginStatusLabel(
-    status: WebMountLoginStatus,
-    verifying: Boolean,
-): String {
-    if (verifying) return stringResource(R.string.setting_webmount_status_verifying_site)
-    return when (status) {
-        WebMountLoginStatus.Waiting -> stringResource(R.string.setting_webmount_status_waiting)
-        is WebMountLoginStatus.UrlMatched -> stringResource(R.string.setting_webmount_status_url_matched)
-        is WebMountLoginStatus.SignedIn -> stringResource(
-            R.string.setting_webmount_status_signed_in,
-            status.cookieNames.joinToString(),
-        )
-        is WebMountLoginStatus.MissingCookies -> stringResource(
-            R.string.setting_webmount_status_missing_cookies,
-            status.missing.joinToString(),
-        )
-        is WebMountLoginStatus.Unknown -> status.reason
-        is WebMountLoginStatus.Failed -> status.reason
-    }
-}
-
-@Composable
-private fun OAuthEditDialog(
-    siteName: String,
-    initialAppId: String,
-    initialAppSecret: String,
-    initialScope: String,
-    providerHint: String,
-    onDismiss: () -> Unit,
-    onSave: (appId: String, appSecret: String, scope: String) -> Unit,
-) {
-    var appId by remember { mutableStateOf(initialAppId) }
-    var appSecret by remember { mutableStateOf(initialAppSecret) }
-    var scopeText by remember { mutableStateOf(initialScope) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.setting_webmount_oauth_edit_title, siteName)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    providerHint,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedTextField(
-                    value = appId,
-                    onValueChange = { appId = it },
-                    label = { Text(stringResource(R.string.setting_webmount_oauth_app_id)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = appSecret,
-                    onValueChange = { appSecret = it },
-                    label = { Text(stringResource(R.string.setting_webmount_oauth_app_secret)) },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = scopeText,
-                    onValueChange = { scopeText = it },
-                    label = { Text(stringResource(R.string.setting_webmount_oauth_scope)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(appId, appSecret, scopeText) }) {
-                Text(stringResource(R.string.setting_webmount_oauth_save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.setting_webmount_profile_import_dialog_cancel))
-            }
-        },
-    )
-}
-
-@Composable
-private fun AddCustomSiteDialog(
-    onDismiss: () -> Unit,
-    onAdd: (name: String, url: String, needsLogin: Boolean, cookieName: String?) -> Unit,
-) {
-    var nameInput by remember { mutableStateOf("") }
-    var urlInput by remember { mutableStateOf("") }
-    var needsLogin by remember { mutableStateOf(true) }
-    var cookieInput by remember { mutableStateOf("") }
-    val urlValid = urlInput.startsWith("http://") || urlInput.startsWith("https://")
-    val canSubmit = nameInput.isNotBlank() && urlValid
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.setting_webmount_custom_dialog_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(R.string.setting_webmount_custom_dialog_helper),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedTextField(
-                    value = nameInput,
-                    onValueChange = { nameInput = it },
-                    label = { Text(stringResource(R.string.setting_webmount_custom_name_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = urlInput,
-                    onValueChange = { urlInput = it },
-                    label = { Text(stringResource(R.string.setting_webmount_custom_url_label)) },
-                    placeholder = { Text("https://weibo.com") },
-                    singleLine = true,
-                    isError = urlInput.isNotBlank() && !urlValid,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                // Per-user feedback: most user-added sites need login (微博, X,
-                // 小红书 etc.). The old "leave blank for public sites"
-                // helper text confused users who didn't know their site's
-                // cookie name but did know it needed login — they ended up
-                // with no Sign-in button. Make it an explicit toggle.
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.setting_webmount_custom_needs_login_label),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        Text(
-                            stringResource(R.string.setting_webmount_custom_needs_login_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(
-                        checked = needsLogin,
-                        onCheckedChange = { needsLogin = it },
-                    )
-                }
-                OutlinedTextField(
-                    value = cookieInput,
-                    onValueChange = { cookieInput = it },
-                    enabled = needsLogin,
-                    label = { Text(stringResource(R.string.setting_webmount_custom_cookie_label)) },
-                    placeholder = { Text("SUB") },
-                    singleLine = true,
-                    supportingText = {
-                        Text(
-                            stringResource(R.string.setting_webmount_custom_cookie_supporting),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = canSubmit,
-                onClick = {
-                    onAdd(
-                        nameInput.trim(),
-                        urlInput.trim(),
-                        needsLogin,
-                        cookieInput.trim().ifBlank { null }.takeIf { needsLogin },
-                    )
-                },
-            ) {
-                Text(stringResource(R.string.setting_webmount_custom_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.setting_webmount_profile_import_dialog_cancel))
-            }
-        },
-    )
-}
-
-// ----------------------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------------------
-
-/**
- * Compatibility wrapper — kept so the page's existing call sites stay
- * unchanged. Delegates to the shared
- * [app.amber.feature.webmount.usersites.collectSiteUrls]
- * which also includes synthesized-profile origins (Plan-v2 review B-2).
- */
-private fun collectKnownUrlsFor(
-    site: UserSite,
-    manager: WebMountManager,
-    profileRegistry: app.amber.feature.webmount.profile.ProfileRegistry,
-): List<String> = app.amber.feature.webmount.usersites.collectSiteUrls(site, manager, profileRegistry)
-
-private fun iconForIconKey(iconKey: String?) = when (iconKey) {
-    "hackernews" -> Lucide.Newspaper
-    "reddit" -> Lucide.MessageSquare
-    "github" -> Lucide.Github
-    "bilibili" -> Lucide.CirclePlay
-    "juejin" -> Lucide.Lightbulb
-    "zhihu" -> Lucide.MessageCircleQuestion
-    "feishu_docs" -> Lucide.NotebookPen
-    else -> Lucide.Globe
-}
-
-/**
- * Install the /webmount slash command into the global QuickMessages list.
- *
- * Idempotent: re-tapping returns false when the command already exists.
- *
- * The template is a system-style instruction that frames whatever follows
- * (the user's actual task) so the agent uses WebMount tools by default,
- * handles the "site not yet in list / not signed in" cases gracefully, and
- * doesn't fall back to generic web search just because it doesn't recognize
- * the site.
- */
-private suspend fun installWebMountSlashCommand(
-    context: android.content.Context,
-    settingsStore: app.amber.core.settings.prefs.SettingsAggregator,
-): Boolean {
-    val current = settingsStore.settingsFlow.value
-    val existing = current.quickMessages.firstOrNull { it.title.equals("webmount", ignoreCase = true) }
-    val template = context.getString(R.string.setting_webmount_quick_message_template).trimEnd()
-    val quickMessage = existing ?: app.amber.core.model.QuickMessage(
-        title = "webmount",
-        content = template + "\n",  // trailing newline so cursor lands on a fresh line
-    )
-    if (existing != null) return false
-    settingsStore.update { s ->
-        s.copy(quickMessages = s.quickMessages + quickMessage)
-    }
-    return true
 }

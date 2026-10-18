@@ -43,6 +43,8 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
 class DefaultRunKernelDurableTest : DurableRuntimeTestBase() {
+    private val sessionModel = Model()
+
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -103,8 +105,8 @@ class DefaultRunKernelDurableTest : DurableRuntimeTestBase() {
         runId: String? = null,
         settings: Settings = Settings(),
     ): GenerationRunSession = GenerationRunSession(
-        settings = settings,
-        model = Model(),
+        settings = settings.toGenerationSettings(sessionModel),
+        model = sessionModel,
         messages = messages,
         tools = tools,
         runId = runId,
@@ -290,8 +292,8 @@ class DefaultRunKernelDurableTest : DurableRuntimeTestBase() {
         val engine1 = ScriptedRoundEngine(listOf({ toolCallAssistant("call_1", "write_thing") }))
         val run1Chunks = durableKernel(engine1, flags).run(
             GenerationRunSession(
-                settings = Settings(),
-                model = Model(),
+                settings = Settings().toGenerationSettings(sessionModel),
+                model = sessionModel,
                 messages = listOf(UIMessage.user("写一下")),
                 tools = listOf(guarded),
                 runId = runId,
@@ -403,8 +405,8 @@ class DefaultRunKernelDurableTest : DurableRuntimeTestBase() {
         )
         durableKernel(engine, flags).run(
             GenerationRunSession(
-                settings = Settings(),
-                model = Model(),
+                settings = Settings().toGenerationSettings(sessionModel),
+                model = sessionModel,
                 messages = listOf(UIMessage.user("一直查")),
                 tools = listOf(readOnly),
                 runId = runId,

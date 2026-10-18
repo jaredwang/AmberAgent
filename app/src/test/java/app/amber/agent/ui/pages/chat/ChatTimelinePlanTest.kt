@@ -5,6 +5,7 @@ import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.Conversation
 import app.amber.core.model.toMessageNode
+import app.amber.core.service.PendingUserMessage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,6 +49,28 @@ class ChatTimelinePlanTest {
         assertEquals(5, plan.lazyIndexForMessage(0))
         assertEquals(4, plan.lazyIndexForMessage(1))
         assertEquals(listOf(null, null, null, null, 1, 0, null), plan.lazyItemMessageIndexes)
+
+        val pending = listOf(
+            PendingUserMessage("first", listOf(UIMessagePart.Text("queued one"))),
+            PendingUserMessage("second", listOf(UIMessagePart.Text("queued two"))),
+        )
+        val compactKey = "compact-timeline-tail-${conversation.id}-${conversation.messageNodes.lastIndex}"
+        val emittedKeys = plan.entries.map {
+            it.lazyItemKey(conversation.id, plan.postSendState, pending, compactKey)
+        }
+        assertEquals(
+            listOf(
+                TimelineTailKey, "pending-second", "pending-first", compactKey,
+                conversation.messageNodes[1].id, conversation.messageNodes[0].id,
+                HistoryLoadingItemKey,
+            ),
+            emittedKeys,
+        )
+        assertEquals(plan.entries.size, emittedKeys.toSet().size)
+        assertEquals(
+            listOf("timeline-tail", "pending", "pending", "compact-timeline-tail", "message-ASSISTANT", "message-USER", "history-loading"),
+            plan.entries.map { it.lazyContentType() },
+        )
     }
 
     @Test

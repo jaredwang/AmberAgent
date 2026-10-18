@@ -8,13 +8,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -26,6 +23,7 @@ import app.amber.ai.core.Tool
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.agent.runtime.AgentRunId
+import app.amber.core.agent.runtime.AgentRunSnapshot
 import app.amber.core.agent.runtime.AgentRunner
 import app.amber.core.agent.runtime.RunStatus
 import app.amber.core.ai.GenerationTerminal
@@ -35,13 +33,9 @@ import app.amber.core.settings.Settings
 import app.amber.feature.history.SessionAccessGrantStore
 import app.amber.feature.runtime.ExecutionPolicy
 import app.amber.core.infra.AppScope
-import app.amber.feature.task.AgentTaskSnapshot
-import app.amber.feature.task.AgentTaskOutputRef
-import app.amber.feature.task.AgentTaskRetryPolicy
 import app.amber.feature.task.AgentTaskStatus
 import app.amber.feature.task.AgentTaskStore
 import app.amber.feature.task.running
-import app.amber.feature.task.toQueueState
 import app.amber.core.settings.prefs.SettingsAggregator
 import java.io.File
 import java.time.Instant
@@ -52,7 +46,7 @@ import kotlin.uuid.Uuid
 
 class SubAgentManager(
     context: Context,
-    private val appScope: AppScope,
+    appScope: AppScope,
     private val settingsStore: SettingsAggregator,
     private val json: Json,
     private val agentTaskStore: AgentTaskStore,
@@ -65,12 +59,13 @@ class SubAgentManager(
      * handler through [turnPayloads], keyed by the per-turn run id.
      */
     private val agentRunner: AgentRunner,
-    private val turnPayloads: SubAgentTurnPayloads,
+    turnPayloads: SubAgentTurnPayloads,
     // P4-02: persistent thread graph (thread_graph_v2 flag). Null/flag-off
     // keeps the exact legacy in-memory behavior — no store writes, no reads.
     private val threadGraphStore: ThreadGraphStore? = null,
     private val capabilityFlags: CapabilityFlags? = null,
 ) {
+    private val turnLauncher = SubAgentTurnLauncher(agentRunner, turnPayloads, appScope)
     private val runDir = File(context.filesDir, "amberagent/subagents/runs").also { it.mkdirs() }
     private val runs = ConcurrentHashMap<String, RuntimeRun>()
     private val admissionLock = Any()
@@ -88,14 +83,6 @@ class SubAgentManager(
     private val livePartsFlows = ConcurrentHashMap<String, MutableStateFlow<List<UIMessagePart>>>()
     /** Per-thread lifecycle stream used by task cards after a followup starts. */
     private val runStateFlows = ConcurrentHashMap<String, MutableStateFlow<SubAgentRun?>>()
-
-    /**
-     * P4-02: per-running-thread mailbox for send_message. Messages delivered
-     * into the mailbox are drained by the runner via consumeSteerMessages
-     * (steer messages appended between tool rounds). Created at start/followup
-     * when the thread graph is enabled.
-     */
-    private val mailboxes = ConcurrentHashMap<String, Channel<UIMessage>>()
 
     private val threadGraphManager: ThreadGraphManager by lazy {
         ThreadGraphManager(requireNotNull(threadGraphStore), json)
@@ -289,9 +276,6 @@ class SubAgentManager(
         liveTextFlows[runId] = liveText
         livePartsFlows[runId] = liveParts
         capLiveTextFlows()
-        if (threadGraph) {
-            mailboxes[runId] = Channel(Channel.UNLIMITED)
-        }
         agentTaskStore.register(run.toAgentTaskSnapshot(), cancel = {
             cancel(runId)
             true
@@ -558,10 +542,9 @@ class SubAgentManager(
             val record = withContext(threadGraphWriteContext) {
                 threadGraphManager.enqueueMessage(threadId, safeMessage)
             }
-            val live = runs[threadId]?.snapshot
-            val delivered = live?.status == SubAgentRunStatus.RUNNING && mailboxes[threadId]?.trySend(
-                UIMessage.user(safeMessage)
-            )?.isSuccess == true
+            val runtimeRun = runs[threadId]
+            val delivered = runtimeRun?.snapshot?.status == SubAgentRunStatus.RUNNING &&
+                runtimeRun.mailbox.trySend(record).isSuccess
             if (delivered) {
                 withContext(threadGraphWriteContext) {
                     threadGraphManager.markDelivered(record.messageId)
@@ -849,6 +832,14 @@ class SubAgentManager(
         val persistedDisplayText = terminalDisplayText(runtimeRun, displayText)
         try {
             if (threadGraphEnabled()) {
+                if (next.status != SubAgentRunStatus.RUNNING && next.status != SubAgentRunStatus.APPROVAL_REQUIRED) {
+                    // Channel delivery is immediate, but only a drain makes the message
+                    // part of this turn. Leave unread IDs for the next generation.
+                    threadGraphManager.requeueUndrainedMessages(
+                        next.runId,
+                        takeMailboxMessages(runtimeRun).map { it.messageId },
+                    )
+                }
                 threadGraphManager.finishNode(
                     runId = next.runId,
                     status = result.status,
@@ -961,15 +952,18 @@ class SubAgentManager(
             runtimeRun.snapshot.status == SubAgentRunStatus.RUNNING
     }
 
-    /** Drain messages delivered to a running thread into its generation (steer). */
-    private suspend fun drainMailbox(runId: String): List<UIMessage> {
-        val mailbox = mailboxes[runId] ?: return emptyList()
-        val drained = mutableListOf<UIMessage>()
-        while (true) {
-            val message = mailbox.tryReceive().getOrNull() ?: break
-            drained += message
+    /** Drain only this generation while serialized with send and terminal settlement. */
+    private suspend fun drainMailbox(runtimeRun: RuntimeRun): List<UIMessage> =
+        threadOperationLock(runtimeRun.snapshot.runId).withLock {
+            if (!isCurrentRunning(runtimeRun)) return@withLock emptyList()
+            takeMailboxMessages(runtimeRun).map { UIMessage.user(it.payload) }
         }
-        return drained
+
+    /** Caller holds the thread lifecycle lock; message IDs stay attached until consumption. */
+    private fun takeMailboxMessages(runtimeRun: RuntimeRun): List<ThreadMessageRecord> = buildList {
+        while (true) {
+            add(runtimeRun.mailbox.tryReceive().getOrNull() ?: break)
+        }
     }
 
     private class FollowupRestore(
@@ -1064,7 +1058,6 @@ class SubAgentManager(
         livePartsFlows[threadId] = liveParts
         runStateFlows.getOrPut(threadId) { MutableStateFlow(run) }.value = run
         capLiveTextFlows()
-        mailboxes[threadId] = Channel(Channel.UNLIMITED)
         agentTaskStore.register(run.toAgentTaskSnapshot(), cancel = {
             cancel(threadId)
             true
@@ -1078,7 +1071,7 @@ class SubAgentManager(
             threadGraphManager.drainQueued(threadId)
                 .filter { it.kind == "message" }
                 .forEach { message ->
-                    mailboxes[threadId]?.trySend(UIMessage.user(message.payload))
+                    runtimeRun.mailbox.trySend(message)
                 }
         }
 
@@ -1133,34 +1126,31 @@ class SubAgentManager(
         // ToolEffectLedger under the per-turn run id. onTerminal only handles
         // the pause (approval); terminal states are persisted by finish()
         // once the turn's artifact lands.
-        turnPayloads.register(
-            turnRunId.value,
-            SubAgentTurnPayloads.Payload(
-                threadId = threadId,
-                settings = settings,
-                definition = runtimeRun.snapshot.definition,
-                task = runtimeRun.snapshot.task,
-                tools = tools,
-                liveText = liveText,
-                liveParts = liveParts,
-                kernelRunId = if (threadGraph) turnRunId.value else null,
-                onTerminal = if (threadGraph) {
-                    { terminal -> handleChildTerminal(runtimeRun, terminal) }
-                } else {
-                    null
-                },
-                consumeSteerMessages = if (threadGraph) {
-                    { drainMailbox(threadId) }
-                } else {
-                    { emptyList() }
-                },
-                previousAnswer = previousAnswer,
-                parentPolicy = parentPolicy,
-            ),
+        val payload = SubAgentTurnPayloads.Payload(
+            threadId = threadId,
+            settings = settings,
+            definition = runtimeRun.snapshot.definition,
+            task = runtimeRun.snapshot.task,
+            tools = tools,
+            liveText = liveText,
+            liveParts = liveParts,
+            kernelRunId = if (threadGraph) turnRunId.value else null,
+            onTerminal = if (threadGraph) {
+                { terminal -> handleChildTerminal(runtimeRun, terminal) }
+            } else {
+                null
+            },
+            consumeSteerMessages = if (threadGraph) {
+                { drainMailbox(runtimeRun) }
+            } else {
+                { emptyList() }
+            },
+            previousAnswer = previousAnswer,
+            parentPolicy = parentPolicy,
         )
-        val handle = agentRunner.launch(
-            SubAgentTurnDescriptor.ID,
-            SubAgentTurnInput(
+        val launchedRunId = turnLauncher.launch(
+            requestedRunId = turnRunId,
+            input = SubAgentTurnInput(
                 threadId = threadId,
                 parentConversationId = parentConversationId.toString(),
                 parentRunId = parentRunId,
@@ -1168,36 +1158,15 @@ class SubAgentManager(
                 objective = runtimeRun.snapshot.task.objective,
                 followup = followup,
             ),
-            requestedRunId = turnRunId,
-        ).getOrElse {
-            turnPayloads.remove(turnRunId.value)
-            return false
-        }
-        runtimeRun.turnRunId = handle.runId
-        runtimeRun.job = appScope.launch(Dispatchers.IO) {
-            awaitTurnTerminal(runtimeRun, handle.runId)
-        }
-        return true
-    }
-
-    /**
-     * Settle the thread from its turn's terminal (or approval-pause) state.
-     * A completed/parked turn carries the [SubAgentResult] artifact; a FAILED
-     * run carries the cause. The turn timeout is enforced here, at the
-     * manager: on expiry the turn is cancelled and the thread settles as
-     * TIMED_OUT (pendingTerminal tells the observer the manager owns the
-     * terminal write for manager-initiated cancel/interrupt/timeout).
-     */
-    private suspend fun awaitTurnTerminal(runtimeRun: RuntimeRun, turnRunId: AgentRunId) {
-        val threadId = runtimeRun.snapshot.runId
-        try {
-            val snapshot = try {
-                withTimeout(runtimeRun.snapshot.definition.timeoutMs) {
-                    agentRunner.observe(turnRunId).first { it.status.isTerminal || it.status.isPause }
-                }
-            } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+            payload = payload,
+        ) ?: return false
+        runtimeRun.turnRunId = launchedRunId
+        runtimeRun.job = turnLauncher.observe(
+            turnRunId = launchedRunId,
+            timeoutMs = runtimeRun.snapshot.definition.timeoutMs,
+            onTimeout = { timeout ->
                 runtimeRun.pendingTerminal = SubAgentRunStatus.TIMED_OUT
-                agentRunner.cancel(turnRunId)
+                agentRunner.cancel(launchedRunId)
                 finish(
                     runtimeRun,
                     SubAgentResult(
@@ -1206,53 +1175,57 @@ class SubAgentManager(
                     ),
                     displayText = liveTextFlows[threadId]?.value.orEmpty(),
                 )
-                return
-            }
-            val displayText = liveTextFlows[threadId]?.value.orEmpty()
-            when {
-                // COMPLETED and a realigned approval pause both carry the
-                // result artifact (the runner keeps it on the snapshot when
-                // the terminal CAS is rejected by a persisted pause).
-                snapshot.artifact is SubAgentResult ->
-                    finish(runtimeRun, snapshot.artifact as SubAgentResult, displayText)
+            },
+            onSnapshot = { snapshot -> settleTurnSnapshot(runtimeRun, snapshot) },
+        )
+        return true
+    }
 
-                snapshot.status == RunStatus.CANCELLED && runtimeRun.pendingTerminal != null -> Unit
+    /** Interpret the turn outcome here; thread identity, terminal claim and persistence stay in Manager. */
+    private suspend fun settleTurnSnapshot(runtimeRun: RuntimeRun, snapshot: AgentRunSnapshot) {
+        val threadId = runtimeRun.snapshot.runId
+        val displayText = liveTextFlows[threadId]?.value.orEmpty()
+        when {
+            // COMPLETED and a realigned approval pause both carry the
+            // result artifact (the runner keeps it on the snapshot when
+            // the terminal CAS is rejected by a persisted pause).
+            snapshot.artifact is SubAgentResult ->
+                finish(runtimeRun, snapshot.artifact as SubAgentResult, displayText)
 
-                snapshot.status == RunStatus.WAITING_USER ->
-                    finish(
-                        runtimeRun,
-                        SubAgentResult(
-                            status = SubAgentRunStatus.APPROVAL_REQUIRED,
-                            summary = "Subagent requested approval.",
-                            risks = listOf("Subagent cannot self-approve sensitive tools."),
-                        ),
-                        displayText,
-                    )
+            snapshot.status == RunStatus.CANCELLED && runtimeRun.pendingTerminal != null -> Unit
 
-                // Defensive: a turn cancelled without the manager initiating
-                // it must not leave the thread RUNNING forever.
-                snapshot.status == RunStatus.CANCELLED ->
-                    finish(
-                        runtimeRun,
-                        SubAgentResult(
-                            status = SubAgentRunStatus.CANCELLED,
-                            summary = "Subagent run was cancelled.",
-                        ),
-                        displayText,
-                    )
+            snapshot.status == RunStatus.WAITING_USER ->
+                finish(
+                    runtimeRun,
+                    SubAgentResult(
+                        status = SubAgentRunStatus.APPROVAL_REQUIRED,
+                        summary = "Subagent requested approval.",
+                        risks = listOf("Subagent cannot self-approve sensitive tools."),
+                    ),
+                    displayText,
+                )
 
-                else ->
-                    finish(
-                        runtimeRun,
-                        SubAgentResult(
-                            status = SubAgentRunStatus.FAILED,
-                            error = snapshot.error?.message ?: "Subagent turn ended ${snapshot.status}",
-                        ),
-                        displayText,
-                    )
-            }
-        } finally {
-            turnPayloads.remove(turnRunId.value)
+            // Defensive: a turn cancelled without the manager initiating
+            // it must not leave the thread RUNNING forever.
+            snapshot.status == RunStatus.CANCELLED ->
+                finish(
+                    runtimeRun,
+                    SubAgentResult(
+                        status = SubAgentRunStatus.CANCELLED,
+                        summary = "Subagent run was cancelled.",
+                    ),
+                    displayText,
+                )
+
+            else ->
+                finish(
+                    runtimeRun,
+                    SubAgentResult(
+                        status = SubAgentRunStatus.FAILED,
+                        error = snapshot.error?.message ?: "Subagent turn ended ${snapshot.status}",
+                    ),
+                    displayText,
+                )
         }
     }
 
@@ -1299,46 +1272,10 @@ class SubAgentManager(
         put("code", code)
     }
 
-    private fun SubAgentRun.toAgentTaskSnapshot() = AgentTaskSnapshot(
-        taskId = runId,
-        type = "subagent",
-        title = definition.name,
-        sourceConversationId = parentConversationId.toString(),
-        status = status.toAgentTaskStatus(),
-        queueState = status.toAgentTaskStatus().toQueueState("subagent"),
-        outputPath = transcriptPath,
-        outputRef = AgentTaskOutputRef(
-            type = "transcript",
-            path = transcriptPath,
-            exists = File(transcriptPath).exists(),
-        ),
-        retryPolicy = AgentTaskRetryPolicy(
-            retryable = status == SubAgentRunStatus.FAILED,
-            requiresApproval = false,
-            maxRetries = 1,
-            reason = "Sub Agent retry starts a new isolated run from the original task spec.",
-        ),
-        sourceToolName = "subagent_start",
-        // A thread followup deliberately retains its original startedAtMs, but the task-store
-        // row represents this generation's activation so UI observers can distinguish it.
-        createdAtMs = updatedAtMs,
-        updatedAtMs = updatedAtMs,
-        cancelCapability = status.running,
-        summary = task.objective.take(1_000),
-    )
-
-    private fun SubAgentRunStatus.toAgentTaskStatus(): AgentTaskStatus = when (this) {
-        SubAgentRunStatus.RUNNING,
-        SubAgentRunStatus.APPROVAL_REQUIRED -> AgentTaskStatus.RUNNING
-        SubAgentRunStatus.COMPLETED -> AgentTaskStatus.COMPLETED
-        SubAgentRunStatus.FAILED -> AgentTaskStatus.FAILED
-        SubAgentRunStatus.CANCELLED -> AgentTaskStatus.CANCELLED
-        SubAgentRunStatus.TIMED_OUT -> AgentTaskStatus.TIMED_OUT
-        SubAgentRunStatus.INTERRUPTED -> AgentTaskStatus.INTERRUPTED
-    }
-
     private class RuntimeRun(
         @Volatile var snapshot: SubAgentRun,
+        /** Process delivery belongs to this generation, not whichever turn now owns the thread ID. */
+        val mailbox: Channel<ThreadMessageRecord> = Channel(Channel.UNLIMITED),
         val previousAnswer: String = "",
         /** Awaits the current turn's terminal/pause and settles the thread. */
         @Volatile var job: Job? = null,
@@ -1369,26 +1306,5 @@ class SubAgentManager(
 
         /** send_message payload cap (per message). */
         const val MAX_SEND_MESSAGE_CHARS = 4_000
-    }
-}
-
-fun subAgentRunToPayload(
-    run: SubAgentRun,
-    json: Json,
-    includeDisplayText: Boolean = false,
-): JsonObject = buildJsonObject {
-    put("status", run.status.name.lowercase())
-    put("run_id", run.runId)
-    put("subagent_id", run.definition.id)
-    put("subagent_name", run.definition.name)
-    put("dynamic", run.definition.dynamic)
-    put("task_objective", run.task.objective.take(1_000))
-    put("started_at_ms", run.startedAtMs)
-    put("updated_at_ms", run.updatedAtMs)
-    run.task.sessionGrantId.takeIf { it.isNotBlank() }?.let { put("session_grant_id", it) }
-    run.result?.let { put("result", json.encodeToString(it)) }
-    if (run.displayText.isNotBlank()) {
-        put("display_text_chars", run.displayText.length)
-        if (includeDisplayText) put("display_text", run.displayText)
     }
 }

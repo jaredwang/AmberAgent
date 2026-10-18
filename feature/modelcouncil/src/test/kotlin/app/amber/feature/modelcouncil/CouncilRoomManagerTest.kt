@@ -9,6 +9,7 @@ import app.amber.core.infra.AppScope
 import app.amber.core.settings.Settings
 import app.amber.feature.task.AgentTaskSnapshot
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -23,6 +24,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import org.junit.After
@@ -61,6 +63,90 @@ class CouncilRoomManagerTest {
     }
 
     // ── tests ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `cancel after room publication completes task handoff and its stop callback`() = runTest {
+        val enteredRegistration = CompletableDeferred<Unit>()
+        val releaseRegistration = CompletableDeferred<Unit>()
+        val reporter = FakeTaskReporter(beforeRegister = {
+            enteredRegistration.complete(Unit)
+            releaseRegistration.await()
+        })
+        val modelId = Uuid.random()
+        val runner = FakeModelCouncilTextRunner(responseChunks = listOf("Unexpected generation"))
+        val env = createEnv(runner, modelId, reporter = reporter)
+        val opener = launch { env.openWithGuest(env.guest()) }
+        runCurrent()
+        enteredRegistration.await()
+        assertNotNull(env.store.peekRoom(env.conversationId))
+
+        opener.cancel()
+        runCurrent()
+        releaseRegistration.complete(Unit)
+        opener.join()
+
+        assertTrue(opener.isCancelled)
+        assertNotNull(env.store.peekRoom(env.conversationId))
+        val task = reporter.registered.single()
+        assertEquals("council_room:${env.conversationId}", task.taskId)
+        assertEquals(env.conversationId.toString(), task.sourceConversationId)
+        assertTrue(task.cancelCapability)
+        assertTrue(checkNotNull(reporter.cancelCallbacks[task.taskId]).invoke())
+        assertNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.CANCELLED, env.store.closedRooms.single().status)
+        assertTrue(runner.calls.isEmpty())
+    }
+
+    @Test
+    fun `cancel while reading before publication creates neither room nor task`() = runTest {
+        val enteredRead = CompletableDeferred<Unit>()
+        val releaseRead = CompletableDeferred<Unit>()
+        val reporter = FakeTaskReporter()
+        val runner = FakeModelCouncilTextRunner(responseChunks = listOf("Unexpected generation"))
+        val env = createEnv(runner, Uuid.random(), reporter = reporter, beforeObserve = {
+            enteredRead.complete(Unit)
+            releaseRead.await()
+        })
+        val opener = launch { env.openWithGuest(env.guest()) }
+        runCurrent()
+        enteredRead.await()
+
+        opener.cancel()
+        opener.join()
+        releaseRead.complete(Unit)
+
+        assertTrue(opener.isCancelled)
+        assertNull(env.store.peekRoom(env.conversationId))
+        assertTrue(reporter.registered.isEmpty())
+        assertTrue(reporter.cancelCallbacks.isEmpty())
+        assertTrue(runner.calls.isEmpty())
+    }
+
+    @Test
+    fun `cancel caller after open returns preserves task stop ownership`() = runTest {
+        val reporter = FakeTaskReporter()
+        val runner = FakeModelCouncilTextRunner(responseChunks = listOf("Unexpected generation"))
+        val env = createEnv(runner, Uuid.random(), reporter = reporter)
+        val opened = CompletableDeferred<Unit>()
+        val keepCallerAlive = CompletableDeferred<Unit>()
+        val opener = launch {
+            env.openWithGuest(env.guest())
+            opened.complete(Unit)
+            keepCallerAlive.await()
+        }
+        runCurrent()
+        opened.await()
+
+        opener.cancel()
+        opener.join()
+
+        assertNotNull(env.store.peekRoom(env.conversationId))
+        val task = reporter.registered.single()
+        assertTrue(checkNotNull(reporter.cancelCallbacks[task.taskId]).invoke())
+        assertNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.CANCELLED, env.store.closedRooms.single().status)
+        assertTrue(runner.calls.isEmpty())
+    }
 
     @Test
     fun `inviteNext launches guest generation and creates streaming message`() = runTest {
@@ -281,6 +367,127 @@ class CouncilRoomManagerTest {
         assertEquals(listOf(writeContext), runner.writeContexts)
     }
 
+    @Test
+    fun `standard auto run honors explicit mode and orders host guest rounds and synthesis`() = runTest {
+        val events = mutableListOf<String>()
+        val runner = orchestrationRunner(events)
+        val env = createEnv(runner, Uuid.random())
+        val first = env.guest()
+        val second = env.guest(id = "guest-2")
+        env.openWithGuests(listOf(first, second), maxRounds = 2)
+        assertTrue(env.manager.switchMode(env.conversationId, CouncilRoomMode.DEBATE) is CouncilRoomOpResult.Ok)
+
+        env.manager.userMessage(env.conversationId, "Choose a practical approach")
+        advanceUntilIdle()
+
+        assertEquals(listOf("opening", "guest", "guest", "guest", "guest", "synthesis"), events)
+        val room = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.FINALIZED, room.status)
+        assertEquals("Host conclusion", room.synthesis)
+        val guestMessages = room.messages.filter { it.authorId in listOf(first.id, second.id) }
+        assertEquals(listOf(first.id, second.id, first.id, second.id), guestMessages.map { it.authorId })
+        val guestCalls = runner.calls.filter { "As host" !in it.userPrompt && "Now close the discussion" !in it.userPrompt }
+        assertTrue(guestCalls.first().userPrompt.contains("Host framing"))
+        assertTrue(guestCalls[2].userPrompt.contains("final Debate round"))
+        assertTrue(guestCalls[2].userPrompt.contains("Guest contribution"))
+        assertTrue(room.messages.none { it.status == CouncilMessageStatus.STREAMING })
+    }
+
+    @Test
+    fun `full empty roster researches before planning and shares facts through final synthesis`() = runTest {
+        val events = mutableListOf<String>()
+        val runner = orchestrationRunner(events)
+        val tools = FakeHostToolProvider(events, HostToolOutcome.Done("Verified source facts"))
+        val env = createEnv(runner, Uuid.random(), powerMode = CouncilPowerMode.FULL, toolProvider = tools)
+        env.openWithGuests(emptyList(), maxRounds = 1)
+
+        env.manager.userMessage(env.conversationId, "Compare the current options")
+        advanceUntilIdle()
+
+        assertEquals(listOf("research", "roles", "classify", "opening", "guest", "synthesis"), events)
+        val room = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.FINALIZED, room.status)
+        assertTrue(room.context.contains("Verified source facts"))
+        assertEquals(listOf("Evidence Reader"), room.activeGuests.map { it.name })
+        val roleCall = runner.calls.single { it.systemPrompt == "Output a JSON array only, with no extra text." }
+        assertTrue(roleCall.userPrompt.contains("Verified source facts"))
+        assertTrue(runner.calls.last().userPrompt.contains("Verified source facts"))
+        assertEquals(1, tools.calls)
+        assertTrue(room.messages.none { it.status == CouncilMessageStatus.STREAMING })
+    }
+
+    @Test
+    fun `full existing roster withdraws no comment review and does not research again`() = runTest {
+        val events = mutableListOf<String>()
+        val runner = orchestrationRunner(events, review = CouncilRoomPrompts.NO_COMMENT_SENTINEL)
+        val tools = FakeHostToolProvider(events, HostToolOutcome.Done("Unexpected research"))
+        val env = createEnv(runner, Uuid.random(), powerMode = CouncilPowerMode.FULL, toolProvider = tools)
+        env.openWithGuest(env.guest(), maxRounds = 2)
+
+        env.manager.userMessage(env.conversationId, "Explore the options")
+        advanceUntilIdle()
+
+        assertEquals(listOf("classify", "opening", "guest", "review", "guest", "synthesis"), events)
+        assertEquals(0, tools.calls)
+        val room = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.FINALIZED, room.status)
+        assertEquals(1, room.messages.count { it.kind == CouncilMessageKind.WITHDRAWN })
+        assertTrue(room.messages.none { it.status == CouncilMessageStatus.STREAMING })
+    }
+
+    @Test
+    fun `full review question resumes the same run with a reply linked user answer`() = runTest {
+        val events = mutableListOf<String>()
+        val runner = orchestrationRunner(events, review = CouncilRoomPrompts.ASK_USER_SENTINEL + " Which constraint matters?")
+        val env = createEnv(runner, Uuid.random(), powerMode = CouncilPowerMode.FULL)
+        env.openWithGuest(env.guest(), maxRounds = 2)
+        env.manager.userMessage(env.conversationId, "Explore the options")
+        runCurrent()
+        val waiting = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.INTERRUPTED, waiting.status)
+        val question = waiting.messages.single { it.kind == CouncilMessageKind.ASK_USER }
+        assertEquals("Which constraint matters?", question.text)
+        assertEquals(1, waiting.messages.count { it.kind == CouncilMessageKind.WITHDRAWN })
+
+        assertTrue(env.manager.resumeAfterUserAnswer(env.conversationId, "Keep the cost low") is CouncilRoomOpResult.Ok)
+        advanceUntilIdle()
+
+        val room = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.FINALIZED, room.status)
+        val answer = room.messages.single { it.authorId == COUNCIL_ROOM_USER_ID && it.replyToMessageId == question.id }
+        assertEquals("Keep the cost low", answer.text)
+        assertEquals(1, events.count { it == "opening" })
+        assertEquals(2, events.count { it == "guest" })
+        assertEquals(1, events.count { it == "synthesis" })
+        assertTrue(runner.calls.any { it.userPrompt.contains("Keep the cost low") })
+        assertTrue(runner.calls.last().userPrompt.contains("Guest contribution"))
+        assertTrue(room.messages.none { it.status == CouncilMessageStatus.STREAMING })
+    }
+
+    @Test
+    fun `close while research awaits answer cancels the same run without planning or generating`() = runTest {
+        val events = mutableListOf<String>()
+        val runner = orchestrationRunner(events)
+        val tools = FakeHostToolProvider(events, HostToolOutcome.AskUser("{}", "Which direction?"))
+        val env = createEnv(runner, Uuid.random(), powerMode = CouncilPowerMode.FULL, toolProvider = tools)
+        env.openWithGuests(emptyList(), maxRounds = 1)
+        env.manager.userMessage(env.conversationId, "Help choose a direction")
+        runCurrent()
+        val waiting = checkNotNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.INTERRUPTED, waiting.status)
+        assertEquals("Which direction?", waiting.messages.single { it.kind == CouncilMessageKind.ASK_USER }.text)
+
+        assertTrue(env.manager.close(env.conversationId, cancel = true) is CouncilRoomOpResult.Ok)
+        advanceUntilIdle()
+
+        assertEquals(listOf("research"), events)
+        assertTrue(runner.calls.isEmpty())
+        assertNull(env.store.peekRoom(env.conversationId))
+        assertEquals(CouncilRoomStatus.CANCELLED, env.store.closedRooms.single().status)
+        assertTrue(env.manager.resumeAfterUserAnswer(env.conversationId, "Too late") is CouncilRoomOpResult.Err)
+        assertNull(env.store.peekRoom(env.conversationId))
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
 
@@ -289,13 +496,21 @@ class CouncilRoomManagerTest {
         modelId: Uuid,
         hostModelId: Uuid = modelId,
         writeContext: CoroutineContext = EmptyCoroutineContext,
+        reporter: FakeTaskReporter = FakeTaskReporter(),
+        beforeObserve: suspend () -> Unit = {},
+        powerMode: CouncilPowerMode = CouncilPowerMode.STANDARD,
+        toolProvider: CouncilHostToolProvider = NoOpCouncilHostToolProvider,
     ): TestEnv {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(testDispatcher)
         val appScope = AppScope()
-        val settingsFlow = MutableStateFlow(settingsWithModel(modelId, hostModelId))
-        val store = FakeCouncilRoomStore(writeContext)
-        val reporter = FakeTaskReporter()
+        val settings = settingsWithModel(modelId, hostModelId)
+        val settingsFlow = MutableStateFlow(settings.copy(
+            agentRuntime = settings.agentRuntime.copy(
+                modelCouncil = settings.agentRuntime.modelCouncil.copy(councilPowerMode = powerMode),
+            ),
+        ))
+        val store = FakeCouncilRoomStore(writeContext, beforeObserve)
         val manager = CouncilRoomManager(
             appScope = appScope,
             settingsFlow = settingsFlow,
@@ -304,6 +519,7 @@ class CouncilRoomManagerTest {
             externalCliRunner = FakeExternalCliModelCouncilRunner(),
             store = store,
             taskReporter = reporter,
+            toolProvider = toolProvider,
             dispatcher = testDispatcher,
         )
         return TestEnv(manager, store, appScope, modelId, hostModelId)
@@ -343,19 +559,85 @@ class CouncilRoomManagerTest {
             runnerType = ModelCouncilSeatRunner.PROVIDER_MODEL,
         )
 
-        suspend fun openWithGuest(guest: CouncilParticipant) {
+        suspend fun openWithGuest(guest: CouncilParticipant, maxRounds: Int = DEFAULT_COUNCIL_ROOM_MAX_ROUNDS) =
+            openWithGuests(listOf(guest), maxRounds)
+
+        suspend fun openWithGuests(guests: List<CouncilParticipant>, maxRounds: Int) {
             val result = manager.openRoom(
                 conversationId = conversationId,
                 hostAssistantId = Uuid.random(),
                 hostName = "Host",
                 objective = "Test objective",
-                initialGuests = listOf(guest),
+                initialGuests = guests,
+                maxRounds = maxRounds,
             )
             assertTrue(result is CouncilRoomOpResult.Ok)
         }
     }
 
     // ── fakes ────────────────────────────────────────────────────────────────
+
+    private fun orchestrationRunner(
+        events: MutableList<String>,
+        review: String = CouncilRoomPrompts.NO_COMMENT_SENTINEL,
+    ) = FakeModelCouncilTextRunner(responseChunks = emptyList(), responseForCall = { call ->
+        when {
+            call.systemPrompt == "Output a JSON array only, with no extra text." -> {
+                events += "roles"
+                """[{"name":"Evidence Reader","perspective":"Check the gathered evidence."}]"""
+            }
+            "concise classifier" in call.systemPrompt -> {
+                events += "classify"
+                "explore"
+            }
+            "As host, open the meeting" in call.userPrompt -> {
+                events += "opening"
+                "Host framing"
+            }
+            "As host, decide whether this round" in call.userPrompt -> {
+                events += "review"
+                review
+            }
+            "Now close the discussion as the host" in call.userPrompt -> {
+                events += "synthesis"
+                "Host conclusion"
+            }
+            "User interjection:" in call.userPrompt -> {
+                events += "steer"
+                "Host steering"
+            }
+            else -> {
+                events += "guest"
+                "Guest contribution ${events.count { it == "guest" }}"
+            }
+        }
+    })
+
+    private class FakeHostToolProvider(
+        private val events: MutableList<String>,
+        private val outcome: HostToolOutcome,
+    ) : CouncilHostToolProvider {
+        var calls = 0
+
+        override fun isAvailable(settings: Settings): Boolean = true
+
+        override suspend fun generateWithTools(
+            settings: Settings,
+            modelId: Uuid,
+            systemPrompt: String,
+            userPrompt: String,
+            reasoningLevel: ReasoningLevel,
+            maxToolRounds: Int,
+            timeoutMs: Long,
+            outputBudgetChars: Int,
+            onChunk: (String) -> Unit,
+        ): HostToolOutcome {
+            calls += 1
+            events += "research"
+            if (outcome is HostToolOutcome.Done) onChunk(outcome.text)
+            return outcome
+        }
+    }
 
     /**
      * Mirrors the production shape: a single runner serves both guest turns and
@@ -367,6 +649,7 @@ class CouncilRoomManagerTest {
         private val responseChunks: List<String>,
         private val delayPerChunkMs: Long = 0L,
         private val byModelId: Map<Uuid, FakeResponse> = emptyMap(),
+        private val responseForCall: ((Call) -> String)? = null,
     ) : ModelCouncilTextRunner {
         data class Call(
             val modelId: Uuid,
@@ -398,7 +681,7 @@ class CouncilRoomManagerTest {
             _writeContexts += currentCoroutineContext()[TestWriteContext]
             _calls.add(Call(modelId, systemPrompt, userPrompt))
             val resp = byModelId[modelId]
-            val chunks = resp?.chunks ?: responseChunks
+            val chunks = responseForCall?.let { listOf(it(_calls.last())) } ?: resp?.chunks ?: responseChunks
             val chunkDelay = resp?.delayPerChunkMs ?: delayPerChunkMs
             var cumulative = ""
             chunks.forEach { chunk ->
@@ -423,16 +706,20 @@ class CouncilRoomManagerTest {
 
     private class FakeCouncilRoomStore(
         private val writeContext: CoroutineContext = EmptyCoroutineContext,
+        private val beforeObserve: suspend () -> Unit = {},
     ) : CouncilRoomStore {
         private val lock = Mutex()
         private val rooms = mutableMapOf<Uuid, MutableStateFlow<CouncilRoom?>>()
+        val closedRooms = mutableListOf<CouncilRoom>()
 
         override suspend fun captureWriteContext(): CoroutineContext = writeContext
 
-        override suspend fun observeRoom(conversationId: Uuid): StateFlow<CouncilRoom?> =
-            lock.withLock {
+        override suspend fun observeRoom(conversationId: Uuid): StateFlow<CouncilRoom?> {
+            beforeObserve()
+            return lock.withLock {
                 rooms.getOrPut(conversationId) { MutableStateFlow(null) }
             }
+        }
 
         override fun peekRoom(conversationId: Uuid): CouncilRoom? =
             rooms[conversationId]?.value
@@ -445,6 +732,7 @@ class CouncilRoomManagerTest {
 
         override suspend fun closeAndEvict(room: CouncilRoom) {
             lock.withLock {
+                closedRooms.add(room)
                 rooms[room.conversationId]?.value = room
                 rooms.remove(room.conversationId)
             }
@@ -470,15 +758,20 @@ class CouncilRoomManagerTest {
             get() = Key
     }
 
-    private class FakeTaskReporter : CouncilRoomTaskReporter {
+    private class FakeTaskReporter(
+        private val beforeRegister: suspend () -> Unit = {},
+    ) : CouncilRoomTaskReporter {
         val registered = mutableListOf<AgentTaskSnapshot>()
         val upserted = mutableListOf<AgentTaskSnapshot>()
+        val cancelCallbacks = mutableMapOf<String, suspend () -> Boolean>()
 
         override suspend fun register(
             snapshot: AgentTaskSnapshot,
             cancel: (suspend () -> Boolean)?,
         ) {
+            beforeRegister()
             registered.add(snapshot)
+            if (cancel != null) cancelCallbacks[snapshot.taskId] = cancel
         }
 
         override suspend fun upsert(snapshot: AgentTaskSnapshot) {

@@ -7,6 +7,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
@@ -288,6 +290,7 @@ private fun membersSubtitle(room: CouncilRoom): String {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MemberRow(participant: CouncilParticipant, isHost: Boolean) {
     val workspace = workspaceColors()
@@ -329,7 +332,10 @@ private fun MemberRow(participant: CouncilParticipant, isHost: Boolean) {
             SubAgentAvatar(id = participant.id, name = participant.name, avatarSize = 28.dp)
         }
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 Text(
                     text = participant.name.ifBlank { participant.id },
                     style = type.body,

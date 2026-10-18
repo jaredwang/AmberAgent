@@ -3,8 +3,6 @@ import app.amber.agent.R
 
 import android.app.Application
 import android.util.Log
-import androidx.core.app.NotificationChannelCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -14,15 +12,12 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import app.amber.common.android.appTempFolder
 import app.amber.core.di.agentInfraModule
 import app.amber.core.di.agentRuntimeModule
@@ -30,6 +25,8 @@ import app.amber.core.di.appModule
 import app.amber.core.di.boardModule
 import app.amber.core.di.chatModule
 import app.amber.core.di.dataSourceModule
+import app.amber.core.di.generationModule
+import app.amber.core.di.toolExecutionModule
 import app.amber.core.di.iCloudModule
 import app.amber.core.di.jevModule
 import app.amber.core.di.memoryModule
@@ -65,24 +62,27 @@ import org.koin.core.context.startKoin
 
 private const val TAG = "AmberAgentApp"
 
-const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
-const val CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID = "chat_live_update_v3"
-const val SCREEN_CAPTURE_NOTIFICATION_CHANNEL_ID = "screen_capture"
-const val MEMORY_NOTIFICATION_CHANNEL_ID = "memory_tasks"
-const val BOARD_NOTIFICATION_CHANNEL_ID = "today_board"
-const val DEEP_READ_NOTIFICATION_CHANNEL_ID = "deep_read"
-const val NOVEL_GHOSTWRITE_FAILURE_NOTIFICATION_CHANNEL_ID = "novel_ghostwrite_failure"
-// Must match `channel_id` sent by amber-gateway's FCM sender.
-const val MAC_GATEWAY_NOTIFICATION_CHANNEL_ID = "mac_gateway"
-
 class AmberAgentApp : Application() {
+    private val backgroundSchedulers by lazy {
+        AppBackgroundSchedulers(
+            scope = get<AppScope>(),
+            settings = { get<SettingsAggregator>() },
+            cron = { get<AgentCronManager>() },
+            reminders = { get<ReminderScheduler>() },
+            memory = { get<MemoryDreamScheduler>() },
+            notificationCollector = { get<NotificationSignalCollector>() },
+            boardScheduler = { get<BoardScheduler>() },
+            hotList = { get<HotListScheduler>() },
+        )
+    }
+
     override fun onCreate() {
         super.onCreate()
         ensureFirebaseInitialized()
         startKoin {
             androidLogger()
             androidContext(this@AmberAgentApp)
-            modules(appModule, chatModule, memoryModule, iCloudModule, webMountModule, agentRuntimeModule, agentInfraModule, boardModule, workspaceModule, novelModule, viewModelModule, dataSourceModule, repositoryModule, jevModule)
+            modules(appModule, chatModule, memoryModule, iCloudModule, webMountModule, agentRuntimeModule, agentInfraModule, boardModule, workspaceModule, novelModule, viewModelModule, dataSourceModule, generationModule, toolExecutionModule, repositoryModule, jevModule)
             if (SyncArchiveManager.hasInterruptedFileRestore(this@AmberAgentApp)) {
                 // Eager singletons start after this block; workers must also wait
                 // until files match the last committed database snapshot.
@@ -130,12 +130,8 @@ class AmberAgentApp : Application() {
             fetchAndActivate()
         }
 
-        // Wire Phase-2 Rust JNI production switches to user prefs + Remote Config
-        // + Crashlytics. Default state stays JVM-only (see SPIKE_PLAN §8.3).
-        // A failure here leaves every Switch on DisabledConfig (safe), so we
-        // record it to Crashlytics rather than let it pass silently —
-        // otherwise an entire opt-in cohort would never see the native path
-        // and we'd notice only via metrics (review P2-5).
+        // Install the existing user-pref and Remote Config switches before native consumers.
+        // Report installation failures so packaged JNI availability is not mistaken for activation.
         runCatching { get<NativePathBootstrap>().install() }
             .onFailure {
                 Log.e(TAG, "NativePathBootstrap.install failed; native path stays disabled", it)
@@ -144,9 +140,9 @@ class AmberAgentApp : Application() {
 
         if (StandaloneSurfaces.allowsAgentFeatures) {
             // Reschedule persisted mobile cron tasks after app startup.
-            rescheduleCronTasks()
+            backgroundSchedulers.rescheduleCronTasks()
             // Reminder owner is durable and must be reattached after every process start.
-            rescheduleReminders()
+            backgroundSchedulers.rescheduleReminders()
         }
 
         // Migrate the persisted shape before cached-settings rescue can write it back.
@@ -156,16 +152,16 @@ class AmberAgentApp : Application() {
 
         if (StandaloneSurfaces.allowsAgentFeatures) {
             // Keep Daydream background review aligned with memory settings.
-            syncMemoryDreamTasks()
+            backgroundSchedulers.syncMemoryDreamTasks()
         }
 
         if (StandaloneSurfaces.allowsBoard) {
             // Start Today Board notification collector if enabled.
-            startBoardNotificationCollector()
+            backgroundSchedulers.startBoardNotificationCollector()
 
             // Sync Today Board scheduler with settings + foreground-compensation hook.
-            syncTodayBoardScheduler()
-            syncHotListScheduler()
+            backgroundSchedulers.syncTodayBoardScheduler()
+            backgroundSchedulers.syncHotListScheduler()
         }
 
         // Attach best-effort app-level cleanup for singleton services that own process lifecycle observers.
@@ -232,38 +228,26 @@ class AmberAgentApp : Application() {
     private fun recoverInterruptedAgentRuns() {
         val recoveryGate = get<ColdStartRuntimeRecoveryGate>()
         get<AppScope>().launch(Dispatchers.IO) {
-            try {
-                // P1-02/P1-03 first: the ledger decides what may be retried
-                // and replays finished results; ChatEventProjector then
-                // projects stream checkpoints. Both stages must finish before
-                // a new runner activation may append a durable RUNNING row.
-                val flags = get<app.amber.core.settings.CapabilityFlags>()
-                if (
-                    flags.isEnabled(app.amber.core.settings.Capability.DurableToolEffects) &&
-                    flags.isEnabled(app.amber.core.settings.Capability.TypedRunTerminal)
-                ) {
-                    get<app.amber.feature.runtime.RunRecoveryService>().recover()
-                }
-                get<ChatEventProjector>().replayUnfinished()
-                recoveryGate.complete()
-            } catch (error: CancellationException) {
-                recoveryGate.fail(error)
-                throw error
-            } catch (error: Throwable) {
-                recoveryGate.fail(error)
-                Log.w(TAG, "Failed to recover durable runtime state", error)
-            }
-
-            // P4-03: persisted JS cells never resume across a process restart
-            // — RUNNING/WAITING cells are marked TERMINATED (store content and
-            // terminal states stay readable). This is not part of the durable
-            // agent recovery gate: a JS cleanup failure must not block chat.
-            runCatching {
-                val flags = get<app.amber.core.settings.CapabilityFlags>()
-                if (flags.isEnabled(app.amber.core.settings.Capability.JSCellRuntime)) {
-                    get<app.amber.feature.jscell.JsCellRuntime>().recoverFromColdStart()
-                }
-            }.onFailure { Log.w(TAG, "Failed to recover persisted JS cells", it) }
+            AppRuntimeRecovery(
+                gate = recoveryGate,
+                recoverDurableRuns = {
+                    val flags = get<app.amber.core.settings.CapabilityFlags>()
+                    if (
+                        flags.isEnabled(app.amber.core.settings.Capability.DurableToolEffects) &&
+                        flags.isEnabled(app.amber.core.settings.Capability.TypedRunTerminal)
+                    ) {
+                        get<app.amber.feature.runtime.RunRecoveryService>().recover()
+                    }
+                },
+                replayChatEvents = { get<ChatEventProjector>().replayUnfinished() },
+                recoverJsCells = {
+                    val flags = get<app.amber.core.settings.CapabilityFlags>()
+                    if (flags.isEnabled(app.amber.core.settings.Capability.JSCellRuntime)) {
+                        get<app.amber.feature.jscell.JsCellRuntime>().recoverFromColdStart()
+                    }
+                },
+                reportFailure = { message, error -> Log.w(TAG, message, error) },
+            ).recover()
         }
     }
 
@@ -285,13 +269,6 @@ class AmberAgentApp : Application() {
             }.onFailure {
                 Log.e(TAG, "incrementLaunchCount failed", it)
             }
-        }
-    }
-
-    private fun rescheduleReminders() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            runCatching { get<ReminderScheduler>().rescheduleAll() }
-                .onFailure { Log.e(TAG, "rescheduleReminders failed", it) }
         }
     }
 
@@ -339,183 +316,12 @@ class AmberAgentApp : Application() {
         }
     }
 
-    private fun rescheduleCronTasks() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            runCatching {
-                get<AgentCronManager>().rescheduleAll()
-            }.onFailure {
-                Log.e(TAG, "rescheduleCronTasks failed", it)
-            }
-        }
-    }
-
-    private fun syncMemoryDreamTasks() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            val scheduler = get<MemoryDreamScheduler>()
-            val settingsStore = get<SettingsAggregator>()
-            settingsStore.settingsFlow
-                .map { it.agentRuntime.memoryWorker }
-                .distinctUntilChanged()
-                .collect {
-                    runCatching {
-                        scheduler.sync()
-                    }.onFailure { error ->
-                        Log.e(TAG, "syncMemoryDreamTasks failed", error)
-                    }
-                }
-        }
-    }
-
-    private fun startBoardNotificationCollector() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            val settingsStore = get<SettingsAggregator>()
-            val collector = get<NotificationSignalCollector>()
-            settingsStore.settingsFlow
-                .map { it.agentRuntime.todayBoard.enabled }
-                .distinctUntilChanged()
-                .collect { enabled ->
-                    if (enabled) {
-                        collector.start()
-                    } else {
-                        collector.stop()
-                    }
-                }
-        }
-    }
-
     /**
      * Keep the BoardScheduler aligned with user settings. Also wires foreground
      * compensation: when the app returns to the foreground after a long gap (>= the
      * configured threshold), trigger a one-shot board run so users don't see stale
      * content after leaving the app for a while.
      */
-    private fun syncTodayBoardScheduler() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            val settingsStore = get<SettingsAggregator>()
-            val scheduler = get<BoardScheduler>()
-            settingsStore.settingsFlow
-                .map { it.agentRuntime.todayBoard }
-                .distinctUntilChanged()
-                .collect {
-                    runCatching { scheduler.sync(settingsStore.settingsFlow.value) }
-                        .onFailure { Log.e(TAG, "syncTodayBoardScheduler failed", it) }
-                }
-        }
-
-        ProcessLifecycleOwner.get().lifecycle.addObserver(
-            object : LifecycleEventObserver {
-                private val lastForegroundCompensationMs = java.util.concurrent.atomic.AtomicLong(0L)
-
-                override fun onStateChanged(source: androidx.lifecycle.LifecycleOwner, event: Lifecycle.Event) {
-                    if (event != Lifecycle.Event.ON_START) return
-                    get<AppScope>().launch(Dispatchers.IO) {
-                        runCatching {
-                            val board = get<SettingsAggregator>().settingsFlow.value.agentRuntime.todayBoard
-                            if (!board.enabled) return@runCatching
-                            // FOREGROUND_ONLY users explicitly chose no background work —
-                            // respect that even for app-start compensation.
-                            if (board.backgroundStrategy ==
-                                app.amber.feature.board.TodayBoardBackgroundStrategy.FOREGROUND_ONLY
-                            ) return@runCatching
-                            val now = System.currentTimeMillis()
-                            val last = lastForegroundCompensationMs.get()
-                            if (now - last < board.foregroundCompensationGapMs) return@runCatching
-                            // CAS guards against two rapid ON_START events passing the gap check.
-                            if (!lastForegroundCompensationMs.compareAndSet(last, now)) return@runCatching
-                            get<BoardScheduler>().runOnce()
-                        }.onFailure { Log.e(TAG, "foreground compensation failed", it) }
-                    }
-                }
-            },
-        )
-    }
-
-    private fun syncHotListScheduler() {
-        get<AppScope>().launch(Dispatchers.IO) {
-            val settingsStore = get<SettingsAggregator>()
-            val scheduler = get<HotListScheduler>()
-            settingsStore.settingsFlow
-                .map { it.agentRuntime.todayBoard }
-                .distinctUntilChanged()
-                .collect {
-                    runCatching { scheduler.sync(settingsStore.settingsFlow.value) }
-                        .onFailure { Log.e(TAG, "syncHotListScheduler failed", it) }
-                }
-        }
-    }
-
-    private fun createNotificationChannel() {
-        val notificationManager = NotificationManagerCompat.from(this)
-        val chatCompletedChannel = NotificationChannelCompat
-            .Builder(
-                CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID,
-                NotificationManagerCompat.IMPORTANCE_HIGH
-            )
-            .setName(getString(R.string.notification_channel_chat_completed))
-            .setVibrationEnabled(true)
-            .build()
-        notificationManager.createNotificationChannel(chatCompletedChannel)
-
-        val chatLiveUpdateChannel = NotificationChannelCompat
-            .Builder(
-                CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID,
-                NotificationManagerCompat.IMPORTANCE_DEFAULT
-            )
-            .setName(getString(R.string.notification_channel_chat_live_update))
-            .setVibrationEnabled(false)
-            .build()
-        notificationManager.createNotificationChannel(chatLiveUpdateChannel)
-
-        val screenCaptureChannel = NotificationChannelCompat
-            .Builder(SCREEN_CAPTURE_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName(getString(R.string.notification_channel_screen_capture))
-            .setVibrationEnabled(false)
-            .setShowBadge(false)
-            .build()
-        notificationManager.createNotificationChannel(screenCaptureChannel)
-
-        val memoryChannel = NotificationChannelCompat
-            .Builder(MEMORY_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName(getString(R.string.notification_channel_memory_tasks))
-            .setVibrationEnabled(false)
-            .setShowBadge(false)
-            .build()
-        notificationManager.createNotificationChannel(memoryChannel)
-
-        val boardChannel = NotificationChannelCompat
-            .Builder(BOARD_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName(getString(R.string.notification_channel_today_board))
-            .setVibrationEnabled(false)
-            .setShowBadge(false)
-            .build()
-        notificationManager.createNotificationChannel(boardChannel)
-
-        val deepReadChannel = NotificationChannelCompat
-            .Builder(DEEP_READ_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-            .setName(getString(R.string.notification_channel_deep_read))
-            .setVibrationEnabled(false)
-            .setShowBadge(false)
-            .build()
-        notificationManager.createNotificationChannel(deepReadChannel)
-
-        // Terminal ghostwrite-batch failure; same terminal-result convention as chat_completed.
-        val novelGhostwriteFailureChannel = NotificationChannelCompat
-            .Builder(
-                NOVEL_GHOSTWRITE_FAILURE_NOTIFICATION_CHANNEL_ID,
-                NotificationManagerCompat.IMPORTANCE_HIGH
-            )
-            .setName(getString(R.string.notification_channel_novel_ghostwrite_failure))
-            .setVibrationEnabled(true)
-            .build()
-        notificationManager.createNotificationChannel(novelGhostwriteFailureChannel)
-
-        val macGatewayChannel = NotificationChannelCompat
-            .Builder(MAC_GATEWAY_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_HIGH)
-            .setName(getString(R.string.notification_channel_mac_gateway))
-            .setVibrationEnabled(true)
-            .build()
-        notificationManager.createNotificationChannel(macGatewayChannel)
-    }
 
     override fun onTerminate() {
         cleanupChatService()

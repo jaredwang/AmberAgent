@@ -452,6 +452,7 @@ internal fun IntelligentUiQuizItemNode(
                                 text = prefixLetter,
                                 fontFamily = AmberMono,
                                 fontSize = 11.sp,
+                                lineHeight = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (optionSelected) Color.White else tokens.ink2,
                             )

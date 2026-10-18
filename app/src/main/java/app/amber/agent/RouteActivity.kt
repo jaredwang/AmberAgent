@@ -1,10 +1,8 @@
 package app.amber.agent
-import app.amber.agent.R
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -20,14 +18,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import app.amber.feature.ui.components.ds.enableAmberHdrWindow
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
@@ -35,35 +29,27 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -77,7 +63,6 @@ import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.rememberToasterState
-import kotlinx.serialization.Serializable
 import app.amber.highlight.Highlighter
 import app.amber.highlight.LocalHighlighter
 import app.amber.core.settings.prefs.SettingsAggregator
@@ -95,89 +80,13 @@ import app.amber.feature.ui.hooks.readBooleanPreference
 import app.amber.feature.ui.hooks.readStringPreference
 import app.amber.feature.ui.pages.live.LiveCompanionDeepLink
 import app.amber.core.utils.openUrl
-import app.amber.feature.ui.pages.backup.BackupPage
-import app.amber.feature.ui.pages.chat.ChatPage
-import app.amber.feature.ui.pages.councilroom.CouncilRoomPage
-import app.amber.feature.ui.pages.debug.DebugPage
-import app.amber.feature.ui.pages.developer.DeveloperPage
-import app.amber.feature.ui.pages.extensions.ExtensionsPage
-import app.amber.feature.ui.pages.extensions.PromptPage
-import app.amber.feature.ui.pages.extensions.QuickMessagesPage
-import app.amber.feature.ui.pages.extensions.SkillDetailPage
-import app.amber.feature.ui.pages.extensions.SkillsPage
-import app.amber.feature.ui.pages.favorite.FavoritePage
-import app.amber.feature.ui.pages.history.HistoryPage
-import app.amber.feature.ui.pages.sessionhome.SessionHomePage
-import app.amber.feature.ui.pages.profile.ProfilePage
-import app.amber.feature.ui.pages.live.LiveCompanionPage
-import app.amber.feature.ui.pages.synara.SynaraConnectPage
-import app.amber.feature.ui.pages.synara.SynaraConnection
-import app.amber.feature.ui.pages.synara.SynaraWorkspacePage
-import app.amber.feature.ui.pages.zcode.ZCodePage
-import app.amber.feature.ui.pages.zcode.ZCodeSessionPage
-import app.amber.feature.ui.pages.log.LogPage
-import app.amber.feature.ui.pages.miniapp.MiniAppListPage
 import app.amber.feature.ui.pages.novel.NovelLaunchCurtain
-import app.amber.feature.ui.pages.novel.NovelMarkdownWorkspacePage
-import app.amber.feature.ui.pages.novel.NovelProjectsPage
-import app.amber.feature.ui.pages.miniapp.MiniAppRunnerPage
-import app.amber.feature.ui.pages.miniapp.MiniAppSettingsPage
-import app.amber.feature.ui.pages.search.SearchPage
-import app.amber.feature.ui.pages.setting.SettingAboutPage
-import app.amber.feature.ui.pages.setting.SettingAgentExecutionPage
-import app.amber.feature.ui.pages.setting.SettingTtsPage
-import app.amber.feature.ui.pages.setting.SettingAgentExtensionsPage
-import app.amber.feature.ui.pages.setting.SettingAgentMemoryPage
-import app.amber.feature.ui.pages.setting.SettingAgentMemoryCompactionPage
-import app.amber.feature.ui.pages.setting.SettingAgentMemoryLibraryPage
-import app.amber.feature.ui.pages.setting.SettingAgentMemoryRecallPage
-import app.amber.feature.ui.pages.setting.SettingAgentMemoryWorkerPage
-import app.amber.feature.ui.pages.setting.SettingAgentPermissionsPage
-import app.amber.feature.ui.pages.setting.SettingCapabilityPermissionsPage
-import app.amber.feature.ui.pages.setting.SettingAgentRuntimeTasksPage
-import app.amber.feature.ui.pages.setting.SettingCronTasksPage
-import app.amber.feature.ui.pages.setting.SettingAppearancePage
-import app.amber.feature.ui.pages.setting.SettingDisplayPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalICloudPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalMacGatewayPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalModelCouncilPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalSubAgentPage
-import app.amber.feature.ui.pages.setting.SettingExperimentalWebMountPage
-import app.amber.feature.ui.pages.board.TodayBoardPage
-import app.amber.feature.ui.pages.board.SettingTodayBoardPage
-import app.amber.feature.ui.pages.board.DeepReadScreen
-import app.amber.feature.ui.pages.board.DeepReadHistoryPage
-import app.amber.feature.ui.pages.board.DeepReadTemplateWorkbenchPage
-import app.amber.feature.board.hotlist.deepread.DeepReadNotifier
 import app.amber.feature.board.worker.BoardNotifier
-import app.amber.feature.runtime.RunTerminal
 import app.amber.feature.runtime.RunTerminalStore
-import app.amber.feature.ui.pages.setting.SettingFilesPage
-import app.amber.feature.ui.pages.setting.SettingChatStoragePage
-import app.amber.feature.ui.pages.setting.SettingStoragePage
-import app.amber.feature.ui.pages.setting.SettingMcpPage
-import app.amber.feature.ui.pages.setting.SettingModelPage
-import app.amber.feature.ui.pages.setting.SettingPage
-import app.amber.feature.ui.pages.setting.SettingProviderDetailPage
-import app.amber.feature.ui.pages.setting.SettingProviderPage
-import app.amber.feature.ui.pages.setting.SettingSandboxPage
-import app.amber.feature.ui.pages.setting.SettingSearchPage
-import app.amber.feature.ui.pages.setting.SettingJevPage
-import app.amber.feature.ui.pages.setting.SettingSlidesFontPage
-import app.amber.feature.ui.pages.setting.SettingSystemAccessPage
-import app.amber.feature.ui.pages.share.handler.ShareHandlerPage
-import app.amber.feature.ui.pages.stats.StatsPage
-import app.amber.feature.ui.pages.webview.WebViewPage
-import app.amber.feature.ui.pages.webmount.WebMountSessionPage
 import app.amber.feature.ui.theme.LocalDarkMode
 import app.amber.feature.ui.theme.AmberAgentTheme
-import app.amber.feature.ui.adaptive.TwoPaneRole
 import app.amber.feature.ui.adaptive.rememberAdaptiveSceneStrategies
-import app.amber.feature.ui.adaptive.twoPaneMetadata
-import app.amber.feature.ui.theme.ThemePageChrome
 import app.amber.feature.ui.theme.rememberThemePageChromeDecorator
-import app.amber.feature.ui.theme.themePageChromeMetadata
 import app.amber.core.utils.base64Encode
 import app.amber.core.utils.CrashHandler
 import okhttp3.OkHttpClient
@@ -192,7 +101,7 @@ private val RouteTransitionSpec = tween<IntOffset>(
     durationMillis = ROUTE_TRANSITION_DURATION_MILLIS,
     easing = RouteTransitionEasing,
 )
-private val RouteTransitionSpecFloat = tween<Float>(
+internal val RouteTransitionSpecFloat = tween<Float>(
     durationMillis = ROUTE_TRANSITION_DURATION_MILLIS,
     easing = RouteTransitionEasing,
 )
@@ -334,68 +243,6 @@ class RouteActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    private fun ShareHandler(backStack: MutableList<NavKey>, currentIntent: Intent?) {
-        val shareAction = remember(currentIntent) { currentIntent?.action }
-        val shareMimeType = remember(currentIntent) { currentIntent?.type }
-        val shareText = remember(currentIntent) { currentIntent?.extractSharedText().orEmpty() }
-        val streamUris = remember(currentIntent) {
-            when (currentIntent?.action) {
-                Intent.ACTION_SEND -> currentIntent.extractSingleStreamUri().orEmpty()
-                Intent.ACTION_SEND_MULTIPLE -> currentIntent.extractMultipleStreamUris().orEmpty()
-                Intent.ACTION_VIEW -> currentIntent.data
-                    ?.takeIf { it.scheme == "content" || it.scheme == "file" }
-                    ?.let { listOf(it.toString()) }
-                    .orEmpty()
-                else -> emptyList()
-            }
-        }
-
-        LaunchedEffect(currentIntent) {
-            if (shareIntentConsumed) return@LaunchedEffect
-            when (shareAction) {
-                Intent.ACTION_SEND,
-                Intent.ACTION_SEND_MULTIPLE -> {
-                    backStack.add(
-                        Screen.ShareHandler(
-                            text = shareText,
-                            streamUris = streamUris,
-                            sourceAction = shareAction,
-                            declaredMimeType = shareMimeType,
-                        ),
-                    )
-                    shareIntentConsumed = true
-                }
-
-                Intent.ACTION_VIEW -> {
-                    if (streamUris.isNotEmpty()) {
-                        backStack.add(
-                            Screen.ShareHandler(
-                                text = shareText,
-                                streamUris = streamUris,
-                                sourceAction = shareAction,
-                                declaredMimeType = shareMimeType,
-                            ),
-                        )
-                    }
-                    shareIntentConsumed = true
-                }
-
-                Intent.ACTION_PROCESS_TEXT -> {
-                    backStack.add(
-                        Screen.ShareHandler(
-                            text = shareText,
-                            streamUri = null,
-                            sourceAction = shareAction,
-                            declaredMimeType = shareMimeType,
-                        ),
-                    )
-                    shareIntentConsumed = true
-                }
-            }
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(STATE_SHARE_INTENT_CONSUMED, shareIntentConsumed)
         super.onSaveInstanceState(outState)
@@ -442,46 +289,6 @@ class RouteActivity : ComponentActivity() {
             navigateToShortcutRoute(route)
         }
         newIntentHandler?.invoke(intent)
-    }
-
-    private fun standaloneStartScreen(intent: Intent): Screen? = when (StandaloneSurfaces.current) {
-        StandaloneSurfaces.NOVEL ->
-            app.amber.feature.novel.workspace.NovelWorkspaceNotificationRoute.screenFrom(intent)
-                ?: Screen.NovelProjects
-        StandaloneSurfaces.DEEP_READ ->
-            deepReadScreenFromIntent(intent) ?: Screen.TodayBoard
-        else -> null
-    }
-
-    private fun deepReadScreenFromIntent(intent: Intent): Screen.DeepRead? {
-        if (!intent.getBooleanExtra(DeepReadNotifier.EXTRA_OPEN_DEEP_READ, false)) return null
-        val topicId = intent.getStringExtra(DeepReadNotifier.EXTRA_TOPIC_ID)
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-        val title = intent.getStringExtra(DeepReadNotifier.EXTRA_TITLE)
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-        val sourceUrl = intent.getStringExtra(DeepReadNotifier.EXTRA_SOURCE_URL)
-            ?.takeIf { it.isNotBlank() }
-        return Screen.DeepRead(
-            topicId = topicId,
-            title = title,
-            sourceUrl = sourceUrl,
-            fromHistory = intent.getBooleanExtra(DeepReadNotifier.EXTRA_FROM_HISTORY, true),
-        )
-    }
-
-    private fun taskSessionScreenFromIntent(intent: Intent): Screen.Chat? {
-        // Shortcut intents carry their own prompt extra and are consumed by
-        // DynamicShortcutPublisher.screenFromIntent - never route them twice.
-        if (intent.hasExtra(app.amber.feature.tools.DynamicShortcutPublisher.EXTRA_SHORTCUT_KIND)) return null
-        val prompt = intent.getStringExtra(EXTRA_OPEN_CHAT_PROMPT)
-            ?.takeIf { it.isNotBlank() }
-            ?: return null
-        return Screen.Chat(
-            id = Uuid.random().toString(),
-            text = prompt.base64Encode(),
-        )
     }
 
     /**
@@ -656,7 +463,12 @@ class RouteActivity : ComponentActivity() {
             }
         }
 
-        ShareHandler(backStack, currentIntent)
+        RouteShareDelivery(
+            currentIntent = currentIntent,
+            isConsumed = { shareIntentConsumed },
+            onDelivery = { backStack.add(it) },
+            onConsumed = { shareIntentConsumed = true },
+        )
         val appUriHandler = remember {
             object : UriHandler {
                 override fun openUri(uri: String) {
@@ -703,359 +515,7 @@ class RouteActivity : ComponentActivity() {
                         },
                         popTransitionSpec = { routePopTransition() },
                         predictivePopTransitionSpec = { routePopTransition() },
-                        entryProvider = entryProvider {
-                            entry<Screen.Chat>(metadata = twoPaneMetadata(TwoPaneRole.Detail)) { key ->
-                                ChatPage(
-                                    enterTransition = LocalNavAnimatedContentScope.current.transition,
-                                    id = Uuid.parse(key.id),
-                                    text = key.text,
-                                    files = key.files.map { it.toUri() },
-                                    nodeId = key.nodeId?.let { Uuid.parse(it) },
-                                    messageId = key.messageId,
-                                    toolCallId = key.toolCallId,
-                                )
-                            }
-
-                            // No transition override: fall back to NavDisplay's default
-                            // slide-in/slide-out push (and default pop) so entering the
-                            // Council Room animates exactly like the Stats page.
-                            entry<Screen.CouncilRoom> { key ->
-                                CouncilRoomPage(conversationId = key.conversationId)
-                            }
-
-                            entry<Screen.ShareHandler> { key ->
-                                ShareHandlerPage(
-                                    text = key.text,
-                                    streamUris = key.streamUris.ifEmpty {
-                                        key.streamUri?.let { listOf(it) }.orEmpty()
-                                    },
-                                    sourceAction = key.sourceAction,
-                                    declaredMimeType = key.declaredMimeType,
-                                    deliveryId = key.deliveryId,
-                                )
-                            }
-
-                            entry<Screen.History> {
-                                HistoryPage()
-                            }
-
-                            entry<Screen.SessionHome>(
-                                metadata = themePageChromeMetadata(ThemePageChrome.Home) + twoPaneMetadata(TwoPaneRole.List),
-                            ) {
-                                SessionHomePage()
-                            }
-
-                            entry<Screen.Profile> {
-                                ProfilePage()
-                            }
-
-                            entry<Screen.Favorite> {
-                                FavoritePage()
-                            }
-
-                            entry<Screen.LiveCompanion> {
-                                LiveCompanionPage()
-                            }
-
-                            entry<Screen.SynaraCompanion> {
-                                SynaraConnectPage()
-                            }
-
-                            entry<Screen.SynaraWorkspace> { key ->
-                                SynaraWorkspacePage(
-                                    connection = SynaraConnection(
-                                        host = key.host,
-                                        port = key.port,
-                                        token = key.token,
-                                        useHttps = key.useHttps,
-                                    ),
-                                )
-                            }
-
-                            entry<Screen.ZCode> {
-                                ZCodePage()
-                            }
-
-                            entry<Screen.ZCodeSession> { key ->
-                                ZCodeSessionPage(url = key.url)
-                            }
-
-                            entry<Screen.Setting>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingPage()
-                            }
-
-                            entry<Screen.Backup>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                BackupPage()
-                            }
-
-                            entry<Screen.WebView> { key ->
-                                WebViewPage(key.url, key.content)
-                            }
-
-                            entry<Screen.WebMountSession> { key ->
-                                WebMountSessionPage(
-                                    sessionId = key.sessionId,
-                                    reopen = key.reopen,
-                                )
-                            }
-
-                            entry<Screen.SettingDisplay>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingDisplayPage()
-                            }
-
-                            entry<Screen.SettingAppearance>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAppearancePage()
-                            }
-
-                            entry<Screen.SettingProvider>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingProviderPage()
-                            }
-
-                            entry<Screen.SettingProviderDetail>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) { key ->
-                                val id = Uuid.parse(key.providerId)
-                                SettingProviderDetailPage(id = id)
-                            }
-
-                            entry<Screen.SettingModels>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingModelPage()
-                            }
-
-                            entry<Screen.SettingAbout>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAboutPage()
-                            }
-
-                            entry<Screen.SettingAgentMemory>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentMemoryPage()
-                            }
-
-                            entry<Screen.SettingAgentMemoryRecall>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentMemoryRecallPage()
-                            }
-
-                            entry<Screen.SettingAgentMemoryWorker>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentMemoryWorkerPage()
-                            }
-
-                            entry<Screen.SettingAgentMemoryCompaction>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentMemoryCompactionPage()
-                            }
-
-                            entry<Screen.SettingAgentMemoryLibrary>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentMemoryLibraryPage()
-                            }
-
-                            entry<Screen.SettingAgentExtensions>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentExtensionsPage()
-                            }
-
-                            entry<Screen.SettingSlidesFonts>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingSlidesFontPage()
-                            }
-
-                            entry<Screen.SettingCronTasks>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingCronTasksPage()
-                            }
-
-                            entry<Screen.SettingAgentRuntimeTasks>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentRuntimeTasksPage()
-                            }
-
-                            entry<Screen.SettingAgentExecution>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentExecutionPage()
-                            }
-
-                            entry<Screen.SettingTts>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingTtsPage()
-                            }
-
-                            entry<Screen.SettingAgentPermissions>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingAgentPermissionsPage()
-                            }
-
-                            entry<Screen.SettingCapabilityPermissions>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingCapabilityPermissionsPage()
-                            }
-
-                            entry<Screen.SettingSearch>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingSearchPage()
-                            }
-
-                            entry<Screen.SettingJev>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingJevPage()
-                            }
-
-                            entry<Screen.SettingMcp>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingMcpPage()
-                            }
-
-                            entry<Screen.SettingFiles>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingFilesPage()
-                            }
-
-                            entry<Screen.SettingChatStorage>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingChatStoragePage()
-                            }
-
-                            entry<Screen.SettingStorage>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingStoragePage()
-                            }
-
-                            entry<Screen.SettingSandbox>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingSandboxPage()
-                            }
-
-                            entry<Screen.SettingExperimental>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalPage()
-                            }
-
-                            entry<Screen.SettingExperimentalICloud>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalICloudPage()
-                            }
-
-                            entry<Screen.SettingExperimentalMacGateway>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalMacGatewayPage()
-                            }
-
-                            entry<Screen.SettingExperimentalSubAgent>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalSubAgentPage()
-                            }
-
-                            entry<Screen.SettingExperimentalModelCouncil>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalModelCouncilPage()
-                            }
-
-                            entry<Screen.SettingExperimentalWebMount>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingExperimentalWebMountPage()
-                            }
-
-                            entry<Screen.TodayBoard> {
-                                TodayBoardPage()
-                            }
-
-                            entry<Screen.DeepRead>(
-                                // Standalone product opens articles like iOS's
-                                // `.zoom` transition — the page rises out of the
-                                // card instead of sliding in. The full app keeps
-                                // the shared slide.
-                                metadata = NavDisplay.transitionSpec {
-                                    if (StandaloneSurfaces.current == StandaloneSurfaces.DEEP_READ) {
-                                        (scaleIn(animationSpec = RouteTransitionSpecFloat, initialScale = 0.94f) + fadeIn(tween(220))) togetherWith fadeOut(tween(140))
-                                    } else {
-                                        routePushTransition()
-                                    }
-                                } + NavDisplay.popTransitionSpec {
-                                    if (StandaloneSurfaces.current == StandaloneSurfaces.DEEP_READ) {
-                                        fadeIn(tween(200)) togetherWith
-                                            (scaleOut(animationSpec = RouteTransitionSpecFloat, targetScale = 0.94f) + fadeOut(tween(240)))
-                                    } else {
-                                        routePopTransition()
-                                    }
-                                } + NavDisplay.predictivePopTransitionSpec {
-                                    if (StandaloneSurfaces.current == StandaloneSurfaces.DEEP_READ) {
-                                        fadeIn(tween(200)) togetherWith
-                                            (scaleOut(animationSpec = RouteTransitionSpecFloat, targetScale = 0.94f) + fadeOut(tween(240)))
-                                    } else {
-                                        routePopTransition()
-                                    }
-                                },
-                            ) { key ->
-                                DeepReadScreen(
-                                    topicId = key.topicId,
-                                    title = key.title,
-                                    sourceUrl = key.sourceUrl,
-                                    initialForceRegenerate = key.forceRegenerate,
-                                    fromHistory = key.fromHistory,
-                                )
-                            }
-
-                            entry<Screen.DeepReadHistory> {
-                                DeepReadHistoryPage()
-                            }
-
-                            entry<Screen.SettingTodayBoard>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingTodayBoardPage()
-                            }
-
-                            entry<Screen.SettingTodayBoardDetail>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) { key ->
-                                SettingTodayBoardPage(paneRoute = key.pane)
-                            }
-
-                            entry<Screen.DeepReadTemplateWorkbench> {
-                                DeepReadTemplateWorkbenchPage()
-                            }
-
-                            entry<Screen.MiniAppList> {
-                                MiniAppListPage()
-                            }
-
-                            entry<Screen.NovelProjects> {
-                                NovelProjectsPage()
-                            }
-
-                            entry<Screen.NovelMarkdown> { key ->
-                                NovelMarkdownWorkspacePage(
-                                    projectId = key.projectId,
-                                    branchSlug = key.branchSlug,
-                                    jobId = key.jobId,
-                                )
-                            }
-
-                            entry<Screen.MiniAppRunner> { key ->
-                                MiniAppRunnerPage(appId = key.appId)
-                            }
-
-                            entry<Screen.MiniAppSettings> {
-                                MiniAppSettingsPage()
-                            }
-
-                            entry<Screen.MiniAppSettingsDetail> { key ->
-                                MiniAppSettingsPage(groupRoute = key.group)
-                            }
-
-                            entry<Screen.SettingSystemAccess>(metadata = themePageChromeMetadata(ThemePageChrome.Shell)) {
-                                SettingSystemAccessPage()
-                            }
-
-                            entry<Screen.Developer> {
-                                DeveloperPage()
-                            }
-
-                            entry<Screen.Debug> {
-                                DebugPage()
-                            }
-
-                            entry<Screen.Log> {
-                                LogPage()
-                            }
-
-                            entry<Screen.Extensions> {
-                                ExtensionsPage()
-                            }
-
-                            entry<Screen.QuickMessages> {
-                                QuickMessagesPage()
-                            }
-
-                            entry<Screen.Prompts> {
-                                PromptPage()
-                            }
-
-                            entry<Screen.Skills> {
-                                SkillsPage()
-                            }
-
-                            entry<Screen.SkillDetail> { key ->
-                                SkillDetailPage(skillName = key.skillName)
-                            }
-
-                            entry<Screen.MessageSearch> {
-                                SearchPage()
-                            }
-
-                            entry<Screen.Stats> {
-                                StatsPage()
-                            }
-                        }
+                        entryProvider = appNavigationEntries(),
                     )
                 }
                 if (StandaloneSurfaces.current == StandaloneSurfaces.NOVEL) {
@@ -1072,321 +532,4 @@ class RouteActivity : ComponentActivity() {
             }
         }
     }
-}
-
-private fun Intent.extractSharedText(): String {
-    val text = getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
-        ?: getStringExtra(Intent.EXTRA_HTML_TEXT)
-        ?: getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
-        ?: ""
-    val subject = getStringExtra(Intent.EXTRA_SUBJECT).orEmpty()
-    return listOf(subject, text)
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .distinct()
-        .joinToString("\n\n")
-}
-
-@Suppress("DEPRECATION")
-private fun Intent.extractSingleStreamUri(): List<String> =
-    getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-        ?.let { listOf(it.toString()) }
-        .orEmpty()
-
-@Suppress("DEPRECATION")
-private fun Intent.extractMultipleStreamUris(): List<String> =
-    getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
-        ?.map { it.toString() }
-        .orEmpty()
-
-/** Parsed identity shared by cold-start and warm notification delivery. */
-internal data class NotificationDeepLink(
-    val conversationId: String,
-    val runId: String?,
-)
-
-internal fun notificationDeepLinkFrom(
-    conversationId: String?,
-    runId: String?,
-): NotificationDeepLink? {
-    val normalizedConversationId = conversationId
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?.let { raw -> runCatching { Uuid.parse(raw).toString() }.getOrNull() }
-        ?: return null
-    return NotificationDeepLink(
-        conversationId = normalizedConversationId,
-        runId = runId?.trim()?.takeIf { it.isNotEmpty() },
-    )
-}
-
-internal fun notificationDeepLinkFrom(intent: Intent): NotificationDeepLink? =
-    notificationDeepLinkFrom(
-        conversationId = intent.getStringExtra("conversationId"),
-        runId = intent.getStringExtra("runId"),
-    )
-
-/** Run ownership/freshness predicate kept pure for the notification canary. */
-internal fun notificationRunIsOwned(link: NotificationDeepLink, run: RunTerminal?): Boolean =
-    run != null && run.conversationId == link.conversationId && !run.state.isTerminal
-
-sealed interface Screen : NavKey {
-
-    @Serializable
-    data class Chat(
-        val id: String,
-        val text: String? = null,
-        val files: List<String> = emptyList(),
-        val nodeId: String? = null,
-        val messageId: String? = null,
-        val toolCallId: String? = null,
-    ) : Screen
-
-    /**
-     * Host-led Council Room page. conversationId links back to the conversation
-     * that owns the Room (1 conversation : 1 Room). The Room state is loaded
-     * by [app.amber.feature.ui.pages.councilroom.CouncilRoomVM] from the
-     * [app.amber.feature.modelcouncil.CouncilRoomManager].
-     */
-    @Serializable
-    data class CouncilRoom(val conversationId: String) : Screen
-
-    @Serializable
-    data class ShareHandler(
-        val text: String,
-        val streamUri: String? = null,
-        val streamUris: List<String> = emptyList(),
-        val sourceAction: String? = null,
-        val declaredMimeType: String? = null,
-        val deliveryId: String = Uuid.random().toString(),
-    ) : Screen
-
-    @Serializable
-    data object History : Screen
-
-    /** 会话首页 —— 聊天侧滑抽屉提升成的固定首页（冷启动默认落地页）。 */
-    @Serializable
-    data object SessionHome : Screen
-
-    /** 个人资料 / 统计页（头像入口）。 */
-    @Serializable
-    data object Profile : Screen
-
-    @Serializable
-    data object Favorite : Screen
-
-    @Serializable
-    data object LiveCompanion : Screen
-
-    /** Configure LAN connection to a Mac-hosted Synara workbench. */
-    @Serializable
-    data object SynaraCompanion : Screen
-
-    /**
-     * Full-screen WebView of the remote Synara workbench.
-     * Connection is passed on the route so open does not race DataStore / ViewModel init.
-     */
-    @Serializable
-    data class SynaraWorkspace(
-        val host: String,
-        val port: Int = 3773,
-        val token: String = "",
-        val useHttps: Boolean = false,
-    ) : Screen
-
-    /** Paste a 智谱 ZCode share URL and open its mobile web UI. */
-    @Serializable
-    data object ZCode : Screen
-
-    /** Full-screen ZCode WebView (no Amber chrome). */
-    @Serializable
-    data class ZCodeSession(val url: String) : Screen
-
-    @Serializable
-    data object Setting : Screen
-
-    @Serializable
-    data object Backup : Screen
-
-    @Serializable
-    data class WebView(val url: String = "", val content: String = "") : Screen
-
-    @Serializable
-    data class WebMountSession(
-        val sessionId: String,
-        val reopen: Boolean = false,
-    ) : Screen
-
-    @Serializable
-    data object SettingDisplay : Screen
-
-    @Serializable
-    data object SettingAppearance : Screen
-
-    @Serializable
-    data object SettingProvider : Screen
-
-    @Serializable
-    data class SettingProviderDetail(val providerId: String) : Screen
-
-    @Serializable
-    data object SettingModels : Screen
-
-    @Serializable
-    data object SettingAbout : Screen
-
-    @Serializable
-    data object SettingAgentMemory : Screen
-
-    @Serializable
-    data object SettingAgentMemoryRecall : Screen
-
-    @Serializable
-    data object SettingAgentMemoryWorker : Screen
-
-    @Serializable
-    data object SettingAgentMemoryCompaction : Screen
-
-    @Serializable
-    data object SettingAgentMemoryLibrary : Screen
-
-    @Serializable
-    data object SettingAgentExtensions : Screen
-
-    @Serializable
-    data object SettingSlidesFonts : Screen
-
-    @Serializable
-    data object SettingCronTasks : Screen
-
-    @Serializable
-    data object SettingAgentRuntimeTasks : Screen
-
-    @Serializable
-    data object SettingAgentExecution : Screen
-    data object SettingTts : Screen
-
-    @Serializable
-    data object SettingAgentPermissions : Screen
-
-    @Serializable
-    data object SettingCapabilityPermissions : Screen
-
-    @Serializable
-    data object SettingSearch : Screen
-
-    @Serializable
-    data object SettingJev : Screen
-
-    @Serializable
-    data object SettingMcp : Screen
-
-    @Serializable
-    data object SettingFiles : Screen
-
-    @Serializable
-    data object SettingChatStorage : Screen
-
-    @Serializable
-    data object SettingStorage : Screen
-
-    @Serializable
-    data object SettingSandbox : Screen
-
-    @Serializable
-    data object SettingExperimental : Screen
-
-    @Serializable
-    data object SettingExperimentalICloud : Screen
-
-    @Serializable
-    data object SettingExperimentalMacGateway : Screen
-
-    @Serializable
-    data object SettingExperimentalSubAgent : Screen
-
-    @Serializable
-    data object SettingExperimentalModelCouncil : Screen
-
-    @Serializable
-    data object SettingExperimentalWebMount : Screen
-
-    @Serializable
-    data object SettingSystemAccess : Screen
-
-    @Serializable
-    data object Developer : Screen
-
-    @Serializable
-    data object Debug : Screen
-
-    @Serializable
-    data object Log : Screen
-
-    @Serializable
-    data object Extensions : Screen
-
-    @Serializable
-    data object QuickMessages : Screen
-
-    @Serializable
-    data object Prompts : Screen
-
-    @Serializable
-    data object Skills : Screen
-
-    @Serializable
-    data class SkillDetail(val skillName: String) : Screen
-
-    @Serializable
-    data object MessageSearch : Screen
-
-    @Serializable
-    data object Stats : Screen
-
-    @Serializable
-    data object TodayBoard : Screen
-
-    @Serializable
-    data object MiniAppList : Screen
-
-    @Serializable
-    data object NovelProjects : Screen
-
-    @Serializable
-    data class NovelMarkdown(
-        val projectId: String,
-        val branchSlug: String? = null,
-        val jobId: String? = null,
-    ) : Screen
-
-    @Serializable
-    data class MiniAppRunner(val appId: String) : Screen
-
-    @Serializable
-    data object MiniAppSettings : Screen
-
-    @Serializable
-    data class MiniAppSettingsDetail(val group: String) : Screen
-
-    @Serializable
-    data object DeepReadTemplateWorkbench : Screen
-
-    @Serializable
-    data class DeepRead(
-        val topicId: String,
-        val title: String,
-        val sourceUrl: String? = null,
-        val forceRegenerate: Boolean = false,
-        val fromHistory: Boolean = false,
-    ) : Screen
-
-    @Serializable
-    data object DeepReadHistory : Screen
-
-    @Serializable
-    data object SettingTodayBoard : Screen
-
-    @Serializable
-    data class SettingTodayBoardDetail(val pane: String) : Screen
 }

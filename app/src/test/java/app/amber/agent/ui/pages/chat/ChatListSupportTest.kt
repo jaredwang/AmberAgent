@@ -17,7 +17,7 @@ import kotlin.uuid.Uuid
 class ChatListSupportTest {
     @Test
     fun `timeline boundary item keys stay fixed`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineItems.kt").readText()
 
         assertTrue(source.contains("ChatTimelineEntry.TimelineTail -> TimelineTailKey"))
         assertTrue(source.contains("ChatTimelineEntry.HistoryLoading -> HistoryLoadingItemKey"))
@@ -168,13 +168,14 @@ class ChatListSupportTest {
     fun `timeline uses reverse layout anchored at visual bottom`() {
         val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
         val page = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatPage.kt").readText()
+        val effects = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
 
         assertTrue(source.contains("reverseLayout = true"))
         // 跟随状态机已由 reverseLayout 原生锚定取代
-        assertFalse(source.contains("TimelineFollowMode"))
-        assertFalse(source.contains("scrollToTimelineBottom"))
-        assertFalse(source.contains("streamingVisibleEvents"))
-        assertFalse(source.contains("programmaticScrollInProgress"))
+        assertFalse((source + effects).contains("TimelineFollowMode"))
+        assertFalse((source + effects).contains("scrollToTimelineBottom"))
+        assertFalse((source + effects).contains("streamingVisibleEvents"))
+        assertFalse((source + effects).contains("programmaticScrollInProgress"))
         // 默认初始位即底部：ChatPage 不再做"等两帧再 scrollToItem(last)"的初始化
         assertTrue(page.contains("rememberLazyListState(initialFirstVisibleItemIndex = initialChatListIndex)"))
         assertFalse(page.contains("withFrameNanos { }"))
@@ -182,7 +183,7 @@ class ChatListSupportTest {
 
     @Test
     fun `timeline tail shield keeps native anchoring for structural insertions`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListSupport.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelinePlan.kt").readText()
         val section = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
 
         // TimelineTail 恒为 reversed 发射的第一个 entry（index 0 = 视觉底部锚定边），
@@ -195,7 +196,7 @@ class ChatListSupportTest {
 
     @Test
     fun `tail indicator reserve is retained until the next message replaces the tail`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
 
         // reverseLayout 下 TimelineTail（index 0）在锚定边，生成结束立刻移除其
         // 70dp reserve 会让时间线单帧下坠；保留空间直到下一条消息成为尾部。
@@ -205,7 +206,7 @@ class ChatListSupportTest {
 
     @Test
     fun `send paths land the view on the bottom regardless of scroll position`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineEffects.kt").readText()
 
         // 监听 pending/直接发送追加统一覆盖所有发送路径；`prevPendingCount == 0`
         // 守卫把直接发送（追加前队列空）与队列排水（排水前 pending 非空）区分，
@@ -228,8 +229,8 @@ class ChatListSupportTest {
 
     @Test
     fun `streaming tail indicator renders in list without pinned overlay`() {
-        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListNormalSection.kt").readText()
-        val plan = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatListSupport.kt").readText()
+        val source = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelineItems.kt").readText()
+        val plan = repoFile("src/main/java/app/amber/feature/ui/pages/chat/ChatTimelinePlan.kt").readText()
 
         // reverseLayout 下跟随时 TimelineTail item 恒在底部视口内，列表内指示器
         // 足够；pin 交接/保留圆点等防抖机制已删除。

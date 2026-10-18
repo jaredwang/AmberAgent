@@ -21,6 +21,12 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
+/** Stored responses may resume only from these durable pause states. */
+internal val RESPONSES_RESUME_STATES = setOf(
+    app.amber.feature.runtime.RunTerminalState.RESUMABLE,
+    app.amber.feature.runtime.RunTerminalState.WAITING_EXTERNAL,
+)
+
 /** Wait for this dispatch's immutable activation rather than a previous pause. */
 internal suspend fun awaitChatRunDispatchEnd(
     snapshots: StateFlow<AgentRunSnapshot>,

@@ -12,7 +12,6 @@ import app.amber.core.model.PromptInjection
 import app.amber.core.model.Lorebook
 import app.amber.core.model.extractContextForMatching
 import app.amber.core.model.isTriggered
-import app.amber.core.settings.Settings
 
 /**
  * 提示词注入转换器
@@ -38,7 +37,7 @@ object PromptInjectionTransformer : InputMessageTransformer {
  */
 internal fun transformMessages(
     messages: List<UIMessage>,
-    settings: Settings,
+    settings: TransformerSettings,
     modeInjections: List<PromptInjection.ModeInjection>,
     lorebooks: List<Lorebook>
 ): List<UIMessage> {
@@ -68,7 +67,7 @@ internal fun transformMessages(
  */
 internal fun collectInjections(
     messages: List<UIMessage>,
-    settings: Settings,
+    settings: TransformerSettings,
     modeInjections: List<PromptInjection.ModeInjection>,
     lorebooks: List<Lorebook>
 ): List<PromptInjection> {

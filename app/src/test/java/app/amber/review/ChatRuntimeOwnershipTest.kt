@@ -1,6 +1,17 @@
 package app.amber.review
 
 import android.app.Application
+import android.content.ContextWrapper
+import app.amber.core.files.FilesManager
+import app.amber.core.repository.ConversationRepository
+import app.amber.core.service.ConversationStore
+import app.amber.core.service.ChatErrorStore
+import app.amber.core.service.ChatApprovalActions
+import app.amber.core.service.PendingMessageQueue
+import app.amber.core.service.PendingMessageStore
+import kotlinx.serialization.json.Json
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.ModelAbility
 import app.amber.ai.provider.ProviderSetting
@@ -15,6 +26,13 @@ import app.amber.core.agent.runtime.RunStatus
 import app.amber.core.automation.ScreenCaptureManager
 import app.amber.core.model.Conversation
 import app.amber.core.service.ChatService
+import app.amber.core.service.ChatRunPresenter
+import app.amber.core.service.ChatRunCoordinator
+import app.amber.agent.AppScope
+import app.amber.feature.runtime.AgentToolActivityStore
+import app.amber.feature.task.AgentTaskScheduler
+import app.amber.feature.task.AgentTaskStore
+import kotlinx.coroutines.cancel
 import app.amber.core.service.ConversationSession
 import app.amber.core.service.PendingUserMessage
 import app.amber.core.settings.Settings
@@ -49,23 +67,30 @@ import org.robolectric.annotation.Config
 import kotlin.uuid.Uuid
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], application = Application::class)
 class ChatRuntimeOwnershipTest {
     private val conversationId = Uuid.parse("11111111-1111-1111-1111-111111111111")
     private val runId = AgentRunId("current-chat-run")
+    @get:Rule val queueDirectory = TemporaryFolder()
+    private val presenters = mutableListOf<ChatRunPresenter>()
+    private val presenterScopes = mutableListOf<AppScope>()
 
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() {
+        presenters.forEach { it.cleanup() }
+        presenterScopes.forEach { it.cancel() }
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun matchingNotificationStopCancelsItsDispatchAndPreservesPendingInput() = runTest {
         val runner = ControlledRunner(runId)
         val fixture = fixture(backgroundScope, runner)
         val queued = PendingUserMessage(id = "followup", parts = listOf(UIMessagePart.Text("keep queued")))
-        fixture.session.enqueuePendingUserMessage(queued)
+        fixture.queue.enqueuePendingUserMessage(conversationId, queued)
         val dispatch = backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { awaitCancellation() }
         fixture.session.setJob(dispatch)
 
@@ -156,39 +181,66 @@ class ChatRuntimeOwnershipTest {
     private fun fixture(scope: CoroutineScope, runner: ControlledRunner): Fixture {
         val context = RuntimeEnvironment.getApplication()
         val service = ReflectionFixture.allocate<ChatService>()
-        val session = ConversationSession(conversationId, Conversation.ofId(conversationId), scope = scope, onIdle = {})
+        val coordinator = ReflectionFixture.allocate<ChatRunCoordinator>()
         val activeRuns = MutableStateFlow(mapOf(conversationId to runId))
         val model = Model(modelId = "test", abilities = listOf(ModelAbility.TOOL))
         val settings = ReflectionFixture.allocate<SettingsAggregator>()
         ReflectionFixture.set(settings, "_settingsFlow", MutableStateFlow(
             Settings(chatModelId = model.id, providers = listOf(ProviderSetting.OpenAI(models = listOf(model)))),
         ))
-        ReflectionFixture.set(service, "context", context)
-        ReflectionFixture.set(service, "settingsStore", settings)
-        ReflectionFixture.set(service, "sessions", ConcurrentHashMap<Uuid, ConversationSession>().apply { put(conversationId, session) })
-        ReflectionFixture.set(service, "activeKernelRuns", activeRuns)
-        ReflectionFixture.set(service, "agentRunner", runner)
-        ReflectionFixture.set(service, "pausedForUserConversations", MutableStateFlow(emptySet<Uuid>()))
-        ReflectionFixture.set(service, "_lastRunOutcomes", MutableStateFlow(emptyMap<Uuid, RunStatus>()))
-        ReflectionFixture.set(service, "_errors", MutableStateFlow(emptyList<app.amber.core.service.ChatError>()))
-        ReflectionFixture.set(service, "trustedRunToolNames", ConcurrentHashMap<Uuid, Set<String>>())
-        ReflectionFixture.set(service, "liveStatusNotifier", AgentLiveStatusNotifier(context, NotificationApprovalTokenRegistry()))
-        ReflectionFixture.set(service, "screenCaptureManager", ScreenCaptureManager(context))
-        return Fixture(service, session, activeRuns, runner)
+        val errorStore = ChatErrorStore()
+        val fileContext = object : ContextWrapper(context) {
+            override fun getFilesDir() = queueDirectory.root
+        }
+        val pendingStore = PendingMessageStore(fileContext, Json)
+        val queue = PendingMessageQueue(scope, pendingStore)
+        val store = ConversationStore(
+            conversationRepo = ReflectionFixture.allocate<ConversationRepository>(),
+            settingsStore = settings,
+            appScope = scope,
+            filesManager = ReflectionFixture.allocate<FilesManager>(),
+            pendingMessageQueue = queue,
+            errorStore = errorStore,
+        )
+        val session = store.session(conversationId)
+        ReflectionFixture.set(coordinator, "conversationStore", store)
+        ReflectionFixture.set(coordinator, "pendingMessageQueue", queue)
+        ReflectionFixture.set(coordinator, "errorStore", errorStore)
+        ReflectionFixture.set(coordinator, "context", context)
+        ReflectionFixture.set(coordinator, "settingsStore", settings)
+        ReflectionFixture.set(coordinator, "activeKernelRuns", activeRuns)
+        ReflectionFixture.set(coordinator, "agentRunner", runner)
+        ReflectionFixture.set(coordinator, "pausedForUserConversations", MutableStateFlow(emptySet<Uuid>()))
+        ReflectionFixture.set(coordinator, "_lastRunOutcomes", MutableStateFlow(emptyMap<Uuid, RunStatus>()))
+        ReflectionFixture.set(coordinator, "approvalActions", ChatApprovalActions(context, Json, store))
+        val presenterScope = AppScope().also(presenterScopes::add)
+        val presenter = ChatRunPresenter(
+            context = fileContext,
+            appScope = presenterScope,
+            activityStore = AgentToolActivityStore(),
+            liveStatusNotifier = AgentLiveStatusNotifier(context, NotificationApprovalTokenRegistry()),
+            agentTaskScheduler = AgentTaskScheduler(AgentTaskStore(fileContext, Json, loadDispatcher = Dispatchers.Unconfined)),
+        ).also(presenters::add)
+        ReflectionFixture.set(coordinator, "runPresenter", presenter)
+        ReflectionFixture.set(coordinator, "screenCaptureManager", ScreenCaptureManager(context))
+        ReflectionFixture.set(service, "runCoordinator", coordinator)
+        return Fixture(service, coordinator, session, activeRuns, runner, queue)
     }
 
     private inner class Fixture(
         val service: ChatService,
+        val coordinator: ChatRunCoordinator,
         val session: ConversationSession,
         val activeRuns: MutableStateFlow<Map<Uuid, AgentRunId>>,
         val runner: ControlledRunner,
+        val queue: PendingMessageQueue,
     ) {
         suspend fun dispatchTurn() {
-            val dispatch = ChatService::class.java.declaredMethods.single {
+            val dispatch = ChatRunCoordinator::class.java.declaredMethods.single {
                 it.name.startsWith("dispatchKernelTurn") && !it.name.endsWith("\$default")
             }
             ReflectionFixture.invokeSuspend(
-                service, dispatch, conversationId, session, runner, Uuid.random(), "test", null, null, null,
+                coordinator, dispatch, conversationId, session, runner, Uuid.random(), "test", null, null, null,
             )
         }
     }

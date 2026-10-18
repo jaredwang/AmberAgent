@@ -29,6 +29,33 @@ import kotlin.uuid.Uuid
 class StoredResponseStopCancelTest : DurableRuntimeTestBase() {
 
     @Test
+    fun stopUnconfirmedHandoffIsRunScopedAndConsumedOnce() {
+        val stopCancel = StoredResponseStopCancel(FakeGateway(null), InMemoryStore())
+        stopCancel.markStopUnconfirmed("run_1")
+        stopCancel.markStopUnconfirmed("run_2")
+
+        assertEquals(false, stopCancel.consumeStopUnconfirmed("other_run"))
+        assertTrue(stopCancel.consumeStopUnconfirmed("run_1"))
+        assertEquals(false, stopCancel.consumeStopUnconfirmed("run_1"))
+        stopCancel.clearStopUnconfirmed("run_2")
+        assertEquals(false, stopCancel.consumeStopUnconfirmed("run_2"))
+    }
+
+    @Test
+    fun regenerationFailureDoesNotLeaveAStopHandlerHandoff() = runBlocking {
+        val store = InMemoryStore()
+        store.save("run_1", "resp_1", 5, "provider_1")
+        runTerminalStore.begin("run_1", "conv_1", null)
+        val stopCancel = StoredResponseStopCancel(
+            FakeGateway(session(FakeApi(StoredResponseCancelResult.CancelFailed))), store,
+        )
+
+        assertEquals(false, stopCancel.cancelForRegeneration("run_1", runTerminalStore))
+        assertEquals(false, stopCancel.consumeStopUnconfirmed("run_1"))
+        assertEquals(RunTerminalState.WAITING_EXTERNAL, runTerminalStore.get("run_1")!!.state)
+    }
+
+    @Test
     fun regenerationFinishesTheOldRunBeforeANewRunCanBeSelected() = runBlocking {
         val store = InMemoryStore()
         store.save("run_1", "resp_1", 5, "provider_1")

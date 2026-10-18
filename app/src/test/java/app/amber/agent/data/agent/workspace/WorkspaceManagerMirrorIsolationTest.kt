@@ -12,8 +12,13 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import app.amber.feature.workspace.WorkspaceManager
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -84,6 +89,67 @@ class WorkspaceManagerMirrorIsolationTest {
         assertNotNull("clearing must flush workspace B before clearing its mirror", provider.findByName("only-in-b.txt"))
         assertFalse("clearing workspace must clear workspace B files", workspaceBFile.exists())
         assertTrue(manager.mirrorDir.isDirectory)
+    }
+
+    @Test
+    fun cancelledLeaseOwnerReleasesOnceAndAllowsTheNextTerminal(): Unit = runBlocking {
+        val acquired = CompletableDeferred<Unit>()
+        val owner = launch {
+            val lease = manager.acquireTerminalMirror(refreshFromWorkspace = false)
+            acquired.complete(Unit)
+            try {
+                awaitCancellation()
+            } finally {
+                lease.release(syncBack = false)
+                lease.release(syncBack = false)
+            }
+        }
+        acquired.await()
+
+        owner.cancelAndJoin()
+
+        manager.acquireTerminalMirror(false).release(syncBack = false)
+        manager.acquireTerminalMirror(false).release(syncBack = false)
+    }
+
+    @Test
+    fun refreshPreservesMirrorOnlyFilesAndActiveLeaseRejectsRefreshAndFlush() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+        val local = manager.mirrorDir.resolve("mirror-only.txt").apply {
+            parentFile?.mkdirs()
+            writeText("local content")
+        }
+
+        manager.refreshMirrorFromWorkspace()
+
+        assertTrue(local.exists())
+        val lease = manager.acquireTerminalMirror(false)
+        try {
+            assertTrue(runCatching { manager.refreshMirrorFromWorkspace() }.exceptionOrNull() is IllegalStateException)
+            assertTrue(runCatching { manager.syncFromMirror() }.exceptionOrNull() is IllegalStateException)
+        } finally {
+            lease.release(syncBack = false)
+        }
+        manager.syncFromMirror()
+        assertNotNull(provider.findByName("mirror-only.txt"))
+    }
+
+    @Test
+    fun publicDocumentCommandsKeepBoundedReadEditAppendAndSearchContracts() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+
+        manager.writeText("note.md", "first 中文\nsecond line")
+        val capped = manager.readTextCapped("note.md", 5)
+        assertTrue(capped.truncated)
+        assertEquals("first", capped.content)
+        manager.editText("note.md", "second", "updated", replaceAll = false)
+        manager.writeText("note.md", "\nappended", append = true)
+
+        assertEquals("first 中文\nupdated line\nappended", manager.readText("note.md"))
+        val result = manager.search("updated").single()
+        assertEquals("note.md", result.path)
+        assertEquals(2, result.lineNumber)
+        assertTrue(runCatching { manager.readBytesCapped("note.md", 3) }.isFailure)
     }
 
     private fun treeUri(rootId: String): Uri =
@@ -158,12 +224,12 @@ class WorkspaceManagerMirrorIsolationTest {
             val file = backingFiles.getOrPut(documentId) {
                 backingDir.resolve("$documentId.bin").apply { createNewFile() }
             }
-            return ParcelFileDescriptor.open(
-                file,
-                ParcelFileDescriptor.MODE_READ_WRITE or
-                    ParcelFileDescriptor.MODE_CREATE or
-                    ParcelFileDescriptor.MODE_TRUNCATE,
-            )
+            val flags = when (mode) {
+                "r" -> ParcelFileDescriptor.MODE_READ_ONLY
+                "wa" -> ParcelFileDescriptor.MODE_READ_WRITE or ParcelFileDescriptor.MODE_CREATE or ParcelFileDescriptor.MODE_APPEND
+                else -> ParcelFileDescriptor.MODE_READ_WRITE or ParcelFileDescriptor.MODE_CREATE or ParcelFileDescriptor.MODE_TRUNCATE
+            }
+            return ParcelFileDescriptor.open(file, flags)
         }
 
         fun findByName(name: String): String? = docs.values.firstOrNull { it.displayName == name }?.id

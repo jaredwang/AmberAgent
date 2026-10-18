@@ -5,6 +5,19 @@ import android.content.Context
 import android.content.pm.ProviderInfo
 import android.net.Uri
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.core.net.toUri
+import app.amber.ai.ui.UIMessage
+import app.amber.ai.ui.UIMessagePart
+import app.amber.core.context.ConversationContextRepository
+import app.amber.core.model.Conversation
+import app.amber.core.model.MessageNode
+import app.amber.core.repository.ConversationRepository
+import app.amber.core.service.ChatErrorStore
+import app.amber.core.service.ConversationEditor
+import app.amber.core.service.ConversationStore
+import app.amber.core.service.PendingMessageQueue
+import app.amber.core.service.PendingMessageStore
+import app.amber.core.service.UserInputPreprocessor
 import androidx.room.Room
 import app.amber.ai.provider.providers.TestAndroidKeyStore
 import app.amber.ai.provider.providers.google.GoogleGeminiAuthStore
@@ -54,12 +67,20 @@ import app.amber.feature.novelworkspace.NovelWorkspaceProjectRepository
 import app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridge
 import app.amber.feature.webmount.oauth.WebMountOAuthTokenStore
 import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -79,6 +100,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowContentResolver
 import kotlin.uuid.Uuid
@@ -90,6 +112,8 @@ class SyncArchiveManagerIntegrationTest {
     private lateinit var database: AppDatabase
     private lateinit var appScope: AppScope
     private lateinit var manager: SyncArchiveManager
+    private lateinit var settingsStore: SettingsAggregator
+    private lateinit var filesManager: FilesManager
     private lateinit var grokAuthStore: GrokAuthStore
     private lateinit var restoreWriteGate: SyncRestoreWriteGate
     private lateinit var testRoot: File
@@ -132,7 +156,7 @@ class SyncArchiveManagerIntegrationTest {
             },
         )
         val secretRedactor = SecretRedactor(secretStore)
-        val settingsStore = SettingsAggregator(
+        settingsStore = SettingsAggregator(
             dataStore = dataStore,
             uiPrefs = UIPrefs(dataStore, appScope),
             searchPrefs = SearchPrefs(dataStore, appScope, secretStore),
@@ -156,7 +180,7 @@ class SyncArchiveManagerIntegrationTest {
             .build()
         recreateFtsTables()
         restoreWriteGate = SyncRestoreWriteGate()
-        val filesManager = FilesManager(
+        filesManager = FilesManager(
             context = context,
             repository = FilesRepository(database.managedFileDao()),
             appScope = appScope,
@@ -194,6 +218,91 @@ class SyncArchiveManagerIntegrationTest {
         // The production preference collectors intentionally terminate the process when their
         // app-wide scope fails, so this integration fixture must not cancel that scope in @After.
         kotlinx.coroutines.Dispatchers.resetMain()
+    }
+
+    @Test
+    fun failedUnfinishedForkDoesNotDeleteItsCopyAdoptedByARealArchiveRestore() = runBlocking {
+        val repo = ConversationRepository(
+            database.conversationDao(), database.messageNodeDao(), database.messageStatsDao(), database.favoriteDao(),
+            database, filesManager, MessageFtsManager(database), restoreWriteGate,
+        )
+        val queue = PendingMessageQueue(appScope, PendingMessageStore(context, JsonInstant), restoreWriteGate)
+        val store = ConversationStore(repo, settingsStore, appScope, filesManager, queue, ChatErrorStore(), restoreWriteGate)
+        val contextRepository = ConversationContextRepository(
+            database.conversationCompactDao(), database.conversationContextEventDao(), repo, restoreWriteGate,
+        )
+        val editor = ConversationEditor(
+            context, store, contextRepository, UserInputPreprocessor(settingsStore), filesManager, restoreWriteGate,
+        )
+        val source = File(testRoot, "first-source.txt").apply { writeText("already copied before restore") }
+        val secondSource = File(testRoot, "second-source.txt").apply { writeText("fails after restore") }
+        val message = UIMessage.user("Fork these documents").copy(parts = listOf(
+            UIMessagePart.Document(source.toUri().toString(), source.name),
+            UIMessagePart.Document(secondSource.toUri().toString(), secondSource.name),
+        ))
+        val original = Conversation.ofId(Uuid.random()).copy(messageNodes = listOf(MessageNode.of(message)))
+        repo.insertConversation(original)
+        val oldEpoch = restoreWriteGate.currentEpoch()
+        val readStarted = CountDownLatch(1)
+        val releaseRead = CountDownLatch(1)
+        val failureDelivered = AtomicBoolean(false)
+        // Register the stream consumed by ContentResolver; AFD stream subclasses are rebuilt.
+        shadowOf(context.contentResolver).registerInputStreamSupplier(secondSource.toUri()) {
+            object : FileInputStream(secondSource) {
+                override fun read(buffer: ByteArray): Int = read(buffer, 0, buffer.size)
+
+                override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                    readStarted.countDown()
+                    check(releaseRead.await(45, TimeUnit.SECONDS)) { "Fork read barrier was not released" }
+                    failureDelivered.set(true)
+                    throw IOException("Second attachment failed after archive restore")
+                }
+            }
+        }
+        val fork = async(Dispatchers.IO) {
+            runCatching { editor.forkConversationAtMessage(original.id, message.id) }
+        }
+        var archive: File? = null
+        try {
+            assertTrue("The real second attachment stream must be reached", withContext(Dispatchers.IO) {
+                readStarted.await(10, TimeUnit.SECONDS)
+            })
+            assertFalse("The fork must still be unfinished at export", fork.isCompleted)
+            val firstCopyRow = filesManager.list(FileFolders.UPLOAD).single()
+            val firstCopy = filesManager.getFile(firstCopyRow)
+            assertFalse("The copy must be a production-created path", firstCopy == source)
+            assertEquals(source.readText(), firstCopy.readText())
+            assertEquals(listOf(original.id), repo.getConversations().first().map { it.id })
+
+            val exported = manager.createArchiveFile(SyncExportRequest(mode = SyncMode.FULL, passphrase = "test-passphrase"))
+            archive = exported
+            val payload = readArchivePayload(exported.readBytes(), "test-passphrase")
+            assertArrayEquals(source.readBytes(), payload.getValue("files/${firstCopyRow.relativePath}"))
+            val request = restoreRequest()
+            val verification = manager.verifyArchive(exported, request)
+            withTimeout(15_000) { manager.applyRestore(verification, request) }
+            assertTrue(restoreWriteGate.currentEpoch() > oldEpoch)
+            assertTrue("The archive must actually restore the unfinished fork's copy", firstCopy.isFile)
+            assertEquals(source.readText(), firstCopy.readText())
+            assertTrue(filesManager.getByRelativePath(firstCopyRow.relativePath) != null)
+            assertEquals(listOf(original.id), repo.getConversations().first().map { it.id })
+
+            releaseRead.countDown()
+            val failure = withTimeout(10_000) { fork.await() }.exceptionOrNull()
+            assertTrue("The actual second stream must throw", failureDelivered.get())
+            assertTrue("The unfinished fork must fail rather than acquire a conversation owner", failure is IllegalStateException)
+            assertEquals(listOf(original.id), repo.getConversations().first().map { it.id })
+            assertEquals("The source must retain its original bytes", "already copied before restore", source.readText())
+            assertTrue("Old fork compensation must retain the file adopted by restore", firstCopy.isFile)
+            assertEquals(source.readText(), firstCopy.readText())
+            assertTrue("Old fork compensation must retain the restored managed row", filesManager.getByRelativePath(firstCopyRow.relativePath) != null)
+        } finally {
+            releaseRead.countDown()
+            withTimeout(10_000) { fork.join() }
+            archive?.delete()
+            store.cleanup()
+            queue.cleanup()
+        }
     }
 
     @Test

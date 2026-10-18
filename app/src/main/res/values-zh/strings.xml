@@ -486,7 +486,7 @@
   <string name="setting_agent_memory_context_compaction_desc">长对话接近模型窗口时，自动整理旧内容，不删除原文。</string>
   <string name="setting_agent_memory_context_compaction_notify_title">仅提醒不压缩</string>
   <string name="setting_agent_memory_context_compaction_notify_desc">只提示上下文压力，不自动写入摘要。</string>
-  <string name="setting_agent_memory_context_compaction_defaults">默认：70%% 预压缩，85%% 强制压缩，保护最近 8 轮 / 16 条消息。</string>
+  <string name="setting_agent_memory_context_compaction_defaults" formatted="false">默认：70% 预压缩，85% 强制压缩，保护最近 8 轮 / 16 条消息。</string>
   <string name="setting_agent_memory_context_mode_section">模式</string>
   <string name="setting_agent_memory_context_threshold_section">阈值</string>
   <string name="setting_agent_memory_context_protect_section">保护</string>

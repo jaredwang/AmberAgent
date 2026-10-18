@@ -10,6 +10,7 @@ import app.amber.ai.ui.UIMessagePart
 import app.amber.core.ai.GenerationChunk
 import app.amber.core.ai.GenerationTerminal
 import app.amber.core.ai.GenerationRunSession
+import app.amber.core.ai.toGenerationSettings
 import app.amber.core.ai.RunKernel
 import app.amber.feature.runtime.ToolInvocationContext
 import app.amber.core.settings.Settings
@@ -95,6 +96,7 @@ class GenerationSubAgentRunner(
         val model = definition.modelId?.let { settings.findModelById(it) }
             ?: settings.getCurrentChatModel()
             ?: error("Current chat model is not configured")
+        val generationSettings = isolatedSettings.toGenerationSettings(model)
         val messages = listOf(UIMessage.user(buildTaskPrompt(definition, task, previousAnswer)))
         val reportCapture = SubAgentReportCapture()
         var latest = messages
@@ -104,7 +106,7 @@ class GenerationSubAgentRunner(
         try {
             kernel.run(
                 GenerationRunSession(
-                    settings = isolatedSettings,
+                    settings = generationSettings,
                 model = model,
                 messages = messages,
                 memories = emptyList(),
@@ -159,16 +161,7 @@ class GenerationSubAgentRunner(
             }
         }
 
-        val pendingTool = latest.lastOrNull()?.getTools()
-            ?.firstOrNull { it.approvalState is ToolApprovalState.Pending }
-        if (pendingTool != null) {
-            return SubAgentResult(
-                status = SubAgentRunStatus.APPROVAL_REQUIRED,
-                summary = "Subagent requested approval for ${pendingTool.toolName}.",
-                risks = listOf("Subagent cannot self-approve sensitive tools."),
-                recommendedNextSteps = listOf("Main agent should decide whether to ask the user for approval in the parent conversation."),
-            )
-        }
+        latest.pendingApprovalResult()?.let { return it }
 
         var reportRetryError: Throwable? = null
         if (!reportCapture.hasReport && generationError == null) {
@@ -182,7 +175,7 @@ class GenerationSubAgentRunner(
             try {
                 kernel.run(
                     GenerationRunSession(
-                        settings = isolatedSettings,
+                        settings = generationSettings,
                     model = model,
                     messages = latest,
                     memories = emptyList(),
@@ -214,6 +207,8 @@ class GenerationSubAgentRunner(
             }
         }
 
+        latest.pendingApprovalResult()?.let { return it }
+
         val finalDisplayText = supervisorDisplayText
             .ifBlank { renderAssistantTranscriptForDisplay(latest).take(definition.outputBudgetChars) }
         // Final write to liveText so a sheet opened/refreshed AFTER completion still shows the
@@ -232,6 +227,18 @@ class GenerationSubAgentRunner(
         } else {
             result
         }
+    }
+
+    private fun List<UIMessage>.pendingApprovalResult(): SubAgentResult? {
+        val pendingTool = lastOrNull()?.getTools()
+            ?.firstOrNull { it.approvalState is ToolApprovalState.Pending }
+            ?: return null
+        return SubAgentResult(
+            status = SubAgentRunStatus.APPROVAL_REQUIRED,
+            summary = "Subagent requested approval for ${pendingTool.toolName}.",
+            risks = listOf("Subagent cannot self-approve sensitive tools."),
+            recommendedNextSteps = listOf("Main agent should decide whether to ask the user for approval in the parent conversation."),
+        )
     }
 
     /**

@@ -1,0 +1,207 @@
+{
+  "objective": "complete phases 0-6 with independent logic/call-chain/UI review",
+  "baseline": "137f57e2d5c9dc3b924866db2d7b2a369bb78478",
+  "branch": "refactor/modularization-phases-20261018",
+  "currentPhase": 6,
+  "phases": [
+    {
+      "id": 0,
+      "status": "complete",
+      "review": "passed_after_corrections",
+      "verification": "initial 90/9 and isolated 17/7 baseline recorded; app+androidTest build passed; known product failures assigned P2/P3",
+      "ui": "current APK installed; real home/settings/empty-chat smoke passed; 7 screenshots independently inspected; initial GPU fence ANR retained as limitation"
+    },
+    {
+      "id": 1,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "100 relevant JVM passed; fullDebug app/test compiled and assembled; actual Intelligent5+targeted Study1/Memory2/Home1 passed",
+      "ui": "actual Home/Profile/Memory5/editor+IME/Provider empty-key configuration/model-picker empty reviewed; footer/A-B glyph/percent fixes verified; external provider/OAuth/data-model device gates explicit"
+    },
+    {
+      "id": 2,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "runtime13classes66 tests0fail0skip; final app/test APK build+install success; actual A411/B411/A321 and earlier B321 green; independent logic/pixel review closed",
+      "ui": "same Store/flow actual Koin identity; send/queue/Stop/FIFO/Room, ask_user same-run resume, real HOME/Presenter background/warm sameActivity owner; queue header bug fixed and both widths independently reviewed; Settings/launch/clock/wm restored. TrayC/provider/real-frame-performance explicitly unverified"
+    },
+    {
+      "id": 3,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "Complete candidate other450app cases green, repairedImporter10/related43green; finalresponsiveUI8green0skip. PureNovel157pass1crossplatformskip; Rust20green. FullDebugapp/testassembled+installedfinalmain96a9405d, final source snapshot1866inputs.",
+      "ui": "Independent closed actualSandbox/WebView, WidgetSafe/Guizang/Slides/CardDialog/VChartpixels, Rendering411+320font1.5, realChat411send/queue/Stop/FIFO/Room/HOME/ask_user, finalrealNovel320/font1.5+411fullroute. Editor/Manuscripttwo genuineUIbugs fixed and freshdualviewportreviewed. Finalwm/density/font restoredexactly; externalprovider/systemchooser/camera/SAF/OEM/perf/crossplatformgatesexplicit."
+    },
+    {
+      "id": 4,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "Finalindependentreviewclosed7owners/source2532hashes/117app+Hero1affectedgreen;Council32,document19;allknownoriginal20failclosedbyrealreruns, no overlapping totals. Main6ac522ef/test05dd69f8 built+installed.",
+      "ui": "Council/DeepRead/Live/Terminal411+320font1.5actualgreen and independentlyseen; 4genuineUIissuesfixed. TerminalstrictDialog/single realtitle touch/Stop/durable/lease/fresh/Back/recreate closed; originaldata/Settings/prefs/config restored. All externalprovider/permissions/SAF/Alpine/SSH/device/perfgates explicit."
+    },
+    {
+      "id": 5,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "All10 owner packets and root startup complete, source2803hash0drift independent. Modules352green; wholeapp3178 disclosed22 failures14skip then affected58+History4green; no whole3178 rerun. Finalnormal3products+test assembled; main d6a5eaad installedhash equals APK. ActualRoute3+3/WebView17/Settings3+3 then finalfourUIfixes affected2+2 green; all known failures closed.",
+      "ui": "Independent reviewer personally checked final411/320font1.5 relevant PNG, allfour confirmed issues closed; earlierSSH/WebMount actualdualwidth reused unchanged. Settings/prefs/config cleanup/canonical restored, reverse empty, permission state unchanged."
+    },
+    {
+      "id": 6,
+      "status": "complete",
+      "review": "PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+      "verification": "Independent52 owner audit complete,1609production355469lines11>1000/1>1500,NovelVM1564 explicit64linecohesive exception.48modules160productionedgesDAG/no library->app.2803sourcehash0drift. Normal3products+test compiled/assembled, finalFull d6a5eaad installedhashmatched. Allplannedaffectedgatesclosed; full3178 not rerun after targeted repairs; original14skip/externalgatesexplicit.",
+      "ui": "Finalindependentreviewer personally checked repaired411/320font1.5 PNG, fourtrueissuesclosed; actualaffected2+2green0skip. Route3+3/WebView17/Settingsprevious3+3green reused unchanged. Chat2+Novel1 actualgreenon ebd88634, onlythreepurelayoutfileschangedafter, scope-basedreuseexplicit; priorP0-P4reviewspassed."
+    }
+  ],
+  "authorization": {
+    "implementation": true,
+    "continuous": true,
+    "subagents": true,
+    "commit": true,
+    "push": false,
+    "publish": false
+  },
+  "updatedAt": "2026-10-18T08:27:30.844324+00:00",
+  "baselineIssues": {
+    "phase2": [
+      "matching_notification_stop_dispatch",
+      "cancelled_dispatch_settlement",
+      "terminal_dispatch_settlement"
+    ],
+    "phase3": [
+      "removed_attachment_during_validation",
+      "sent_attachment_consumption",
+      "edit_unresolved_attachment",
+      "widget_preserves_edit_owner",
+      "replace_draft_clears_ready_imports",
+      "replace_draft_rejects_late_import"
+    ]
+  },
+  "uiGate": "P0-P6 PASSED_WITH_EXPLICIT_EXTERNAL_GATES",
+  "packets": {
+    "P1-intelligent-schema-state": "complete",
+    "P1-intelligent-renderers": "complete",
+    "P1-memory": "complete",
+    "P1-provider-forms": "complete",
+    "P1-home": "complete",
+    "P1-model-list": "complete",
+    "P2-tool-catalog": "integrated_verified",
+    "P2-local-tools": "integrated_verified",
+    "P2-generation-repair-attempt": "integrated_verified",
+    "P2-conversation-store": "integrated_verified",
+    "P2-generation-settings-projection": "integrated_verified",
+    "P2-pending-message-queue": "integrated_verified",
+    "P2-run-presenter": "integrated_verified",
+    "P2-conversation-editor": "integrated_verified",
+    "P2-kernel-history": "integrated_verified",
+    "P2-runtime-hooks-approval": "integrated_verified",
+    "P2-kernel-approval": "integrated_verified",
+    "P2-run-coordinator": "integrated_verified_7_tests_and_runtime5",
+    "P2-task-cancel-owner": "integrated_verified_13_module_tests"
+  },
+  "activeBuildLog": "results/phase-5-final-four-ui-fixes-product-apks.log",
+  "deviceExecutionOwner": "completed; finalFull d6a5eaad installedhashmatched before taskread-only5580 shutdown; originalwm/density/fontrestored, reverseempty, permissionsunchanged",
+  "localFixtureServer": {
+    "session": 19624,
+    "port": 18766,
+    "status": "task server stopped after final green gates",
+    "log": "results/phase-2-device-sse.log"
+  },
+  "phase3Preparation": {
+    "inputBaseline": "30 tests6 confirmed HEAD failures; original4+State replacement2, Crop2/Warning3green",
+    "novelStorageBaseline": "Fresh rerun24 classes158 total:157 passed1 skipped cross-platform AMBER_W15_ROOT absent,0failed; phase-3-novel-storage-fresh-baseline",
+    "productionImplementationStarted": true,
+    "novelFirstCheckpoint": "fresh24classes158 total157passed1crossplatformskip0failed; phase-3-novel-module-first",
+    "inputUntrackedRace": "fresh1test1failure0skip at SubmissionOwnerTest318, before production repair; phase-3-input-untracked-red",
+    "firstAppBehavior": "41classes327total320passed7fail0skip; phase-3-first-app-behavior",
+    "nativePreprocess": "Default-on current JNI path verified packaged+loaded; Rust20 existing tests18pass2fail red then20pass after exact tilde/TLD fix, no ABI/prefs changes",
+    "completePackagesRed": "evidence/phase-3-complete-packages-regressions-red:67classes459total13fail0skip; all production main/unit compile passed",
+    "specifiedRepairs": [
+      "READY copy replacement State->VM->FilesManager",
+      "Sandbox current URL excludes lastGood thumbnail URL",
+      "Widget runtime sole destroy owner",
+      "Worker final Polish progress repairs plot pointer before COMPLETED",
+      "AuditSession restores nested NonCancellable then IO to preserve Stop semantics",
+      "new fixture only:actual read overload,disabled input selector,same-frame timeline key inputs"
+    ],
+    "inputFinal": "phase-3-importer-cancellation-green:5classes43tests0fail0skip and FullDebug assemble success; independent input review closed",
+    "vchartSize": "ActualcanvasCSS/bitmapwidth0 red→minimal asset autoFit numeric fix→actualcanvas bitmap1081x840/CSS412x320/loadinghidden/PixelCopy205nonwhite1green0skip; independent pixels pending",
+    "novelRoute": "mainchapter UI edit persisted+ledger advanced/Reader/Controls/branchdialog reached; background same-name Create tab incorrectly selected by fixture; only dialog ancestor scope correction pending. No product branch bug shown.",
+    "renderingNarrowClockDiagnosis": "Second actualJDB shows final vertical ScrollBy animation waits under globally frozen clock. Cachedfoundation confirms semanticsScrollBy animates; mainClock manual now to be scoped only active streaming, static/final auto clock restored; test-only no product change.",
+    "novelGlobal320": "FullRouteActual320/font1.5 red at Editor Cancel: real 2-line glyph paragraph125>node105; unlike default411 synthetic alignment this is actual product header width/height clipping. Minimal owner UI fix active, default411 realroute green+independent reviewed. wm/density exactly restored; originally absent fontkey was deleted and Android normalized1.0; effective original default restored, rawKey difference recorded.",
+    "novelEditorFinal": "PreciseEditor naturalactions/titleweight/minheights fix; newLayout2+existingPane4 fresh6green; FullDebug app/test assembled+installed main10fe4bf3. Actual wholeNovel320/font1.5 and411 route each1green0skip18s, realchapter/fork/main/material+cleanup verified. Independent found remainingManuscript Contents squeezed to8lines in320; separate exactheader fix pending, Phase3notpassed."
+  },
+  "activeExecSession": null,
+  "phase4Preparation": {
+    "baseline": "phase-4-app-admission-baseline:SubAgent unread mailbox QUEUED expected/PERSISTED actual confirmed owner bug; Terminal test executor halt from Settings cancellation (not original3 tests passed)",
+    "moduleBaseline": "phase-4-domain-module-baseline live24 fresh0fail0skip; council task up-to-date, not fresh rerun",
+    "councilFreshBaseline": "phase-4-council-fresh-domain-baseline --rerun-tasks:3classes24tests0fail0skip; Live pure API separate24green; no P4 production changes.",
+    "settingsCancellation": "Rootonly2 runCatching fatal branches rethrow CancellationException; freshSettingsFlowExt2green and app41executed with0skip/nohalt. True baselineS1mailbox+Terminal2admission red confirmed.",
+    "firstCheckpoints": "Cdomain realhandoffred(afterLogstubfixturecorrected)→shortlocalNCfixfrozen; C-ui8bodyparity+realhistoryReadonlyredtestfrozenbehaviorunchanged; S8filemessageIDrequeuefixfrozen; Tlocaladmissionrollbackfixfrozen; LPagepanes+notification/deeplinkfirst3tests frozen. D-ui coherentcheckpoint and DdomainrealKernel fallbackfixture pendingfirstglobalappgate.",
+    "councilHandoffGreen": "phase-4-council-handoff-owner-green: original7+3new10allgreen0skip after exactlocalhandoffNC, prepublicationcancel/taskstopidentity preserved",
+    "allMainFrozenFirstCheckpoint": false,
+    "firstAppCheckpoint": "phase-4-first-checkpoint-test-api-fixed:13classes96tests95pass1expectedCouncilhistoryReadonlyred0skip; fullmain/unitcompile passed. Terminal3/SubAgentIntegration26+RoomGraphStore/Manager/TurnAgent6/Runner7/Livenotifier2+deeplink1/DeepReadrealKernel4+Repo+Metadata/WorkspaceIsolation allgreen. Initialgate testcompilerRobolet API typeargument corrected only test.",
+    "mandatoryDeepReadFallback": "ActualRunManager→recorddelegateDefaultRunKernel→realEngine/scriptGateway→realWriter/Room all4stages streamIO→nonstreamsuccess green; cancel/timeout nofallback andrestoreoldwriterejected all4tests0skip. P2carry now actualbehaviorverified, preserve through owner split.",
+    "secondImplementationWindow": "All7 production and4 AndroidTest packages frozen; finalCouncil32/32green; Terminal/Workspace13pass8SSHoptinskip. Appcompile2 actualTodayBoard import/visibility issues precisely fixed; unified appbehavior+app/testAPK rerunning.",
+    "finalCandidateFirst": "84classes452tests432pass20fail0skip. All main/unit/androidTest compile and app/testAPK assembled+installed. New fixture void/sealed issues and confirmed HEAD URL/ranker identity bugs diagnosed; no premature pass. Original6fallback and10Live plainFiller/Presenter actualgreen.",
+    "defaultDevice": "Council1(74.299s),DeepRead1(13.233s),Live1(8.717s),Terminal1(13.871s) each green0skip on e891064e/068f5684; 22PNG independently seen. Councilrolezero-width confirmed product UI issue; TerminalcancelPNG staleframe fixture correction frozen; no phasepass.",
+    "specifiedAdditionalRed": "Fresh3tests3fail0skip phase-4-member-layout-and-importer-stream-real-red: CouncilMemberRow411/320 genuine0width; Importer realContentResolver supplier deliveredBytes/IOthrow verified then temp cleanup fails. Precise owner fixes underway, originalasserts retained.",
+    "narrowFirst": "DeepRead320 first timedout on recreated waitText(title), systemUI ANR PNG retained. Device wm/font restoredexactly includingnull key. Own read-only5580 emulator had disappeared after all defaults; recoveredsameAVDargs+candidateAPK reinstalled, no userdata wipe. Fixture viewport/title oracle diagnosing; no productbug guessed.",
+    "officeFinal": "Actual phase-4-last-ui-layout-red-and-office-fixture document19/0fail0skip (Office17+Bounded2). First2emptyDOCX/PPTX red stopped at incorrect legacy-space expectations, first strict evaluation nowgreen; reportcorrected. EPUB actualempty/unresolvedentity andXMLfixturefailure separated; legacyString consumers preserved.",
+    "terminalHostFinal": "LastUIredgate Admission4 + Session2 allgreen0skip. Fixture-only explicitUnit, alive-only cleanup, nativeLibraryDir matchrealAPI. OriginalAdmission3ownerfix remainsgreen. No product fallback added.",
+    "lastUiLayouts": "CouncilMemberGlyph2green; CouncilTopBar+attachment2actualred→minHeight/nowrapEllipsis+modeoverlay naturalanchor→actual2green in phase-4-council-chrome-green-reader-layout-red; Importer11green samegate. DeepReadHero now actualbounds overlapred, onlypreciselayoutfixallowed. TerminalstrictDialogfixture finalpendingdevice56194.",
+    "narrowRepaired": "Council3201green18.62s(rolepixelsclosed),DeepRead3201green11.4s,Live3201green11.801s. Terminalfirst320failedafterpeek erroneouslytreatedSheet, stricterisDialog/actualoutput/BacksameChatfixturefrozen. Configallfinallyexactrestored."
+  },
+  "phase5Preparation": {
+    "firstAppBaseline": "phase-5-first-app-behavior-and-device-apk:50 fresh classes269 total21 failures1skip; ai11green; app258 with21 failures (Backup nonvoid/init1 and installer seedTimeout2 not business red); all main/unit/androidTest+APK compile success",
+    "webBridgeNode": "3 real scripts green including Chrome Lexical; root task deps isolated no manifest/lock changes",
+    "webReact": "original8 cases all green after four genuine races plus async currentTarget correction; extra edit/attachment/workbench contracts green pending root static gates/independent review",
+    "production": "All10 packets androotStartup formally frozen with2803 source/config/resource/test inputs; entire app JVM centralized gate41537 running. No candidate expansion. Normal configuration 3flavor+androidTest APK build next.",
+    "executionChange": "User requested faster phase-level progress; all remaining production packets released, no further per-candidate micro-gates or speculative test matrices. One affected cohort + build/device + independent review, then Phase6 closure.",
+    "moduleWholeGate": "51 fresh classes352 tests0fail0skip; complete Responses+Settings+ScreenAPI modules",
+    "centralAppCompile": "All production compiled successfully; initial unit compile failed solely new fixture Settings.userNickname nesting. Root corrected nested displaySetting fields only; all unit sources now compile, entire app JVM executing.",
+    "centralWholeApp": "Actual wholeapp3178 had22failure14skip, all22 now closed by concentrated62 (58green) and finalHistory4green; Anti2 separate controlledHTTP config green; no overlapping pass sum",
+    "normalProducts": "Final repaired normal Full/Novel/Deepread+AndroidTest gate exit0;6productAPKs3hashes; no taskdummy marker; mainFull ebd88634 installed",
+    "finalWholeAppPolicy": "Normal config all app tests with explicit init excludes only unchanged Anti2 already actually green under task-only dummy prior gate; no prod/test assertions removed, avoids re-flipping BuildConfig/rebuilding products. Actual XML reports not summed with overlapping partial87.",
+    "finalSettings": "Finalvalid4113green40.841s and320/font1.5 3green38.6s0skip, each47evidence files. No production change after repaired normalAPK build."
+  },
+  "phase6Preparation": {
+    "sourceAudit": "FinalP6independentreviewPASS:original52 reviewed,48modules160productionedgesDAG;2803hash0drift",
+    "currentBudget": "Final1609 ownedproduction355469lines,11>1000,1>1500,NovelVM1564 explicit64linecohesive exception",
+    "scope": "No deleted retained candidates; five P6 large protocol/form/template files have documented actual cohesion",
+    "criticalRoutes": "On final ebd88634 actualChat2green29.145s0skip,Novel1green21.326s0skip; source unchanged; independent pixel review pending",
+    "cleanup": "OwnPlaywright/browserclosed, verifiedtaskservers18765/18766/18770stopped, taskread-only5580emulatorkilledafterall evidencepulled; preexistinguserresourcespreserved"
+  },
+  "overallStatus": "complete",
+  "finalArtifacts": "evidence/final-normal-product-apks.json",
+  "finalIndependentReview": "results/phase-6-independent-review.md",
+  "commitPreparation": {
+    "authorizedBy": "user: 提交干净工作区",
+    "at": "2026-10-18T09:55:15.480105+00:00",
+    "change": "Only trailing empty lines removed from 19 newly added source files after staged whitespace check; no executable content changed",
+    "normalizedSourceFiles": [
+      "app/src/main/java/app/amber/core/service/ChatRunPresenter.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadArticle.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadArticleHero.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadArticleSections.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderContent.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderNotices.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/board/DeepReadTemplateArticleHost.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/chat/ChatPageScaffold.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/extensions/PromptInjectionFields.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspaceChatPane.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspaceEditorComponents.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspaceManuscriptPane.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspacePanelComponents.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspacePolishBatchSheet.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/novel/NovelWorkspaceProjectControlsSheet.kt",
+      "app/src/main/java/app/amber/feature/ui/pages/setting/MemoryLibraryCandidates.kt",
+      "feature/modelcouncil/src/main/kotlin/app/amber/feature/modelcouncil/CouncilRoomCommands.kt",
+      "feature/modelcouncil/src/main/kotlin/app/amber/feature/modelcouncil/CouncilRoomTaskProjection.kt"
+    ],
+    "pushAuthorized": false,
+    "generatedEvidence": "preserved locally via .git/info/exclude"
+  }
+}

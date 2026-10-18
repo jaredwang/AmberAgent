@@ -233,36 +233,41 @@ private fun CouncilRoomBody(room: CouncilRoom, vm: CouncilRoomVM?, onRestart: ((
     val modeControlsEnabled = vm != null &&
         room.status.running &&
         room.mode != CouncilRoomMode.SYNTHESIZE
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            CouncilRoomTopBar(
-                room = room,
-                onRestart = onRestart,
-                modeControlsEnabled = modeControlsEnabled,
-                modeMenuOpen = modeMenuOpen,
-                onToggleMode = { modeMenuOpen = !modeMenuOpen },
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        CouncilRoomTopBar(
+            room = room,
+            onRestart = onRestart,
+            modeControlsEnabled = modeControlsEnabled,
+            modeMenuOpen = modeMenuOpen,
+            onToggleMode = { modeMenuOpen = !modeMenuOpen },
+        )
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             CouncilTimelineTab(
                 room = room,
-                vm = vm,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            )
-        }
-        // Mode panel — a roller-blind dropping from just below the top bar, in the
-        // app's TopModelMenu idiom (scrim + accent-selected rows).
-        if (modeControlsEnabled) {
-            CouncilModePanel(
-                open = modeMenuOpen,
-                current = room.mode,
-                onSelect = { mode ->
-                    modeMenuOpen = false
-                    vm.switchMode(mode)
+                onAnswer = vm?.let { it::resumeAfterUserAnswer },
+                modifier = Modifier.fillMaxSize(),
+                composer = {
+                    if (vm != null) {
+                        CouncilRoomComposer(
+                            room = room,
+                            onClose = vm::close,
+                            onSend = vm::sendUserMessage,
+                        )
+                    }
                 },
-                onClose = { modeMenuOpen = false },
-                modifier = Modifier.padding(top = 57.dp),
             )
+            // Anchor the roller-blind below the measured bar, including large text.
+            if (modeControlsEnabled) {
+                CouncilModePanel(
+                    open = modeMenuOpen,
+                    current = room.mode,
+                    onSelect = { mode ->
+                        modeMenuOpen = false
+                        vm.switchMode(mode)
+                    },
+                    onClose = { modeMenuOpen = false },
+                )
+            }
         }
     }
 }
@@ -272,7 +277,7 @@ private fun CouncilRoomBody(room: CouncilRoom, vm: CouncilRoomVM?, onRestart: ((
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun CouncilRoomTopBar(
+internal fun CouncilRoomTopBar(
     room: CouncilRoom,
     onRestart: (() -> Unit)?,
     modeControlsEnabled: Boolean,
@@ -288,7 +293,7 @@ private fun CouncilRoomTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .background(chatTheme.bg)
             .padding(start = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,

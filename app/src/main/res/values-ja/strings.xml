@@ -816,7 +816,7 @@
   <string name="setting_agent_memory_context_compaction_desc">長い会話がモデルのウィンドウに近づいたら、元の内容を削除せずに古いターンを要約します。</string>
   <string name="setting_agent_memory_context_compaction_notify_title">最初は通知のみ</string>
   <string name="setting_agent_memory_context_compaction_notify_desc">コンテキストの逼迫を表示しますが、自動圧縮はしません。</string>
-  <string name="setting_agent_memory_context_compaction_defaults">デフォルト: 70%% 事前圧縮、85%% 強制圧縮、直近 8 ターン / 16 メッセージを保護します。</string>
+  <string name="setting_agent_memory_context_compaction_defaults" formatted="false">デフォルト: 70% 事前圧縮、85% 強制圧縮、直近 8 ターン / 16 メッセージを保護します。</string>
   <string name="setting_agent_memory_context_mode_section">Mode</string>
   <string name="setting_agent_memory_context_threshold_section">Threshold</string>
   <string name="setting_agent_memory_context_protect_section">Protection</string>

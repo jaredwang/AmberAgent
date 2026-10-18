@@ -6,6 +6,13 @@ import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.AMBER_AGENT_ID
 import app.amber.core.model.Conversation
 import app.amber.core.model.MessageNode
+import app.amber.agent.data.db.dao.ConversationDAO
+import app.amber.agent.data.db.fts.MessageFtsManager
+import app.amber.core.files.FilesManager
+import app.amber.core.infra.AppScope
+import app.amber.core.repository.ConversationRepository
+import app.amber.core.repository.FilesRepository
+import app.amber.core.repository.LightConversationEntity
 import app.amber.feature.history.SessionAccessGrantStore
 import app.amber.feature.runtime.DurableRuntimeTestBase
 import kotlinx.coroutines.runBlocking
@@ -30,13 +37,15 @@ class ConversationHistoryBudgetTest : DurableRuntimeTestBase() {
         maxChars: Int = 1_000,
         grantBudget: Int? = null,
     ): Pair<JsonObject, String?> {
-        val repository = conversationRepository()
+        val repository = historyRepository()
         val messages = texts.map { UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text(it))) }
         val conversation = Conversation(
             assistantId = AMBER_AGENT_ID,
             messageNodes = messages.map(MessageNode::of),
         )
         repository.insertConversation(conversation)
+        // Check the real persisted session before exercising the tool's budget.
+        assertEquals(conversation.id, repository.getConversationSummaryById(conversation.id)?.id)
         val grant = grantBudget?.let {
             grants.create(listOf(conversation.id.toString()), it, "history review", "parent")
         }
@@ -49,7 +58,36 @@ class ConversationHistoryBudgetTest : DurableRuntimeTestBase() {
         }
         val tool = ConversationHistoryTools(repository, grants).tools().single { it.name == name }
         val output = tool.execute(input).filterIsInstance<UIMessagePart.Text>().single().text
-        return Json.parseToJsonElement(output).jsonObject to grant?.grantId
+        val parsed = Json.parseToJsonElement(output).jsonObject
+        assertEquals(output, "ok", parsed["status"]?.jsonPrimitive?.content)
+        return parsed to grant?.grantId
+    }
+
+    private fun historyRepository(): ConversationRepository {
+        val conversations = database.conversationDao()
+        // Robolectric's native SQLite lacks JSON1. Only the unused summary preview query
+        // is substituted; session existence, metadata, messages, nodes and FTS use this Room DB.
+        // This fixture tests history budgets, not ConversationDAO's JSON preview SQL.
+        val summaries = object : ConversationDAO by conversations {
+            override suspend fun getConversationSummaryById(id: String): LightConversationEntity? {
+                val row = conversations.getConversationById(id) ?: return null
+                return LightConversationEntity(
+                    id = row.id,
+                    assistantId = row.assistantId,
+                    title = row.title,
+                    isPinned = row.isPinned,
+                    createAt = row.createAt,
+                    updateAt = row.updateAt,
+                    messageCount = database.messageNodeDao().countNodesOfConversation(id),
+                    lastMessagePreview = "",
+                )
+            }
+        }
+        val files = FilesManager(context, FilesRepository(database.managedFileDao()), AppScope())
+        return ConversationRepository(
+            summaries, database.messageNodeDao(), database.messageStatsDao(), database.favoriteDao(),
+            database, files, MessageFtsManager(database),
+        )
     }
 
     @Test

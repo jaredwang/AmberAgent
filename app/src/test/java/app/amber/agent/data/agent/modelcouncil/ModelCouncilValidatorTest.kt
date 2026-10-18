@@ -555,7 +555,7 @@ class ModelCouncilValidatorTest {
 
         assertEquals(ModelCouncilMode.DEBATE, spec.mode)
         assertEquals(2, spec.rounds)
-        assertEquals("支持者", spec.seats[0].name)
+        assertEquals("Supporter", spec.seats[0].name)
         assertTrue(spec.seats[0].systemPrompt.contains("supportive position"))
     }
 

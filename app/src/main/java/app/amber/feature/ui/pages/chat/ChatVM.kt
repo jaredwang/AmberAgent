@@ -124,6 +124,7 @@ class ChatVM(
 
     // 聊天输入状态 - 保存在 ViewModel 中避免 TransactionTooLargeException
     val inputState = ChatInputState()
+    internal var routeInputInitialized = false
     private val hostDraftComposer = HostDraftComposer(id, conversationDraftStore, inputState)
 
     // 异步任务 (从ChatService获取，响应式)
@@ -484,11 +485,17 @@ class ChatVM(
         }
     }
 
+    /** Replace composer contents and release only the private copies the state relinquishes. */
+    fun replaceInputContents(parts: List<UIMessagePart>) {
+        val releasedFiles = inputState.setContents(parts)
+        if (releasedFiles.isNotEmpty()) filesManager.deleteChatFiles(releasedFiles)
+    }
+
     /** P1-06: 把队列中第一条消息移回输入框，供编辑后再发送。 */
     fun moveFirstPendingMessageToInput() {
         viewModelScope.launch {
             chatService.takePendingMessageForInput(_conversationId)?.let { parts ->
-                inputState.setContents(parts)
+                replaceInputContents(parts)
             }
         }
     }

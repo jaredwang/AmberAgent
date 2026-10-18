@@ -2,12 +2,10 @@ package app.amber.core.ai
 
 import android.content.Context
 import android.util.Log
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import app.amber.ai.core.MessageRole
@@ -18,7 +16,6 @@ import app.amber.ai.provider.Modality
 import app.amber.ai.provider.ProviderCatalog
 import app.amber.ai.provider.TextGenerationParams
 import app.amber.ai.ui.UIMessage
-import app.amber.ai.ui.MessageChunk
 import app.amber.ai.ui.MessageStreamAccumulator
 import app.amber.ai.ui.UIMessagePart
 import app.amber.ai.ui.handleMessageChunk
@@ -28,14 +25,17 @@ import app.amber.core.ai.transformers.OcrStrings
 import app.amber.core.ai.generative.GenerativeUiPlanner
 import app.amber.core.ai.generative.GenerativeUiWidgetRequirement
 import app.amber.core.ai.generative.GenerativeWidgetCopy
-import app.amber.core.ai.generative.GenerativeWidgetParser
-import app.amber.core.ai.generative.GuizangHtmlDeckValidator
-import app.amber.core.settings.findProvider
-import app.amber.core.settings.resolveSessionDefaults
+import app.amber.core.ai.generative.GENERATIVE_UI_REASONING_ONLY_FALLBACK_MS
+import app.amber.core.ai.generative.GENERATIVE_UI_REASONING_ONLY_FALLBACK_CHARS
+import app.amber.core.ai.generative.GenerativeUiReasoningOnlyStreamException
+import app.amber.core.ai.generative.GenerativeUiInvalidWidgetStreamException
+import app.amber.core.ai.generative.GenerativeUiRepairPolicy.hasVisibleWidgetFence
+import app.amber.core.ai.generative.GenerativeUiRepairPolicy.visibleWidgetIssue
+import app.amber.core.ai.generative.GenerativeUiRepairPolicy.hasMeaningfulVisibleAssistantText
+import app.amber.core.ai.generative.GenerativeUiRepairPolicy.withGenerativeUiVisibleFallbackPrompt
+import app.amber.core.ai.generative.GenerativeUiRepairPolicy.withLocalGenerativeUiFallbackWidget
 import app.amber.core.context.ConversationContextEngine
 import app.amber.core.context.ConversationContextPlanner
-import app.amber.core.context.TokenBudgetFitter
-import app.amber.core.context.TokenFitResult
 import app.amber.core.utils.appLocale
 import app.amber.core.memory.recall.MemoryRecallStore
 import app.amber.core.repository.ConversationRepository
@@ -73,44 +73,6 @@ private const val PERF_TAG = "AmberChatPerf"
 // smoothness should come from the lightweight display/reveal layer, while
 // Markdown parse/layout stays on a lower-frequency budget.
 private const val STREAM_UI_FLUSH_INTERVAL_MS = 33L
-private const val GENERATIVE_UI_REASONING_ONLY_FALLBACK_MS = 5_000L
-private const val GENERATIVE_UI_REASONING_ONLY_FALLBACK_CHARS = 800
-// "Did the model produce real prose?" threshold for skipping the local fallback widget
-// after a retry. ~30 chars is "looks like a real sentence in either CN or EN", below
-// that we treat the response as effectively empty and let the skeleton widget kick in.
-private const val MEANINGFUL_TEXT_MIN_CHARS = 30
-
-private class GenerativeUiReasoningOnlyStreamException : RuntimeException(
-    "Generative UI stream emitted only hidden reasoning without visible content"
-)
-
-private class GenerativeUiInvalidWidgetStreamException(
-    val issue: String,
-) : RuntimeException("Generative UI stream completed without a valid widget: $issue")
-
-/**
- * finish_reason values that mean the reply was cut off by the output token
- * limit, across the provider vocabularies this app speaks (OpenAI `length`,
- * Responses `max_output_tokens`, Anthropic/Gemini `max_tokens`). Case- and
- * whitespace-insensitive; every other reason (stop / tool_calls / unknown /
- * null) is a normal stop.
- */
-private val OUTPUT_LIMIT_FINISH_REASONS = setOf("length", "max_tokens", "max_output_tokens")
-
-/** The engine-side normalization: raw provider string → loop semantics. */
-internal fun finishReasonTruncatesOutput(finishReason: String?): Boolean =
-    finishReason != null && finishReason.trim().lowercase() in OUTPUT_LIMIT_FINISH_REASONS
-
-/**
- * The last non-null `finish_reason` carried by this chunk's choices. Both
- * consumption points of a round (streaming collect and non-streaming
- * complete) feed this — [MessageStreamAccumulator] and
- * [handleMessageChunk] drop the field, so it must be lifted here or the
- * kernel never sees it.
- */
-internal fun MessageChunk.lastFinishReason(): String? =
-    choices.lastOrNull { it.finishReason != null }?.finishReason
-
 /**
  * The production [GenerationRoundEngine]: one model round end-to-end —
  * session defaults, memory recall, system-prompt assembly, context-engine
@@ -138,10 +100,7 @@ class ChatGenerationRoundEngine(
         val settings = request.settings
         val transformers = request.transformers
         val model = request.model
-        // Provider resolution lives in the round engine: the kernel deals in
-        // loop policy only, and a mid-run catalog refresh is picked up at the
-        // next round boundary (same philosophy as toolExposure.refresh).
-        val provider = model.findProvider(settings.providers) ?: error("Provider not found")
+        val provider = settings.provider ?: error("Provider not found")
         val providerImpl = providerCatalog.text(provider)
         val tools = request.tools
         val memories = request.memories
@@ -156,10 +115,10 @@ class ChatGenerationRoundEngine(
         val generativeWidgetCopy = GenerativeWidgetCopy.from(context)
 
         var messages: List<UIMessage> = request.messages
-        val sessionDefaults = settings.resolveSessionDefaults(model)
+        val sessionDefaults = settings.defaults
         val memoryStartedAt = if (perfEnabled) System.nanoTime() else 0L
         val memoryContextPrompt = memoryRecallStore.buildPrompt(
-            settings = settings,
+            settings = settings.memory,
             messages = messages,
             locale = context.appLocale(),
             runKey = request.runId,
@@ -179,7 +138,7 @@ class ChatGenerationRoundEngine(
         val contextStartedAt = if (perfEnabled) System.nanoTime() else 0L
         val preparedContext = conversationContextEngine.prepareContext(
             conversation = conversation,
-            settings = settings,
+            settings = settings.context,
             model = model,
             messages = messages,
             tools = tools,
@@ -198,7 +157,7 @@ class ChatGenerationRoundEngine(
                 transformers = transformers,
                 context = context,
                 model = model,
-                settings = settings,
+                settings = settings.transformers,
                 processingStatus = processingStatus,
                 forceImageToText = forceImageToText,
             )
@@ -206,65 +165,19 @@ class ChatGenerationRoundEngine(
         val internalMessages = prepareInternalMessages()
         val canUseVisionFallback = model.inputModalities.contains(Modality.IMAGE) && internalMessages.hasImageParts()
 
-        // Step 5 — per-wire-request audit snapshots. `wireAttempt` indexes the
-        // wire calls of THIS generateRound invocation: 0 for the first, +1 per
-        // retry/fallback re-issue (provider-level retries re-enter the block
-        // and keep counting — the number is the honest issuance index).
-        var wireAttempt = 0
-
-        // The finish_reason of the wire attempt whose output is actually
-        // adopted (primary, retry, Generative-UI repair or vision fallback —
-        // whichever produces the round's messages). Reset before every
-        // provider call so a failed/abandoned attempt can never leak its
-        // finish_reason into the verdict; an attempt that yields no
-        // finish_reason at all is, by definition, not a truncation.
-        var lastFinishReason: String? = null
-
-        // Durable audit gate — the honest condition is the run's durable path
-        // being ON, not merely "a writer was threaded in": the durable path
-        // (runId + onTerminal + ledger + capability flags) is what guarantees
-        // the run actually has a persisted audit trail to receive the
-        // snapshot. This gate therefore matches the kernel's tool-lifecycle
-        // gate exactly; no durable path ⇒ no snapshots, by design. A snapshot
-        // failure must never break generation, so the emission is guarded.
-        suspend fun commitRequestSnapshot(
-            attempt: Int,
-            kind: String,
-            fit: TokenFitResult,
-            params: TextGenerationParams,
-        ) {
-            if (!request.durablePath || request.events == null || request.runId == null || request.stepIndex < 0) {
-                return
-            }
-            runCatching {
-                val snapshotStartedAt = if (perfEnabled) System.nanoTime() else 0L
-                val snapshot = buildRequestSnapshot(
-                    json = json,
-                    stepIndex = request.stepIndex,
-                    attempt = attempt,
-                    kind = kind,
-                    model = model,
-                    providerSettingId = provider.id.toString(),
-                    fitMessages = fit.messages,
-                    tools = params.tools,
-                    systemParts = systemParts,
-                    estimatedTokens = fit.receipt.estimatedAfter,
-                )
-                if (perfEnabled) {
-                    Log.d(PERF_TAG, "round.requestSnapshot step=${request.stepIndex} attempt=$attempt elapsedMs=${(System.nanoTime() - snapshotStartedAt) / 1_000_000.0}")
-                }
-                request.events.commit(
-                    snapshot,
-                )
-            }.onFailure { error ->
-                // CancellationException must escape: the writers deliberately
-                // rethrow it (PersistingEventWriter precedent) — swallowing it
-                // here would hide the user's stop and let the loop continue
-                // into the very wire request this snapshot was audited for.
-                if (error is CancellationException) throw error
-                Log.w(TAG, "Request snapshot commit failed; generation continues", error)
-            }
-        }
+        val attempts = ProviderAttemptExecutor(
+            model = model,
+            provider = provider,
+            gateway = providerImpl,
+            json = json,
+            conversationId = conversation?.id?.toString(),
+            systemParts = systemParts,
+            runId = request.runId,
+            stepIndex = request.stepIndex,
+            events = request.events,
+            durablePath = request.durablePath,
+            perfEnabled = perfEnabled,
+        )
 
         val baseMessages: List<UIMessage> = messages
         messages = baseMessages
@@ -288,12 +201,12 @@ class ChatGenerationRoundEngine(
             sessionId = conversation?.id?.toString() ?: Uuid.random().toString(),
         )
         val generativeUiWidgetRequirement =
-            GenerativeUiPlanner.widgetRequirement(settings.agentRuntime.generativeUi, messages)
+            GenerativeUiPlanner.widgetRequirement(settings.generativeUi, messages)
         val shouldGuardGenerativeUiReasoningOnly =
-            GenerativeUiPlanner.needsVisibleStreamingFallback(settings.agentRuntime.generativeUi, messages)
+            GenerativeUiPlanner.needsVisibleStreamingFallback(settings.generativeUi, messages)
         if (stream) {
             runProviderCallWithRetry(
-                retrySetting = settings.agentRuntime.generationRetry,
+                retrySetting = settings.generationRetry,
                 processingStatus = processingStatus,
                 providerName = provider.name,
                 modelName = model.displayName,
@@ -315,55 +228,15 @@ class ChatGenerationRoundEngine(
                     streamParams: TextGenerationParams,
                     guardReasoningOnly: Boolean,
                     widgetRequirement: GenerativeUiWidgetRequirement,
-                    attempt: Int,
                     kind: String,
                 ) {
-                    // Per-attempt verdict: forget whatever a previous
-                    // retry/repair/fallback attempt reported — only this
-                    // attempt's finish_reason may decide truncation.
-                    lastFinishReason = null
-                    // P1-04: final token budget hard fit — the single fit at
-                    // the provider serialization boundary, after every
-                    // transformer, mailbox and steer merge. A request that
-                    // still overflows after trimming throws
-                    // ContextTooLargeException instead of being sent.
-                    val fitStartedAt = if (perfEnabled) System.nanoTime() else 0L
-                    val fit = TokenBudgetFitter.fit(
-                        messages = providerMessages,
-                        tools = streamParams.tools,
-                        model = model,
-                        provider = provider,
-                        maxTokens = streamParams.maxTokens,
-                        json = json,
-                        conversationId = conversation?.id?.toString(),
-                    )
-                    if (perfEnabled) {
-                        Log.d(PERF_TAG, "round.fit.stream step=${request.stepIndex} attempt=$attempt elapsedMs=${(System.nanoTime() - fitStartedAt) / 1_000_000.0}")
-                    }
-                    // Step 5: audit what the wire is about to receive — after
-                    // the final fit, before the provider call.
-                    commitRequestSnapshot(
-                        attempt = attempt,
-                        kind = kind,
-                        fit = fit,
-                        params = streamParams,
-                    )
+                    val chunks = attempts.stream(providerMessages, streamParams, kind)
                     val accumulator = MessageStreamAccumulator(baseMessages, model)
                     var lastFlushAt = 0L
                     val streamStartedAt = System.currentTimeMillis()
                     var visibleTextChars = 0
                     var reasoningChars = 0
-                    val firstChunkStartedAt = if (perfEnabled) System.nanoTime() else 0L
-                    var firstChunkLogged = false
-                    providerImpl.stream(
-                        providerSetting = provider,
-                        messages = fit.messages,
-                        params = streamParams,
-                    ).collect { chunk ->
-                        if (perfEnabled && !firstChunkLogged) {
-                            firstChunkLogged = true
-                            Log.d(PERF_TAG, "round.providerFirstChunk.stream step=${request.stepIndex} attempt=$attempt elapsedMs=${(System.nanoTime() - firstChunkStartedAt) / 1_000_000.0}")
-                        }
+                    chunks.collect { chunk ->
                         val deltaParts = chunk.choices.getOrNull(0)?.let { choice ->
                             choice.delta?.parts ?: choice.message?.parts
                         }.orEmpty()
@@ -374,7 +247,6 @@ class ChatGenerationRoundEngine(
                             .filterIsInstance<UIMessagePart.Reasoning>()
                             .sumOf { it.reasoning.length }
                         accumulator.append(chunk)
-                        chunk.lastFinishReason()?.let { lastFinishReason = it }
                         val now = System.currentTimeMillis()
                         if (lastFlushAt == 0L || now - lastFlushAt >= STREAM_UI_FLUSH_INTERVAL_MS) {
                             messages = accumulator.snapshot()
@@ -416,7 +288,6 @@ class ChatGenerationRoundEngine(
                         streamParams = params,
                         guardReasoningOnly = shouldGuardGenerativeUiReasoningOnly,
                         widgetRequirement = generativeUiWidgetRequirement,
-                        attempt = wireAttempt++,
                         kind = "primary",
                     )
                 } catch (error: Throwable) {
@@ -444,7 +315,6 @@ class ChatGenerationRoundEngine(
                             streamParams = params.copy(tools = emptyList()),
                             guardReasoningOnly = false,
                             widgetRequirement = GenerativeUiWidgetRequirement.None,
-                            attempt = wireAttempt++,
                             kind = "generative_ui_repair",
                         )
                         // Only force-inject the local fallback widget when the retry
@@ -482,14 +352,13 @@ class ChatGenerationRoundEngine(
                         streamParams = params,
                         guardReasoningOnly = shouldGuardGenerativeUiReasoningOnly,
                         widgetRequirement = generativeUiWidgetRequirement,
-                        attempt = wireAttempt++,
                         kind = "vision_fallback",
                     )
                 }
             }
         } else {
             runProviderCallWithRetry(
-                retrySetting = settings.agentRuntime.generationRetry,
+                retrySetting = settings.generationRetry,
                 processingStatus = processingStatus,
                 providerName = provider.name,
                 modelName = model.displayName,
@@ -506,64 +375,18 @@ class ChatGenerationRoundEngine(
                         stream = false
                     )
                 )
-                suspend fun generateWith(
-                    providerMessages: List<UIMessage>,
-                    generateParams: TextGenerationParams = params,
-                    attempt: Int,
-                    kind: String,
-                ): MessageChunk {
-                    // Per-attempt verdict: forget whatever a previous
-                    // retry/repair/fallback attempt reported — only this
-                    // attempt's finish_reason may decide truncation.
-                    lastFinishReason = null
-                    // P1-04: final token budget hard fit at the serialization
-                    // boundary (see streamWith for the policy).
-                    val fitStartedAt = if (perfEnabled) System.nanoTime() else 0L
-                    val fit = TokenBudgetFitter.fit(
-                        messages = providerMessages,
-                        tools = generateParams.tools,
-                        model = model,
-                        provider = provider,
-                        maxTokens = generateParams.maxTokens,
-                        json = json,
-                        conversationId = conversation?.id?.toString(),
-                    )
-                    if (perfEnabled) {
-                        Log.d(PERF_TAG, "round.fit.complete step=${request.stepIndex} attempt=$attempt elapsedMs=${(System.nanoTime() - fitStartedAt) / 1_000_000.0}")
-                    }
-                    // Step 5: audit what the wire is about to receive — after
-                    // the final fit, before the provider call.
-                    commitRequestSnapshot(
-                        attempt = attempt,
-                        kind = kind,
-                        fit = fit,
-                        params = generateParams,
-                    )
-                    val providerStartedAt = if (perfEnabled) System.nanoTime() else 0L
-                    val chunk = providerImpl.complete(
-                        providerSetting = provider,
-                        messages = fit.messages,
-                        params = generateParams,
-                    )
-                    if (perfEnabled) {
-                        Log.d(PERF_TAG, "round.providerComplete step=${request.stepIndex} attempt=$attempt elapsedMs=${(System.nanoTime() - providerStartedAt) / 1_000_000.0}")
-                    }
-                    chunk.lastFinishReason()?.let { lastFinishReason = it }
-                    return chunk
-                }
-
                 val chunk = try {
-                    generateWith(
-                        providerMessages = internalMessages,
-                        attempt = wireAttempt++,
+                    attempts.complete(
+                        messages = internalMessages,
+                        params = params,
                         kind = "primary",
                     )
                 } catch (error: Throwable) {
                     if (!canUseVisionFallback || !shouldFallbackToVisionRecognition(error)) throw error
                     processingStatus.value = ocrStrings.visionFallback
-                    generateWith(
-                        providerMessages = prepareInternalMessages(forceImageToText = true),
-                        attempt = wireAttempt++,
+                    attempts.complete(
+                        messages = prepareInternalMessages(forceImageToText = true),
+                        params = params,
                         kind = "vision_fallback",
                     )
                 }
@@ -591,13 +414,12 @@ class ChatGenerationRoundEngine(
                     }
                     // The first non-streaming response can already contain tool calls;
                     // the fallback is a visible-output repair, not a second tool turn.
-                    val retryChunk = generateWith(
-                        providerMessages = internalMessages.withGenerativeUiVisibleFallbackPrompt(
+                    val retryChunk = attempts.complete(
+                        messages = internalMessages.withGenerativeUiVisibleFallbackPrompt(
                             requirement = generativeUiWidgetRequirement,
                             previousIssue = widgetIssue,
                         ),
-                        generateParams = params.copy(tools = emptyList()),
-                        attempt = wireAttempt++,
+                        params = params.copy(tools = emptyList()),
                         kind = "generative_ui_repair",
                     )
                     messages = baseMessages.handleMessageChunk(chunk = retryChunk, model = model)
@@ -629,11 +451,11 @@ class ChatGenerationRoundEngine(
                 onUpdateMessages(GenerationUpdate.full(messages))
             }
         }
-        return GenerationRoundOutcome(outputLimitReached = finishReasonTruncatesOutput(lastFinishReason))
+        return GenerationRoundOutcome(outputLimitReached = attempts.outputLimitReached)
     }
 
     private suspend fun buildSystemPromptParts(
-        settings: app.amber.core.settings.Settings,
+        settings: GenerationSettings,
         model: app.amber.ai.provider.Model,
         messages: List<UIMessage>,
         tools: List<app.amber.ai.core.Tool>,
@@ -641,23 +463,23 @@ class ChatGenerationRoundEngine(
         loopBudgetPrompt: String,
     ): List<UIMessagePart> {
         val staticPrompt = listOf(
-            buildAgentSoulPrompt(settings.agentRuntime.agentSoulMarkdown),
+            buildAgentSoulPrompt(settings.agentSoulMarkdown),
             settings.systemPrompt,
         ).filter { it.isNotBlank() }.joinToString("\n\n")
 
         val dynamicPrompt = buildList {
             if (memoryContextPrompt.isNotBlank()) add(memoryContextPrompt)
             if (loopBudgetPrompt.isNotBlank()) add(loopBudgetPrompt)
-            buildGenerativeUiPrompt(settings.agentRuntime.generativeUi, model).takeIf { it.isNotBlank() }?.let(::add)
+            buildGenerativeUiPrompt(settings.generativeUi, model).takeIf { it.isNotBlank() }?.let(::add)
             val hasImageGenTool = tools.any { it.name == "generate_image" }
             GenerativeUiPlanner.buildPrompt(
-                setting = settings.agentRuntime.generativeUi,
+                setting = settings.generativeUi,
                 messages = messages,
                 hasImageGenTool = hasImageGenTool,
                 settingsPath = context.getString(R.string.setting_page_model_and_services) +
                     " → " + context.getString(R.string.setting_model_page_image_gen_model),
             ).takeIf { it.isNotBlank() }?.let(::add)
-            if (settings.agentRuntime.enableRecentChatsReference) {
+            if (settings.enableRecentChatsReference) {
                 add(buildRecentChatsPrompt(conversationRepo, context.appLocale()))
             }
         }.joinToString("\n\n")
@@ -748,316 +570,10 @@ class ChatGenerationRoundEngine(
     private fun List<UIMessage>.hasImageParts(): Boolean =
         any { message -> message.parts.any { it is UIMessagePart.Image && it.url.isNotBlank() } }
 
-    private fun List<UIMessage>.hasVisibleWidgetFence(copy: GenerativeWidgetCopy): Boolean =
-        lastOrNull { it.role == MessageRole.ASSISTANT }
-            ?.parts
-            ?.filterIsInstance<UIMessagePart.Text>()
-            ?.any { GenerativeWidgetParser.hasRenderableWidget(it.text, copy = copy) } == true
-
     private fun List<UIMessage>.hasPendingToolCalls(): Boolean =
         lastOrNull { it.role == MessageRole.ASSISTANT }
             ?.getTools()
             ?.any { !it.isExecuted } == true
-
-    private fun List<UIMessage>.visibleWidgetIssue(
-        requirement: GenerativeUiWidgetRequirement,
-        copy: GenerativeWidgetCopy,
-    ): String? {
-        if (!requirement.required) return null
-        val content = lastOrNull { it.role == MessageRole.ASSISTANT }
-            ?.parts
-            ?.filterIsInstance<UIMessagePart.Text>()
-            ?.joinToString("\n") { it.text }
-            .orEmpty()
-        return GenerativeWidgetParser.widgetQualityIssue(content, requirement, copy = copy)
-    }
-
-    /**
-     * "Did the retry give a real answer?" — joined visible Text parts of the last
-     * assistant message, with the widget fence stripped, must contain non-trivial
-     * prose. Used to decide whether the local-fallback skeleton widget should still
-     * be appended after the second pass.
-     */
-    private fun List<UIMessage>.hasMeaningfulVisibleAssistantText(): Boolean {
-        val text = lastOrNull { it.role == MessageRole.ASSISTANT }
-            ?.parts
-            ?.filterIsInstance<UIMessagePart.Text>()
-            ?.joinToString("\n") { it.text }
-            .orEmpty()
-        // Strip any ```show-widget``` or ```task-ui``` fence so the check measures *prose*, not the
-        // widget JSON the model may have already produced.
-        val withoutWidget = text.replace(
-            Regex("```\\s*(?:show-widget|widget|generative-ui|task-ui|task_ui|intelligent-ui|intelligent_ui|adaptive-ui)[\\s\\S]*?```"),
-            "",
-        ).trim()
-        return withoutWidget.length >= MEANINGFUL_TEXT_MIN_CHARS
-    }
-
-    private fun List<UIMessage>.withGenerativeUiVisibleFallbackPrompt(
-        requirement: GenerativeUiWidgetRequirement,
-        previousIssue: String?,
-    ): List<UIMessage> {
-        val instruction = UIMessage.system(prompt = buildGenerativeUiRetryPrompt(requirement, previousIssue))
-        val first = firstOrNull()
-        return if (first?.role == MessageRole.SYSTEM) {
-            listOf(first, instruction) + drop(1)
-        } else {
-            listOf(instruction) + this
-        }
-    }
-
-    private fun buildGenerativeUiRetryPrompt(
-        requirement: GenerativeUiWidgetRequirement,
-        previousIssue: String?,
-    ): String {
-        val issue = previousIssue?.takeIf { it.isNotBlank() } ?: "missing required show-widget"
-        if (requirement.expectTaskUi) {
-            return """
-                **Visible Task UI Repair**
-                The previous output did not produce a valid interactive task card: $issue
-                Reply in visible content immediately with one valid fenced `task-ui` JSON block (`kind`: `"decision"`, `"form"`, `"explore"`, or `"study"`).
-                Use this exact form:
-                ```task-ui
-                {"kind":"study","title":"互动练习","subtitle":"翻转闪卡或完成小测验","components":[{"id":"fc_1","kind":"flashcard","front":"核心概念","back":"简明解释","hint":"提示"},{"id":"q_1","kind":"quiz_item","title":"测验题目","options":[{"id":"a","label":"选项 A","value":"A"},{"id":"b","label":"选项 B","value":"B"}],"correct_option":"A","explanation":"解析说明"},{"id":"score_1","kind":"score_summary"}]}
-                ```
-                Replace the content with the actual requested flashcards, quiz, decision options, form inputs, or parameter explorer.
-                Do not put `task-ui` JSON inside hidden reasoning, and do not use `full_html` PPT covers or MiniApp for flashcards/quizzes.
-            """.trimIndent()
-        }
-        if (requirement.expectFullHtmlDeck) {
-            return """
-                **Visible Full HTML Deck Repair**
-                The previous output did not produce a valid full_html deck: $issue
-                Reply in visible content immediately with exactly one fenced `show-widget` JSON block, but do not begin the block until the full JSON can be completed in this response. Do not output a MiniApp, standalone webpage, generic HTML app, Markdown-only answer, or hidden-only reasoning.
-                Required JSON shape:
-                - `renderer` must be `"${GuizangHtmlDeckValidator.RENDERER}"`.
-                - `widget_code` is only a static SVG cover preview.
-                - `spec.html` is the full live deck HTML as one JSON string.
-                - `spec.html` must contain `<div id="deck">` and one or more `<section class="slide ...">` pages.
-                - Scripts may only use `${GuizangHtmlDeckValidator.LOCAL_MOTION_URL}`, `${GuizangHtmlDeckValidator.LOCAL_LUCIDE_URL}`, and `${GuizangHtmlDeckValidator.LOCAL_THREE_URL}`. Do not use CDN script URLs.
-                - Preserve the requested PPT/deck content and style; keep the JSON valid, complete, and compact enough to fit. Never emit partial spec.html.
-            """.trimIndent()
-        }
-        if (requirement.expectSlides) {
-            return """
-                **Visible Slide Deck Repair**
-                The previous output did not produce a valid deck card: $issue
-                Reply in visible content immediately with exactly one fenced `show-widget` JSON block, but do not begin the block until the full JSON can be completed in this response. Do not output a MiniApp, standalone webpage, generic HTML app, Markdown-only answer, or hidden-only reasoning.
-                Use renderer `"${GuizangHtmlDeckValidator.RENDERER}"`.
-                Put a complete mobile-readable HTML deck in `spec.html` with `<div id="deck">` and `<section class="slide ...">` pages.
-                Keep the deck concise and the JSON valid. Never emit partial spec.html.
-            """.trimIndent()
-        }
-        return """
-            **Visible Generative UI Retry**
-            The previous stream did not produce a visible widget: $issue
-            Reply in visible content immediately.
-            First output one valid fenced widget block with widget_code, then at most one short sentence.
-            Use this exact form:
-            ```show-widget
-            {"title":"可视化草图","widget_code":"<svg width=\"100%\" viewBox=\"0 0 680 260\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"24\" y=\"24\" width=\"632\" height=\"212\" rx=\"18\" fill=\"#ffffff\" stroke=\"#e5e7eb\"/><text x=\"48\" y=\"64\" font-size=\"20\" font-weight=\"700\" fill=\"#111827\">可视化结果</text><rect x=\"48\" y=\"96\" width=\"160\" height=\"74\" rx=\"14\" fill=\"#eff6ff\" stroke=\"#bfdbfe\"/><text x=\"72\" y=\"140\" font-size=\"15\" fill=\"#1e3a8a\">起点</text><path d=\"M220 133 H300\" stroke=\"#94a3b8\" stroke-width=\"3\" marker-end=\"url(#arrow)\"/><rect x=\"312\" y=\"96\" width=\"160\" height=\"74\" rx=\"14\" fill=\"#f0fdf4\" stroke=\"#bbf7d0\"/><text x=\"336\" y=\"140\" font-size=\"15\" fill=\"#166534\">过程</text><path d=\"M484 133 H552\" stroke=\"#94a3b8\" stroke-width=\"3\" marker-end=\"url(#arrow)\"/><circle cx=\"600\" cy=\"133\" r=\"36\" fill=\"#fff7ed\" stroke=\"#fed7aa\"/><text x=\"582\" y=\"140\" font-size=\"15\" fill=\"#9a3412\">结果</text><defs><marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8 Z\" fill=\"#94a3b8\"/></marker></defs></svg>"}
-            ```
-            Replace the labels with the actual answer content.
-            Keep the SVG small, declarative, and self-contained (SMIL/CSS animation only when the request asked for motion).
-            Do not use renderer/spec in this retry because the timeline needs widget_code for streaming partial render.
-            Do not put widget JSON, SVG, HTML, or renderer/spec inside hidden reasoning.
-            Do not output Markdown-only prose for this retry.
-        """.trimIndent()
-    }
-
-    private fun List<UIMessage>.withLocalGenerativeUiFallbackWidget(
-        baseMessages: List<UIMessage>,
-        model: app.amber.ai.provider.Model,
-        requirement: GenerativeUiWidgetRequirement = GenerativeUiWidgetRequirement.None,
-    ): List<UIMessage> {
-        val labels = fallbackWidgetLabels(baseMessages)
-        val fallbackText = when {
-            requirement.expectTaskUi -> buildLocalTaskUiFallbackWidget(labels)
-            requirement.expectFullHtmlDeck || requirement.expectSlides -> buildLocalFullHtmlDeckFallbackWidget(labels)
-            else -> buildLocalGenerativeUiFallbackWidget(labels)
-        }
-        val lastAssistantIndex = indexOfLast { it.role == MessageRole.ASSISTANT }
-        if (lastAssistantIndex < 0) {
-            return this + UIMessage(
-                role = MessageRole.ASSISTANT,
-                modelId = model.id,
-                parts = listOf(UIMessagePart.Text(fallbackText)),
-            )
-        }
-        return mapIndexed { index, message ->
-            if (index == lastAssistantIndex) {
-                message.copy(parts = message.parts + UIMessagePart.Text("\n\n$fallbackText"))
-            } else {
-                message
-            }
-        }
-    }
-
-    private fun List<UIMessage>.fallbackWidgetLabels(baseMessages: List<UIMessage>): List<String> {
-        val assistantLines = lastOrNull { it.role == MessageRole.ASSISTANT }
-            ?.parts
-            ?.filterIsInstance<UIMessagePart.Text>()
-            ?.joinToString("\n") { it.text }
-            ?.lineSequence()
-            ?.mapNotNull(::cleanFallbackWidgetLine)
-            ?.distinct()
-            ?.take(4)
-            ?.toList()
-            .orEmpty()
-        if (assistantLines.isNotEmpty()) return assistantLines
-
-        val userHint = baseMessages.lastOrNull { it.role == MessageRole.USER }
-            ?.parts
-            ?.filterIsInstance<UIMessagePart.Text>()
-            ?.joinToString(" ") { GenerativeUiPlanner.stripVisualRouteTagsForDisplay(it.text) }
-            ?.replace(Regex("""\s+"""), " ")
-            ?.trim()
-            ?.take(26)
-            ?.takeIf { it.isNotBlank() }
-        return listOfNotNull("需求", userHint, "结构化", "结论").take(4)
-    }
-
-    private fun cleanFallbackWidgetLine(line: String): String? {
-        val compact = line
-            .trim()
-            .removePrefix("-")
-            .removePrefix("*")
-            .removePrefix("•")
-            .removePrefix("·")
-            .replace(Regex("""^\d+[.)、]\s*"""), "")
-            .replace(Regex("""[#*_`><]+"""), "")
-            .replace(Regex("""\s+"""), " ")
-            .trim()
-        if (compact.length < 2) return null
-        if (compact.startsWith("```") || compact.startsWith("{") || compact.startsWith("[")) return null
-        if (
-            compact.contains("widget_code") ||
-            compact.contains("renderer") ||
-            compact.contains("\"components\"") ||
-            compact.contains("\"kind\"")
-        ) {
-            return null
-        }
-        if (GenerativeWidgetParser.containsWidgetFence(compact)) return null
-        return compact.take(30)
-    }
-
-    private fun buildLocalGenerativeUiFallbackWidget(labels: List<String>): String {
-        val nodes = buildJsonArray {
-            labels.take(4).forEach { label ->
-                add(buildJsonObject { put("label", label) })
-            }
-        }
-        val widget = buildJsonObject {
-            put("title", "可视化摘要")
-            put("renderer", "diagram")
-            put(
-                "spec",
-                buildJsonObject {
-                    put("type", "flow")
-                    put("nodes", nodes)
-                }
-            )
-        }
-        return """
-        ```show-widget
-        $widget
-        ```
-        """.trimIndent()
-    }
-
-    private fun buildLocalTaskUiFallbackWidget(labels: List<String>): String {
-        val safeLabels = labels.ifEmpty { listOf("核心概念", "关键要点", "重点总结") }.take(4)
-        val title = safeLabels.first().take(24).ifBlank { "互动卡片" }
-        val components = buildJsonArray {
-            safeLabels.forEachIndexed { index, label ->
-                add(
-                    buildJsonObject {
-                        put("id", "opt_${index + 1}")
-                        put("kind", "option_card")
-                        put("title", label)
-                        put("body", "点击选择该项并继续互动")
-                        if (index == 0) {
-                            put("recommended", true)
-                        }
-                    }
-                )
-            }
-        }
-        val doc = buildJsonObject {
-            put("kind", "decision")
-            put("title", title)
-            put("subtitle", "请选择一项继续深入探讨")
-            put("submit_label", "确认选择")
-            put("components", components)
-        }
-        return """
-        ```task-ui
-        $doc
-        ```
-        """.trimIndent()
-    }
-
-
-    private fun buildLocalFullHtmlDeckFallbackWidget(labels: List<String>): String {
-        val safeLabels = labels.ifEmpty { listOf("演示预览", "结构", "要点", "结论") }.take(4)
-        val title = safeLabels.first().take(24).ifBlank { "演示预览" }
-        val html = buildString {
-            appendLine("<!DOCTYPE html>")
-            appendLine("<html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
-            appendLine("<style>")
-            appendLine("html,body{margin:0;width:100%;height:100%;background:#f8fafc;color:#111827;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans SC',sans-serif;overflow:hidden}")
-            appendLine("#deck{width:100vw;height:100vh;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;touch-action:pan-x}")
-            appendLine(".slide{min-width:100vw;height:100vh;box-sizing:border-box;padding:9vh 8vw;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;gap:22px}")
-            appendLine(".slide:nth-child(odd){background:#0f172a;color:#f8fafc}.kicker{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#38bdf8}.title{font-size:clamp(34px,9vw,84px);line-height:1.02;font-weight:800}.body{font-size:clamp(18px,4vw,34px);line-height:1.45;max-width:760px}.rule{width:88px;height:6px;background:#ef4444}")
-            appendLine("</style></head><body><div id=\"deck\">")
-            safeLabels.forEachIndexed { index, label ->
-                val safe = escapeHtml(label)
-                appendLine("<section class=\"slide ${if (index == 0) "dark" else "light"}\" data-slide=\"${index + 1}\">")
-                appendLine("<div class=\"kicker\">FULL HTML DECK</div><div class=\"rule\"></div>")
-                appendLine("<div class=\"title\">$safe</div>")
-                appendLine("<div class=\"body\">${if (index == 0) "移动端可左右滑动浏览。" else safe}</div>")
-                appendLine("</section>")
-            }
-            appendLine("</div><script>window.__pipeAdvance=function(){return false};window.__setLowPowerMode=function(){}</script></body></html>")
-        }
-        val cover = """
-            <svg width="100%" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
-              <rect width="680" height="220" rx="16" fill="#0f172a"/>
-              <rect x="32" y="30" width="616" height="160" rx="10" fill="none" stroke="#38bdf8" stroke-width="2"/>
-              <text x="54" y="72" font-size="13" letter-spacing="3" fill="#7dd3fc">FULL HTML DECK</text>
-              <text x="54" y="126" font-size="30" font-weight="800" fill="#f8fafc">${escapeHtml(title)}</text>
-              <text x="54" y="164" font-size="15" fill="#cbd5e1">fallback live deck preview</text>
-            </svg>
-        """.trimIndent()
-        val widget = buildJsonObject {
-            put("title", title)
-            put("renderer", GuizangHtmlDeckValidator.RENDERER)
-            put("widget_code", cover)
-            put(
-                "spec",
-                buildJsonObject {
-                    put("title", title)
-                    put("html", html)
-                    put("source", "amberagent-fallback")
-                    put("allowRemoteImages", true)
-                    put("allowRemoteFonts", true)
-                }
-            )
-        }
-        return """
-        ```show-widget
-        $widget
-        ```
-        """.trimIndent()
-    }
-
-    private fun escapeHtml(value: String): String =
-        value
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
 
     private fun shouldFallbackToVisionRecognition(error: Throwable): Boolean {
         if (error is ImageEncodingException) return true

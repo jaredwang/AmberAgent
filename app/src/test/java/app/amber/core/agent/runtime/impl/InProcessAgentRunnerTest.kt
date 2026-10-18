@@ -1,5 +1,7 @@
 package app.amber.core.agent.runtime.impl
 
+import app.amber.agent.AppRuntimeRecovery
+import app.amber.feature.runtime.ColdStartRuntimeRecoveryGate
 import app.amber.core.agent.runtime.Agent
 import app.amber.core.agent.runtime.AgentArtifact
 import app.amber.core.agent.runtime.AgentCapability
@@ -17,9 +19,13 @@ import app.amber.core.agent.runtime.RunStatusTransitions
 import app.amber.core.agent.runtime.RunTransitionResult
 import app.amber.core.agent.runtime.TraceSpanRecord
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import org.junit.Assert.assertEquals
@@ -116,7 +122,11 @@ class InProcessAgentRunnerTest {
         }
     }
 
-    private fun registeredRunner(store: RecordingEventStore, onHandle: suspend () -> Unit = {}): InProcessAgentRunner {
+    private fun registeredRunner(
+        store: RecordingEventStore,
+        awaitColdStartRecovery: suspend () -> Unit = {},
+        onHandle: suspend () -> Unit = {},
+    ): InProcessAgentRunner {
         val registry = InMemoryAgentRegistry().apply {
             register(
                 descriptor = FakeAgent().descriptor,
@@ -126,7 +136,92 @@ class InProcessAgentRunnerTest {
                 factory = { FakeAgent(onHandle) },
             )
         }
-        return InProcessAgentRunner(registry, store)
+        return InProcessAgentRunner(registry, store, awaitColdStartRecovery = awaitColdStartRecovery)
+    }
+
+    @Test
+    fun `actual runner cannot write until runtime recovery and chat projection both finish`() = runBlocking {
+        val gate = ColdStartRuntimeRecoveryGate()
+        val recoveredLedger = CompletableDeferred<Unit>()
+        val allowProjection = CompletableDeferred<Unit>()
+        val runnerWaiting = CompletableDeferred<Unit>()
+        val handled = CompletableDeferred<Unit>()
+        val store = RecordingEventStore()
+        val recovery = launch(start = CoroutineStart.UNDISPATCHED) {
+            AppRuntimeRecovery(
+                gate = gate,
+                recoverDurableRuns = { recoveredLedger.await() },
+                replayChatEvents = { allowProjection.await() },
+                recoverJsCells = {},
+                reportFailure = { _, error -> throw AssertionError(error) },
+            ).recover()
+        }
+        val runner = registeredRunner(store, awaitColdStartRecovery = {
+            runnerWaiting.complete(Unit)
+            gate.awaitReady()
+        }, onHandle = { handled.complete(Unit) })
+        runner.launch(AgentDescriptorId("fake"), FakeInput("after recovery")).getOrThrow()
+        withTimeout(2_000) { runnerWaiting.await() }
+        assertTrue(store.runs.isEmpty())
+        recoveredLedger.complete(Unit)
+        kotlinx.coroutines.yield()
+        assertTrue("Projector must finish before any durable RUNNING row", store.runs.isEmpty())
+        assertTrue(!handled.isCompleted)
+        allowProjection.complete(Unit)
+        recovery.join()
+        withTimeout(2_000) { handled.await() }
+        assertEquals(1, store.runs.size)
+        Unit
+    }
+
+    @Test
+    fun `failed runtime recovery rejects actual runner admission without invoking handler`() = runBlocking {
+        val gate = ColdStartRuntimeRecoveryGate()
+        val failure = IllegalStateException("held ledger recovery failed")
+        val failures = mutableListOf<Throwable>()
+        var projected = false
+        var jsRecovered = false
+        AppRuntimeRecovery(
+            gate = gate,
+            recoverDurableRuns = { throw failure },
+            replayChatEvents = { projected = true },
+            recoverJsCells = { jsRecovered = true },
+            reportFailure = { _, error -> failures += error },
+        ).recover()
+        val store = RecordingEventStore()
+        val handled = AtomicInteger()
+        val runner = registeredRunner(store, awaitColdStartRecovery = gate::awaitReady) { handled.incrementAndGet() }
+        val handle = runner.launch(AgentDescriptorId("fake"), FakeInput("must fail")).getOrThrow()
+        val rejected = withTimeout(2_000) { runner.observe(handle.runId).first { it.status == RunStatus.FAILED } }
+        assertTrue(rejected.error?.message?.contains("held ledger recovery failed") == true)
+        assertTrue(store.runs.isEmpty())
+        assertEquals(0, handled.get())
+        assertTrue(!projected)
+        assertTrue(jsRecovered)
+        assertEquals(listOf(failure), failures)
+        Unit
+    }
+
+    @Test
+    fun `independent JS cleanup failure leaves actual recovered runner admitted`() = runBlocking {
+        val gate = ColdStartRuntimeRecoveryGate()
+        val jsFailure = IllegalStateException("JS cleanup failed")
+        val failures = mutableListOf<Throwable>()
+        AppRuntimeRecovery(
+            gate = gate,
+            recoverDurableRuns = {},
+            replayChatEvents = {},
+            recoverJsCells = { throw jsFailure },
+            reportFailure = { _, error -> failures += error },
+        ).recover()
+        val store = RecordingEventStore()
+        val handled = CompletableDeferred<Unit>()
+        val runner = registeredRunner(store, awaitColdStartRecovery = gate::awaitReady) { handled.complete(Unit) }
+        assertTrue(runner.launch(AgentDescriptorId("fake"), FakeInput("allowed")).isSuccess)
+        withTimeout(2_000) { handled.await() }
+        assertEquals(1, store.runs.size)
+        assertEquals(listOf(jsFailure), failures)
+        Unit
     }
 
     @Test
