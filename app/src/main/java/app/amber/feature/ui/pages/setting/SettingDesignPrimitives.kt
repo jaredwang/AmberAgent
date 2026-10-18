@@ -2,10 +2,7 @@ package app.amber.feature.ui.pages.setting
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +14,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
@@ -27,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import app.amber.feature.ui.components.ds.AmberSegmentedTrack
 import app.amber.feature.ui.components.ds.SectionLabel
 import app.amber.feature.ui.components.ui.CardGroup
 import app.amber.feature.ui.components.ui.CardGroupScope
@@ -126,38 +123,28 @@ internal fun <T> SettingSegmentedChoice(
     selected: T,
     onSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
+    equalWeight: Boolean = true,
     label: @Composable (T) -> Unit,
 ) {
     val colors = workspaceColors()
     val shape = LocalThemeDesign.current?.components?.controlRadius?.toFloat()?.dp
         ?.let { RoundedCornerShape(it) } ?: CircleShape
-    Row(
-        modifier = modifier
-            .clip(shape)
-            .background(colors.row)
-            .border(1.dp, colors.hairline, shape)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        options.forEach { option ->
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(shape)
-                    .clickable { onSelected(option) }
-                    .background(
-                        if (option == selected) colors.paper else Color.Transparent,
-                        shape,
-                    )
-                    .padding(horizontal = 8.dp, vertical = 7.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                CompositionLocalProvider(
-                    LocalContentColor provides if (option == selected) colors.ink else colors.muted,
-                ) {
-                    label(option)
-                }
-            }
+    AmberSegmentedTrack(
+        selectedIndex = options.indexOf(selected).coerceAtLeast(0),
+        optionCount = options.size,
+        onSelect = { index -> options.getOrNull(index)?.let(onSelected) },
+        shape = shape,
+        trackColor = colors.row,
+        thumbColor = colors.paper,
+        modifier = modifier,
+        borderColor = colors.hairline,
+        equalWeight = equalWeight,
+    ) { index, isSelected ->
+        val option = options[index]
+        CompositionLocalProvider(
+            LocalContentColor provides if (isSelected) colors.ink else colors.muted,
+        ) {
+            label(option)
         }
     }
 }

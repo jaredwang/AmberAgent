@@ -1,21 +1,13 @@
 package app.amber.feature.ui.pages.setting
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
@@ -32,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +38,7 @@ import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.feature.ui.components.ui.WorkspaceStatusPill
 import app.amber.feature.ui.components.ui.WorkspaceTone
 import app.amber.feature.ui.components.ui.workspaceColors
+import app.amber.feature.ui.theme.LocalAmberType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -163,10 +155,14 @@ fun SettingTtsPage() {
                         headlineContent = { Text(stringResource(R.string.setting_tts_page_speech_rate)) },
                         supportingContent = { Text(stringResource(R.string.setting_tts_page_speech_rate_desc)) },
                         trailingContent = {
-                            TtsSpeedChoice(
-                                speeds = speeds,
-                                selectedIndex = speedIndex,
+                            SettingSegmentedChoice(
+                                options = speeds.indices.toList(),
+                                selected = speedIndex,
                                 onSelected = { speedIndex = it },
+                                equalWeight = false,
+                                label = { index ->
+                                    Text(speeds[index].second, style = LocalAmberType.current.meta)
+                                },
                             )
                         },
                     )
@@ -230,37 +226,6 @@ fun SettingTtsPage() {
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TtsSpeedChoice(
-    speeds: List<Pair<Float, String>>,
-    selectedIndex: Int,
-    onSelected: (Int) -> Unit,
-) {
-    val colors = workspaceColors()
-    Row(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(colors.row)
-            .border(1.dp, colors.hairline, CircleShape)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        speeds.forEachIndexed { index, (_, label) ->
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable { onSelected(index) }
-                    .background(if (index == selectedIndex) colors.paper else androidx.compose.ui.graphics.Color.Transparent)
-                    .padding(horizontal = 8.dp, vertical = 7.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(label, style = app.amber.feature.ui.theme.LocalAmberType.current.meta)
             }
         }
     }
