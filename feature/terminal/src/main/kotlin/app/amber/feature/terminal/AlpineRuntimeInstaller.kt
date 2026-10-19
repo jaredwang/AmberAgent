@@ -84,6 +84,12 @@ class AlpineRuntimeInstaller(private val context: Context) {
                 executable = true,
                 overwrite = overwriteRuntimeFiles
             )
+            copyRuntimeAsset(
+                "embedded-terminal-runtime/libproot-loader.so",
+                context.filesDir.resolve("libproot-loader.so"),
+                executable = true,
+                overwrite = overwriteRuntimeFiles
+            )
             runtimeVersionFile.writeText(runtimeVersion)
             InstallStatus(
                 success = true,
@@ -121,8 +127,8 @@ class AlpineRuntimeInstaller(private val context: Context) {
             "PROOT_TMP_DIR" to tempDir.resolve(sessionId).apply { mkdirs() }.absolutePath,
             "TMPDIR" to tempDir.absolutePath,
         )
-        val loader = File(context.applicationInfo.nativeLibraryDir, "libproot-loader.so")
-        if (loader.exists()) {
+        val loader = context.filesDir.resolve("libproot-loader.so")
+        if (loader.isFile && loader.length() > 0L) {
             env["PROOT_LOADER"] = loader.absolutePath
         }
         return env
@@ -188,6 +194,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
         RuntimeFile("proot", context.filesDir.resolve("proot"), executable = true),
         RuntimeFile("libtalloc.so.2", context.filesDir.resolve("libtalloc.so.2")),
         RuntimeFile("alpine.tar.gz", context.filesDir.resolve("alpine.tar.gz")),
+        RuntimeFile("libproot-loader.so", context.filesDir.resolve("libproot-loader.so"), executable = true),
         RuntimeFile("init-host", localBinDir.resolve("init-host"), executable = true),
         RuntimeFile("init", localBinDir.resolve("init"), executable = true),
     )
@@ -205,7 +212,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
 
     private companion object {
         // Bump whenever the embedded archive, proot binaries, or init scripts change.
-        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-b6326a3b"
+        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-b6326a3b-16kb-loader"
     }
 }
 

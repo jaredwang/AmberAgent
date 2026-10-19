@@ -172,6 +172,16 @@ class TerminalAdmissionTest {
     }
 
     @Test
+    fun `environment points PROOT_LOADER at the filesDir copy`() {
+        val installer = AlpineRuntimeInstaller(context)
+        val loader = context.filesDir.resolve("libproot-loader.so")
+        loader.writeText("loader")
+        loader.setExecutable(true)
+        val env = installer.environment(workspacePath = "/workspace", sessionId = "s1")
+        assertEquals(loader.absolutePath, env["PROOT_LOADER"])
+    }
+
+    @Test
     fun `session process launch failure releases its workspace lease`(): Unit = runBlocking {
         // Robolectric omits the installed app's native library directory.
         context.applicationInfo.nativeLibraryDir = context.filesDir.resolve("native-libs")
@@ -183,6 +193,7 @@ class TerminalAdmissionTest {
             context.filesDir.resolve("proot"),
             context.filesDir.resolve("libtalloc.so.2"),
             context.filesDir.resolve("alpine.tar.gz"),
+            context.filesDir.resolve("libproot-loader.so"),
             installer.localBinDir.resolve("init-host"),
             installer.localBinDir.resolve("init"),
         ).forEach { file ->

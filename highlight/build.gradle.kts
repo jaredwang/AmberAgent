@@ -58,6 +58,9 @@ val cargoBuildHighlightParser = tasks.register<Exec>("cargoBuildHighlightParser"
     description = "Build libhighlight_parser.so for arm64-v8a via cargo-ndk"
     workingDir = file("../native/highlight-parser")
     environment("ANDROID_NDK_HOME", androidNdkHome)
+    inputs.file(rootProject.file("native/.cargo/config.toml"))
+    inputs.file(rootProject.file("native/Cargo.lock"))
+    inputs.files(fileTree("../native/highlight-parser") { include("**/*.rs", "Cargo.toml") })
     commandLine = listOf(
         "cargo", "ndk",
         "-t", "arm64-v8a",

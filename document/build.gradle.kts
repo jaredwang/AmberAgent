@@ -60,6 +60,9 @@ val cargoBuildOfficeParsers = tasks.register<Exec>("cargoBuildOfficeParsers") {
     description = "Build liboffice_parsers.so for arm64-v8a via cargo-ndk"
     workingDir = file("../native/office-parsers")
     environment("ANDROID_NDK_HOME", androidNdkHome)
+    inputs.file(rootProject.file("native/.cargo/config.toml"))
+    inputs.file(rootProject.file("native/Cargo.lock"))
+    inputs.files(fileTree("../native/office-parsers") { include("**/*.rs", "Cargo.toml") })
     commandLine = listOf(
         "cargo", "ndk",
         "-t", "arm64-v8a",

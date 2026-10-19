@@ -23,6 +23,8 @@ cargo test --workspace --locked
 
 需要 Rust、`aarch64-linux-android` target、`cargo-ndk` 3.5.4 和 Android NDK `27.0.12077973`。Gradle 在 `app`、`document` 和 `highlight` 模块内分别调用 `cargo ndk`，再把八个库合并进 APK。
 
+交叉编译读取 `native/.cargo/config.toml`，给 `aarch64-linux-android` 加上 `-Wl,-z,max-page-size=16384` 和 `-Wl,-z,common-page-size=16384`，这样 NDK r27 产出的 `.so` 满足 Android 15+ 的 16 KB 页对齐。`assemble*` 会检查 APK 里每个 `lib/**/*.so` 的 ELF `PT_LOAD` 对齐和 16 KB zip 对齐。
+
 ```bash
 ANDROID_NDK_HOME=/path/to/android-sdk/ndk/27.0.12077973 \
   ./gradlew :app:assembleDebug

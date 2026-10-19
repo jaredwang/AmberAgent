@@ -59,7 +59,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             native/target
-          key: ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-${{ hashFiles('native/**/Cargo.lock', 'native/**/Cargo.toml', 'native/**/*.rs') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-${{ hashFiles('native/**/Cargo.lock', 'native/**/Cargo.toml', 'native/**/*.rs', 'native/.cargo/config.toml') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-
 
@@ -93,6 +93,14 @@ jobs:
                 exit 1
               fi
             done
+            if grep -Fxq "lib/arm64-v8a/libproot-loader.so" <<< "$APK_ENTRIES"; then
+              echo "libproot-loader.so must not be packaged under lib/ in $APK" >&2
+              exit 1
+            fi
+            if ! grep -Fxq "assets/embedded-terminal-runtime/libproot-loader.so" <<< "$APK_ENTRIES"; then
+              echo "Missing assets/embedded-terminal-runtime/libproot-loader.so in $APK" >&2
+              exit 1
+            fi
           done
 
       - name: Upload APK
