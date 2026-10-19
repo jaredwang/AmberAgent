@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalScrollCaptureInProgress
 import androidx.compose.ui.res.stringResource
@@ -297,6 +300,25 @@ internal fun ChatListNormal(
                             .fillMaxSize()
                             .padding(innerPadding),
                     ) {
+                        // Fade only the message layer. Keep this behind every floating
+                        // control so suggestion chips retain their text and fill contrast.
+                        if (conversation.messageNodes.isNotEmpty()) {
+                            val chatBg = LocalChatTheme.current.bg
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            0.00f to chatBg.copy(alpha = 0f),
+                                            0.75f to chatBg,
+                                            1.00f to chatBg,
+                                        )
+                                    ),
+                            )
+                        }
+
                         if (compaction.showFloatingCompactMarker) {
                             Box(
                                 modifier = Modifier
