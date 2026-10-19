@@ -1,5 +1,6 @@
 package app.amber.feature.ui.pages.sessionhome
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -105,6 +106,17 @@ internal fun LazyListScope.homeConversationItems(
                 onOpen = { onOpen(conversation) },
                 onDelete = { onDelete(conversation) },
                 onTogglePin = { onTogglePin(conversation) },
+                modifier = Modifier.animateItem(
+                    fadeInSpec = null,
+                    fadeOutSpec = tween(
+                        durationMillis = HomeSessionSwipeMotion.FadeMs,
+                        easing = HomeSessionSwipeMotion.EaseOut,
+                    ),
+                    placementSpec = tween(
+                        durationMillis = HomeSessionSwipeMotion.CollapseMs,
+                        easing = HomeSessionSwipeMotion.EaseOut,
+                    ),
+                ),
             )
         }
 

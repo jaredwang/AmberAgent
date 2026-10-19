@@ -1,8 +1,24 @@
 package app.amber.feature.ui.pages.sessionhome
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,49 +31,72 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxDefaults
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.amber.agent.R
 import app.amber.core.model.Conversation
 import app.amber.feature.ui.components.ds.AmberContinuousShape
 import app.amber.feature.ui.components.ds.AmberDepthStyle
+import app.amber.feature.ui.components.ds.AmberFeedback
 import app.amber.feature.ui.components.ds.amberPressHighlight
 import app.amber.feature.ui.components.ds.amberRim
 import app.amber.feature.ui.components.ds.amberShadow
 import app.amber.feature.ui.theme.JetBrainsMonoFamily
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalThemePack
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Pin
+import com.composables.icons.lucide.Trash2
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import androidx.compose.material3.Text
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Trash2
-import com.composables.icons.lucide.Pin
+import kotlinx.coroutines.delay
+
+/**
+ * Delete settle/collapse. M3 SwipeToDismissBox uses default `spring()`
+ * (stiffness 1500, ~100ms); that's the snappy leave this replaces.
+ */
+internal object HomeSessionSwipeMotion {
+    const val CollapseMs = 280
+    const val FadeMs = 220
+    val SnapSpec = spring<Float>(
+        dampingRatio = Spring.DampingRatioNoBouncy,
+        stiffness = Spring.StiffnessLow,
+    )
+    val EaseOut = AmberFeedback.EaseOut
+}
+
+private enum class HomeSessionSwipeValue { Settled, Pin, Delete }
+
+private class HomeSessionPinGesture {
+    var settling = false
+    var handled = false
+}
 
 /**
  * 会话行：标题 + 最后消息预览 +（消息数 / 时间）。
- * 左滑（EndToStart）删除，右滑（StartToEnd）置顶/取消置顶——M3 SwipeToDismissBox 双向，
- * 与 HistoryPage 的单向删除同款机制。
+ * 向结束方向滑动置顶，向开始方向滑动删除（RTL 镜像）。删除松手后沿手势方向离开并收起。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeSessionRow(
     conversation: Conversation,
@@ -68,34 +107,77 @@ internal fun HomeSessionRow(
     onOpen: () -> Unit,
     onDelete: () -> Unit,
     onTogglePin: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val tokens = LocalAmberTokens.current
+    val density = LocalDensity.current
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val cardRadius = LocalThemePack.current?.design?.components?.cardRadius?.toFloat()?.dp ?: 22.dp
     val newMessageLabel = stringResource(R.string.chat_page_new_message)
     val deleteLabel = stringResource(R.string.delete)
     val pinLabel = stringResource(R.string.history_page_pin)
     val unpinLabel = stringResource(R.string.history_page_unpin)
     val rowInteraction = remember { MutableInteractionSource() }
-    val dismissState = rememberSwipeToDismissBoxState(
-        positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold,
-        // 置顶是「动作后行仍保留」的方向：在 confirmValueChange 里执行动作并返回
-        // false，状态永远不进入 StartToEnd，松手必弹回 Settled。旧版是进入
-        // StartToEnd 后 LaunchedEffect 里 onTogglePin()+reset()，但置顶引起的列表
-        // 重排会和 reset 赛跑，行会卡在滑出位置不回弹。删除方向返回 true 交给
-        // 下面的 LaunchedEffect（项会被移除，无需回弹）。
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.StartToEnd) {
-                onTogglePin()
-                false
-            } else {
-                true
-            }
-        },
-    )
+    val swipeInteraction = remember { MutableInteractionSource() }
+    val isDragging by swipeInteraction.collectIsDraggedAsState()
+    val latestOnDelete = rememberUpdatedState(onDelete)
+    val latestOnTogglePin = rememberUpdatedState(onTogglePin)
+    val pinGesture = remember { HomeSessionPinGesture() }
 
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            onDelete()
+    @Suppress("DEPRECATION")
+    val swipeState = remember {
+        // Pin is a drag target, not a settled state: vetoing the anchor keeps
+        // the row from racing a list reorder the way reset()-after-settle did.
+        AnchoredDraggableState(
+            initialValue = HomeSessionSwipeValue.Settled,
+            confirmValueChange = { value ->
+                if (value == HomeSessionSwipeValue.Pin) {
+                    // Anchor confirmation can be queried repeatedly by one fling.
+                    // Toggle only once after release, never during the drag itself.
+                    if (pinGesture.settling && !pinGesture.handled) {
+                        pinGesture.handled = true
+                        latestOnTogglePin.value()
+                    }
+                    false
+                } else {
+                    true
+                }
+            },
+        )
+    }
+    val visibleState = remember { MutableTransitionState(true) }
+    val anchorFling = AnchoredDraggableDefaults.flingBehavior(
+        state = swipeState,
+        positionalThreshold = { with(density) { 56.dp.toPx() } },
+        animationSpec = HomeSessionSwipeMotion.SnapSpec,
+    )
+    val swipeFling = remember(anchorFling) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                pinGesture.settling = true
+                pinGesture.handled = false
+                try {
+                    return with(anchorFling) { performFling(initialVelocity) }
+                } finally {
+                    pinGesture.settling = false
+                }
+            }
+        }
+    }
+
+    // 只在松手后、已经对准 Delete 锚点时才收起。拖过阈值但手指还在时保持 1:1 跟随。
+    LaunchedEffect(isDragging, swipeState.targetValue) {
+        if (!isDragging && swipeState.targetValue == HomeSessionSwipeValue.Delete) {
+            visibleState.targetState = false
+        }
+    }
+    LaunchedEffect(visibleState.targetState) {
+        if (!visibleState.targetState) {
+            try {
+                delay(HomeSessionSwipeMotion.CollapseMs.toLong())
+            } finally {
+                latestOnDelete.value()
+            }
         }
     }
 
@@ -114,63 +196,101 @@ internal fun HomeSessionRow(
     } else {
         tokens.surface
     }
-    SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            // 左滑露出右侧「删除」（accent 底）；右滑露出左侧「置顶」（surface2 底）
-            val isDelete = dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
+    val offsetX = swipeState.offset.let { if (it.isNaN()) 0f else it }
+    // Anchors are logical start/end coordinates because RTL reverses the drag
+    // input. graphicsLayer uses physical coordinates, so mirror its output too.
+    val physicalOffsetX = if (isRtl) -offsetX else offsetX
+    val isDeleteReveal = offsetX < 0f
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        modifier = modifier.fillMaxWidth(),
+        enter = EnterTransition.None,
+        exit = fadeOut(
+            animationSpec = tween(
+                durationMillis = HomeSessionSwipeMotion.FadeMs,
+                easing = HomeSessionSwipeMotion.EaseOut,
+            ),
+        ) + shrinkVertically(
+            animationSpec = tween(
+                durationMillis = HomeSessionSwipeMotion.CollapseMs,
+                easing = HomeSessionSwipeMotion.EaseOut,
+            ),
+            shrinkTowards = Alignment.Top,
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .amberShadow(
+                    rowShape,
+                    AmberDepthStyle.Card,
+                    drawTop = isFirst,
+                    drawBottom = isLast,
+                    opaqueContent = rowSurface.alpha >= 1f,
+                )
+                .clip(rowShape)
+                .amberRim(rowShape, AmberDepthStyle.Card, drawTop = isFirst, drawBottom = isLast)
+                .onSizeChanged { size ->
+                    if (size.width <= 0) return@onSizeChanged
+                    val width = size.width.toFloat()
+                    swipeState.updateAnchors(
+                        DraggableAnchors {
+                            HomeSessionSwipeValue.Pin at width
+                            HomeSessionSwipeValue.Settled at 0f
+                            HomeSessionSwipeValue.Delete at -width
+                        },
+                    )
+                }
+                .anchoredDraggable(
+                    state = swipeState,
+                    reverseDirection = isRtl,
+                    orientation = Orientation.Horizontal,
+                    enabled = visibleState.targetState,
+                    interactionSource = swipeInteraction,
+                    flingBehavior = swipeFling,
+                ),
+        ) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(if (isDelete) tokens.accent else tokens.surface2)
+                    .matchParentSize()
+                    .background(if (isDeleteReveal) tokens.accent else tokens.surface2)
                     .padding(horizontal = 20.dp),
-                contentAlignment = if (isDelete) Alignment.CenterEnd else Alignment.CenterStart,
+                contentAlignment = if (isDeleteReveal) Alignment.CenterEnd else Alignment.CenterStart,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
-                        imageVector = if (isDelete) Lucide.Trash2 else Lucide.Pin,
-                        contentDescription = if (isDelete) {
+                        imageVector = if (isDeleteReveal) Lucide.Trash2 else Lucide.Pin,
+                        contentDescription = if (isDeleteReveal) {
                             deleteLabel
                         } else {
                             if (conversation.isPinned) unpinLabel else pinLabel
                         },
                         modifier = Modifier.size(17.dp),
-                        tint = if (isDelete) tokens.accentInk else tokens.accent,
+                        tint = if (isDeleteReveal) tokens.accentInk else tokens.accent,
                     )
                     Text(
                         text = when {
-                            isDelete -> deleteLabel
+                            isDeleteReveal -> deleteLabel
                             conversation.isPinned -> unpinLabel
                             else -> pinLabel
                         },
                         fontFamily = homeChromeFontFamily(JetBrainsMonoFamily),
                         fontSize = 10.sp,
                         letterSpacing = 0.4.sp,
-                        color = if (isDelete) tokens.accentInk else tokens.accent,
+                        color = if (isDeleteReveal) tokens.accentInk else tokens.accent,
                     )
                 }
             }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .amberShadow(
-                rowShape,
-                AmberDepthStyle.Card,
-                drawTop = isFirst,
-                drawBottom = isLast,
-                opaqueContent = rowSurface.alpha >= 1f,
-            )
-            .clip(rowShape)
-            .amberRim(rowShape, AmberDepthStyle.Card, drawTop = isFirst, drawBottom = isLast),
-    ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(rowSurface)
+                    .graphicsLayer { translationX = physicalOffsetX }
+                    .background(rowSurface),
             ) {
                 Row(
                     modifier = Modifier
@@ -180,6 +300,7 @@ internal fun HomeSessionRow(
                         .clickable(
                             interactionSource = rowInteraction,
                             indication = null,
+                            enabled = visibleState.targetState,
                             onClick = onOpen,
                         )
                         .padding(horizontal = 14.dp, vertical = 13.dp),
@@ -256,6 +377,7 @@ internal fun HomeSessionRow(
                             .background(tokens.line.copy(alpha = 0.46f)),
                     )
                 }
+            }
         }
     }
 }

@@ -6,10 +6,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.io.FileInputStream
+import java.io.RandomAccessFile
 import java.math.BigInteger
 import java.net.URI
 import java.security.MessageDigest
 import java.util.Properties
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 val buildLocalProperties = Properties().apply {
@@ -370,6 +372,10 @@ android {
     }
     packaging {
         jniLibs {
+            // proot execve() needs the loader in the installer's executable
+            // nativeLibraryDir. Android 10+ denies exec from writable app data.
+            // Compressed JNI is extracted at install time; 16 KB ELF alignment
+            // is still required and checked for every packaged library below.
             useLegacyPackaging = true
         }
     }
@@ -460,12 +466,28 @@ fun registerCargoBuild(taskName: String, crateDir: String, displayName: String) 
         description = "Build lib${displayName}.so for arm64-v8a via cargo-ndk"
         workingDir = file(crateDir)
         environment("ANDROID_NDK_HOME", androidNdkHome)
+        inputs.file(rootProject.file("native/.cargo/config.toml"))
+        inputs.file(rootProject.file("native/Cargo.lock"))
+        inputs.files(fileTree(crateDir) { include("**/*.rs", "Cargo.toml") })
         commandLine = listOf(
             "cargo", "ndk",
             "-t", "arm64-v8a",
-            "-o", file("${layout.buildDirectory.get()}/rustJniLibs/android").absolutePath,
-            "build", "--release",
+            "rustc", "--release", "--locked", "--lib", "--verbose",
+            "--target-dir", rootProject.file("native/target").absolutePath,
+            "--", "-C", "link-arg=-Wl,-z,max-page-size=16384",
+            "-C", "link-arg=-Wl,-z,common-page-size=16384",
         )
+        doLast {
+            // cargo-ndk -o copies EVERY workspace .so, including stale artifacts
+            // belonging to document/highlight. Publish only this task's library.
+            copy {
+                from(rootProject.file("native/target/aarch64-linux-android/release/lib$displayName.so"))
+                into(layout.buildDirectory.dir("rustJniLibs/android/arm64-v8a"))
+            }
+            file("${layout.buildDirectory.get()}/rustJniLibs/android/arm64-v8a").listFiles()
+                ?.filter { it.name in setOf("liboffice_parsers.so", "libhighlight_parser.so") }
+                ?.forEach { it.delete() }
+        }
         isIgnoreExitValue = false
         onlyIf {
             val cargoNdkAvailable = try {
@@ -514,13 +536,178 @@ val requiredRustSharedLibraries = listOf(
 )
 
 val rustNativeCheckedBuildTypes = setOf("release", "graphite", "baseline")
+val pageSizeCheckedBuildTypes = setOf("debug", "release", "graphite", "baseline")
 
 // Flavor-aware variant matrix: novel/deepread have no `baseline` variant
 // (pruned in androidComponents.beforeVariants above).
-val rustCheckedVariantSlugs = surfaceFlavorApplicationIds.keys.flatMap { flavorName ->
-    rustNativeCheckedBuildTypes
+fun variantSlugsFor(buildTypes: Set<String>) = surfaceFlavorApplicationIds.keys.flatMap { flavorName ->
+    buildTypes
         .filter { buildTypeName -> flavorName == "full" || buildTypeName != "baseline" }
         .map { buildTypeName -> flavorName to buildTypeName }
+}
+
+val rustCheckedVariantSlugs = variantSlugsFor(rustNativeCheckedBuildTypes)
+val pageSizeCheckedVariantSlugs = variantSlugsFor(pageSizeCheckedBuildTypes)
+
+fun apkOutputs(flavorName: String, buildTypeName: String): List<File> {
+    val apkDir = layout.buildDirectory.dir("outputs/apk/$flavorName/$buildTypeName").get().asFile
+    return apkDir.listFiles { file ->
+        file.isFile && file.extension.equals("apk", ignoreCase = true)
+    }?.toList().orEmpty()
+}
+
+fun leU16(buf: ByteArray, offset: Int): Int =
+    (buf[offset].toInt() and 0xff) or ((buf[offset + 1].toInt() and 0xff) shl 8)
+
+fun leU32(buf: ByteArray, offset: Int): Long =
+    (buf[offset].toLong() and 0xffL) or
+        ((buf[offset + 1].toLong() and 0xffL) shl 8) or
+        ((buf[offset + 2].toLong() and 0xffL) shl 16) or
+        ((buf[offset + 3].toLong() and 0xffL) shl 24)
+
+fun leU64(buf: ByteArray, offset: Int): Long =
+    leU32(buf, offset) or (leU32(buf, offset + 4) shl 32)
+
+fun RandomAccessFile.readU16Le(): Int {
+    val lo = readUnsignedByte()
+    val hi = readUnsignedByte()
+    return lo or (hi shl 8)
+}
+
+fun RandomAccessFile.readU32Le(): Long {
+    val lo = readU16Le().toLong()
+    val hi = readU16Le().toLong()
+    return lo or (hi shl 16)
+}
+
+fun zipLocalDataOffsets(apk: File): Map<String, Long> {
+    val offsets = mutableMapOf<String, Long>()
+    RandomAccessFile(apk, "r").use { raf ->
+        val length = raf.length()
+        check(length >= 22L) { "${apk.name} is too small to be a zip" }
+        var eocd = length - 22L
+        var found = false
+        while (eocd >= 0L && length - eocd <= 22L + 0xffffL) {
+            raf.seek(eocd)
+            if (raf.readInt() == 0x504b0506) {
+                found = true
+                break
+            }
+            eocd--
+        }
+        check(found) { "${apk.name} is missing a zip EOCD record" }
+        raf.seek(eocd + 10)
+        val cdCount = raf.readU16Le()
+        raf.seek(eocd + 16)
+        val cdOffset = raf.readU32Le()
+        raf.seek(cdOffset)
+        repeat(cdCount) {
+            val sig = raf.readInt()
+            check(sig == 0x504b0102) { "${apk.name} has a corrupt zip central directory" }
+            raf.skipBytes(24)
+            val nameLen = raf.readU16Le()
+            val extraLen = raf.readU16Le()
+            val commentLen = raf.readU16Le()
+            raf.skipBytes(8)
+            val localHeaderOffset = raf.readU32Le()
+            val nameBytes = ByteArray(nameLen)
+            raf.readFully(nameBytes)
+            raf.skipBytes(extraLen + commentLen)
+            val name = String(nameBytes, Charsets.UTF_8)
+            if (!name.startsWith("lib/") || !name.endsWith(".so")) return@repeat
+            val here = raf.filePointer
+            raf.seek(localHeaderOffset)
+            check(raf.readInt() == 0x504b0304) { "${apk.name} local header mismatch for $name" }
+            raf.skipBytes(22)
+            val localNameLen = raf.readU16Le()
+            val localExtraLen = raf.readU16Le()
+            offsets[name] = localHeaderOffset + 30L + localNameLen + localExtraLen
+            raf.seek(here)
+        }
+    }
+    return offsets
+}
+
+fun elfLoadIssues(entryName: String, bytes: ByteArray): List<String> {
+    if (bytes.size < 64 ||
+        bytes[0] != 0x7f.toByte() ||
+        bytes[1] != 'E'.code.toByte() ||
+        bytes[2] != 'L'.code.toByte() ||
+        bytes[3] != 'F'.code.toByte()
+    ) {
+        return listOf("$entryName: not an ELF file")
+    }
+    if (bytes[4] != 2.toByte()) return listOf("$entryName: not ELF64")
+    if (bytes[5] != 1.toByte()) return listOf("$entryName: not little-endian ELF")
+    val type = leU16(bytes, 16)
+    // The proot loader is an execve stub, not a dlopen library. It is the only
+    // allowed ET_EXEC, and must pass the same LOAD alignment checks as JNI.
+    val prootLoader = entryName == "lib/arm64-v8a/libproot-loader.so"
+    if (type != 3 && !(prootLoader && type == 2)) return listOf("$entryName: unexpected ELF type $type")
+    val phoff = leU64(bytes, 32)
+    val phentsize = leU16(bytes, 54)
+    val phnum = leU16(bytes, 56)
+    if (phoff < 0L || phentsize < 56 || phnum <= 0) return listOf("$entryName: invalid program headers")
+    val issues = mutableListOf<String>()
+    var loadCount = 0
+    for (i in 0 until phnum) {
+        val off = phoff + i.toLong() * phentsize
+        if (off < 0L || off + 56L > bytes.size) {
+            return listOf("$entryName: truncated program headers")
+        }
+        val start = off.toInt()
+        if (leU32(bytes, start).toInt() != 1) continue // PT_LOAD
+        loadCount++
+        val align = leU64(bytes, start + 48)
+        if (align < 16384L) {
+            issues += "$entryName: LOAD p_align=$align (< 16384)"
+        }
+        if (leU64(bytes, start + 8) % 16384L != leU64(bytes, start + 16) % 16384L) {
+            issues += "$entryName: LOAD file/virtual offsets are not congruent modulo 16384"
+        }
+    }
+    if (loadCount == 0) issues += "$entryName: no PT_LOAD segments"
+    return issues
+}
+
+fun verifyApk16KbPageSize(apk: File): List<String> {
+    val issues = mutableListOf<String>()
+    val dataOffsets = zipLocalDataOffsets(apk)
+    ZipFile(apk).use { zip ->
+        val soEntries = zip.entries().asSequence()
+            .filter { it.name.startsWith("lib/") && it.name.endsWith(".so") }
+            .toList()
+        if (soEntries.none { it.name == "lib/arm64-v8a/libproot-loader.so" }) {
+            issues += "Missing installer-extracted proot loader"
+        }
+        soEntries.forEach { entry ->
+            if (entry.method == ZipEntry.STORED) {
+                val offset = dataOffsets[entry.name]
+                if (offset == null) {
+                    issues += "${entry.name}: missing zip local-header offset"
+                } else if (offset % 16384L != 0L) {
+                    issues += "${entry.name}: zip data offset $offset is not 16 KB aligned"
+                }
+            }
+            if (entry.method != ZipEntry.STORED &&
+                (entry.method != ZipEntry.DEFLATED || android.packaging.jniLibs.useLegacyPackaging != true)
+            ) {
+                issues += "${entry.name}: compressed library requires installer extraction"
+            }
+            zip.getInputStream(entry).use { input ->
+                issues += elfLoadIssues(entry.name, input.readBytes())
+            }
+        }
+        // These are copied to disk and launched through the Android linker.
+        // Asset packaging must not hide 4 KB ELF payloads from verification.
+        listOf("proot", "libtalloc.so.2").forEach { name ->
+            val entryName = "assets/embedded-terminal-runtime/$name"
+            val entry = zip.getEntry(entryName)
+            if (entry == null) issues += "Missing terminal runtime ELF: $entryName"
+            else zip.getInputStream(entry).use { issues += elfLoadIssues(entryName, it.readBytes()) }
+        }
+    }
+    return issues
 }
 
 afterEvaluate {
@@ -532,12 +719,9 @@ afterEvaluate {
             description = "Fail $variantSlug APK builds when required Rust .so files are missing"
             dependsOn("package$capitalized")
             doLast {
-                val apkDir = layout.buildDirectory.dir("outputs/apk/$flavorName/$buildTypeName").get().asFile
-                val apks = apkDir.listFiles { file ->
-                    file.isFile && file.extension.equals("apk", ignoreCase = true)
-                }?.toList().orEmpty()
+                val apks = apkOutputs(flavorName, buildTypeName)
                 if (apks.isEmpty()) {
-                    throw GradleException("No APKs found in ${apkDir.absolutePath}; cannot verify Rust native libs")
+                    throw GradleException("No APKs found for $variantSlug; cannot verify Rust native libs")
                 }
                 val requiredEntries = requiredRustSharedLibraries.map { name ->
                     "lib/arm64-v8a/lib$name.so"
@@ -558,6 +742,36 @@ afterEvaluate {
                             appendLine("Required Rust native libraries are missing from $variantSlug APK output.")
                             failures.forEach { appendLine("- $it") }
                             append("Install cargo-ndk or fix the Rust JNI build before shipping this variant.")
+                        }
+                    )
+                }
+            }
+        }
+        tasks.matching { it.name == "assemble$capitalized" }.configureEach {
+            dependsOn(verifyTask)
+        }
+    }
+
+    pageSizeCheckedVariantSlugs.forEach { (flavorName, buildTypeName) ->
+        val variantSlug = "$flavorName${buildTypeName.replaceFirstChar { it.uppercase() }}"
+        val capitalized = variantSlug.replaceFirstChar { it.uppercase() }
+        val verifyTask = tasks.register("verify${capitalized}NativePageSize") {
+            group = "verification"
+            description = "Fail $variantSlug APKs whose native libs are not 16 KB ELF/zip aligned"
+            dependsOn("package$capitalized")
+            doLast {
+                val apks = apkOutputs(flavorName, buildTypeName)
+                if (apks.isEmpty()) {
+                    throw GradleException("No APKs found for $variantSlug; cannot verify 16 KB page size")
+                }
+                val failures = apks.flatMap { apk ->
+                    verifyApk16KbPageSize(apk).map { "${apk.name}: $it" }
+                }
+                if (failures.isNotEmpty()) {
+                    throw GradleException(
+                        buildString {
+                            appendLine("16 KB page-size check failed for $variantSlug.")
+                            failures.forEach { appendLine("- $it") }
                         }
                     )
                 }
@@ -592,10 +806,6 @@ afterEvaluate {
     }
 }
 
-val embeddedProotUrl = "https://raw.githubusercontent.com/Xed-Editor/Karbon-PackagesX/b6326a3b091848c2502ca050ed8c0ad320ff6697/aarch64/proot"
-val embeddedProotChecksum = "f25ac0a0258e18671c699154cdc88001fbd1cbe09df75c960a1ee8dad29d88ae"
-val embeddedLibtallocUrl = "https://raw.githubusercontent.com/Xed-Editor/Karbon-PackagesX/b6326a3b091848c2502ca050ed8c0ad320ff6697/aarch64/libtalloc.so.2"
-val embeddedLibtallocChecksum = "368262b345120a4e09ae961f4bda92e0cdfc18004145317f923abe403df6facf"
 val embeddedAlpineUrl = "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.1-aarch64.tar.gz"
 val embeddedAlpineChecksum = "f55a90f69052c5bd6f92cb09a8f47065970830b194c917a006fb94028e721259"
 
@@ -641,33 +851,28 @@ fun downloadRuntimeFile(localPath: String, remoteUrl: String, expectedChecksum: 
 
 val prepareEmbeddedTerminalRuntime by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/assets/embeddedTerminalRuntime/embedded-terminal-runtime")
-    inputs.property("prootUrl", embeddedProotUrl)
-    inputs.property("prootChecksum", embeddedProotChecksum)
-    inputs.property("libtallocUrl", embeddedLibtallocUrl)
-    inputs.property("libtallocChecksum", embeddedLibtallocChecksum)
+    val nativeRuntimeDir = layout.projectDirectory.dir("src/main/embedded-native/arm64-v8a")
+    inputs.files(nativeRuntimeDir.file("proot"), nativeRuntimeDir.file("libtalloc.so.2"))
     inputs.property("alpineUrl", embeddedAlpineUrl)
     inputs.property("alpineChecksum", embeddedAlpineChecksum)
     outputs.dir(outputDir)
     doLast {
         val root = outputDir.get().asFile
         root.mkdirs()
-        downloadRuntimeFile(
-            localPath = root.resolve("proot").absolutePath,
-            // Karbon-PackagesX does not publish versioned releases; pin the reviewed
-            // repository snapshot so a later main-branch change cannot alter our APK input.
-            remoteUrl = embeddedProotUrl,
-            expectedChecksum = embeddedProotChecksum,
-        )
-        downloadRuntimeFile(
-            localPath = root.resolve("libtalloc.so.2").absolutePath,
-            remoteUrl = embeddedLibtallocUrl,
-            expectedChecksum = embeddedLibtallocChecksum,
-        )
+        listOf("proot", "libtalloc.so.2").forEach { name ->
+            val source = nativeRuntimeDir.file(name).asFile
+            check(source.isFile) { "Missing $name; run scripts/build-terminal-runtime.sh" }
+            val issues = elfLoadIssues(name, source.readBytes())
+            check(issues.isEmpty()) { issues.joinToString("\n") }
+            source.copyTo(root.resolve(name), overwrite = true)
+        }
         downloadRuntimeFile(
             localPath = root.resolve("alpine.tar.gz").absolutePath,
             remoteUrl = embeddedAlpineUrl,
             expectedChecksum = embeddedAlpineChecksum,
         )
+        // Clean the obsolete asset when updating an existing build directory.
+        root.resolve("libproot-loader.so").delete()
     }
 }
 
