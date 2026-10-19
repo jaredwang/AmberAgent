@@ -34,6 +34,8 @@ ANDROID_NDK_HOME=/path/to/android-sdk/ndk/27.0.12077973 \
 
 如果 `cargo-ndk` 不在 `PATH`，debug 构建会明确记录跳过并保留 JVM fallback；这种 APK 不能作为 Native 完整性证据。`release`、`graphite` 和 `baseline` 构建会在缺少任一 required `.so` 时失败。CI 也会逐项检查 APK 内的八个 `lib/arm64-v8a/*.so`。
 
+终端的 proot、talloc 和 loader 也从固定源码构建为 16 KB ELF，并参与最终 APK 检查。重建方式与来源见 [TERMINAL_RUNTIME.md](TERMINAL_RUNTIME.md)。
+
 ## 终端设备验证
 
 `EmbeddedTerminalStartupDeviceTest` 使用 APK 内真实 proot、loader 和 Alpine，在应用 UID/SELinux 域内运行批处理命令及交互 shell，并验证 `/workspace` 写回。它使用独立临时目录，不修改用户的终端 rootfs。Robolectric 的路径断言不能替代此测试。

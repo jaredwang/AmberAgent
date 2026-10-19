@@ -214,7 +214,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
 
     private companion object {
         // Bump whenever the embedded archive, proot binaries, or init scripts change.
-        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-b6326a3b-installed-loader-v2"
+        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-e2d843ee-16kb-v3"
     }
 }
 

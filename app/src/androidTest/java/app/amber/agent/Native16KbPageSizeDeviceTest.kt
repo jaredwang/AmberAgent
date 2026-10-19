@@ -85,20 +85,27 @@ class Native16KbPageSizeDeviceTest {
                 options
             },
         ))
-        val config = SupportSQLiteOpenHelper.Configuration.builder(context).name(null)
+        // Requery's in-memory branch bypasses createConfiguration(), including
+        // custom extensions. Use an isolated file DB like the production owner.
+        val database = File(context.cacheDir, "native16kb-${System.nanoTime()}.db")
+        val config = SupportSQLiteOpenHelper.Configuration.builder(context).name(database.absolutePath)
             .callback(object : SupportSQLiteOpenHelper.Callback(1) {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     db.execSQL("CREATE VIRTUAL TABLE probe USING fts5(body, tokenize='simple')")
                 }
                 override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
             }).build()
-        factory.create(config).use { helper ->
-            val db = helper.writableDatabase
-            db.execSQL("INSERT INTO probe(body) VALUES (?)", arrayOf("Amber native page size"))
-            db.query("SELECT count(*) FROM probe WHERE probe MATCH ?", arrayOf("native")).use { cursor ->
-                assertTrue(cursor.moveToFirst())
-                assertEquals(1, cursor.getInt(0))
+        try {
+            factory.create(config).use { helper ->
+                val db = helper.writableDatabase
+                db.execSQL("INSERT INTO probe(body) VALUES (?)", arrayOf("Amber native page size"))
+                db.query("SELECT count(*) FROM probe WHERE probe MATCH ?", arrayOf("native")).use { cursor ->
+                    assertTrue(cursor.moveToFirst())
+                    assertEquals(1, cursor.getInt(0))
+                }
             }
+        } finally {
+            context.deleteDatabase(database.absolutePath)
         }
     }
 

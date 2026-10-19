@@ -698,6 +698,14 @@ fun verifyApk16KbPageSize(apk: File): List<String> {
                 issues += elfLoadIssues(entry.name, input.readBytes())
             }
         }
+        // These are copied to disk and launched through the Android linker.
+        // Asset packaging must not hide 4 KB ELF payloads from verification.
+        listOf("proot", "libtalloc.so.2").forEach { name ->
+            val entryName = "assets/embedded-terminal-runtime/$name"
+            val entry = zip.getEntry(entryName)
+            if (entry == null) issues += "Missing terminal runtime ELF: $entryName"
+            else zip.getInputStream(entry).use { issues += elfLoadIssues(entryName, it.readBytes()) }
+        }
     }
     return issues
 }
@@ -798,10 +806,6 @@ afterEvaluate {
     }
 }
 
-val embeddedProotUrl = "https://raw.githubusercontent.com/Xed-Editor/Karbon-PackagesX/b6326a3b091848c2502ca050ed8c0ad320ff6697/aarch64/proot"
-val embeddedProotChecksum = "f25ac0a0258e18671c699154cdc88001fbd1cbe09df75c960a1ee8dad29d88ae"
-val embeddedLibtallocUrl = "https://raw.githubusercontent.com/Xed-Editor/Karbon-PackagesX/b6326a3b091848c2502ca050ed8c0ad320ff6697/aarch64/libtalloc.so.2"
-val embeddedLibtallocChecksum = "368262b345120a4e09ae961f4bda92e0cdfc18004145317f923abe403df6facf"
 val embeddedAlpineUrl = "https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/aarch64/alpine-minirootfs-3.24.1-aarch64.tar.gz"
 val embeddedAlpineChecksum = "f55a90f69052c5bd6f92cb09a8f47065970830b194c917a006fb94028e721259"
 
@@ -847,28 +851,21 @@ fun downloadRuntimeFile(localPath: String, remoteUrl: String, expectedChecksum: 
 
 val prepareEmbeddedTerminalRuntime by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/assets/embeddedTerminalRuntime/embedded-terminal-runtime")
-    inputs.property("prootUrl", embeddedProotUrl)
-    inputs.property("prootChecksum", embeddedProotChecksum)
-    inputs.property("libtallocUrl", embeddedLibtallocUrl)
-    inputs.property("libtallocChecksum", embeddedLibtallocChecksum)
+    val nativeRuntimeDir = layout.projectDirectory.dir("src/main/embedded-native/arm64-v8a")
+    inputs.files(nativeRuntimeDir.file("proot"), nativeRuntimeDir.file("libtalloc.so.2"))
     inputs.property("alpineUrl", embeddedAlpineUrl)
     inputs.property("alpineChecksum", embeddedAlpineChecksum)
     outputs.dir(outputDir)
     doLast {
         val root = outputDir.get().asFile
         root.mkdirs()
-        downloadRuntimeFile(
-            localPath = root.resolve("proot").absolutePath,
-            // Karbon-PackagesX does not publish versioned releases; pin the reviewed
-            // repository snapshot so a later main-branch change cannot alter our APK input.
-            remoteUrl = embeddedProotUrl,
-            expectedChecksum = embeddedProotChecksum,
-        )
-        downloadRuntimeFile(
-            localPath = root.resolve("libtalloc.so.2").absolutePath,
-            remoteUrl = embeddedLibtallocUrl,
-            expectedChecksum = embeddedLibtallocChecksum,
-        )
+        listOf("proot", "libtalloc.so.2").forEach { name ->
+            val source = nativeRuntimeDir.file(name).asFile
+            check(source.isFile) { "Missing $name; run scripts/build-terminal-runtime.sh" }
+            val issues = elfLoadIssues(name, source.readBytes())
+            check(issues.isEmpty()) { issues.joinToString("\n") }
+            source.copyTo(root.resolve(name), overwrite = true)
+        }
         downloadRuntimeFile(
             localPath = root.resolve("alpine.tar.gz").absolutePath,
             remoteUrl = embeddedAlpineUrl,
