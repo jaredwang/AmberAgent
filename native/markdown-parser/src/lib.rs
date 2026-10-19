@@ -153,15 +153,39 @@ pub extern "system" fn Java_app_amber_agent_ui_components_richtext_nativebridge_
 /// Two safety nets mirror JetBrains' GFMFlavourDescriptor flags:
 /// - Bare HTTP/HTTPS URLs wrapped in `<...>` before parsing so pulldown-cmark
 ///   emits anchors (mirrors `makeHttpsAutoLinks = true`; Round 1 P1 fix).
-/// - Post-processing strips dangerous URL schemes (`javascript:`, `data:`,
+/// - URL-bearing events strip dangerous schemes (`javascript:`, `data:`,
 ///   `vbscript:`, `file:`) to mirror `useSafeLinks = true`.
 fn render_to_html(text: &str) -> String {
-    use pulldown_cmark::{html, Parser};
+    use pulldown_cmark::{html, Event, Parser, Tag};
     let pre = autolink_bare_urls(text);
-    let parser = Parser::new_ext(&pre, markdown_options());
+    // Sanitize URL-bearing events before HTML emission. A whole-document
+    // replacement also rewrites literal examples in text and code.
+    let parser = Parser::new_ext(&pre, markdown_options()).map(|event| match event {
+        Event::Start(Tag::Link { link_type, dest_url, title, id }) =>
+            Event::Start(Tag::Link {
+                link_type, dest_url: safe_destination(dest_url), title, id,
+            }),
+        Event::Start(Tag::Image { link_type, dest_url, title, id }) =>
+            Event::Start(Tag::Image {
+                link_type, dest_url: safe_destination(dest_url), title, id,
+            }),
+        Event::Html(raw) => Event::Html(sanitize_dangerous_schemes(&raw).into()),
+        Event::InlineHtml(raw) => Event::InlineHtml(sanitize_dangerous_schemes(&raw).into()),
+        other => other,
+    });
     let mut html_out = String::with_capacity(pre.len() + (pre.len() / 4));
     html::push_html(&mut html_out, parser);
-    sanitize_dangerous_schemes(&html_out)
+    html_out
+}
+
+fn safe_destination(url: pulldown_cmark::CowStr<'_>) -> pulldown_cmark::CowStr<'_> {
+    if ["javascript:", "data:", "vbscript:", "file:"]
+        .iter().any(|scheme| url.to_ascii_lowercase().starts_with(scheme))
+    {
+        "#".into()
+    } else {
+        url
+    }
 }
 
 /// Wrap bare `https?://...` URLs in CommonMark autolink `<...>` syntax so
@@ -215,64 +239,24 @@ fn autolink_bare_urls(text: &str) -> String {
 /// - `<...>` autolinks
 /// - `[text](url)` markdown links
 /// - `` `...` `` inline code
-/// - ```` ```...``` ```` fenced code blocks
+/// - fenced (including unclosed) and indented code blocks
 fn collect_skip_ranges(text: &str) -> Vec<(usize, usize)> {
-    let mut ranges: Vec<(usize, usize)> = Vec::new();
-    let bytes = text.as_bytes();
-
-    // Fenced code blocks at start of line: find pairs of ``` on their own line.
-    let mut line_start = 0usize;
-    let mut in_fenced = false;
-    let mut fence_open_byte = 0usize;
-    for i in 0..bytes.len() {
-        let is_line_end = bytes[i] == b'\n';
-        if is_line_end || i == bytes.len() - 1 {
-            let line_end = if is_line_end { i } else { i + 1 };
-            let line = &text[line_start..line_end];
-            if line.trim_start().starts_with("```") {
-                if !in_fenced {
-                    in_fenced = true;
-                    fence_open_byte = line_start;
-                } else {
-                    in_fenced = false;
-                    ranges.push((fence_open_byte, line_end));
+    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+    let mut ranges = Vec::new();
+    let mut code_block_start = None;
+    for (event, range) in Parser::new_ext(text, markdown_options()).into_offset_iter() {
+        match event {
+            Event::Start(Tag::CodeBlock(_)) => code_block_start = Some(range.start),
+            Event::End(TagEnd::CodeBlock) => {
+                if let Some(start) = code_block_start.take() {
+                    ranges.push((start, range.end));
                 }
             }
-            line_start = i + 1;
+            Event::Start(Tag::Link { .. } | Tag::Image { .. }) |
+            Event::Code(_) | Event::Html(_) | Event::InlineHtml(_) =>
+                ranges.push((range.start, range.end)),
+            _ => {}
         }
-    }
-
-    // Inline code spans `...` and `` ... ``  — naïve but enough to skip URLs
-    // inside `code https://...` segments. Pair odd/even backticks.
-    let mut tick_starts: Vec<usize> = Vec::new();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'`' {
-            // Count consecutive backticks
-            let run_start = i;
-            while i < bytes.len() && bytes[i] == b'`' {
-                i += 1;
-            }
-            tick_starts.push(run_start);
-        } else {
-            i += 1;
-        }
-    }
-    // Pair up tick_starts greedily
-    let mut idx = 0;
-    while idx + 1 < tick_starts.len() {
-        ranges.push((tick_starts[idx], tick_starts[idx + 1] + 1));
-        idx += 2;
-    }
-
-    // `<url>` autolinks and `[text](url)` markdown links — find via regex
-    use std::sync::OnceLock;
-    static SKIP_RE: OnceLock<regex::Regex> = OnceLock::new();
-    let skip_re = SKIP_RE.get_or_init(|| {
-        regex::Regex::new(r#"<[^>]*>|\[[^\]]*\]\([^\)]*\)"#).expect("skip regex compiles")
-    });
-    for mat in skip_re.find_iter(text) {
-        ranges.push((mat.start(), mat.end()));
     }
 
     ranges.sort_by_key(|r| r.0);
@@ -287,6 +271,13 @@ fn in_any_range(ranges: &[(usize, usize)], pos: usize) -> bool {
 /// (and same for `src=`) to mirror JetBrains' `useSafeLinks = true`.
 fn sanitize_dangerous_schemes(html: &str) -> String {
     use std::sync::OnceLock;
+    // Raw HTML blocks may contain text as well as tags. Restrict attribute
+    // replacement to start tags, respecting quoted `>` characters.
+    static TAG_RE: OnceLock<regex::Regex> = OnceLock::new();
+    let tags = TAG_RE.get_or_init(|| {
+        regex::Regex::new(r#"(?is)<[a-z][^<>"']*(?:(?:"[^"]*"|'[^']*')[^<>"']*)*>"#)
+            .expect("HTML tag regex compiles")
+    });
     static SAFE_LINK_RE: OnceLock<regex::Regex> = OnceLock::new();
     let re = SAFE_LINK_RE.get_or_init(|| {
         // `(?i)` for case-insensitive; `[^"']*` for URL value; `["']` for either quote style.
@@ -295,10 +286,11 @@ fn sanitize_dangerous_schemes(html: &str) -> String {
         )
         .expect("safe-link regex compiles")
     });
-    re.replace_all(html, |caps: &regex::Captures| {
-        format!("{}={}#{}", &caps[1], &caps[2], &caps[3])
-    })
-    .into_owned()
+    tags.replace_all(html, |tag: &regex::Captures| {
+        re.replace_all(&tag[0], |caps: &regex::Captures| {
+            format!("{}={}#{}", &caps[1], &caps[2], &caps[3])
+        }).into_owned()
+    }).into_owned()
 }
 
 
@@ -448,6 +440,32 @@ mod tests {
     fn html_passes_through_safe_https() {
         let html = render_to_html("[ok](https://example.com)");
         assert!(html.contains("href=\"https://example.com\""), "got: {}", html);
+    }
+
+
+    #[test]
+    fn html_preserves_literals_inside_raw_html_block() {
+        let html = render_to_html("<div>href=\"javascript:example\" <a title=\"a > b\" href=\"javascript:alert(1)\">link</a></div>");
+        assert!(html.contains("<div>href=\"javascript:example\""), "got: {html}");
+        assert!(html.contains("title=\"a > b\" href=\"#\""), "got: {html}");
+    }
+
+    #[test]
+    fn html_preserves_existing_link_and_raw_html_urls() {
+        let html = render_to_html(
+            "[label](https://example.com/path)\n\n<a href=\"https://example.com/raw\">raw</a>",
+        );
+        assert!(html.contains("<a href=\"https://example.com/path\">label</a>"), "got: {html}");
+        assert!(html.contains("<a href=\"https://example.com/raw\">raw</a>"), "got: {html}");
+    }
+
+    #[test]
+    fn html_sanitizes_mixed_case_destinations_without_touching_code() {
+        let html = render_to_html(
+            "[click](JaVaScRiPt:alert(1)) `href=\"javascript:alert(1)\"`",
+        );
+        assert!(html.contains("<a href=\"#\">click</a>"), "got: {html}");
+        assert!(html.contains("<code>href=\"javascript:alert(1)\"</code>"), "got: {html}");
     }
 
     #[test]
