@@ -72,6 +72,14 @@ jobs:
         # standalone flavors (novel/deepread) are verified locally.
         run: ./gradlew :app:assembleFullDebug --no-daemon --console=plain
 
+      - name: Native extraction and terminal upgrade regression tests
+        run: |
+          ./gradlew :app:testFullDebugUnitTest \
+            --tests '*NativeLibraryOnDiskTest' \
+            --tests '*AlpineRuntimeUpgradeTest' \
+            --tests '*TerminalAdmissionTest' \
+            --no-daemon --console=plain
+
       - name: Verify native libraries in debug APK
         run: |
           set -euo pipefail
@@ -84,6 +92,7 @@ jobs:
             "lib/arm64-v8a/libsync_crypto.so"
             "lib/arm64-v8a/libmarkdown_preprocess.so"
             "lib/arm64-v8a/libhtml_diff_normalizer.so"
+            "lib/arm64-v8a/libproot-loader.so"
           )
           for APK in app/build/outputs/apk/full/debug/*.apk; do
             APK_ENTRIES="$(unzip -Z1 "$APK")"
@@ -93,12 +102,8 @@ jobs:
                 exit 1
               fi
             done
-            if grep -Fxq "lib/arm64-v8a/libproot-loader.so" <<< "$APK_ENTRIES"; then
-              echo "libproot-loader.so must not be packaged under lib/ in $APK" >&2
-              exit 1
-            fi
-            if ! grep -Fxq "assets/embedded-terminal-runtime/libproot-loader.so" <<< "$APK_ENTRIES"; then
-              echo "Missing assets/embedded-terminal-runtime/libproot-loader.so in $APK" >&2
+            if grep -Fxq "assets/embedded-terminal-runtime/libproot-loader.so" <<< "$APK_ENTRIES"; then
+              echo "proot loader must be installer-extracted, not copied to app data: $APK" >&2
               exit 1
             fi
           done

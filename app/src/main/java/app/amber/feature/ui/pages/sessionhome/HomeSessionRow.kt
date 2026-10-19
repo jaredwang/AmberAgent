@@ -13,7 +13,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
@@ -86,9 +88,14 @@ internal object HomeSessionSwipeMotion {
 
 private enum class HomeSessionSwipeValue { Settled, Pin, Delete }
 
+private class HomeSessionPinGesture {
+    var settling = false
+    var handled = false
+}
+
 /**
  * 会话行：标题 + 最后消息预览 +（消息数 / 时间）。
- * 左滑删除，右滑置顶/取消置顶。删除松手后行沿滑动方向离开，同时高度收起。
+ * 向结束方向滑动置顶，向开始方向滑动删除（RTL 镜像）。删除松手后沿手势方向离开并收起。
  */
 @Composable
 internal fun HomeSessionRow(
@@ -115,6 +122,7 @@ internal fun HomeSessionRow(
     val isDragging by swipeInteraction.collectIsDraggedAsState()
     val latestOnDelete = rememberUpdatedState(onDelete)
     val latestOnTogglePin = rememberUpdatedState(onTogglePin)
+    val pinGesture = remember { HomeSessionPinGesture() }
 
     @Suppress("DEPRECATION")
     val swipeState = remember {
@@ -124,7 +132,12 @@ internal fun HomeSessionRow(
             initialValue = HomeSessionSwipeValue.Settled,
             confirmValueChange = { value ->
                 if (value == HomeSessionSwipeValue.Pin) {
-                    latestOnTogglePin.value()
+                    // Anchor confirmation can be queried repeatedly by one fling.
+                    // Toggle only once after release, never during the drag itself.
+                    if (pinGesture.settling && !pinGesture.handled) {
+                        pinGesture.handled = true
+                        latestOnTogglePin.value()
+                    }
                     false
                 } else {
                     true
@@ -133,11 +146,24 @@ internal fun HomeSessionRow(
         )
     }
     val visibleState = remember { MutableTransitionState(true) }
-    val swipeFling = AnchoredDraggableDefaults.flingBehavior(
+    val anchorFling = AnchoredDraggableDefaults.flingBehavior(
         state = swipeState,
         positionalThreshold = { with(density) { 56.dp.toPx() } },
         animationSpec = HomeSessionSwipeMotion.SnapSpec,
     )
+    val swipeFling = remember(anchorFling) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                pinGesture.settling = true
+                pinGesture.handled = false
+                try {
+                    return with(anchorFling) { performFling(initialVelocity) }
+                } finally {
+                    pinGesture.settling = false
+                }
+            }
+        }
+    }
 
     // 只在松手后、已经对准 Delete 锚点时才收起。拖过阈值但手指还在时保持 1:1 跟随。
     LaunchedEffect(isDragging, swipeState.targetValue) {
@@ -171,6 +197,9 @@ internal fun HomeSessionRow(
         tokens.surface
     }
     val offsetX = swipeState.offset.let { if (it.isNaN()) 0f else it }
+    // Anchors are logical start/end coordinates because RTL reverses the drag
+    // input. graphicsLayer uses physical coordinates, so mirror its output too.
+    val physicalOffsetX = if (isRtl) -offsetX else offsetX
     val isDeleteReveal = offsetX < 0f
 
     AnimatedVisibility(
@@ -260,7 +289,7 @@ internal fun HomeSessionRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { translationX = offsetX }
+                    .graphicsLayer { translationX = physicalOffsetX }
                     .background(rowSurface),
             ) {
                 Row(

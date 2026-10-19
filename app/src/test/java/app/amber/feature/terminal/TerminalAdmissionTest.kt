@@ -172,11 +172,12 @@ class TerminalAdmissionTest {
     }
 
     @Test
-    fun `environment points PROOT_LOADER at the filesDir copy`() {
+    fun `environment uses the installer extracted loader instead of a stale private copy`() {
         val installer = AlpineRuntimeInstaller(context)
-        val loader = context.filesDir.resolve("libproot-loader.so")
-        loader.writeText("loader")
-        loader.setExecutable(true)
+        val nativeDir = context.filesDir.resolve("native-libs").apply { mkdirs() }
+        context.applicationInfo.nativeLibraryDir = nativeDir.absolutePath
+        val loader = nativeDir.resolve("libproot-loader.so").apply { writeText("loader"); setExecutable(true) }
+        context.filesDir.resolve("libproot-loader.so").writeText("stale-loader")
         val env = installer.environment(workspacePath = "/workspace", sessionId = "s1")
         assertEquals(loader.absolutePath, env["PROOT_LOADER"])
     }
@@ -193,7 +194,7 @@ class TerminalAdmissionTest {
             context.filesDir.resolve("proot"),
             context.filesDir.resolve("libtalloc.so.2"),
             context.filesDir.resolve("alpine.tar.gz"),
-            context.filesDir.resolve("libproot-loader.so"),
+            File(context.applicationInfo.nativeLibraryDir, "libproot-loader.so"),
             installer.localBinDir.resolve("init-host"),
             installer.localBinDir.resolve("init"),
         ).forEach { file ->

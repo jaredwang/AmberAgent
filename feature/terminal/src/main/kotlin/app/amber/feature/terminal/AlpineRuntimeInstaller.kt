@@ -48,7 +48,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
 
     private fun installRuntime(overwriteRuntimeFiles: Boolean): InstallStatus {
         return runCatching {
-            resetInstalledRuntimeIfOutdated()
+            resetHostBinariesIfOutdated()
             localDir.mkdirs()
             localBinDir.mkdirs()
             localLibDir.mkdirs()
@@ -84,12 +84,10 @@ class AlpineRuntimeInstaller(private val context: Context) {
                 executable = true,
                 overwrite = overwriteRuntimeFiles
             )
-            copyRuntimeAsset(
-                "embedded-terminal-runtime/libproot-loader.so",
-                context.filesDir.resolve("libproot-loader.so"),
-                executable = true,
-                overwrite = overwriteRuntimeFiles
-            )
+            check(loaderFile.isFile && loaderFile.canExecute()) {
+                "Missing installer-extracted proot loader: ${loaderFile.absolutePath}"
+            }
+            context.filesDir.resolve("libproot-loader.so").delete()
             runtimeVersionFile.writeText(runtimeVersion)
             InstallStatus(
                 success = true,
@@ -127,10 +125,9 @@ class AlpineRuntimeInstaller(private val context: Context) {
             "PROOT_TMP_DIR" to tempDir.resolve(sessionId).apply { mkdirs() }.absolutePath,
             "TMPDIR" to tempDir.absolutePath,
         )
-        val loader = context.filesDir.resolve("libproot-loader.so")
-        if (loader.isFile && loader.length() > 0L) {
-            env["PROOT_LOADER"] = loader.absolutePath
-        }
+        // This binary uses PROOT_LOADER directly in execve. App-private data
+        // cannot be executed on Android 10+, even after chmod +x.
+        env["PROOT_LOADER"] = loaderFile.absolutePath
         return env
     }
 
@@ -147,10 +144,12 @@ class AlpineRuntimeInstaller(private val context: Context) {
             .joinToString(" ") to ""
     }
 
-    private fun resetInstalledRuntimeIfOutdated() {
+    private fun resetHostBinariesIfOutdated() {
         if (runtimeVersionIssue() == null) return
+        // Only invalidate app-owned host binaries. The extracted Alpine tree
+        // belongs to the user: it contains /root, installed packages and config.
+        // A changed or missing asset revision must never reset that guest data.
         listOf(
-            localDir.resolve("alpine"),
             localBinDir.resolve("proot"),
             localLibDir.resolve("libtalloc.so.2"),
         ).forEach { target ->
@@ -194,7 +193,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
         RuntimeFile("proot", context.filesDir.resolve("proot"), executable = true),
         RuntimeFile("libtalloc.so.2", context.filesDir.resolve("libtalloc.so.2")),
         RuntimeFile("alpine.tar.gz", context.filesDir.resolve("alpine.tar.gz")),
-        RuntimeFile("libproot-loader.so", context.filesDir.resolve("libproot-loader.so"), executable = true),
+        RuntimeFile("libproot-loader.so", loaderFile, executable = true),
         RuntimeFile("init-host", localBinDir.resolve("init-host"), executable = true),
         RuntimeFile("init", localBinDir.resolve("init"), executable = true),
     )
@@ -205,6 +204,9 @@ class AlpineRuntimeInstaller(private val context: Context) {
         val executable: Boolean = false,
     )
 
+    private val loaderFile: File
+        get() = File(context.applicationInfo.nativeLibraryDir, "libproot-loader.so")
+
     private fun runtimeVersionIssue(): String? {
         val installedVersion = runtimeVersionFile.takeIf { it.exists() }?.readText()?.trim()
         return if (installedVersion == runtimeVersion) null else "runtime assets (outdated)"
@@ -212,7 +214,7 @@ class AlpineRuntimeInstaller(private val context: Context) {
 
     private companion object {
         // Bump whenever the embedded archive, proot binaries, or init scripts change.
-        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-b6326a3b-16kb-loader"
+        const val RUNTIME_ASSET_REVISION = "alpine-3.24.1-proot-b6326a3b-installed-loader-v2"
     }
 }
 

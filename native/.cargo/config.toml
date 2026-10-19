@@ -12,6 +12,8 @@
 #
 # Only affects aarch64-linux-android cross builds; host `cargo test` keeps the
 # native page size.
+# Gradle also passes these directly to the final `cargo ndk rustc` invocation;
+# target rustflags can otherwise be replaced by environment configuration.
 [target.aarch64-linux-android]
 rustflags = [
     "-C", "link-arg=-Wl,-z,max-page-size=16384",

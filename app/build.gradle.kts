@@ -372,11 +372,11 @@ android {
     }
     packaging {
         jniLibs {
-            // Uncompressed + 16 KB zip-aligned native libs. AGP 8.5.1+ stores
-            // them STORED so 16 KB devices can mmap the APK; extractNativeLibs
-            // becomes false. Callers that need a real file path (libsimple,
-            // proot-loader) copy out of the APK via NativeLibraryOnDisk / assets.
-            useLegacyPackaging = false
+            // proot execve() needs the loader in the installer's executable
+            // nativeLibraryDir. Android 10+ denies exec from writable app data.
+            // Compressed JNI is extracted at install time; 16 KB ELF alignment
+            // is still required and checked for every packaged library below.
+            useLegacyPackaging = true
         }
     }
     tasks.withType<KotlinCompile>().configureEach {
@@ -472,9 +472,22 @@ fun registerCargoBuild(taskName: String, crateDir: String, displayName: String) 
         commandLine = listOf(
             "cargo", "ndk",
             "-t", "arm64-v8a",
-            "-o", file("${layout.buildDirectory.get()}/rustJniLibs/android").absolutePath,
-            "build", "--release",
+            "rustc", "--release", "--locked", "--lib", "--verbose",
+            "--target-dir", rootProject.file("native/target").absolutePath,
+            "--", "-C", "link-arg=-Wl,-z,max-page-size=16384",
+            "-C", "link-arg=-Wl,-z,common-page-size=16384",
         )
+        doLast {
+            // cargo-ndk -o copies EVERY workspace .so, including stale artifacts
+            // belonging to document/highlight. Publish only this task's library.
+            copy {
+                from(rootProject.file("native/target/aarch64-linux-android/release/lib$displayName.so"))
+                into(layout.buildDirectory.dir("rustJniLibs/android/arm64-v8a"))
+            }
+            file("${layout.buildDirectory.get()}/rustJniLibs/android/arm64-v8a").listFiles()
+                ?.filter { it.name in setOf("liboffice_parsers.so", "libhighlight_parser.so") }
+                ?.forEach { it.delete() }
+        }
         isIgnoreExitValue = false
         onlyIf {
             val cargoNdkAvailable = try {
@@ -627,8 +640,10 @@ fun elfLoadIssues(entryName: String, bytes: ByteArray): List<String> {
     if (bytes[4] != 2.toByte()) return listOf("$entryName: not ELF64")
     if (bytes[5] != 1.toByte()) return listOf("$entryName: not little-endian ELF")
     val type = leU16(bytes, 16)
-    // ET_DYN = 3. ET_EXEC (2) is what made libproot-loader.so report 未知错误.
-    if (type != 3) return listOf("$entryName: ELF type $type is not ET_DYN")
+    // The proot loader is an execve stub, not a dlopen library. It is the only
+    // allowed ET_EXEC, and must pass the same LOAD alignment checks as JNI.
+    val prootLoader = entryName == "lib/arm64-v8a/libproot-loader.so"
+    if (type != 3 && !(prootLoader && type == 2)) return listOf("$entryName: unexpected ELF type $type")
     val phoff = leU64(bytes, 32)
     val phentsize = leU16(bytes, 54)
     val phnum = leU16(bytes, 56)
@@ -647,6 +662,9 @@ fun elfLoadIssues(entryName: String, bytes: ByteArray): List<String> {
         if (align < 16384L) {
             issues += "$entryName: LOAD p_align=$align (< 16384)"
         }
+        if (leU64(bytes, start + 8) % 16384L != leU64(bytes, start + 16) % 16384L) {
+            issues += "$entryName: LOAD file/virtual offsets are not congruent modulo 16384"
+        }
     }
     if (loadCount == 0) issues += "$entryName: no PT_LOAD segments"
     return issues
@@ -659,16 +677,22 @@ fun verifyApk16KbPageSize(apk: File): List<String> {
         val soEntries = zip.entries().asSequence()
             .filter { it.name.startsWith("lib/") && it.name.endsWith(".so") }
             .toList()
+        if (soEntries.none { it.name == "lib/arm64-v8a/libproot-loader.so" }) {
+            issues += "Missing installer-extracted proot loader"
+        }
         soEntries.forEach { entry ->
-            if (entry.method != ZipEntry.STORED) {
-                issues += "${entry.name}: compressed (method=${entry.method}); 16 KB mmap requires STORED"
-            } else {
+            if (entry.method == ZipEntry.STORED) {
                 val offset = dataOffsets[entry.name]
                 if (offset == null) {
                     issues += "${entry.name}: missing zip local-header offset"
                 } else if (offset % 16384L != 0L) {
                     issues += "${entry.name}: zip data offset $offset is not 16 KB aligned"
                 }
+            }
+            if (entry.method != ZipEntry.STORED &&
+                (entry.method != ZipEntry.DEFLATED || android.packaging.jniLibs.useLegacyPackaging != true)
+            ) {
+                issues += "${entry.name}: compressed library requires installer extraction"
             }
             zip.getInputStream(entry).use { input ->
                 issues += elfLoadIssues(entry.name, input.readBytes())
@@ -823,14 +847,12 @@ fun downloadRuntimeFile(localPath: String, remoteUrl: String, expectedChecksum: 
 
 val prepareEmbeddedTerminalRuntime by tasks.registering {
     val outputDir = layout.buildDirectory.dir("generated/assets/embeddedTerminalRuntime/embedded-terminal-runtime")
-    val prootLoaderSource = layout.projectDirectory.file("src/main/embedded-native/libproot-loader.so")
     inputs.property("prootUrl", embeddedProotUrl)
     inputs.property("prootChecksum", embeddedProotChecksum)
     inputs.property("libtallocUrl", embeddedLibtallocUrl)
     inputs.property("libtallocChecksum", embeddedLibtallocChecksum)
     inputs.property("alpineUrl", embeddedAlpineUrl)
     inputs.property("alpineChecksum", embeddedAlpineChecksum)
-    inputs.file(prootLoaderSource)
     outputs.dir(outputDir)
     doLast {
         val root = outputDir.get().asFile
@@ -852,14 +874,8 @@ val prepareEmbeddedTerminalRuntime by tasks.registering {
             remoteUrl = embeddedAlpineUrl,
             expectedChecksum = embeddedAlpineChecksum,
         )
-        // ET_EXEC proot stub is not a JNI library; shipping it under lib/arm64-v8a
-        // makes Android's 16 KB ELF checker report "未知错误". Copy it next to
-        // the other runtime assets so AlpineRuntimeInstaller places a real file.
-        val loaderSource = prootLoaderSource.asFile
-        check(loaderSource.isFile && loaderSource.length() > 0L) {
-            "Missing proot loader at ${loaderSource.absolutePath}"
-        }
-        loaderSource.copyTo(root.resolve("libproot-loader.so"), overwrite = true)
+        // Clean the obsolete asset when updating an existing build directory.
+        root.resolve("libproot-loader.so").delete()
     }
 }
 

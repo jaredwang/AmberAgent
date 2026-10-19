@@ -66,9 +66,20 @@ val cargoBuildOfficeParsers = tasks.register<Exec>("cargoBuildOfficeParsers") {
     commandLine = listOf(
         "cargo", "ndk",
         "-t", "arm64-v8a",
-        "-o", file("${layout.buildDirectory.get()}/rustJniLibs/android").absolutePath,
-        "build", "--release",
+        "rustc", "--release", "--locked", "--lib", "--verbose",
+        "--target-dir", rootProject.file("native/target").absolutePath,
+        "--", "-C", "link-arg=-Wl,-z,max-page-size=16384",
+        "-C", "link-arg=-Wl,-z,common-page-size=16384",
     )
+    doLast {
+        // Publish only the owned library; cargo-ndk -o also copies stale sibling .so files.
+        val outputDir = layout.buildDirectory.dir("rustJniLibs/android/arm64-v8a").get().asFile
+        outputDir.listFiles()?.filter { it.name != "liboffice_parsers.so" }?.forEach { it.delete() }
+        copy {
+            from(rootProject.file("native/target/aarch64-linux-android/release/liboffice_parsers.so"))
+            into(outputDir)
+        }
+    }
     isIgnoreExitValue = false
     onlyIf {
         val cargoNdkAvailable = try {
