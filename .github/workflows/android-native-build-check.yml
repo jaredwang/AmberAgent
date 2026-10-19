@@ -70,7 +70,7 @@ jobs:
       - name: Gradle debug build
         # `surface` flavors: CI validates the canonical `full` product only;
         # standalone flavors (novel/deepread) are verified locally.
-        run: ./gradlew :app:assembleFullDebug --no-daemon --console=plain
+        run: ./gradlew :app:assembleFullDebug :app:assembleFullDebugAndroidTest --no-daemon --console=plain
 
       - name: Native extraction and terminal upgrade regression tests
         run: |

@@ -49,6 +49,17 @@ adb -s DEVICE shell am instrument -w -r \
 
 安装命令会更新同包名应用；有用户数据的设备请改用独立 flavor。设备测试必须记录 Android API、`getconf PAGE_SIZE` 和设备型号，分别报告 4 KB 与 16 KB 环境的结果。
 
+在官方 ARM64 16 KB 页镜像或对应设备上，先确认 `adb -s DEVICE shell getconf PAGE_SIZE` 输出 `16384`，再运行以下测试。显式参数开启严格页大小断言，防止把 4 KB 环境误记为 16 KB 通过：
+
+```bash
+adb -s DEVICE shell am instrument -w -r \
+  -e amberNative16KbFixture true \
+  -e class app.amber.agent.Native16KbPageSizeDeviceTest,app.amber.agent.NativePathDeviceBenchmarkTest,app.amber.agent.EmbeddedTerminalStartupDeviceTest,app.amber.feature.ui.pages.sessionhome.HomeSessionRowSwipeDeviceTest \
+  app.amber.agent.graphite.test/app.amber.agent.AmberAgentAndroidTestRunner
+```
+
+专用测试直接加载八个 Rust JNI 库，执行语法高亮、XLSX 和 Markdown 解析，并用生产 SQLite 扩展配置运行 FTS 索引/查询。其余测试覆盖原生计算、终端启动/升级保留与 LTR/RTL 手势。CI 同时编译测试 APK；设备运行结果单独记录。
+
 ## JNI 边界
 
 - JNI 入口不得让 Rust panic 跨越 FFI 边界。
