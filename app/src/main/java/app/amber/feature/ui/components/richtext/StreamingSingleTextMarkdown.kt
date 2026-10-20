@@ -4,7 +4,6 @@ import android.os.SystemClock
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -21,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.withFrameNanos
@@ -52,9 +50,9 @@ internal const val STREAMING_SINGLE_TEXT_PARSE_THROTTLE_MS = 120L
 internal const val STREAMING_CODE_HIGHLIGHT_MAX_BLOCKS = 32
 
 /**
- * Streaming-phase single-Text markdown renderer. The whole message body
- * renders as ONE growing [Text]. Stable blocks reuse mapped spans on the
- * background worker; Compose still lays out the growing Text. Markdown styles apply live
+ * Streaming-phase markdown renderer. Stable blocks reuse mapped spans on the
+ * background worker. Short messages use one Text; long multiline messages keep
+ * completed Text chunks stable and lay out only the growing tail. Markdown styles apply live
  * ([mdNodeToAnnotatedString]) and the writing head fades in via the
  * distance-from-end reveal window ([applyStreamingWindowReveal]): newest chars
  * near-transparent, chars one window back fully opaque — no clock, no index
@@ -244,12 +242,10 @@ fun StreamingSingleTextMarkdown(
     }
 
     SelectionContainer {
-        Text(
+        StreamingChunkedText(
             text = revealed,
             modifier = modifier.padding(start = 4.dp),
             style = LocalTextStyle.current,
-            softWrap = true,
-            overflow = TextOverflow.Visible,
         )
     }
 }

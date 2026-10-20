@@ -23,7 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
@@ -39,6 +40,9 @@ import java.util.concurrent.atomic.AtomicReference
 import app.amber.highlight.Highlighter
 import app.amber.highlight.LocalHighlighter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.util.Collections
@@ -48,13 +52,39 @@ import java.util.concurrent.TimeUnit
 /** In-memory rendering only. Never opens a repository, settings store, or network provider. */
 class ChatRenderingDevicePerfTest {
 
-    @Test fun repeatableStreamingAndReading() {
+    @Test(timeout = 120_000) fun repeatableStreamingAndReading() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("amberRenderPerf") == "true")
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        // MIUI can reject an instrumentation process's first background launch.
+        // A shell launch of the empty test host makes the process visible without
+        // changing background-launch permissions or opening a user conversation.
+        val hostCommand = "am start -W -n ${instrumentation.targetContext.packageName}/androidx.activity.ComponentActivity"
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(
+            instrumentation.uiAutomation.executeShellCommand(hostCommand),
+        ).bufferedReader().use { it.readText() }
+        Log.i("AmberRenderPerf", "host-shell-started")
         val scenario = ActivityScenario.launch(ComponentActivity::class.java)
+        Log.i("AmberRenderPerf", "scenario-launched")
         lateinit var activity: ComponentActivity
-        scenario.onActivity { activity = it }
+        scenario.onActivity {
+            activity = it
+            // Request the same 60 Hz mode for both APKs. The host script also
+            // scopes/restores a system cap because MIUI may override a window hint.
+            val display = it.display
+            val mode = display?.supportedModes?.firstOrNull { candidate ->
+                candidate.physicalWidth == display.mode.physicalWidth &&
+                    candidate.physicalHeight == display.mode.physicalHeight &&
+                    kotlin.math.abs(candidate.refreshRate - 60f) < 1f
+            }
+            it.window.attributes = it.window.attributes.apply {
+                preferredRefreshRate = 60f
+                if (mode != null) preferredDisplayModeId = mode.modeId
+            }
+        }
         val durations = Collections.synchronizedList(mutableListOf<Long>())
         val layout = Collections.synchronizedList(mutableListOf<Long>())
+        val deadlines = Collections.synchronizedList(mutableListOf<Long>())
+        val unknownDelay = Collections.synchronizedList(mutableListOf<Long>())
         val phase = AtomicReference("warmup")
         val phaseFrames = Collections.synchronizedList(mutableListOf<Pair<String, Double>>())
         val worker = HandlerThread("render-frame-metrics").apply { start() }
@@ -63,8 +93,8 @@ class ChatRenderingDevicePerfTest {
         val optimizedLayout = InstrumentationRegistry.getArguments().getString("amberRenderOptimizedLayout") == "true"
         val label = InstrumentationRegistry.getArguments().getString("amberRenderLabel") ?: "unlabelled"
         val started = CountDownLatch(1)
-        val state = mutableStateOf("")
-        val streaming = mutableStateOf(true)
+        val state = MutableStateFlow("")
+        val streaming = MutableStateFlow(true)
         val profile = InstrumentationRegistry.getArguments().getString("amberRenderProfile") ?: "mixed"
         val paragraph = when (profile) {
             "short" -> "简短回答：流式显示保持顺畅，Unicode 👩‍💻 é 不截断。\n\n"
@@ -78,6 +108,8 @@ class ChatRenderingDevicePerfTest {
             durations.add(duration)
             phaseFrames.add(phase.get() to duration / 1_000_000.0)
             layout.add(metrics.getMetric(FrameMetrics.LAYOUT_MEASURE_DURATION))
+            deadlines.add(metrics.getMetric(FrameMetrics.DEADLINE))
+            unknownDelay.add(metrics.getMetric(FrameMetrics.UNKNOWN_DELAY_DURATION))
         }
         activity.window.addOnFrameMetricsAvailableListener(listener, Handler(worker.looper))
         try {
@@ -98,7 +130,9 @@ class ChatRenderingDevicePerfTest {
                                                 stiffness = Spring.StiffnessMedium))
                                     }
                                     Column(growth.padding(12.dp)) {
-                                        StreamingSingleTextMarkdown(state.value, emptyList(), streaming = streaming.value,
+                                        val source by state.collectAsState()
+                                        val active by streaming.collectAsState()
+                                        StreamingSingleTextMarkdown(source, emptyList(), streaming = active,
                                             onSettled = { settled.countDown() })
                                     }
                                 }
@@ -107,31 +141,20 @@ class ChatRenderingDevicePerfTest {
                             LaunchedEffect(Unit) {
                                 delay(2500)
                                 runtimeBefore.set(Debug.getRuntimeStats())
-                                durations.clear(); layout.clear(); phaseFrames.clear()
+                                durations.clear(); layout.clear(); deadlines.clear(); unknownDelay.clear(); phaseFrames.clear()
                                 phase.set("pinned")
                                 Trace.beginSection("Amber fixture pinned"); Trace.endSection()
                                 started.countDown()
-                                var end = initial
-                                while (end < target.length) {
-                                    end = (end + 12).coerceAtMost(target.length)
-                                    state.value = target.take(end)
-                                    delay(33)
+                                val feed = launch(Dispatchers.Default) {
+                                    var end = initial
+                                    while (end < target.length) {
+                                        end = (end + 12).coerceAtMost(target.length)
+                                        state.value = target.take(end)
+                                        delay(33)
+                                    }
+                                    streaming.value = false
                                 }
-                                streaming.value = false
-                                kotlinx.coroutines.withTimeout(60_000) {
-                                    while (settled.count > 0) delay(16)
-                                }
-                                phase.set("history")
-                                Trace.beginSection("Amber fixture history"); Trace.endSection()
-                                list.scrollToItem(5)
-                                repeat(10) {
-                                    list.scroll { scrollBy(180f) }
-                                    delay(100)
-                                }
-                                done.countDown()
-                            }
-                            LaunchedEffect(Unit) {
-                                delay(4000)
+                                delay(750)
                                 phase.set("reading-drag-fling")
                                 Trace.beginSection("Amber fixture reading drag fling"); Trace.endSection()
                                 val view = activity.window.decorView
@@ -150,18 +173,44 @@ class ChatRenderingDevicePerfTest {
                                     touch(MotionEvent.ACTION_MOVE, startY + view.height * .045f * (step + 1))
                                 }
                                 touch(MotionEvent.ACTION_UP, startY + view.height * .45f)
+                                feed.join()
+                                kotlinx.coroutines.withTimeout(10_000) {
+                                    while (list.isScrollInProgress) delay(16)
+                                }
+                                // A short answer may leave composition during the drag. Re-enter at
+                                // the bottom before waiting for its final visible/parse/fade handover.
+                                phase.set("pinned-return")
+                                list.scrollToItem(0)
+                                kotlinx.coroutines.withTimeout(60_000) {
+                                    while (settled.count > 0) delay(16)
+                                }
+                                Log.i("AmberRenderPerf", "stream-settled")
+                                phase.set("history")
+                                Trace.beginSection("Amber fixture history"); Trace.endSection()
+                                list.scrollToItem(5)
+                                repeat(10) {
+                                    list.scroll { scrollBy(180f) }
+                                    delay(100)
+                                }
+                                Log.i("AmberRenderPerf", "history-finished")
+                                done.countDown()
                             }
                         }
                     }
                 }
             }
+            Log.i("AmberRenderPerf", "content-installed")
             check(started.await(30, TimeUnit.SECONDS))
+            Log.i("AmberRenderPerf", "sample-started")
             check(done.await(90, TimeUnit.SECONDS))
+            Log.i("AmberRenderPerf", "sample-finished")
             val runtimeAfter = Debug.getRuntimeStats()
+            Log.i("AmberRenderPerf", "runtime-stats-collected")
             val frameMs = synchronized(durations) { durations.map { it / 1_000_000.0 }.sorted() }
             val layoutMs = synchronized(layout) { layout.map { it / 1_000_000.0 }.sorted() }
             fun List<Double>.percentile(p: Double) = getOrElse(((size - 1) * p).toInt()) { 0.0 }
             val refresh = activity.display?.refreshRate ?: 60f
+            check(kotlin.math.abs(refresh - 60f) < 1f) { "Fixture refresh request not honored: $refresh" }
             check(frameMs.size >= 10) { "No usable foreground frame sample: ${frameMs.size}" }
             val report = "label=$label profile=$profile chars=${target.length} refresh=$refresh frames=${frameMs.size} " +
                 "p50=${frameMs.percentile(.5)} p95=${frameMs.percentile(.95)} p99=${frameMs.percentile(.99)} " +
@@ -170,6 +219,8 @@ class ChatRenderingDevicePerfTest {
             Log.i("AmberRenderPerf", report)
             val output = JSONObject().apply {
                 put("report", report); put("framesMs", JSONArray(frameMs)); put("layoutMs", JSONArray(layoutMs))
+                put("deadlinesMs", JSONArray(synchronized(deadlines) { deadlines.map { it / 1_000_000.0 } }))
+                put("unknownDelayMs", JSONArray(synchronized(unknownDelay) { unknownDelay.map { it / 1_000_000.0 } }))
                 put("gcBefore", JSONObject(runtimeBefore.get())); put("gcAfter", JSONObject(runtimeAfter))
                 val grouped = synchronized(phaseFrames) { phaseFrames.toList() }.groupBy({ it.first }, { it.second })
                 put("phaseFramesMs", JSONObject().apply {
@@ -180,6 +231,10 @@ class ChatRenderingDevicePerfTest {
             val resultFile = File(activity.getExternalFilesDir(null), "amber-render-$label-$profile.json")
             resultFile.writeText(output.toString(2))
             Log.i("AmberRenderPerf", "result=${resultFile.absolutePath}")
+            val gfx = android.os.ParcelFileDescriptor.AutoCloseInputStream(
+                instrumentation.uiAutomation.executeShellCommand("dumpsys gfxinfo ${activity.packageName} framestats"),
+            ).bufferedReader().use { it.readText() }
+            File(activity.getExternalFilesDir(null), "amber-render-$label-$profile-gfxinfo.txt").writeText(gfx)
         } finally {
             activity.window.removeOnFrameMetricsAvailableListener(listener)
             worker.quitSafely()

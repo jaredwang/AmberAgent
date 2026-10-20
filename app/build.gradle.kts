@@ -144,7 +144,9 @@ android {
         versionCode = 396
         versionName = "2.6.8"
 
-        testInstrumentationRunner = if (project.findProperty("uiSmokeTest")?.toString()?.toBoolean() == true) {
+        testInstrumentationRunner = if (project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true) {
+            "app.amber.agent.ChatDeviceFixtureRunner"
+        } else if (project.findProperty("uiSmokeTest")?.toString()?.toBoolean() == true) {
             "app.amber.agent.AmberAgentUiSmokeTestRunner"
         } else {
             "app.amber.agent.AmberAgentAndroidTestRunner"

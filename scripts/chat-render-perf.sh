@@ -12,7 +12,7 @@ output_dir="${4:-artifacts/chat-performance/$label}"
 adb_path="${ADB:-${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb}"
 serial="${SERIAL:-392288d7}"
 package="${PACKAGE:-app.amber.agent.graphite}"
-runner="$package.test/app.amber.agent.AmberAgentAndroidTestRunner"
+runner="$package.test/app.amber.agent.ChatDeviceFixtureRunner"
 case "$label" in
   baseline) optimized=false ;;
   optimized) optimized=true ;;
@@ -26,6 +26,20 @@ fi
 run_adb() { "${adb_cmd[@]}" -s "$serial" "$@"; }
 mkdir -p "$output_dir"
 run_adb get-state
+# Scope the display cap to this measurement and restore both original values.
+# A window hint alone is ignored by MIUI's touch boost on this device.
+peak_before="$(run_adb shell settings get system peak_refresh_rate | tr -d '\r')"
+min_before="$(run_adb shell settings get system min_refresh_rate | tr -d '\r')"
+printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\n' "$peak_before" "$min_before" > "$output_dir/refresh-before.txt"
+restore_refresh() {
+  if [[ "$peak_before" == null ]]; then run_adb shell settings delete system peak_refresh_rate > /dev/null
+  else run_adb shell settings put system peak_refresh_rate "$peak_before"; fi
+  if [[ "$min_before" == null ]]; then run_adb shell settings delete system min_refresh_rate > /dev/null
+  else run_adb shell settings put system min_refresh_rate "$min_before"; fi
+}
+trap restore_refresh EXIT
+run_adb shell settings put system peak_refresh_rate 60.0
+run_adb shell settings put system min_refresh_rate 60.0
 run_adb shell input keyevent KEYCODE_WAKEUP
 # A secure keyguard needs the owner; this command only dismisses an unsecured keyguard.
 run_adb shell wm dismiss-keyguard
@@ -35,7 +49,7 @@ run_adb shell getprop ro.build.fingerprint > "$output_dir/fingerprint.txt"
 shasum -a 256 "$main_apk" "$test_apk" > "$output_dir/apk-sha256.txt"
 run_adb install -r "$main_apk" | tee "$output_dir/install-main.txt"
 run_adb install -r "$test_apk" | tee "$output_dir/install-test.txt"
-# Keep refresh rate, battery state, font, and device settings unchanged between runs.
+# Both runs use the same temporary display cap, font, content and gestures.
 trace_running=false
 stop_trace() {
   if [[ "$trace_running" == true ]]; then
@@ -43,25 +57,34 @@ stop_trace() {
     trace_running=false
   fi
 }
-trap stop_trace EXIT
-for profile in short chinese mixed; do
+cleanup() { stop_trace; restore_refresh; }
+trap cleanup EXIT
+for profile in ${PROFILES:-short chinese mixed}; do
   run_adb shell dumpsys gfxinfo "$package" reset > /dev/null
   if run_adb shell atrace --async_start -b 32768 -a "$package" gfx view sched freq idle dalvik \
     > "$output_dir/$profile-trace-start.txt" 2>&1; then
     trace_running=true
   fi
+  # MIUI may freeze a newly started instrumentation process before Application
+  # initialization. A single shell foreground kick avoids changing freezer policy.
+  ( sleep 1
+    run_adb shell am start -W --activity-single-top -n "$package/androidx.activity.ComponentActivity"
+  ) > "$output_dir/$profile-foreground-kick.txt" 2>&1 &
+  kick_pid=$!
   run_adb shell am instrument -w \
     -e amberRenderPerf true -e amberRenderLabel "$label" \
     -e amberRenderProfile "$profile" -e amberRenderOptimizedLayout "$optimized" \
     -e class app.amber.agent.ChatRenderingDevicePerfTest "$runner" \
     | tee "$output_dir/$profile-instrumentation.txt"
+  wait "$kick_pid" || true
   stop_trace
   if ! rg -q 'OK \(1 test\)' "$output_dir/$profile-instrumentation.txt"; then
-    echo "Fixture did not complete; unlock the phone and allow the USB test APK install." >&2
+    echo "Fixture did not complete; inspect the instrumentation result and foreground/device state." >&2
     exit 1
   fi
   run_adb pull "/sdcard/Android/data/$package/files/amber-render-$label-$profile.json" \
     "$output_dir/$profile.json"
-  run_adb shell dumpsys gfxinfo "$package" framestats > "$output_dir/$profile-gfxinfo.txt"
+  run_adb pull "/sdcard/Android/data/$package/files/amber-render-$label-$profile-gfxinfo.txt" \
+    "$output_dir/$profile-gfxinfo.txt"
   run_adb logcat -d -s AmberRenderPerf:I > "$output_dir/$profile-logcat.txt"
 done
