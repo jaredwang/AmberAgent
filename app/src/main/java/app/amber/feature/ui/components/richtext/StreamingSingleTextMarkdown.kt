@@ -217,16 +217,6 @@ fun StreamingSingleTextMarkdown(
         idleMs = idleMs,
     )
     val revealActive = streaming || visible != renderSource || windowChars > 0
-    // Append and reveal in one builder. The old two-stage path copied every
-    // span and the entire growing text twice on every display frame.
-    val revealed = remember(annotated, rawSuffix, windowChars, baseColorForReveal, revealActive) {
-        buildStreamingDisplayAnnotated(
-            annotated = annotated,
-            suffix = rawSuffix,
-            windowChars = if (revealActive) windowChars else 0,
-            baseColor = baseColorForReveal,
-        )
-    }
 
     if (onSettled != null) {
         val updatedOnSettled by rememberUpdatedState(onSettled)
@@ -242,8 +232,11 @@ fun StreamingSingleTextMarkdown(
     }
 
     SelectionContainer {
-        StreamingChunkedText(
-            text = revealed,
+        StreamingChunkedDisplayText(
+            base = annotated,
+            suffix = rawSuffix,
+            windowChars = if (revealActive) windowChars else 0,
+            baseColor = baseColorForReveal,
             modifier = modifier.padding(start = 4.dp),
             style = LocalTextStyle.current,
         )

@@ -59,14 +59,51 @@ class ChatInteractionDeviceRegressionTest {
         compose.onAllNodes(hasClickAction() and (hasContentDescription(description) or
             hasAnyDescendant(hasContentDescription(description))), useUnmergedTree = true).onFirst()
     }
-    private fun openMenu(marker: String) {
-        compose.waitUntil(30_000) {
-            val matches = compose.onAllNodesWithText(marker, substring = true, useUnmergedTree = true)
-            matches.fetchSemanticsNodes().indices.any { runCatching { matches[it].isDisplayed() }.getOrDefault(false) }
+    private fun markerNodes(marker: String) =
+        compose.onAllNodesWithText(marker, substring = true, useUnmergedTree = true)
+    private fun markerDisplayed(marker: String): Boolean = markerNodes(marker).fetchSemanticsNodes()
+        .indices.any { runCatching { markerNodes(marker)[it].isDisplayed() }.getOrDefault(false) }
+    private fun timelineScrollable() =
+        compose.onAllNodes(hasScrollAction(), useUnmergedTree = true).onFirst()
+
+    /**
+     * The timeline pins to the newest content after a stream ends, so the head
+     * of a long reply is composed but clipped above the viewport. Move with a
+     * real drag until the marker is actually displayed; never weaken the
+     * visibility assertion.
+     */
+    private fun revealMarker(marker: String, towardOlder: Boolean, maxSwipes: Int = 8): Boolean {
+        compose.waitForIdle()
+        repeat(maxSwipes + 1) {
+            if (markerDisplayed(marker)) return true
+            runCatching {
+                timelineScrollable().performTouchInput {
+                    if (towardOlder) swipeDown() else swipeUp()
+                }
+            }
+            compose.waitForIdle()
         }
-        compose.onAllNodesWithText(marker, substring = true, useUnmergedTree = true).onFirst()
-            .performTouchInput { longClick() }
+        return markerDisplayed(marker)
+    }
+
+    private fun openMenu(marker: String, towardOlder: Boolean = true) {
+        check(revealMarker(marker, towardOlder)) { "Timeline marker is not reachable: $marker" }
+        markerNodes(marker).onFirst().performTouchInput { longClick() }
         compose.waitUntil(5_000) { compose.onAllNodesWithText(context.getString(R.string.copy)).fetchSemanticsNodes().isNotEmpty() }
+    }
+    private fun imeBottom(scenario: ActivityScenario<RouteActivity>): Int {
+        var value = -1
+        scenario.onActivity { value = it.window.decorView.rootWindowInsets.getInsets(WindowInsets.Type.ime()).bottom }
+        return value
+    }
+    private suspend fun awaitImeHidden(scenario: ActivityScenario<RouteActivity>) {
+        val deadline = SystemClock.uptimeMillis() + 5_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            compose.mainClock.advanceTimeBy(16)
+            delay(16)
+            if (imeBottom(scenario) == 0) return
+        }
+        error("IME did not hide before the stop tap")
     }
     private fun tap(x: Float, y: Float) {
         val down = SystemClock.uptimeMillis()
@@ -123,8 +160,6 @@ class ChatInteractionDeviceRegressionTest {
                 compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).onFirst().performTextInput("Run isolated device stream")
                 val send = sendStopButton(R.string.send)
                 val stopPoint = send.fetchSemanticsNode().boundsInWindow.center
-                var initialIme = 0
-                scenario.onActivity { initialIme = it.window.decorView.rootWindowInsets.getInsets(WindowInsets.Type.ime()).bottom }
                 compose.mainClock.autoAdvance = false
                 tap(stopPoint.x, stopPoint.y)
                 // Compose's idle synchronization may wait until the stream drains.
@@ -136,11 +171,15 @@ class ChatInteractionDeviceRegressionTest {
                     }
                 }
                 compose.mainClock.advanceTimeBy(200)
-                var currentIme = 0
-                scenario.onActivity { currentIme = it.window.decorView.rootWindowInsets.getInsets(WindowInsets.Type.ime()).bottom }
-                val stopY = stopPoint.y + initialIme - currentIme
-                Log.i(TAG, "before-stop chars=${text(service, id).length} active=${service.getGenerationJobStateFlow(id).value?.isActive} point=$stopPoint ime=$initialIme->$currentIme stopY=$stopY")
-                tap(stopPoint.x, stopY)
+                // The composer moves when the keyboard hides. Wait for the IME
+                // to be gone, then measure the live stop control instead of
+                // offsetting a stale pre-stream measurement (a stale offset sent
+                // the tap off-screen and let the stream finish).
+                awaitImeHidden(scenario)
+                val stop = sendStopButton(R.string.stop)
+                val stopCenter = stop.fetchSemanticsNode().boundsInWindow.center
+                Log.i(TAG, "before-stop chars=${text(service, id).length} active=${service.getGenerationJobStateFlow(id).value?.isActive} point=$stopCenter ime=${imeBottom(scenario)}")
+                tap(stopCenter.x, stopCenter.y)
                 withTimeout(20_000) {
                     while (service.getGenerationJobStateFlow(id).value?.isActive == true) {
                         compose.mainClock.advanceTimeBy(16)
@@ -171,11 +210,15 @@ class ChatInteractionDeviceRegressionTest {
                     while (storedText(requireNotNull(repository.getConversationById(id))) != finalReply) delay(100)
                 }
                 Log.i(TAG, "regenerate passed chars=${finalReply.length} durable=true")
+                // The reply is much longer than the viewport; return to the
+                // newest content before opening its tail marker menu.
+                runCatching { timelineScrollable().performScrollToIndex(0) }
+                compose.waitForIdle()
                 val clipboard = context.getSystemService(ClipboardManager::class.java)
                 var prior: ClipData? = null
                 instrumentation.runOnMainSync { prior = clipboard.primaryClip }
                 try {
-                    openMenu("DEVICE_FINAL_COPY_MARKER")
+                    openMenu("DEVICE_FINAL_COPY_MARKER", towardOlder = false)
                     compose.onNodeWithText(context.getString(R.string.select_and_copy)).performClick()
                     compose.onNodeWithText(context.getString(R.string.copy_all)).performClick()
                     var copied = ""

@@ -10,9 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import app.amber.feature.ui.components.richtext.MarkdownParseResult
+import app.amber.feature.ui.components.richtext.MarkdownPreparationOutcome
 import app.amber.feature.ui.components.richtext.cachedMarkdownParseResult
-import app.amber.feature.ui.components.richtext.prewarmMarkdownContent
+import app.amber.feature.ui.components.richtext.isMarkdownContentCacheable
 import app.amber.feature.ui.components.richtext.parseMarkdownContent
+import app.amber.feature.ui.components.richtext.prepareMarkdownContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -97,10 +100,41 @@ internal class ChatTimelinePlanReuseCache {
     }
 }
 
+/**
+ * Bounded hand-off between the timeline plan and the Markdown parse cache.
+ * Implementations must report a terminal [MarkdownPreparationOutcome.Uncacheable]
+ * instead of pretending a result will eventually become retrievable.
+ */
+internal interface MarkdownPreparationGateway {
+    fun isCacheable(content: String): Boolean
+    fun cached(content: String): MarkdownParseResult?
+    fun prepare(content: String): MarkdownPreparationOutcome
+
+    object Default : MarkdownPreparationGateway {
+        override fun isCacheable(content: String): Boolean = isMarkdownContentCacheable(content)
+        override fun cached(content: String): MarkdownParseResult? = cachedMarkdownParseResult(content)
+        override fun prepare(content: String): MarkdownPreparationOutcome = prepareMarkdownContent(content)
+    }
+}
+
+private const val CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS = 3
+private const val CHAT_MARKDOWN_MAX_PREPARATION_PER_PASS = 6
+private const val CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES = 32
+
+/** Char-count bound only: never retains the prepared text itself. */
+private data class MarkdownPreparationKey(
+    val length: Int,
+    val hash: Int,
+    val headHash: Int,
+    val tailHash: Int,
+)
+
 internal class ChatVirtualItemCache(
     private val maxEntries: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_ENTRIES,
     private val maxMarkdownChars: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_MARKDOWN_CHARS,
     private val parseMissingMarkdownSynchronously: Boolean = true,
+    private val markdownPreparation: MarkdownPreparationGateway = MarkdownPreparationGateway.Default,
+    private val maxPreparationPerPass: Int = CHAT_MARKDOWN_MAX_PREPARATION_PER_PASS,
 ) {
     private val entries = object : LinkedHashMap<ChatVirtualItemCacheKey, List<ChatMessageVirtualItem>?>(
         maxEntries.coerceAtLeast(1),
@@ -118,18 +152,97 @@ internal class ChatVirtualItemCache(
         private set
 
     private val pendingMarkdown = LinkedHashSet<String>()
+
+    /** Attempts per content fingerprint. Bounded, and never holds the text. */
+    private val preparationAttempts = object : LinkedHashMap<MarkdownPreparationKey, Int>(
+        CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES,
+        0.75f,
+        true,
+    ) {
+        override fun removeEldestEntry(
+            eldest: MutableMap.MutableEntry<MarkdownPreparationKey, Int>,
+        ): Boolean = size > CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES
+    }
     var preparationRequests by mutableIntStateOf(0)
         private set
     var preparedRevision by mutableIntStateOf(0)
         private set
 
+    /** Test/诊断 seam: entries still waiting for a preparation pass. */
+    internal val pendingMarkdownCount: Int get() = pendingMarkdown.size
+
+    /**
+     * Parse a bounded batch off the main thread, then publish at most one
+     * revision. Every queued text reaches a terminal state: retrievable,
+     * deterministically uncacheable, or out of retry attempts. A text that
+     * cannot enter the bounded LRU must never keep re-queueing itself.
+     */
     suspend fun preparePendingMarkdown() {
-        val batch = pendingMarkdown.toList()
-        if (batch.isEmpty()) return
-        withContext(Dispatchers.Default) { batch.forEach(::prewarmMarkdownContent) }
-        pendingMarkdown.removeAll(batch.toSet())
-        // Results cached as "single item while missing" must be rebuilt as well.
-        preparedRevision++
+        if (pendingMarkdown.isEmpty()) return
+        val batch = pendingMarkdown.take(maxPreparationPerPass.coerceAtLeast(1))
+        val results = withContext(Dispatchers.Default) {
+            batch.map { content ->
+                val cached = markdownPreparation.cached(content)
+                content to when {
+                    cached != null -> MarkdownPreparationOutcome.PREPARED
+                    !markdownPreparation.isCacheable(content) -> MarkdownPreparationOutcome.UNCACHEABLE
+                    else -> try {
+                        markdownPreparation.prepare(content)
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (_: Throwable) {
+                        MarkdownPreparationOutcome.FAILED
+                    }
+                }
+            }
+        }
+        var needsRebuild = false
+        for ((content, outcome) in results) {
+            pendingMarkdown.remove(content)
+            val key = preparationKey(content)
+            when (outcome) {
+                MarkdownPreparationOutcome.PREPARED -> {
+                    // Keep the attempt count until the plan actually consumes
+                    // the entry. A cache that stores and immediately evicts a
+                    // result must still reach a terminal raw fallback.
+                    needsRebuild = true
+                }
+                MarkdownPreparationOutcome.UNCACHEABLE -> {
+                    // Terminal for this exact text: raw fallback, no retry loop.
+                    preparationAttempts[key] = CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS
+                }
+                MarkdownPreparationOutcome.FAILED -> {
+                    // Rebuild once so the next request re-enters the bounded
+                    // retry budget; the attempt counter is the stop condition.
+                    needsRebuild = true
+                }
+            }
+        }
+        if (needsRebuild) preparedRevision++
+        if (pendingMarkdown.isNotEmpty()) preparationRequests++
+    }
+
+    /**
+     * Queue one preparation for [content]. Oversize text is rejected without a
+     * parse; repeated requests for the same text are coalesced; failures stop
+     * after [CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS] per text.
+     */
+    private fun requestMarkdownPreparation(content: String): Boolean {
+        if (!markdownPreparation.isCacheable(content)) return false
+        if (content in pendingMarkdown) return true
+        val key = preparationKey(content)
+        val attempts = preparationAttempts[key] ?: 0
+        if (attempts >= CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS) return false
+        pendingMarkdown.add(content)
+        preparationAttempts[key] = attempts + 1
+        preparationRequests++
+        return true
+    }
+
+    private fun preparationKey(content: String): MarkdownPreparationKey {
+        val head = content.take(32).hashCode()
+        val tail = content.takeLast(32).hashCode()
+        return MarkdownPreparationKey(content.length, content.hashCode(), head, tail)
     }
 
     private val visualCounts = mutableStateMapOf<Uuid, Int>()
@@ -195,9 +308,19 @@ internal class ChatVirtualItemCache(
             forceSingleItem = forceSingleItem,
             parseMarkdown = { content ->
                 if (parseMissingMarkdownSynchronously) parseMarkdownContent(content) else {
-                    cachedMarkdownParseResult(content) ?: run {
-                        awaitingMarkdown = true
-                        if (pendingMarkdown.add(content)) preparationRequests++
+                    val cached = markdownPreparation.cached(content)
+                    if (cached != null) {
+                        // Consumption is the success signal; only then does a
+                        // later eviction earn a fresh bounded retry budget.
+                        preparationAttempts.remove(preparationKey(content))
+                        cached
+                    } else {
+                        // Only an actually pending parse blocks entry caching.
+                        // Oversize or retry-exhausted text keeps the raw fallback
+                        // and is cached as such, so it cannot re-queue itself.
+                        if (requestMarkdownPreparation(content)) {
+                            awaitingMarkdown = true
+                        }
                         null
                     }
                 }

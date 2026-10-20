@@ -18,6 +18,14 @@ case "$label" in
   optimized) optimized=true ;;
   *) echo "Expected baseline or optimized" >&2; exit 2 ;;
 esac
+# A labelled APK pair may need the same layout strategy on both sides.
+# CHAT_RENDER_LAYOUT=true forces the production streamingTailLayout for both.
+case "${CHAT_RENDER_LAYOUT:-}" in
+  true|optimized) optimized=true ;;
+  false|animate) optimized=false ;;
+  "") ;;
+  *) echo "CHAT_RENDER_LAYOUT must be true/false" >&2; exit 2 ;;
+esac
 # macOS 27's arm64 adb USB backend can abort inside libunwind. ADB_ARCH=native opts out.
 adb_cmd=("$adb_path")
 if [[ "$(uname -s)" == Darwin && "${ADB_ARCH:-x86_64}" == x86_64 ]]; then
@@ -30,16 +38,31 @@ run_adb get-state
 # A window hint alone is ignored by MIUI's touch boost on this device.
 peak_before="$(run_adb shell settings get system peak_refresh_rate | tr -d '\r')"
 min_before="$(run_adb shell settings get system min_refresh_rate | tr -d '\r')"
-printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\n' "$peak_before" "$min_before" > "$output_dir/refresh-before.txt"
+# MIUI keeps its own per-panel preference; peak/min alone are ignored once set.
+user_rate_before="$(run_adb shell settings get secure user_refresh_rate | tr -d '\r')"
+miui_rate_before="$(run_adb shell settings get secure miui_refresh_rate | tr -d '\r')"
+printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\nuser_refresh_rate=%s\nmiui_refresh_rate=%s\n' \
+  "$peak_before" "$min_before" "$user_rate_before" "$miui_rate_before" > "$output_dir/refresh-before.txt"
 restore_refresh() {
   if [[ "$peak_before" == null ]]; then run_adb shell settings delete system peak_refresh_rate > /dev/null
   else run_adb shell settings put system peak_refresh_rate "$peak_before"; fi
   if [[ "$min_before" == null ]]; then run_adb shell settings delete system min_refresh_rate > /dev/null
   else run_adb shell settings put system min_refresh_rate "$min_before"; fi
+  if [[ "$user_rate_before" == null ]]; then run_adb shell settings delete secure user_refresh_rate > /dev/null
+  else run_adb shell settings put secure user_refresh_rate "$user_rate_before"; fi
+  if [[ "$miui_rate_before" == null ]]; then run_adb shell settings delete secure miui_refresh_rate > /dev/null
+  else run_adb shell settings put secure miui_refresh_rate "$miui_rate_before"; fi
 }
 trap restore_refresh EXIT
-run_adb shell settings put system peak_refresh_rate 60.0
-run_adb shell settings put system min_refresh_rate 60.0
+apply_refresh_cap() {
+  # Re-assert for every profile: MIUI can promote the panel back to 120 Hz
+  # between instrumentation processes even while the system cap is set.
+  run_adb shell settings put system peak_refresh_rate 60.0
+  run_adb shell settings put system min_refresh_rate 60.0
+  run_adb shell settings put secure user_refresh_rate 60
+  run_adb shell settings put secure miui_refresh_rate 60
+}
+apply_refresh_cap
 run_adb shell input keyevent KEYCODE_WAKEUP
 # A secure keyguard needs the owner; this command only dismisses an unsecured keyguard.
 run_adb shell wm dismiss-keyguard
@@ -60,6 +83,8 @@ stop_trace() {
 cleanup() { stop_trace; restore_refresh; }
 trap cleanup EXIT
 for profile in ${PROFILES:-short chinese mixed}; do
+  apply_refresh_cap
+  run_adb shell dumpsys display | rg -m1 'mActiveSfDisplayMode' > "$output_dir/$profile-refresh-before.txt" || true
   run_adb shell dumpsys gfxinfo "$package" reset > /dev/null
   if run_adb shell atrace --async_start -b 32768 -a "$package" gfx view sched freq idle dalvik \
     > "$output_dir/$profile-trace-start.txt" 2>&1; then

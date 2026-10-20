@@ -38,4 +38,78 @@ class StreamingTextChunksTest {
         val crlf = AnnotatedString("paragraph\r\n".repeat(500))
         assertEquals(listOf(StreamingTextChunk(0, crlf)), splitStreamingTextChunks(crlf))
     }
+
+    @Test fun incrementalPlannerMatchesReferenceSplitWhileTailGrows() {
+        val source = (0 until 90).joinToString("\n") {
+            "## 小节 $it\n\n中文 **重点** 👩‍💻 é and `code`."
+        }
+        val base = buildAnnotatedString {
+            append(source)
+            addStyle(SpanStyle(color = Color.Blue), 0, source.length)
+        }
+        val planner = StreamingChunkPlanner()
+        val suffix = StringBuilder()
+        repeat(48) { frame ->
+            suffix.append(if (frame % 5 == 0) "\n\n新段落 $frame 中文。" else "追加 $frame 文字。")
+            val full = source + suffix
+            val expected = splitStreamingTextChunks(AnnotatedString(full))
+            val actual = planner.chunks(base, suffix.toString(), 0, Color.Unspecified)
+            assertEquals("frame $frame", expected.map { it.start }, actual.map { it.start })
+            assertEquals("frame $frame", full, actual.joinToString("") { it.text.text + it.lineBreak.text })
+            assertEquals(
+                "frame $frame",
+                expected.dropLast(1).map { it.text.text },
+                actual.dropLast(1).map { it.text.text },
+            )
+        }
+    }
+
+    @Test fun committedChunksAreReusedAcrossTailFrames() {
+        val source = (0 until 90).joinToString("\n") { "## $it\n\n" + "稳定正文 paragraph $it。".repeat(3) }
+        val base = AnnotatedString(source)
+        val planner = StreamingChunkPlanner()
+        val first = planner.chunks(base, "a", 0, Color.Unspecified)
+        val second = planner.chunks(base, "ab 👩‍💻", 0, Color.Unspecified)
+        assertTrue(first.size > 1)
+        assertEquals(first.size, second.size)
+        first.dropLast(1).indices.forEach { index ->
+            assertSame("chunk $index must be reused", first[index].text, second[index].text)
+        }
+        assertNotSame(first.last().text, second.last().text)
+    }
+
+    @Test fun revealWindowOnlyDirtyTheFinalChunk() {
+        val source = (0 until 90).joinToString("\n") { "## $it\n\n" + "可读正文 $it。".repeat(3) }
+        val base = AnnotatedString(source)
+        val planner = StreamingChunkPlanner()
+        val plain = planner.chunks(base, "", 0, Color.Red)
+        val revealed = planner.chunks(base, "", 40, Color.Red)
+        assertEquals(plain.dropLast(1).map { it.text }, revealed.dropLast(1).map { it.text })
+        assertEquals(0, plain.last().text.spanStyles.size)
+        assertTrue(revealed.last().text.spanStyles.isNotEmpty())
+    }
+
+    @Test fun newParseSnapshotRebuildsBoundariesAndStyles() {
+        val source = (0 until 90).joinToString("\n") { "## $it\n\n" + "正文 $it。".repeat(4) }
+        val planner = StreamingChunkPlanner()
+        val first = planner.chunks(AnnotatedString(source), "", 0, Color.Unspecified)
+        val restyled = buildAnnotatedString {
+            append(source)
+            addStyle(SpanStyle(color = Color.Red), 0, source.length)
+        }
+        val second = planner.chunks(restyled, "", 0, Color.Unspecified)
+        assertEquals(splitStreamingTextChunks(restyled).map { it.text }, second.map { it.text })
+        assertNotEquals(first.first().text, second.first().text)
+        assertEquals(source, second.joinToString("") { it.text.text + it.lineBreak.text })
+    }
+
+    @Test fun nonPrefixTailResetsInsteadOfReusingStaleChunks() {
+        val source = (0 until 90).joinToString("\n") { "## $it\n\n" + "正文 $it。".repeat(3) }
+        val base = AnnotatedString(source)
+        val planner = StreamingChunkPlanner()
+        val first = planner.chunks(base, "old tail", 0, Color.Unspecified)
+        val rewritten = planner.chunks(base, "rewritten tail 中文", 0, Color.Unspecified)
+        assertEquals(source + "rewritten tail 中文", rewritten.joinToString("") { it.text.text + it.lineBreak.text })
+        assertNotEquals(first.size to first.last().text.text, rewritten.size to rewritten.last().text.text)
+    }
 }
