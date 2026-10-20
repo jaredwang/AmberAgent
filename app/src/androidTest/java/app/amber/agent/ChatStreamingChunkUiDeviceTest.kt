@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -36,6 +38,12 @@ import app.amber.core.settings.Settings
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.components.richtext.StreamingSingleTextMarkdown
 import app.amber.feature.ui.context.LocalSettings
+import app.amber.feature.ui.components.richtext.LocalStreamingPresentationHandover
+import app.amber.feature.ui.components.richtext.MarkPresented
+import app.amber.feature.ui.components.richtext.rememberStreamingPresentationLifetime
+import app.amber.feature.ui.pages.chat.TimelineStreamingHandover
+import app.amber.feature.ui.pages.chat.holdReadingOnTailGrowth
+import app.amber.feature.ui.pages.chat.rememberHandoverReadingHold
 import app.amber.feature.ui.pages.chat.streamingTailLayout
 import app.amber.highlight.Highlighter
 import app.amber.highlight.LocalHighlighter
@@ -93,7 +101,7 @@ class ChatStreamingChunkUiDeviceTest {
             val action = node.config.getOrNull(SemanticsActions.GetTextLayoutResult) ?: continue
             runCatching { action.action?.invoke(layouts) }
             val layout = layouts.firstOrNull() ?: continue
-            result += ChunkNode(text, node.boundsInRoot.topLeft, layout)
+            result += ChunkNode(text, node.positionInRoot, layout)
         }
         return result.sortedBy { it.topLeft.y }
     }
@@ -334,13 +342,39 @@ class ChatStreamingChunkUiDeviceTest {
     }
 
     @Test(timeout = 180_000)
-    fun readingAnchorStaysStableAcrossThresholdDrainAndSettledSwitch() {
-        // Plain text keeps the rendered source identical to the fixture, so a
-        // global character offset maps directly onto chunk-local offsets.
+    fun readingAnchorStaysStableAcrossThresholdDrainAndSettledSwitch() = verifyReadingAnchor("idle")
+
+    @Test(timeout = 180_000)
+    fun readingAnchorSurvivesGenerationEndDuringDrag() = verifyReadingAnchor("drag")
+
+    @Test(timeout = 180_000)
+    fun readingAnchorSurvivesGenerationEndDuringFling() = verifyReadingAnchor("fling")
+
+    @Test(timeout = 180_000)
+    fun generationEndKeepsPinnedViewportAndRestoresHistoryRendererOffscreen() = verifyReadingAnchor("pinned")
+
+    private fun verifyReadingAnchor(endMode: String) {
+        // Match the renderer's real uptime-based pacer with explicit real-time
+        // frames. Auto-advancing a virtual clock cannot drain an uptime loop.
+        compose.mainClock.autoAdvance = false
+        fun pump(milliseconds: Long) {
+            val deadline = SystemClock.uptimeMillis() + milliseconds
+            while (SystemClock.uptimeMillis() < deadline) {
+                compose.mainClock.advanceTimeBy(16)
+                SystemClock.sleep(16)
+            }
+        }
+        fun awaitCondition(timeout: Long, condition: () -> Boolean) {
+            val deadline = SystemClock.uptimeMillis() + timeout
+            while (!condition() && SystemClock.uptimeMillis() < deadline) pump(16)
+            check(condition()) { "Timed out waiting for rendered anchor output" }
+        }
+        // Locate one fixed token in the actual rendered Text on every sample.
+        // The source offset is not assumed to equal a mapped Markdown offset.
         val paragraph = "中文阅读锚点段落，保持稳定。Unicode 👩‍💻 é。\n\n"
         val token = "ANCHOR_POINT 阅读锚点唯一标记。\n\n"
         val baseText = paragraph.repeat(140) + token + paragraph.repeat(4)
-        val target = paragraph.repeat(140) + token + paragraph.repeat(130)
+        val target = paragraph.repeat(140) + token + paragraph.repeat(130) + "END_OF_ANCHOR_OUTPUT"
         val initial = baseText.length
         val tokenStart = target.indexOf("ANCHOR_POINT")
         check(initial > 3_072 && target.length > initial + 2_000) {
@@ -351,9 +385,8 @@ class ChatStreamingChunkUiDeviceTest {
         val streaming = MutableStateFlow(true)
         val settledLatch = CountDownLatch(1)
         val listRef = AtomicReference<LazyListState>()
-        val chunkTops = java.util.concurrent.ConcurrentHashMap<Int, Float>()
-        val chunkLayouts = java.util.concurrent.ConcurrentHashMap<Int, TextLayoutResult>()
         val activityRef = AtomicReference<ComponentActivity>()
+        val messageTop = AtomicReference(0f)
         var failure: Throwable? = null
         launchHost().use { scenario ->
             scenario.onActivity { activity ->
@@ -370,115 +403,109 @@ class ChatStreamingChunkUiDeviceTest {
                             val active by streaming.collectAsState()
                             val list = rememberLazyListState()
                             listRef.set(list)
-                            val markdownStyle = app.amber.feature.ui.components.richtext.rememberMarkdownSingleTextStyle()
-                            val base = remember(markdownStyle) {
-                                val parsed = app.amber.feature.ui.components.richtext.parseMarkdownUncached(baseText)
-                                app.amber.feature.ui.components.richtext.mdNodeToAnnotatedString(
-                                    source = parsed.preprocessed,
-                                    root = parsed.tree,
-                                    style = markdownStyle,
-                                    imageFallbackLabel = "Image",
-                                )
-                            }
-                            var settled by remember { mutableStateOf(false) }
-                            androidx.compose.runtime.LaunchedEffect(active) {
-                                Log.i(TAG, "streaming-active=$active")
-                                if (!active) {
-                                    settled = true
-                                    settledLatch.countDown()
-                                }
-                            }
                             LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
                                 item("tail") { Text("render fixture tail") }
                                 item("stream") {
-                                    Box(Modifier.streamingTailLayout(list, 1, 24).padding(12.dp)) {
-                                        if (!settled) {
-                                            app.amber.feature.ui.components.richtext.StreamingChunkedDisplayText(
-                                                base = base,
-                                                suffix = tail,
-                                                windowChars = 0,
-                                                baseColor = androidx.compose.ui.graphics.Color.Unspecified,
-                                                modifier = Modifier,
-                                                style = androidx.compose.material3.LocalTextStyle.current,
-                                                onChunkPlaced = { start, top, layout ->
-                                                    chunkTops[start] = top
-                                                    chunkLayouts[start] = layout
-                                                },
-                                            )
-                                        } else {
-                                            MarkdownBlock(baseText + tail)
-                                        }
-                                    }
+                                    HandoverStreamItem(
+                                        list = list,
+                                        content = baseText + tail,
+                                        active = active,
+                                        onDrained = { settledLatch.countDown() },
+                                        modifier = Modifier.onGloballyPositioned { messageTop.set(it.positionInRoot().y) },
+                                    )
                                 }
+                                items(30, key = { "older-$it" }) { Text("OLDER $it " + paragraph.repeat(3)) }
                             }
                         }
                     }
                 }
             }
             try {
-                SystemClock.sleep(3_000)
+                pump(3_000)
                 val activity = activityRef.get()
                 val view = activity.window.decorView
 
-                fun anchorChunk(): Int? = chunkTops.keys.firstOrNull { start ->
-                    val layout = chunkLayouts[start] ?: return@firstOrNull false
-                    layout.layoutInput.text.text.contains("ANCHOR_POINT")
-                }
                 fun chunkAnchorY(): Float? {
-                    val start = anchorChunk() ?: return null
-                    val top = chunkTops[start] ?: return null
-                    val layout = chunkLayouts[start] ?: return null
-                    val local = layout.layoutInput.text.text.indexOf("ANCHOR_POINT")
-                    if (local < 0) return null
-                    val box = layout.getBoundingBox(local)
-                    return top + box.top
+                    val node = chunkNodes().firstOrNull { "ANCHOR_POINT" in it.text } ?: return null
+                    val local = node.text.indexOf("ANCHOR_POINT")
+                    return node.topLeft.y + node.layout.getBoundingBox(local).top
                 }
-
                 // Real touch drag away from the pinned bottom (release without a fling).
                 val x = view.width * 0.5f
                 val y0 = view.height * 0.30f
                 val drag = view.height * 0.16f
                 val downTime = SystemClock.uptimeMillis()
+                var gestureDownTime = downTime
                 fun send(action: Int, y: Float, at: Long) {
+                    if (action == android.view.MotionEvent.ACTION_DOWN) gestureDownTime = at
                     instrumentation.runOnMainSync {
-                        val event = android.view.MotionEvent.obtain(downTime, at, action, x, y, 0)
+                        val event = android.view.MotionEvent.obtain(gestureDownTime, at, action, x, y, 0)
                         view.dispatchTouchEvent(event)
                         event.recycle()
                     }
                 }
-                send(android.view.MotionEvent.ACTION_DOWN, y0, downTime)
-                repeat(12) { step ->
-                    SystemClock.sleep(20)
-                    send(
-                        android.view.MotionEvent.ACTION_MOVE,
-                        y0 + drag * (step + 1) / 12f,
-                        SystemClock.uptimeMillis(),
-                    )
+                if (endMode != "pinned") {
+                    send(android.view.MotionEvent.ACTION_DOWN, y0, downTime)
+                    repeat(12) { step ->
+                        pump(20)
+                        send(
+                            android.view.MotionEvent.ACTION_MOVE,
+                            y0 + drag * (step + 1) / 12f,
+                            SystemClock.uptimeMillis(),
+                        )
+                    }
+                    send(android.view.MotionEvent.ACTION_UP, y0 + drag, SystemClock.uptimeMillis())
                 }
-                send(android.view.MotionEvent.ACTION_UP, y0 + drag, SystemClock.uptimeMillis())
                 val scrollDeadline = SystemClock.uptimeMillis() + 10_000
                 while (listRef.get().isScrollInProgress && SystemClock.uptimeMillis() < scrollDeadline) {
-                    SystemClock.sleep(50)
+                    pump(50)
                 }
-                SystemClock.sleep(800)
+                pump(800)
                 val baseline = requireNotNull(chunkAnchorY()) { "Anchor chunk never laid out" }
-                Log.i(TAG, "anchor baseline=$baseline chunk=${anchorChunk()} index=${listRef.get().firstVisibleItemIndex} offset=${listRef.get().firstVisibleItemScrollOffset}")
+                Log.i(TAG, "anchor baseline=$baseline index=${listRef.get().firstVisibleItemIndex} offset=${listRef.get().firstVisibleItemScrollOffset}")
                 check(baseline >= 0 && baseline < view.height) { "Anchor is not visible before the feed: $baseline" }
 
-                // Grow the raw tail across several 768-char boundaries.
+                // Grow through several natural-line chunk boundaries.
                 val appended = target.substring(initial)
                 runBlocking {
                     var end = 0
                     while (end < appended.length) {
                         end = (end + 12).coerceAtMost(appended.length)
                         suffix.value = appended.substring(0, end)
+                        compose.mainClock.advanceTimeBy(33)
                         delay(33)
                     }
                 }
-                SystemClock.sleep(900)
+                awaitCondition(15_000) { chunkNodes().any { "END_OF_ANCHOR_OUTPUT" in it.text } }
+                pump(1_200)
                 val during = requireNotNull(chunkAnchorY()) { "Anchor chunk disappeared while generating" }
-                Log.i(TAG, "anchor during=$during")
-                streaming.value = false
+                Log.i(TAG, "anchor during=$during mode=$endMode")
+                val relativeBefore = during - messageTop.get()
+                val scrollOffsetBeforeEnd = listRef.get().firstVisibleItemScrollOffset
+                val finishingDuringGesture = endMode == "drag" || endMode == "fling"
+                if (finishingDuringGesture) {
+                    val gestureDown = SystemClock.uptimeMillis()
+                    send(android.view.MotionEvent.ACTION_DOWN, y0, gestureDown)
+                    repeat(4) { step ->
+                        pump(24)
+                        send(android.view.MotionEvent.ACTION_MOVE, y0 + (step + 1) * 28f, SystemClock.uptimeMillis())
+                    }
+                    check(listRef.get().isScrollInProgress) { "Generation must finish during an actual drag" }
+                }
+                if (endMode != "fling") streaming.value = false
+                if (finishingDuringGesture) {
+                    repeat(5) { step ->
+                        pump(16)
+                        send(android.view.MotionEvent.ACTION_MOVE, y0 + 112f + (step + 1) * 28f, SystemClock.uptimeMillis())
+                    }
+                    if (endMode == "drag") pump(200)
+                    send(android.view.MotionEvent.ACTION_UP, y0 + 252f, SystemClock.uptimeMillis())
+                    if (endMode == "fling") {
+                        pump(48)
+                        check(listRef.get().isScrollInProgress) { "Generation must finish during actual inertia" }
+                        streaming.value = false
+                    }
+                }
                 val heartbeat = CountDownLatch(1)
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     heartbeat.countDown()
@@ -491,7 +518,7 @@ class ChatStreamingChunkUiDeviceTest {
                     // Drive the test frame clock; a headless instrumented window
                     // does not always get vsync-driven recomposition.
                     compose.mainClock.advanceTimeBy(16)
-                    SystemClock.sleep(32)
+                    pump(32)
                 }
                 if (settledLatch.count > 0L) {
                     Log.i(TAG, "main-stack=\n" + android.os.Looper.getMainLooper().thread.stackTrace
@@ -499,55 +526,73 @@ class ChatStreamingChunkUiDeviceTest {
                     error("Streaming never settled")
                 }
                 compose.waitForIdle()
-                SystemClock.sleep(1_200)
+                val motionDeadline = SystemClock.uptimeMillis() + 10_000
+                while (listRef.get().isScrollInProgress && SystemClock.uptimeMillis() < motionDeadline) pump(32)
+                pump(1_200)
 
-                fun settledAnchorY(): Float {
-                    val nodes = compose.onAllNodesWithText("ANCHOR_POINT", substring = true, useUnmergedTree = true)
-                        .fetchSemanticsNodes()
-                    for (node in nodes) {
-                        val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString("") { it.text }
-                            ?: continue
-                        val local = text.indexOf("ANCHOR_POINT")
-                        if (local < 0) continue
-                        // The merged root also contains the token; use the
-                        // paragraph leaf, not an ancestor with viewport bounds.
-                        if (text.length > 200) continue
-                        val layouts = ArrayList<TextLayoutResult>(1)
-                        node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
-                        val layout = layouts.firstOrNull() ?: continue
-                        Log.i(TAG, "settled-anchor-node top=${node.boundsInRoot.top} textLen=${text.length} local=$local")
-                        return node.boundsInRoot.top + layout.getBoundingBox(local).top
-                    }
-                    error("Settled anchor node missing")
-                }
-                val afterSwitch = settledAnchorY()
-                SystemClock.sleep(1_000)
-                val stableAgain = settledAnchorY()
+                val afterSwitch = requireNotNull(chunkAnchorY())
+                val relativeAfter = afterSwitch - messageTop.get()
+                pump(1_000)
+                val stableAgain = requireNotNull(chunkAnchorY())
                 Log.i(TAG, "anchor during=$during settled=$afterSwitch static=$stableAgain")
                 val switchDelta = afterSwitch - baseline
                 val json = JSONObject().apply {
+                    put("endMode", endMode)
+                    put("firstVisibleIndexAfter", listRef.get().firstVisibleItemIndex)
+                    put("scrollOffsetBeforeEnd", scrollOffsetBeforeEnd)
+                    put("scrollOffsetAfter", listRef.get().firstVisibleItemScrollOffset)
+                    put("relativeBefore", relativeBefore)
+                    put("relativeAfter", relativeAfter)
                     put("baseline", baseline)
                     put("during", during)
                     put("afterSwitch", afterSwitch)
                     put("switchDelta", switchDelta)
                     put("stableAgain", stableAgain)
-                    put("anchorChunkStart", anchorChunk())
+                    put("coordinateSpace", "unclipped Text positionInRoot + character bounding box")
                     put("targetLength", target.length)
                     put("initialLength", initial)
                     put("viewHeight", view.height)
                 }
-                runCatching { capture("anchor", json) }
                 // Integer placeable rounding plus LazyList scroll quantization.
                 val tolerance = 2f
-                assertTrue("Anchor drifted while generating: ${during - baseline}px",
+                if (endMode != "pinned") assertTrue("Anchor drifted while generating: ${during - baseline}px",
                     kotlin.math.abs(during - baseline) <= tolerance)
-                // The in-place streaming -> settled block swap changes block
-                // spacing; record its displacement explicitly instead of
-                // equating it with continuous drift.
+                // Both samples use the Text layout origin in root coordinates,
+                // without the semantics bounds clipping to the viewport.
+                val handoverDelta = if (finishingDuringGesture) relativeAfter - relativeBefore else afterSwitch - during
+                // Settled MarkdownBlock renders the token paragraph as its own short Text.
+                val settledNow = chunkNodes().any { "ANCHOR_POINT" in it.text && it.text.length < 200 }
+                json.put("settledAfterDrain", settledNow)
+                runCatching { capture("anchor-$endMode", json) }
+                if (endMode == "pinned") {
+                    // Rule 1: pinned readers get the settled renderer at once and stay pinned.
+                    assertTrue("Pinned handover did not show the settled renderer", settledNow)
+                } else {
+                    // Rule 3: the anchor is inside this message, so the swap is deferred.
+                    assertFalse("Renderer swapped while the anchor was inside the message", settledNow)
+                    assertTrue("Anchor jumped across generation end: ${handoverDelta}px",
+                        kotlin.math.abs(handoverDelta) <= tolerance)
+                }
+                if (finishingDuringGesture) {
+                    assertEquals("Finishing must not force the reader back to the bottom", 1, listRef.get().firstVisibleItemIndex)
+                    assertTrue(listRef.get().firstVisibleItemScrollOffset >= scrollOffsetBeforeEnd)
+                }
+                if (endMode == "pinned") {
+                    assertEquals(0, listRef.get().firstVisibleItemIndex)
+                    assertTrue(listRef.get().firstVisibleItemScrollOffset <= 24)
+                }
                 assertTrue("Anchor kept drifting while static: ${stableAgain - afterSwitch}px",
                     kotlin.math.abs(stableAgain - afterSwitch) <= tolerance)
-                Log.i(TAG, "switch-displacement=$switchDelta (recorded; not a continuous drift)")
-                Log.i(TAG, "anchor-passed tolerance=$tolerance anchor=$baseline during=$during settled=$afterSwitch static=$stableAgain")
+                Log.i(TAG, "switch-displacement=$switchDelta")
+                Log.i(TAG, "anchor-passed mode=$endMode tolerance=$tolerance anchor=$baseline during=$during settled=$afterSwitch static=$stableAgain relative=$relativeBefore->$relativeAfter")
+                if (endMode != "pinned") {
+                    // Returning to the bottom is a safe handover moment.
+                    runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { listRef.get().scrollToItem(0) } }
+                    awaitCondition(10_000) {
+                        chunkNodes().any { "ANCHOR_POINT" in it.text && it.text.length < 200 }
+                    }
+                    Log.i(TAG, "settled-renderer-after-return-to-bottom mode=$endMode")
+                }
             } catch (error: Throwable) {
                 failure = error
                 runCatching {
@@ -560,6 +605,166 @@ class ChatStreamingChunkUiDeviceTest {
                 }
             }
         }
+        compose.mainClock.autoAdvance = true
+        failure?.let { throw it }
+    }
+
+    /**
+     * The production handover wiring of ChatTimelineItems/MessagePartsBlock:
+     * owner-side gate + reading hold, block-side presentation lifetime.
+     */
+    @androidx.compose.runtime.Composable
+    private fun HandoverStreamItem(
+        list: LazyListState,
+        content: String,
+        active: Boolean,
+        onDrained: () -> Unit,
+        modifier: Modifier = Modifier,
+        followBottomPx: Int = 24,
+    ) {
+        val handover = remember(list) { TimelineStreamingHandover(list, "stream", followBottomPx) }
+        val hold = rememberHandoverReadingHold(active || handover.awaiting)
+        Box(
+            modifier
+                .then(
+                    when {
+                        active -> Modifier.streamingTailLayout(list, 1, followBottomPx)
+                        hold -> Modifier.holdReadingOnTailGrowth(list, 1, followBottomPx)
+                        else -> Modifier
+                    }
+                )
+                .padding(12.dp)
+        ) {
+            CompositionLocalProvider(LocalStreamingPresentationHandover provides handover) {
+                val lifetime = rememberStreamingPresentationLifetime(active, content)
+                if (active || lifetime.retained) {
+                    lifetime.MarkPresented()
+                    StreamingSingleTextMarkdown(
+                        text = content,
+                        regexes = emptyList(),
+                        streaming = active,
+                        onSettled = { lifetime.onDrained(); onDrained() },
+                    )
+                } else {
+                    MarkdownBlock(content)
+                }
+            }
+        }
+    }
+
+    /**
+     * Frame-granular check of the off-bottom handover below an older anchor:
+     * the reply finishes while visible under the reader. Every layout pass of
+     * the older item above is recorded and none may move it; the settled tree
+     * must take over once the reader returns to the bottom.
+     */
+    @Test(timeout = 120_000)
+    fun visibleReplyHandoverUnderOlderAnchorHoldsEveryFrame() {
+        compose.mainClock.autoAdvance = false
+        fun pump(milliseconds: Long) {
+            val deadline = SystemClock.uptimeMillis() + milliseconds
+            while (SystemClock.uptimeMillis() < deadline) {
+                compose.mainClock.advanceTimeBy(16)
+                SystemClock.sleep(16)
+            }
+        }
+        val reply = "RICH_INTRO 回复。\n\n| 项目 | 结果 |\n| --- | --- |\n| CELL_ALPHA | CELL_BETA |\n\n" +
+            "```kotlin\nfun richFixture() = 42\n```\n\nRICH_END 完成。"
+        val streaming = MutableStateFlow(true)
+        val drained = CountDownLatch(1)
+        val listRef = AtomicReference<LazyListState>()
+        val olderTops = java.util.Collections.synchronizedList(ArrayList<Float>())
+        val passLog = java.util.Collections.synchronizedList(ArrayList<String>())
+        var failure: Throwable? = null
+        launchHost().use { scenario ->
+            scenario.onActivity { activity ->
+                val settings = Settings()
+                val highlighter = Highlighter(activity)
+                activity.setContent {
+                    val navigator = remember { app.amber.feature.ui.context.Navigator(mutableListOf()) }
+                    CompositionLocalProvider(
+                        LocalSettings provides settings,
+                        LocalHighlighter provides highlighter,
+                        app.amber.feature.ui.context.LocalNavController provides navigator,
+                    ) {
+                        MaterialTheme {
+                            val active by streaming.collectAsState()
+                            val list = rememberLazyListState()
+                            listRef.set(list)
+                            LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
+                                item("tail") { Text("render fixture tail") }
+                                item("stream") {
+                                    HandoverStreamItem(list, reply, active, onDrained = { drained.countDown() })
+                                }
+                                items(30, key = { "older-$it" }) { index ->
+                                    Text(
+                                        "OLDER $index 旧消息阅读段落，保持稳定。".repeat(6),
+                                        Modifier.then(
+                                            if (index == 0) Modifier.onGloballyPositioned {
+                                                olderTops += it.positionInRoot().y
+                                                val l = listRef.get()
+                                                passLog += "${SystemClock.uptimeMillis()} top=${it.positionInRoot().y} first=${l.firstVisibleItemIndex}/${l.firstVisibleItemScrollOffset} stream=${l.layoutInfo.visibleItemsInfo.firstOrNull { v -> v.key == "stream" }?.let { v -> "${v.offset}+${v.size}" }}"
+                                            }
+                                            else Modifier
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            try {
+                pump(2_000)
+                // Off the bottom (beyond the 24px follow buffer), reply top still on screen.
+                runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    listRef.get().scrollToItem(1, 60)
+                } }
+                pump(800)
+                val info = listRef.get().layoutInfo
+                val stream = info.visibleItemsInfo.first { it.key == "stream" }
+                check(stream.offset + stream.size <= info.viewportEndOffset) { "Reply top must be inside the viewport" }
+                check(info.visibleItemsInfo.any { it.key == "older-0" }) { "Older anchor item must be visible" }
+                val start = olderTops.size
+                val baseline = olderTops.last()
+                val heightBefore = stream.size
+                streaming.value = false
+                val deadline = SystemClock.uptimeMillis() + 10_000
+                while (SystemClock.uptimeMillis() < deadline && drained.count > 0) pump(32)
+                check(drained.count == 0L) { "Streaming presentation never drained" }
+                pump(1_500)
+                val frames = synchronized(olderTops) { olderTops.drop(start) }
+                val maxDeviation = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+                val deferred = chunkNodes().none { it.text == "CELL_ALPHA" }
+                val passes = synchronized(passLog) { passLog.takeLast(frames.size + 2) }
+                passes.forEach { Log.i(TAG, "older-anchor-pass $it") }
+                // Returning to the bottom ends the deferral.
+                runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { listRef.get().scrollToItem(0) } }
+                val settleDeadline = SystemClock.uptimeMillis() + 10_000
+                while (SystemClock.uptimeMillis() < settleDeadline && chunkNodes().none { it.text == "CELL_ALPHA" }) pump(32)
+                val settledAtBottom = chunkNodes().any { it.text == "CELL_ALPHA" }
+                pump(500)
+                val heightAfter = listRef.get().layoutInfo.visibleItemsInfo.first { it.key == "stream" }.size
+                val json = JSONObject().apply {
+                    put("baseline", baseline); put("layoutPasses", frames.size)
+                    put("olderTops", org.json.JSONArray(frames)); put("maxDeviation", maxDeviation)
+                    put("deferredWhileVisible", deferred); put("settledAtBottom", settledAtBottom)
+                    put("replyHeightStreaming", heightBefore); put("replyHeightSettled", heightAfter)
+                    put("passes", org.json.JSONArray(passes))
+                }
+                runCatching { capture("older-anchor-frames", json) }
+                Log.i(TAG, "older-anchor-frames baseline=$baseline passes=${frames.size} maxDeviation=$maxDeviation deferred=$deferred settledAtBottom=$settledAtBottom height=$heightBefore->$heightAfter tops=$frames")
+                assertTrue("Older anchor moved in some frame: ${maxDeviation}px", maxDeviation <= 2f)
+                assertTrue("Visible off-bottom reply swapped renderers under the reader", deferred)
+                assertTrue("Settled renderer did not take over at the bottom", settledAtBottom)
+                // The settled tree really has different geometry (the case being guarded).
+                assertTrue("Settled reply height did not differ", kotlin.math.abs(heightAfter - heightBefore) > 2)
+            } catch (error: Throwable) {
+                Log.i(TAG, "older-anchor-frames failed: $error")
+                failure = error
+            }
+        }
+        compose.mainClock.autoAdvance = true
         failure?.let { throw it }
     }
 

@@ -60,6 +60,12 @@ fun rememberStreamingDisplayText(
         !streaming &&
         visible != content &&
         content.startsWith(visible)
+    // A completed Text may remain visible until its lazy item is disposed.
+    // Its finished generation must not make later edits look like new backlog.
+    // A subsequent streaming=true starts a new pacing lifetime above.
+    if (!streaming && visible == content && sawStreaming) {
+        SideEffect { sawStreaming = false }
+    }
     var previousStreaming by remember { mutableStateOf(streaming) }
     // Instance-tagged birth/death probes: several display buffers run at once
     // (reasoning + text blocks) and their emits interleave in the ring buffer.

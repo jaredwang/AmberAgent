@@ -71,9 +71,9 @@ internal const val STREAMING_CODE_HIGHLIGHT_MAX_BLOCKS = 32
  *    re-parse every frame.
  * 4. [mdNodeToAnnotatedString] — MdNode tree → AnnotatedString.
  *
- * The caller composes this ONLY while the message is actively streaming; the
- * settled path switches back to MarkdownBlock (single text → block tree is
- * the accepted streaming→settled degradation).
+ * After drain completion the caller hands over to the settled MarkdownBlock
+ * through [rememberStreamingPresentationLifetime]; the owning timeline decides
+ * when that swap cannot move what the reader sees.
  */
 @Composable
 fun StreamingSingleTextMarkdown(
@@ -99,7 +99,7 @@ fun StreamingSingleTextMarkdown(
     // `streaming` follows the message loading flag: when generation ends the
     // buffer enters drain mode and keeps writing the buffered tail at the
     // streaming pace; [onSettled] fires once the tail is fully out so the
-    // caller can swap to the settled renderer WITHOUT dumping the backlog.
+    // caller can observe completion without dumping the buffered backlog.
     val visible = rememberStreamingDisplayText(
         content = renderSource,
         streaming = streaming,
@@ -119,6 +119,7 @@ fun StreamingSingleTextMarkdown(
         val blockCache = StreamingTextBlockCache()
         val codeHighlights = mutableMapOf<String, List<HighlightToken>>()
         var lastParseMs = 0L
+        var previousChunks = emptyList<StreamingTextChunk>()
         snapshotFlow { updatedVisible }
             .distinctUntilChanged()
             .transform { _ ->
@@ -139,7 +140,7 @@ fun StreamingSingleTextMarkdown(
                         if (finalInput) parseMarkdownContent(latest) else parseMarkdownUncached(latest)
                     }
                     suspend fun mapped(): StreamingTextSnapshot = withContext(Dispatchers.Default) {
-                        StreamingTextSnapshot(latest, mdNodeToAnnotatedString(
+                        val annotated = mdNodeToAnnotatedString(
                             source = parsed.preprocessed,
                             root = parsed.tree,
                             style = singleTextStyle,
@@ -149,7 +150,13 @@ fun StreamingSingleTextMarkdown(
                             headingFontScale = headingFontScale,
                             imageFallbackLabel = imageFallbackLabel,
                             blockCache = blockCache,
-                        ))
+                        )
+                        // Span slicing scans the full annotation list. Prepare
+                        // chunk boundaries off the UI thread with the parse,
+                        // and preserve identical committed objects across ticks.
+                        val chunks = reuseStreamingTextChunks(previousChunks, splitStreamingTextChunks(annotated))
+                        previousChunks = chunks
+                        StreamingTextSnapshot(latest, annotated, chunks)
                     }
                     snapshot = mapped()
                     var highlighted = false
@@ -221,9 +228,8 @@ fun StreamingSingleTextMarkdown(
     if (onSettled != null) {
         val updatedOnSettled by rememberUpdatedState(onSettled)
         // Settled = buffer drained AND the dry-out finished AND the final
-        // parse tick landed — the swap to the settled renderer happens only
-        // when no on-screen char is still mid-fade or raw, so the handover
-        // changes nothing the user can see.
+        // parse tick landed. The caller swaps renderers only after this and
+        // only when its owner reports the swap cannot move what the reader sees.
         val settled = !streaming && visible == renderSource && windowChars == 0 &&
             visible == parsedInput
         LaunchedEffect(settled) {
@@ -234,6 +240,7 @@ fun StreamingSingleTextMarkdown(
     SelectionContainer {
         StreamingChunkedDisplayText(
             base = annotated,
+            preparedBaseChunks = snapshot.chunks.takeIf { prefixMatches },
             suffix = rawSuffix,
             windowChars = if (revealActive) windowChars else 0,
             baseColor = baseColorForReveal,
@@ -243,7 +250,11 @@ fun StreamingSingleTextMarkdown(
     }
 }
 
-private data class StreamingTextSnapshot(val input: String, val annotated: AnnotatedString)
+private data class StreamingTextSnapshot(
+    val input: String,
+    val annotated: AnnotatedString,
+    val chunks: List<StreamingTextChunk>? = null,
+)
 
 /** 最近 ~1.5s 的释放速率（字符/秒），驱动淡入窗口宽度。 */
 internal class ReleaseRateTracker {

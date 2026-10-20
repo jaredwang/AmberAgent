@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import app.amber.feature.ui.components.richtext.ImmediateStreamingPresentationHandover
+import app.amber.feature.ui.components.richtext.LocalStreamingPresentationHandover
 import app.amber.feature.ui.components.richtext.LocalStreamingTextVisualActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -169,14 +171,36 @@ internal fun LazyListScope.chatTimelineItems(
                     remember(node.id) {
                         ChatSendTransitionTracker.consumeSendEntrance(conversationId)
                     }
+                // The timeline owns the streaming -> settled renderer handover:
+                // it alone knows whether the reader is pinned or this message is
+                // visible (see streamingSettleAllowed).
+                val streamingHandover = if (node.currentMessage.role == MessageRole.ASSISTANT) {
+                    remember(state, node.id, bottomPinBufferPx) {
+                        TimelineStreamingHandover(state, node.id, bottomPinBufferPx)
+                    }
+                } else null
+                // Also latched from loading: the frame where loading ends precedes both
+                // drainAmortizeGrace and the block's awaiting report, and the final
+                // coalesced chunk lands exactly then. Dropping the hold for that frame
+                // recreates its node and loses the growth delta.
+                val handoverReadingHold = rememberHandoverReadingHold(
+                    isLoadingMessage || streamingHandover?.awaiting == true,
+                )
                 Column(
                     modifier = Modifier
                         .then(
                             // Keep gestures and reading anchors out of the height
                             // animation loop. Only an idle pinned viewport smooths growth.
-                            if (isLoadingMessage || (isLastMessage && drainAmortizeGrace)) {
-                                Modifier.streamingTailLayout(state, planIndex, bottomPinBufferPx)
-                            } else Modifier
+                            when {
+                                isLoadingMessage || (isLastMessage && drainAmortizeGrace) ->
+                                    Modifier.streamingTailLayout(state, planIndex, bottomPinBufferPx)
+                                // Loading just ended or a handover is pending/just done:
+                                // late height changes (final chunk, settled tree's async
+                                // adjustments) must not push content above off-bottom.
+                                handoverReadingHold ->
+                                    Modifier.holdReadingOnTailGrowth(state, planIndex, bottomPinBufferPx)
+                                else -> Modifier
+                            }
                         )
                         .padding(bottom = TimelineItemSpacing)
                 ) {
@@ -215,7 +239,11 @@ internal fun LazyListScope.chatTimelineItems(
                         val visualActivity = remember(node.id, chatTimelinePlan.visualActivityCache) {
                             { active: Boolean -> chatTimelinePlan.visualActivityCache?.noteVisualActivity(node.id, active); Unit }
                         }
-                        CompositionLocalProvider(LocalStreamingTextVisualActivity provides visualActivity) {
+                        CompositionLocalProvider(
+                            LocalStreamingTextVisualActivity provides visualActivity,
+                            LocalStreamingPresentationHandover provides
+                                (streamingHandover ?: ImmediateStreamingPresentationHandover),
+                        ) {
                         ChatMessage(
                             node = node,
                             model = messageModel,

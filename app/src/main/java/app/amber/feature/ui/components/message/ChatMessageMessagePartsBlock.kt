@@ -81,6 +81,8 @@ import app.amber.core.ai.generative.GenerativeWidgetParser
 import app.amber.feature.ui.components.media.rememberVideoCover
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.components.richtext.StreamingSingleTextMarkdown
+import app.amber.feature.ui.components.richtext.MarkPresented
+import app.amber.feature.ui.components.richtext.rememberStreamingPresentationLifetime
 import app.amber.feature.ui.components.richtext.ZoomableAsyncImage
 import app.amber.feature.ui.components.ui.ChainOfThought
 import app.amber.feature.ui.components.ui.workspaceColors
@@ -347,26 +349,25 @@ internal fun MessagePartsBlock(
                                     // Streaming tail text block: single-Text markdown layer
                                     // (layout only grows, no block-tree re-layout mid-stream).
                                     // Generation end must NOT swap the renderer while the
-                                    // pacing buffer still holds a tail — the component drains
-                                    // first and reports [singleTextDrained]; only then does
-                                    // the settled MarkdownBlock take over (prose geometry is
-                                    // matched, so the swap is invisible). A part composed
-                                    // without streaming (scroll-back rebuild, history) starts
-                                    // settled and never enters the single-Text path.
-                                    var singleTextDrained by remember(part) {
-                                        mutableStateOf(!isStreamingText)
-                                    }
-                                    LaunchedEffect(isStreamingText) {
-                                        if (isStreamingText) singleTextDrained = false
-                                    }
+                                    // pacing buffer still holds a tail: the component drains
+                                    // first. The settled MarkdownBlock then takes over as soon
+                                    // as the owning timeline reports the swap cannot move what
+                                    // the reader sees (pinned to the bottom, or this message is
+                                    // not visible). A part composed without streaming
+                                    // (scroll-back rebuild, history) starts settled.
+                                    val presentationLifetime = rememberStreamingPresentationLifetime(
+                                        streaming = isStreamingText,
+                                        settledContent = assistantDisplayText,
+                                    )
                                     val streamingMarkdownContent: (@Composable () -> Unit)? =
-                                        if ((isStreamingText || !singleTextDrained) && !deferStreamingParse) {
+                                        if ((isStreamingText || presentationLifetime.retained) && !deferStreamingParse) {
                                             {
+                                                presentationLifetime.MarkPresented()
                                                 StreamingSingleTextMarkdown(
                                                     text = part.text,
                                                     regexes = regexes,
                                                     streaming = isStreamingText,
-                                                    onSettled = { singleTextDrained = true },
+                                                    onSettled = presentationLifetime.onDrained,
                                                 )
                                             }
                                         } else {

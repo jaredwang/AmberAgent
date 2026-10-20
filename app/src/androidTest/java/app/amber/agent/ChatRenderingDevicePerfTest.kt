@@ -102,7 +102,8 @@ class ChatRenderingDevicePerfTest {
             else -> "## 测量小节\n\n中文说明 **重点** and [link](https://example.com).\n\n```kotlin\nfun answer(x: Int) = x + 42\n```\n\n| 项目 | 结果 |\n| --- | --- |\n| 文字 | 完整 |\n\n"
         }
         val target = paragraph.repeat(if (profile == "short") 3 else 85)
-        val initial = if (profile == "short") 0 else target.length - 1600
+        val fromZero = InstrumentationRegistry.getArguments().getString("amberRenderFromZero") == "true"
+        val initial = if (profile == "short" || fromZero) 0 else target.length - 1600
         val listener = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
             val duration = metrics.getMetric(FrameMetrics.TOTAL_DURATION)
             durations.add(duration)
@@ -154,7 +155,15 @@ class ChatRenderingDevicePerfTest {
                                     }
                                     streaming.value = false
                                 }
-                                delay(750)
+                                if (fromZero && profile != "short") {
+                                    // The fixed mixed fixture renders fewer characters than its
+                                    // Markdown source. 8192 visible source units conservatively
+                                    // places its rendered Text past the 3072 chunk threshold.
+                                    // Keep the initial growth on screen before the reading drag.
+                                    val threshold = minOf(8192, target.length - 128).coerceAtLeast(0)
+                                    while (state.value.length - app.amber.feature.ui.components.richtext.StreamingRenderProbe.displayBacklog < threshold) delay(16)
+                                    Log.i("AmberRenderPerf", "from-zero-threshold source=${state.value.length} backlog=${app.amber.feature.ui.components.richtext.StreamingRenderProbe.displayBacklog}")
+                                } else delay(750)
                                 phase.set("reading-drag-fling")
                                 Trace.beginSection("Amber fixture reading drag fling"); Trace.endSection()
                                 val view = activity.window.decorView
@@ -226,6 +235,7 @@ class ChatRenderingDevicePerfTest {
                 put("phaseFramesMs", JSONObject().apply {
                     grouped.forEach { (name, values) -> put(name, JSONArray(values)) }
                 })
+                put("initialSourceChars", initial); put("fromZero", fromZero)
                 put("finalSourceChars", state.value.length); put("settled", settled.count == 0L)
             }
             val resultFile = File(activity.getExternalFilesDir(null), "amber-render-$label-$profile.json")

@@ -9,6 +9,9 @@ import app.amber.feature.ui.components.richtext.MarkdownParseResult
 import app.amber.feature.ui.components.richtext.MarkdownPreparationOutcome
 import app.amber.feature.ui.components.richtext.parseMarkdownUncached
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.*
 import org.junit.Test
 import kotlin.uuid.Uuid
@@ -216,6 +219,145 @@ class ChatStreamingPerformanceTest {
         assertTrue(cache.prepareOrFail(second))
     }
 
+    @Test fun thirtyThreeFailingTextsReachAQuiescentQueue() = runBlocking { assertManyFailuresStop(33) }
+
+    @Test fun eightyFailingTextsReachAQuiescentQueue() = runBlocking { assertManyFailuresStop(80) }
+
+    private suspend fun assertManyFailuresStop(count: Int) {
+        val gateway = FakeMarkdownPreparation()
+        val nodes = List(count) { longAssistant("failure-$it") }
+        nodes.forEach { gateway.failures += it.currentMessage.parts.filterIsInstance<UIMessagePart.Text>().single().text }
+        val cache = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        repeat(100) {
+            nodes.forEach { cache.getOrBuild(it, emptyList(), false, false, false) }
+            cache.preparePendingMarkdown()
+        }
+        val calls = gateway.prepareCalls.groupingBy { it }.eachCount()
+        assertEquals("Admission is explicit: at most 32 live texts, others get cached raw fallback", minOf(32, count), calls.size)
+        assertTrue("Every admitted failing task spends exactly its own budget: $calls", calls.values.all { it == 3 })
+        assertEquals(0, cache.pendingMarkdownCount)
+        val requests = cache.preparationRequests
+        repeat(10) {
+            nodes.forEach { cache.getOrBuild(it, emptyList(), false, false, false) }
+            cache.preparePendingMarkdown()
+        }
+        assertEquals("Queue must stay quiescent after fallback", requests, cache.preparationRequests)
+    }
+
+    @Test fun eightyMixedFailuresAndEvictedResultsStayBounded() = runBlocking {
+        // A zero-capacity parse cache reports success then immediately evicts.
+        val gateway = FakeMarkdownPreparation(cacheCapacity = 0)
+        val nodes = List(80) { longAssistant("mixed-$it") }
+        nodes.filterIndexed { index, _ -> index % 2 == 0 }.forEach {
+            gateway.failures += it.currentMessage.parts.filterIsInstance<UIMessagePart.Text>().single().text
+        }
+        val cache = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        repeat(100) {
+            nodes.forEach { cache.getOrBuild(it, emptyList(), false, false, false) }
+            assertTrue(cache.pendingMarkdownCount <= 32)
+            assertTrue(cache.retainedPreparationChars <= 1_200_000)
+            cache.preparePendingMarkdown()
+        }
+        assertEquals(32, gateway.prepareCalls.distinct().size)
+        assertTrue(gateway.prepareCalls.groupingBy { it }.eachCount().values.all { it == 3 })
+        assertEquals(0, cache.pendingMarkdownCount)
+        assertEquals(0, cache.retainedPreparationChars)
+        val calls = gateway.prepareCalls.size
+        repeat(4) {
+            nodes.forEach { cache.getOrBuild(it, emptyList(), false, false, false) }
+            cache.preparePendingMarkdown()
+        }
+        assertEquals(calls, gateway.prepareCalls.size)
+    }
+
+    @Test fun eightyHealthyAndFailingTextsDoNotStarveAdmittedSuccesses() = runBlocking {
+        val gateway = FakeMarkdownPreparation(cacheCapacity = 80)
+        val nodes = List(80) { longAssistant("healthy-mix-$it") }
+        val texts = nodes.map { it.currentMessage.parts.filterIsInstance<UIMessagePart.Text>().single().text }
+        texts.filterIndexed { index, _ -> index % 2 == 0 }.forEach { gateway.failures += it }
+        val cache = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        repeat(40) {
+            nodes.forEach { cache.getOrBuild(it, emptyList(), false, false, false) }
+            cache.preparePendingMarkdown()
+        }
+        val calls = gateway.prepareCalls.groupingBy { it }.eachCount()
+        texts.forEachIndexed { index, text ->
+            assertEquals("Actual calls for item $index", if (index >= 32) 0 else if (index % 2 == 0) 3 else 1, calls[text] ?: 0)
+        }
+        (1 until 32 step 2).forEach { assertTrue(cache.prepareOrFail(nodes[it])) }
+        assertEquals(0, cache.pendingMarkdownCount)
+        assertEquals(0, cache.retainedPreparationChars)
+    }
+
+    @Test fun admissionIsBoundedByCharactersAndEvictionReleasesTaskMetadata() = runBlocking {
+        val gateway = FakeMarkdownPreparation()
+        val cache = ChatVirtualItemCache(maxEntries = 2, parseMissingMarkdownSynchronously = false,
+            markdownPreparation = gateway)
+        repeat(80) { index ->
+            cache.getOrBuild(longAssistant("owner-$index"), emptyList(), false, false, false)
+            assertTrue(cache.preparationTaskCount <= 2)
+        }
+        repeat(3) { cache.preparePendingMarkdown() }
+        assertTrue(gateway.prepareCalls.distinct().size <= 2)
+        val large = UIMessage.assistant("## large\n\n" + "paragraph\n\n".repeat(80_000)).toMessageNode()
+        val other = UIMessage.assistant("## other\n\n" + "paragraph\n\n".repeat(80_000)).toMessageNode()
+        val bounded = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        bounded.getOrBuild(large, emptyList(), false, false, false)
+        bounded.getOrBuild(other, emptyList(), false, false, false)
+        assertEquals(1, bounded.pendingMarkdownCount)
+        assertTrue(bounded.retainedPreparationChars <= 1_200_000)
+    }
+
+    @Test fun requestDuringPreparationAndCancellationPreserveLiveTasks() = runBlocking {
+        val started = CompletableDeferred<Unit>()
+        val resume = java.util.concurrent.CountDownLatch(1)
+        val gateway = FakeMarkdownPreparation()
+        var first = true
+        gateway.beforePrepare = {
+            if (first) {
+                first = false
+                started.complete(Unit)
+                check(resume.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                throw CancellationException("controlled cancellation")
+            }
+        }
+        val cache = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        val original = longAssistant("cancellation")
+        val added = longAssistant("requested-during-worker")
+        cache.getOrBuild(original, emptyList(), false, false, false)
+        var propagated = false
+        val worker = launch {
+            try { cache.preparePendingMarkdown() } catch (_: CancellationException) { propagated = true }
+        }
+        started.await()
+        cache.getOrBuild(added, emptyList(), false, false, false)
+        resume.countDown()
+        worker.join()
+        assertTrue("Cancellation must propagate", propagated)
+        assertEquals(2, cache.pendingMarkdownCount)
+        cache.preparePendingMarkdown()
+        assertTrue(cache.prepareOrFail(original))
+        assertTrue(cache.prepareOrFail(added))
+        assertEquals(0, cache.pendingMarkdownCount)
+    }
+
+    @Test fun changedBodyGetsANewBudgetAfterOriginalFails() = runBlocking {
+        val gateway = FakeMarkdownPreparation()
+        val original = longAssistant("failed-before-edit")
+        gateway.failures += original.currentMessage.parts.filterIsInstance<UIMessagePart.Text>().single().text
+        val cache = ChatVirtualItemCache(parseMissingMarkdownSynchronously = false, markdownPreparation = gateway)
+        cache.getOrBuild(original, emptyList(), false, false, false)
+        repeat(4) { cache.preparePendingMarkdown() }
+        val edited = original.copy(messages = listOf(original.currentMessage.copy(
+            parts = listOf(UIMessagePart.Text("## changed\n\n" + "new paragraph\n\n".repeat(400)))
+        )))
+        cache.getOrBuild(edited, emptyList(), false, false, false)
+        cache.preparePendingMarkdown()
+        assertTrue(cache.prepareOrFail(edited))
+        assertEquals(4, gateway.prepareCalls.size)
+        assertEquals(0, cache.pendingMarkdownCount)
+    }
+
     private fun ChatVirtualItemCache.prepareOrFail(node: app.amber.core.model.MessageNode): Boolean {
         val items = getOrBuild(node, emptyList(), false, false, false)
         return items?.any { it is ChatMessageVirtualItem.MarkdownChild } == true
@@ -248,7 +390,11 @@ class ChatStreamingPerformanceTest {
             cache[content]
         }
 
-        override fun prepare(content: String): MarkdownPreparationOutcome = synchronized(lock) {
+        var beforePrepare: (String) -> Unit = {}
+
+        override fun prepare(content: String): MarkdownPreparationOutcome {
+            beforePrepare(content)
+            return synchronized(lock) {
             calls += content
             if (content in failures) return MarkdownPreparationOutcome.FAILED
             if (content in rejections || !cacheable(content)) {
@@ -259,6 +405,7 @@ class ChatStreamingPerformanceTest {
                 cache.remove(cache.keys.first())
             }
             MarkdownPreparationOutcome.PREPARED
+            }
         }
     }
 }

@@ -72,6 +72,8 @@ class FixtureTextGateway : TextModelGateway<ProviderSetting.OpenAI> {
     val calls = AtomicInteger()
     @Volatile var delayMs = 33L
     @Volatile var reply = ""
+    @Volatile var beforeFinish: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+    @Volatile var finishGateReached = false
     override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> = providerSetting.models
     override suspend fun complete(providerSetting: ProviderSetting.OpenAI, messages: List<UIMessage>, params: TextGenerationParams): MessageChunk =
         chunk("Device regression auxiliary", final = true)
@@ -81,6 +83,10 @@ class FixtureTextGateway : TextModelGateway<ProviderSetting.OpenAI> {
         for (piece in response.chunked(12)) {
             delay(delayMs)
             emit(chunk(piece, final = false))
+        }
+        beforeFinish?.let { gate ->
+            finishGateReached = true
+            gate.await()
         }
         emit(chunk("", final = true))
     }

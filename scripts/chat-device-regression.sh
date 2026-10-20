@@ -11,6 +11,20 @@ if [[ "$(uname -s)" == Darwin && "${ADB_ARCH:-x86_64}" == x86_64 ]]; then
 fi
 run_adb() { "${adb_cmd[@]}" -s "$serial" "$@"; }
 mkdir -p "$output_dir"
+# Optional install; always record the SHA-256 of what is actually installed.
+if [[ -n "${APP_APK:-}" ]]; then
+  shasum -a 256 "$APP_APK" > "$output_dir/app-apk-local.sha256"
+  run_adb install -r "$APP_APK" > "$output_dir/install-app.txt" 2>&1
+fi
+if [[ -n "${TEST_APK:-}" ]]; then
+  shasum -a 256 "$TEST_APK" > "$output_dir/test-apk-local.sha256"
+  run_adb install -r "$TEST_APK" > "$output_dir/install-test.txt" 2>&1
+fi
+for installed in "$package" "$package.test"; do
+  installed_path="$(run_adb shell pm path "$installed" | head -1 | sed 's/^package://' | tr -d '\r')"
+  printf '%s ' "$installed"
+  run_adb shell sha256sum "$installed_path"
+done > "$output_dir/installed-apks.sha256"
 run_adb shell run-as "$package" sha256sum files/datastore/settings.preferences_pb > "$output_dir/user-model-settings-before.sha256"
 # RouteActivity's Context-local launch preferences belong to the Activity context.
 # Save/restore these UI-only preferences while all DB/DataStore work is sandboxed.
@@ -21,7 +35,13 @@ restore_launch_preferences() {
     < "$output_dir/launch-preferences-backup.xml"
 }
 trap restore_launch_preferences EXIT
-for method in cancelRegenerateSwitchHistoryAndCopy reopenDurableReplyInFreshProcess; do
+# Per-run test evidence written by the instrumentation (never user data).
+evidence_dir="/sdcard/Android/data/$package/files"
+run_adb shell "rm -f $evidence_dir/production-*.json" || true
+for method in ${CHAT_DEVICE_METHODS:-cancelRegenerateSwitchHistoryAndCopy reopenDurableReplyInFreshProcess productionPinnedCompletionShowsSettledRichMarkdown productionCompletionPreservesOffBottomReadingAnchor productionCancelPreservesOffBottomReadingAnchor productionVisibleReplyDefersUnderOlderReadingAnchor}; do
+  # The panel's 60s idle timeout would stop the activity mid-method; a wake
+  # key is ordinary input (no setting change) and restarts that timer.
+  run_adb shell input keyevent KEYCODE_WAKEUP
   ( sleep 1
     run_adb shell am start -W --activity-single-top -n "$package/androidx.activity.ComponentActivity"
   ) > "$output_dir/$method-foreground-kick.txt" 2>&1 &
@@ -32,6 +52,10 @@ for method in cancelRegenerateSwitchHistoryAndCopy reopenDurableReplyInFreshProc
   wait "$kick_pid" || true
   run_adb logcat -d -s AmberDeviceRegression:I > "$output_dir/$method-logcat.txt"
   rg -q 'OK \(1 test\)' "$output_dir/$method.txt"
+done
+mkdir -p "$output_dir/evidence"
+for evidence in $(run_adb shell ls "$evidence_dir" | tr -d '\r' | grep '^production-.*[.]json$' || true); do
+  run_adb pull "$evidence_dir/$evidence" "$output_dir/evidence/" >> "$output_dir/pull-evidence.txt" 2>&1 || true
 done
 restore_launch_preferences
 trap - EXIT

@@ -83,6 +83,35 @@ stop_trace() {
 cleanup() { stop_trace; restore_refresh; }
 trap cleanup EXIT
 for profile in ${PROFILES:-short chinese mixed}; do
+  # Optional controlled-temperature sampling. Each wait is short enough to
+  # remain interruptible, and the refresh restoration trap stays installed.
+  if [[ -n "${CHAT_PERF_TEMPERATURE_MAX:-}" ]]; then
+    [[ "$CHAT_PERF_TEMPERATURE_MAX" =~ ^[0-9]+$ ]] || { echo "Invalid temperature limit" >&2; exit 2; }
+    cooled=false
+    for ((attempt=0; attempt<30; attempt++)); do
+      temperature="$(run_adb shell dumpsys battery | sed -n 's/.*temperature: *//p' | tr -d '\r')"
+      [[ "$temperature" =~ ^[0-9]+$ ]] || { echo "Device temperature unavailable" >&2; exit 1; }
+      cpu_cool=true
+      cpu_temperature=not-requested
+      if [[ -n "${CHAT_PERF_CPU_TEMPERATURE_MAX:-}" ]]; then
+        [[ "$CHAT_PERF_CPU_TEMPERATURE_MAX" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "Invalid CPU temperature limit" >&2; exit 2; }
+        cpu_temperature="$(run_adb shell dumpsys thermalservice | sed -n '/Current temperatures from HAL:/,/Current cooling devices from HAL:/p' | sed -n 's/.*mValue=\([0-9.]*\), mType=0, mName=CPU0.*/\1/p' | tr -d '\r')"
+        [[ "$cpu_temperature" =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "CPU0 temperature unavailable" >&2; exit 1; }
+        if ! awk -v actual="$cpu_temperature" -v limit="$CHAT_PERF_CPU_TEMPERATURE_MAX" 'BEGIN { exit !(actual <= limit) }'; then cpu_cool=false; fi
+      fi
+      printf '%s battery=%s cpu0=%s\n' "$(date -u +%FT%TZ)" "$temperature" "$cpu_temperature" >> "$output_dir/$profile-cooling.txt"
+      if (( temperature <= CHAT_PERF_TEMPERATURE_MAX )) && [[ "$cpu_cool" == true ]]; then cooled=true; break; fi
+      sleep 20
+    done
+    if [[ "$cooled" != true ]]; then
+      echo "Temperature did not recover to requested window" >&2
+      exit 1
+    fi
+  fi
+  run_adb shell dumpsys battery > "$output_dir/$profile-battery-before.txt"
+  run_adb shell dumpsys thermalservice > "$output_dir/$profile-thermal-before.txt"
+  run_adb shell cat /proc/loadavg > "$output_dir/$profile-load-before.txt"
+  date -u +%FT%TZ > "$output_dir/$profile-started.txt"
   apply_refresh_cap
   run_adb shell dumpsys display | rg -m1 'mActiveSfDisplayMode' > "$output_dir/$profile-refresh-before.txt" || true
   run_adb shell dumpsys gfxinfo "$package" reset > /dev/null
@@ -96,13 +125,20 @@ for profile in ${PROFILES:-short chinese mixed}; do
     run_adb shell am start -W --activity-single-top -n "$package/androidx.activity.ComponentActivity"
   ) > "$output_dir/$profile-foreground-kick.txt" 2>&1 &
   kick_pid=$!
-  run_adb shell am instrument -w \
+  # Optional supplementary scenario: start from an empty reply so the mixed
+  # profile crosses the 3072-unit chunk threshold on screen.
+  from_zero_args=()
+  if [[ "${CHAT_RENDER_FROM_ZERO:-}" == true ]]; then from_zero_args=(-e amberRenderFromZero true); fi
+  run_adb shell am instrument -w ${from_zero_args[@]+"${from_zero_args[@]}"} \
     -e amberRenderPerf true -e amberRenderLabel "$label" \
     -e amberRenderProfile "$profile" -e amberRenderOptimizedLayout "$optimized" \
     -e class app.amber.agent.ChatRenderingDevicePerfTest "$runner" \
     | tee "$output_dir/$profile-instrumentation.txt"
   wait "$kick_pid" || true
   stop_trace
+  run_adb shell dumpsys battery > "$output_dir/$profile-battery-after.txt"
+  run_adb shell dumpsys thermalservice > "$output_dir/$profile-thermal-after.txt"
+  run_adb shell cat /proc/loadavg > "$output_dir/$profile-load-after.txt"
   if ! rg -q 'OK \(1 test\)' "$output_dir/$profile-instrumentation.txt"; then
     echo "Fixture did not complete; inspect the instrumentation result and foreground/device state." >&2
     exit 1

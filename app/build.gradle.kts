@@ -1097,4 +1097,9 @@ dependencies {
     androidTestImplementation(libs.androidx.room.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Opt-in empty host for the debug-signed, release-derived .debug variant.
+    // Keeps device renderer checks isolated from the canonical installed app.
+    if (project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true) {
+        add("baselineImplementation", libs.androidx.ui.test.manifest)
+    }
 }

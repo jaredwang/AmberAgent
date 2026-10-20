@@ -103,6 +103,24 @@ class StreamingTextChunksTest {
         assertEquals(source, second.joinToString("") { it.text.text + it.lineBreak.text })
     }
 
+    @Test fun workerPreparedChunksPreserveIdentityAndHandleNewTailBoundaries() {
+        val source = (0 until 100).joinToString("\n") { "$it **中文** 👩‍💻 é " + "body ".repeat(8) }
+        val base = AnnotatedString(source)
+        val prepared = splitStreamingTextChunks(base)
+        val reused = reuseStreamingTextChunks(prepared, splitStreamingTextChunks(AnnotatedString(source)))
+        prepared.indices.forEach { assertSame(prepared[it], reused[it]) }
+        val planner = StreamingChunkPlanner()
+        val suffix = "\nnew tail 中文\n".repeat(130)
+        val actual = planner.chunks(base, suffix, 0, Color.Red, reused)
+        val expected = splitStreamingTextChunks(AnnotatedString(source + suffix))
+        assertEquals(expected, actual)
+        prepared.dropLast(1).indices.forEach { assertSame(prepared[it], actual[it]) }
+        val changed = buildAnnotatedString { append(source); addStyle(SpanStyle(color = Color.Blue), 0, 100) }
+        val restyled = reuseStreamingTextChunks(prepared, splitStreamingTextChunks(changed))
+        assertNotSame(prepared.first(), restyled.first())
+        assertEquals(splitStreamingTextChunks(changed), restyled)
+    }
+
     @Test fun nonPrefixTailResetsInsteadOfReusingStaleChunks() {
         val source = (0 until 90).joinToString("\n") { "## $it\n\n" + "正文 $it。".repeat(3) }
         val base = AnnotatedString(source)

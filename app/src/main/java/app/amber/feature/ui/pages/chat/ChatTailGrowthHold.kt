@@ -101,6 +101,10 @@ private class HoldReadingOnTailGrowthNode(
             state.firstVisibleItemScrollOffset <= followBottomPx
         // 增长 item 已在锚点之下时，按 key 锚定本就不会牵动可见内容。
         if (nearBottom || lazyIndex < state.firstVisibleItemIndex) return
+        // A composed item wholly above the viewport (pinned/beyond-bounds) moves
+        // nothing visible when it changes height; compensating would.
+        val lastVisibleIndex = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return
+        if (lazyIndex > lastVisibleIndex) return
         val delta = height - previous
         if (delta == 0) return
         pendingDelta += delta

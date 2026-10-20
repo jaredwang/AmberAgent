@@ -119,7 +119,8 @@ internal interface MarkdownPreparationGateway {
 
 private const val CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS = 3
 private const val CHAT_MARKDOWN_MAX_PREPARATION_PER_PASS = 6
-private const val CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES = 32
+private const val CHAT_MARKDOWN_MAX_ACTIVE_PREPARATIONS = 32
+private const val CHAT_MARKDOWN_MAX_PENDING_CHARS = 1_200_000
 
 /** Char-count bound only: never retains the prepared text itself. */
 private data class MarkdownPreparationKey(
@@ -129,6 +130,19 @@ private data class MarkdownPreparationKey(
     val tailHash: Int,
 )
 
+private enum class PreparationState { PENDING, AVAILABLE, TERMINAL }
+
+private class MarkdownPreparationTask(var content: String?) {
+    var attempts = 0
+    var state = PreparationState.PENDING
+    var owners = 0
+}
+
+private data class VirtualCacheEntry(
+    val items: List<ChatMessageVirtualItem>?,
+    val preparations: Set<MarkdownPreparationKey>,
+)
+
 internal class ChatVirtualItemCache(
     private val maxEntries: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_ENTRIES,
     private val maxMarkdownChars: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_MARKDOWN_CHARS,
@@ -136,13 +150,13 @@ internal class ChatVirtualItemCache(
     private val markdownPreparation: MarkdownPreparationGateway = MarkdownPreparationGateway.Default,
     private val maxPreparationPerPass: Int = CHAT_MARKDOWN_MAX_PREPARATION_PER_PASS,
 ) {
-    private val entries = object : LinkedHashMap<ChatVirtualItemCacheKey, List<ChatMessageVirtualItem>?>(
+    private val entries = object : LinkedHashMap<ChatVirtualItemCacheKey, VirtualCacheEntry>(
         maxEntries.coerceAtLeast(1),
         0.75f,
         true,
     ) {
         override fun removeEldestEntry(
-            eldest: MutableMap.MutableEntry<ChatVirtualItemCacheKey, List<ChatMessageVirtualItem>?>,
+            eldest: MutableMap.MutableEntry<ChatVirtualItemCacheKey, VirtualCacheEntry>,
         ): Boolean = false
     }
     private var totalMarkdownChars: Int = 0
@@ -151,98 +165,118 @@ internal class ChatVirtualItemCache(
     var misses: Int = 0
         private set
 
-    private val pendingMarkdown = LinkedHashSet<String>()
-
-    /** Attempts per content fingerprint. Bounded, and never holds the text. */
-    private val preparationAttempts = object : LinkedHashMap<MarkdownPreparationKey, Int>(
-        CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES,
-        0.75f,
-        true,
-    ) {
-        override fun removeEldestEntry(
-            eldest: MutableMap.MutableEntry<MarkdownPreparationKey, Int>,
-        ): Boolean = size > CHAT_MARKDOWN_ATTEMPT_MEMORY_ENTRIES
-    }
+    // Metadata lives as long as the cache entries owning it. Terminal tasks
+    // retain only a fingerprint; active text is separately bounded by count
+    // AND characters. Admission failure is a cached deterministic raw fallback.
+    private val preparations = LinkedHashMap<MarkdownPreparationKey, MarkdownPreparationTask>()
+    private var pendingChars = 0
     var preparationRequests by mutableIntStateOf(0)
         private set
     var preparedRevision by mutableIntStateOf(0)
         private set
 
-    /** Test/诊断 seam: entries still waiting for a preparation pass. */
-    internal val pendingMarkdownCount: Int get() = pendingMarkdown.size
+    internal val pendingMarkdownCount: Int
+        get() = preparations.values.count { it.state == PreparationState.PENDING }
+    internal val retainedPreparationChars: Int get() = pendingChars
+    internal val preparationTaskCount: Int get() = preparations.size
 
-    /**
-     * Parse a bounded batch off the main thread, then publish at most one
-     * revision. Every queued text reaches a terminal state: retrievable,
-     * deterministically uncacheable, or out of retry attempts. A text that
-     * cannot enter the bounded LRU must never keep re-queueing itself.
-     */
     suspend fun preparePendingMarkdown() {
-        if (pendingMarkdown.isEmpty()) return
-        val batch = pendingMarkdown.take(maxPreparationPerPass.coerceAtLeast(1))
+        val batch = preparations.entries.filter { it.value.state == PreparationState.PENDING }
+            .take(maxPreparationPerPass.coerceAtLeast(1)).map { it.key to it.value }
+        if (batch.isEmpty()) return
         val results = withContext(Dispatchers.Default) {
-            batch.map { content ->
-                val cached = markdownPreparation.cached(content)
-                content to when {
-                    cached != null -> MarkdownPreparationOutcome.PREPARED
+            batch.map { (key, task) ->
+                val content = checkNotNull(task.content)
+                val outcome = when {
+                    markdownPreparation.cached(content) != null -> MarkdownPreparationOutcome.PREPARED
                     !markdownPreparation.isCacheable(content) -> MarkdownPreparationOutcome.UNCACHEABLE
-                    else -> try {
-                        markdownPreparation.prepare(content)
-                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                        throw cancelled
-                    } catch (_: Throwable) {
-                        MarkdownPreparationOutcome.FAILED
+                    task.attempts >= CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS -> MarkdownPreparationOutcome.FAILED
+                    else -> {
+                        task.attempts++
+                        try {
+                            markdownPreparation.prepare(content)
+                        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                            // Cancellation is not a failed parse. Keep the task
+                            // queued with its previous budget and propagate it.
+                            task.attempts--
+                            throw cancelled
+                        } catch (_: Exception) {
+                            MarkdownPreparationOutcome.FAILED
+                        }
                     }
                 }
+                Triple(key, task, outcome)
             }
         }
         var needsRebuild = false
-        for ((content, outcome) in results) {
-            pendingMarkdown.remove(content)
-            val key = preparationKey(content)
+        for ((key, task, outcome) in results) {
+            // An entry may have been evicted while the worker was running.
+            if (preparations[key] !== task) continue
             when (outcome) {
                 MarkdownPreparationOutcome.PREPARED -> {
-                    // Keep the attempt count until the plan actually consumes
-                    // the entry. A cache that stores and immediately evicts a
-                    // result must still reach a terminal raw fallback.
+                    task.state = PreparationState.AVAILABLE
                     needsRebuild = true
                 }
-                MarkdownPreparationOutcome.UNCACHEABLE -> {
-                    // Terminal for this exact text: raw fallback, no retry loop.
-                    preparationAttempts[key] = CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS
-                }
+                MarkdownPreparationOutcome.UNCACHEABLE -> finishPreparation(task)
                 MarkdownPreparationOutcome.FAILED -> {
-                    // Rebuild once so the next request re-enters the bounded
-                    // retry budget; the attempt counter is the stop condition.
-                    needsRebuild = true
+                    if (task.attempts >= CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS) finishPreparation(task)
+                    // Otherwise keep the SAME task queued. Recomposition and
+                    // other requests cannot evict/reset its attempt counter.
                 }
             }
         }
         if (needsRebuild) preparedRevision++
-        if (pendingMarkdown.isNotEmpty()) preparationRequests++
+        if (pendingMarkdownCount > 0) preparationRequests++
     }
 
-    /**
-     * Queue one preparation for [content]. Oversize text is rejected without a
-     * parse; repeated requests for the same text are coalesced; failures stop
-     * after [CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS] per text.
-     */
-    private fun requestMarkdownPreparation(content: String): Boolean {
+    private fun finishPreparation(task: MarkdownPreparationTask) {
+        pendingChars -= task.content?.length ?: 0
+        task.content = null
+        task.state = PreparationState.TERMINAL
+    }
+
+    private fun requestMarkdownPreparation(content: String, owners: MutableSet<MarkdownPreparationKey>): Boolean {
         if (!markdownPreparation.isCacheable(content)) return false
-        if (content in pendingMarkdown) return true
         val key = preparationKey(content)
-        val attempts = preparationAttempts[key] ?: 0
-        if (attempts >= CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS) return false
-        pendingMarkdown.add(content)
-        preparationAttempts[key] = attempts + 1
+        val existing = preparations[key]
+        if (existing != null) {
+            owners += key
+            if (existing.state == PreparationState.TERMINAL) return false
+            if (existing.state == PreparationState.AVAILABLE) {
+                // Successful preparation can be evicted before consumption.
+                // Its original retry budget still belongs to this entry.
+                if (existing.attempts >= CHAT_MARKDOWN_MAX_PREPARATION_ATTEMPTS) {
+                    finishPreparation(existing)
+                    return false
+                }
+                existing.state = PreparationState.PENDING
+                preparationRequests++
+            }
+            return true
+        }
+        val active = preparations.values.count { it.state != PreparationState.TERMINAL }
+        if (active >= CHAT_MARKDOWN_MAX_ACTIVE_PREPARATIONS ||
+            content.length > CHAT_MARKDOWN_MAX_PENDING_CHARS - pendingChars) return false
+        preparations[key] = MarkdownPreparationTask(content)
+        pendingChars += content.length
+        owners += key
         preparationRequests++
         return true
     }
 
-    private fun preparationKey(content: String): MarkdownPreparationKey {
-        val head = content.take(32).hashCode()
-        val tail = content.takeLast(32).hashCode()
-        return MarkdownPreparationKey(content.length, content.hashCode(), head, tail)
+    private fun preparationKey(content: String): MarkdownPreparationKey = MarkdownPreparationKey(
+        content.length, content.hashCode(), content.take(32).hashCode(), content.takeLast(32).hashCode(),
+    )
+
+    private fun releasePreparations(entry: VirtualCacheEntry) {
+        for (key in entry.preparations) {
+            val task = preparations[key] ?: continue
+            task.owners--
+            if (task.owners == 0) {
+                pendingChars -= task.content?.length ?: 0
+                preparations.remove(key)
+            }
+        }
     }
 
     private val visualCounts = mutableStateMapOf<Uuid, Int>()
@@ -293,12 +327,15 @@ internal class ChatVirtualItemCache(
             lastMessage = lastMessage,
             forceSingleItem = forceSingleItem,
         )
-        if (entries.containsKey(key)) {
+        val previous = entries[key]
+        if (previous != null && previous.preparations.none {
+                preparations[it]?.state == PreparationState.AVAILABLE
+            }) {
             hits++
-            return entries[key]
+            return previous.items
         }
         misses++
-        var awaitingMarkdown = false
+        val owners = HashSet<MarkdownPreparationKey>()
         val value = buildChatMessageVirtualItems(
             node = node,
             assistant = regexes,
@@ -310,28 +347,32 @@ internal class ChatVirtualItemCache(
                 if (parseMissingMarkdownSynchronously) parseMarkdownContent(content) else {
                     val cached = markdownPreparation.cached(content)
                     if (cached != null) {
-                        // Consumption is the success signal; only then does a
-                        // later eviction earn a fresh bounded retry budget.
-                        preparationAttempts.remove(preparationKey(content))
                         cached
                     } else {
-                        // Only an actually pending parse blocks entry caching.
-                        // Oversize or retry-exhausted text keeps the raw fallback
-                        // and is cached as such, so it cannot re-queue itself.
-                        if (requestMarkdownPreparation(content)) {
-                            awaitingMarkdown = true
-                        }
+                        // Cache the fallback with its preparation ownership.
+                        // A successful result invalidates it; terminal/admission
+                        // fallback stays cached and cannot re-queue itself.
+                        requestMarkdownPreparation(content, owners)
                         null
                     }
                 }
             },
         )
-        if (awaitingMarkdown) return value
         val markdownChars = value.markdownCharCost()
+        // Acquire new references before releasing the previous entry: a
+        // rebuild must never accidentally reset the live task's retry budget.
+        owners.forEach { preparations.getValue(it).owners++ }
+        if (previous != null) {
+            totalMarkdownChars -= previous.items.markdownCharCost()
+            releasePreparations(previous)
+            entries.remove(key)
+        }
+        val entry = VirtualCacheEntry(value, owners)
         if (markdownChars > maxMarkdownChars) {
+            releasePreparations(entry)
             return value
         }
-        entries[key] = value
+        entries[key] = entry
         totalMarkdownChars += markdownChars
         trimToBudget()
         return value
@@ -345,7 +386,8 @@ internal class ChatVirtualItemCache(
             val iterator = entries.entries.iterator()
             if (!iterator.hasNext()) break
             val eldest = iterator.next()
-            totalMarkdownChars -= eldest.value.markdownCharCost()
+            totalMarkdownChars -= eldest.value.items.markdownCharCost()
+            releasePreparations(eldest.value)
             iterator.remove()
         }
     }

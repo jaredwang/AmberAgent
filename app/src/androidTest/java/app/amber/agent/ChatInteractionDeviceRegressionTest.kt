@@ -11,6 +11,10 @@ import android.view.MotionEvent
 import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.*
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -257,6 +261,390 @@ class ChatInteractionDeviceRegressionTest {
         }
     }
 
+    private suspend fun isolatedFixture(): Triple<ConversationRepository, ChatService, FixtureTextGateway> {
+        val koin = getKoin()
+        val settings: SettingsAggregator = koin.get()
+        withTimeout(15_000) { settings.settingsFlow.first { !it.init } }
+        val model = Model(modelId = "device-script", displayName = "Isolated device script", type = ModelType.CHAT)
+        val provider = ProviderSetting.OpenAI(name = "Isolated fixture only", models = listOf(model), apiKey = "fixture-only")
+        val base = Settings()
+        settings.update(base.copy(providers = listOf(provider), chatModelId = model.id,
+            titleModelId = model.id, suggestionModelId = model.id, compressModelId = model.id,
+            streamOutput = true, maxTokens = 8192, enableWebSearch = false,
+            enabledMcpServerIds = emptySet(), presetMessages = emptyList(), regexes = emptyList(),
+            systemPrompt = "Local device regression. Do not call tools.",
+            agentRuntime = base.agentRuntime.copy(enableCoreMemory = false, enableShortTermMemory = false,
+                enableLongTermMemory = false, enableRecentChatsReference = false,
+                enableLiveStatusNotification = false, keepGenerationAliveInBackground = false)))
+        context.getSharedPreferences("amber_agent.preferences", Context.MODE_PRIVATE).edit()
+            .putString(LAUNCH_START_MODE_PREF, LaunchStartMode.HOME.name).apply()
+        return Triple(koin.get(), koin.get(), koin.get())
+    }
+
+    /** Real-time frames for the uptime-based pacer while the test clock is manual. */
+    private suspend fun pump(milliseconds: Long) {
+        val end = SystemClock.uptimeMillis() + milliseconds
+        while (SystemClock.uptimeMillis() < end) {
+            compose.mainClock.advanceTimeBy(16)
+            delay(16)
+        }
+    }
+
+    private suspend fun pumpUntil(timeoutMs: Long, label: String, condition: () -> Boolean) {
+        val end = SystemClock.uptimeMillis() + timeoutMs
+        while (!condition()) {
+            if (SystemClock.uptimeMillis() >= end) {
+                Log.i(TAG, "timeout $label rich=${richState()} texts=" + renderedTexts().joinToString(" | ") {
+                    "${it.text.take(24).replace('\n', ' ')}(${it.text.length})@${it.top}"
+                })
+                error("Timed out waiting for $label")
+            }
+            pump(32)
+        }
+    }
+
+    private data class RenderedText(val text: String, val top: Float, val layout: TextLayoutResult)
+
+    /**
+     * One coordinate space for both renderers: the unclipped Text origin
+     * (positionInRoot) plus the character box from its own TextLayoutResult.
+     * Semantics bounds are clipped to the viewport and are never mixed in.
+     */
+    private fun renderedTexts(): List<RenderedText> = compose.onAllNodes(
+        SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult), useUnmergedTree = true,
+    ).fetchSemanticsNodes().mapNotNull { node ->
+        val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString("") { it.text } ?: return@mapNotNull null
+        val layouts = ArrayList<TextLayoutResult>()
+        runCatching { node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts) }
+        val layout = layouts.firstOrNull() ?: return@mapNotNull null
+        RenderedText(text, node.positionInRoot.y, layout)
+    }
+    private fun tokenTop(token: String): Float? = renderedTexts().firstNotNullOfOrNull { node ->
+        val offset = node.text.indexOf(token)
+        if (offset < 0) null else node.top + node.layout.getBoundingBox(offset).top
+    }
+    private fun tokenBottom(token: String): Float? = renderedTexts().firstNotNullOfOrNull { node ->
+        val offset = node.text.indexOf(token)
+        if (offset < 0) null else node.top + node.layout.getBoundingBox(offset + token.length - 1).bottom
+    }
+    /**
+     * The settled MarkdownBlock renders a paragraph as its own short Text. The
+     * streaming presentation keeps it inside a committed >=256-unit chunk or
+     * the single full Text, never as a standalone paragraph node.
+     */
+    private fun settledParagraph(token: String) = renderedTexts().any { token in it.text && it.text.length < 120 }
+    private fun streamingParagraph(token: String) = renderedTexts().any { token in it.text && it.text.length >= 256 }
+    private fun timelineNode() = compose.onAllNodes(
+        SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange), useUnmergedTree = true,
+    ).fetchSemanticsNodes().first { it.config[SemanticsProperties.VerticalScrollAxisRange].reverseScrolling }
+    /** Lazy list semantics: 0 only at item 0 with zero scroll offset (the absolute bottom). */
+    private fun timelineScrollValue() = timelineNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+
+    /**
+     * Settled-only semantics: a code card copy action and a standalone table
+     * cell Text; the degraded "[image: alt]" label of the streaming
+     * presentation must be gone (the image block carries no Text).
+     */
+    private fun richState(): Triple<Boolean, Boolean, Boolean> {
+        val copy = compose.onAllNodes(hasContentDescription(context.getString(R.string.code_block_copy)), useUnmergedTree = true)
+            .fetchSemanticsNodes().isNotEmpty()
+        val texts = renderedTexts()
+        val cell = texts.any { it.text == RICH_CELL }
+        val imageLabelGone = texts.none { RICH_IMAGE_ALT in it.text }
+        return Triple(copy, cell, imageLabelGone)
+    }
+    private fun richSettled(): Boolean = richState().let { it.first && it.second && it.third }
+    /** The streaming presentation's image label is the only text carrying the alt. */
+    private fun imagePlaceholderVisible() = renderedTexts().any { RICH_IMAGE_ALT in it.text }
+
+    /** Real touch drag on the timeline; positive steps move the finger down (toward older content). */
+    private suspend fun drag(scenario: ActivityScenario<RouteActivity>, stepPx: Float, steps: Int = 12) {
+        lateinit var view: android.view.View
+        scenario.onActivity { view = it.window.decorView }
+        val x = view.width * .5f
+        val y = view.height * (if (stepPx > 0) .3f else .7f)
+        val down = SystemClock.uptimeMillis()
+        fun touch(action: Int, targetY: Float) {
+            instrumentation.runOnMainSync {
+                MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, targetY, 0).also {
+                    view.dispatchTouchEvent(it)
+                    it.recycle()
+                }
+            }
+        }
+        touch(MotionEvent.ACTION_DOWN, y)
+        repeat(steps) { step -> pump(20); touch(MotionEvent.ACTION_MOVE, y + (step + 1) * stepPx) }
+        pump(200)
+        touch(MotionEvent.ACTION_UP, y + steps * stepPx)
+        pump(800)
+    }
+
+    /** Real upward drags (the reader scrolling back down) until the absolute bottom. */
+    private suspend fun returnToBottom(scenario: ActivityScenario<RouteActivity>) {
+        repeat(4) {
+            if (timelineScrollValue() == 0f) return
+            drag(scenario, stepPx = -60f)
+            Log.i(TAG, "return-to-bottom drag=${it + 1} scrollValue=${timelineScrollValue()}")
+        }
+        pumpUntil(5_000, "return to bottom (scrollValue=${timelineScrollValue()})") { timelineScrollValue() == 0f }
+    }
+
+    private fun writeEvidence(name: String, result: org.json.JSONObject) {
+        java.io.File(context.getExternalFilesDir(null), "$name.json").writeText(result.toString(2))
+        Log.i(TAG, "$name ${result.toString().take(900)}")
+    }
+
+    @Test(timeout = 120_000)
+    fun productionCompletionPreservesOffBottomReadingAnchor(): Unit = runBlocking {
+        verifyProductionReadingAnchor(cancel = false)
+    }
+
+    @Test(timeout = 120_000)
+    fun productionCancelPreservesOffBottomReadingAnchor(): Unit = runBlocking {
+        verifyProductionReadingAnchor(cancel = true)
+    }
+
+    /**
+     * Off-bottom reader anchored inside a long generating reply. Ending the
+     * generation must not move the anchor character; the settled renderer is
+     * deferred while the anchor is inside the message and must take over once
+     * the reader returns to the bottom.
+     */
+    private suspend fun verifyProductionReadingAnchor(cancel: Boolean) {
+        requireFixture()
+        val (repository, service, gateway) = isolatedFixture()
+        val id = Uuid.random()
+        val paragraph = "生产阅读段落保持稳定，Unicode 👩‍💻 é。\n\n"
+        // A distinct tail identifies the final coalesced frame, which the
+        // production accumulator may legitimately hold until stream completion.
+        val reply = paragraph.repeat(140) + "PROD_READ_ANCHOR 固定可视字符。\n\n" + paragraph.repeat(6) + "PROD_OUTPUT_END 完整。"
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        gateway.reply = reply
+        gateway.delayMs = 12
+        gateway.beforeFinish = gate
+        gateway.finishGateReached = false
+        repository.insertConversation(Conversation.ofId(id).copy(title = "Production reading anchor fixture"))
+        try {
+            open(id).use { scenario ->
+                compose.waitUntil(30_000) { compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+                compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).onFirst().performTextInput("Verify reading position")
+                val send = sendStopButton(R.string.send).fetchSemanticsNode().boundsInWindow.center
+                compose.mainClock.autoAdvance = false
+                Log.i(TAG, "production-anchor send point=$send ime=${imeBottom(scenario)} expectedChars=${reply.length}")
+                tap(send.x, send.y)
+                withTimeout(45_000) {
+                    var checks = 0
+                    while (!gateway.finishGateReached || "PROD_READ_ANCHOR" !in text(service, id)) {
+                        pump(32)
+                        if (++checks % 90 == 0) Log.i(TAG, "production-anchor feed calls=${gateway.calls.get()} chars=${text(service, id).length} gate=${gateway.finishGateReached} active=${service.getGenerationJobStateFlow(id).value?.isActive}")
+                    }
+                }
+                Log.i(TAG, "production-anchor gated sourceChars=${reply.length} publishedChars=${text(service, id).length}")
+                awaitImeHidden(scenario)
+                pumpUntil(30_000, "rendered anchor") { tokenTop("PROD_READ_ANCHOR") != null }
+                pump(1_500)
+                val height = run { var h = 0; scenario.onActivity { h = it.window.decorView.height }; h }
+                drag(scenario, stepPx = 28f)
+                val before = requireNotNull(tokenTop("PROD_READ_ANCHOR"))
+                check(before in 0f..height.toFloat()) { "Production anchor is not visible: $before" }
+                check(timelineScrollValue() > 0f) { "Reader must be away from the bottom" }
+                check(service.getGenerationJobStateFlow(id).value?.isActive == true)
+                if (cancel) {
+                    val stop = sendStopButton(R.string.stop).fetchSemanticsNode().boundsInWindow.center
+                    tap(stop.x, stop.y)
+                } else gate.complete(Unit)
+                withTimeout(20_000) {
+                    while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
+                }
+                pump(1_500)
+                val after = requireNotNull(tokenTop("PROD_READ_ANCHOR"))
+                pump(1_000)
+                val stable = requireNotNull(tokenTop("PROD_READ_ANCHOR"))
+                // The anchor is inside this message: the handover is deferred,
+                // so the reader still sees the same Text geometry.
+                val deferred = streamingParagraph("PROD_READ_ANCHOR") && !settledParagraph("PROD_READ_ANCHOR")
+                val finalText = text(service, id)
+                check(if (cancel) reply.startsWith(finalText) && "PROD_READ_ANCHOR" in finalText else finalText == reply)
+                // Returning to the bottom is a safe moment; the settled renderer must follow.
+                returnToBottom(scenario)
+                pumpUntil(10_000, "settled renderer after returning to the bottom") { settledParagraph("PROD_READ_ANCHOR") }
+                val settledAtBottom = !streamingParagraph("PROD_READ_ANCHOR")
+                val result = org.json.JSONObject().apply {
+                    put("cancel", cancel); put("before", before); put("after", after); put("stable", stable)
+                    put("deferredWhileAnchored", deferred); put("settledAfterReturningToBottom", settledAtBottom)
+                    put("coordinateSpace", "Text positionInRoot + TextLayoutResult.getBoundingBox")
+                    put("sourceChars", reply.length); put("storedChars", finalText.length); put("sourceSha256", sha(reply))
+                }
+                writeEvidence("production-anchor-$cancel", result)
+                check(kotlin.math.abs(after - before) <= 2f) { "Production reading anchor jumped: $before->$after" }
+                check(kotlin.math.abs(stable - after) <= 2f) { "Production reading anchor drifted: $after->$stable" }
+                check(deferred) { "Renderer swapped while the reading anchor was inside the message" }
+                check(settledAtBottom) { "Streaming presentation outlived the return to the bottom" }
+                withTimeout(15_000) {
+                    while (storedText(requireNotNull(repository.getConversationById(id))) != finalText) delay(50)
+                }
+                Log.i(TAG, "production-anchor passed cancel=$cancel before=$before after=$after stable=$stable settledAtBottom=true Room=true chars=${finalText.length}")
+            }
+        } finally {
+            compose.mainClock.autoAdvance = true
+            gate.complete(Unit)
+            gateway.beforeFinish = null
+            service.stopGeneration(id)
+            repository.getConversationById(id)?.let { service.deleteConversation(it) }
+        }
+    }
+
+    /**
+     * (a)+(c): a short rich reply finishes while the reader stays pinned and
+     * does nothing. The settled block tree (table cells, code card copy action,
+     * image node) must replace the degraded streaming presentation, and the
+     * timeline must still be at the absolute bottom.
+     */
+    @Test(timeout = 120_000)
+    fun productionPinnedCompletionShowsSettledRichMarkdown(): Unit = runBlocking {
+        requireFixture()
+        val (repository, service, gateway) = isolatedFixture()
+        val id = Uuid.random()
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        gateway.reply = RICH_REPLY
+        gateway.delayMs = 12
+        gateway.beforeFinish = gate
+        gateway.finishGateReached = false
+        repository.insertConversation(Conversation.ofId(id).copy(title = "Production rich settle fixture"))
+        try {
+            open(id).use { scenario ->
+                compose.waitUntil(30_000) { compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+                compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).onFirst().performTextInput("Rich pinned reply")
+                val send = sendStopButton(R.string.send).fetchSemanticsNode().boundsInWindow.center
+                compose.mainClock.autoAdvance = false
+                tap(send.x, send.y)
+                withTimeout(45_000) {
+                    while (!gateway.finishGateReached || "RICH_END" !in text(service, id)) pump(32)
+                }
+                awaitImeHidden(scenario)
+                // Generation is still active: the degraded streaming presentation is on screen.
+                pumpUntil(10_000, "streaming presentation of the complete reply") { imagePlaceholderVisible() }
+                val sawStreamingPresentation = !richSettled()
+                gate.complete(Unit)
+                withTimeout(20_000) {
+                    while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
+                }
+                // No touch input after send: the reader stays pinned.
+                pumpUntil(10_000, "settled rich renderer after completion") { richSettled() }
+                val settledAt = tokenBottom("RICH_END")
+                val bottom = timelineNode().boundsInRoot.bottom
+                pump(1_000)
+                val stableAt = tokenBottom("RICH_END")
+                val scrollValue = timelineScrollValue()
+                val result = org.json.JSONObject().apply {
+                    put("sawStreamingPresentation", sawStreamingPresentation)
+                    put("richSettled", richSettled()); put("imagePlaceholderVisible", imagePlaceholderVisible())
+                    put("timelineScrollValue", scrollValue.toDouble()); put("timelineBottom", bottom)
+                    put("endBottomAtSettle", settledAt ?: -1f); put("endBottomStable", stableAt ?: -1f)
+                }
+                writeEvidence("production-rich-pinned", result)
+                check(sawStreamingPresentation) { "Streaming presentation was never observed" }
+                check(!imagePlaceholderVisible()) { "Degraded image label remained after the handover" }
+                check(scrollValue == 0f) { "Pinned completion left the bottom: $scrollValue" }
+                requireNotNull(settledAt); requireNotNull(stableAt)
+                check(settledAt <= bottom + 2f) { "Last message end is below the timeline: $settledAt > $bottom" }
+                check(kotlin.math.abs(stableAt - settledAt) <= 2f) { "Pinned bottom drifted after the handover: $settledAt->$stableAt" }
+                withTimeout(15_000) {
+                    while (storedText(requireNotNull(repository.getConversationById(id))) != RICH_REPLY) delay(50)
+                }
+                Log.i(TAG, "production-rich-pinned passed settled=true pinned=true Room=true")
+            }
+        } finally {
+            compose.mainClock.autoAdvance = true
+            gate.complete(Unit)
+            gateway.beforeFinish = null
+            service.stopGeneration(id)
+            repository.getConversationById(id)?.let { service.deleteConversation(it) }
+        }
+    }
+
+    /**
+     * The reader is anchored in an older message while the short reply below
+     * stays visible off-bottom. reverseLayout would push the older content by
+     * the reply's height change, so the swap is deferred: nothing may move at
+     * generation end, and the settled renderer must appear once the reader
+     * returns to the bottom.
+     */
+    @Test(timeout = 120_000)
+    fun productionVisibleReplyDefersUnderOlderReadingAnchor(): Unit = runBlocking {
+        requireFixture()
+        val (repository, service, gateway) = isolatedFixture()
+        val id = Uuid.random()
+        // Settled history is virtualized per Markdown block; keep the anchor in
+        // the last block so it is composed just above the new exchange.
+        val older = "旧消息段落用于阅读位置，保持稳定。\n\n".repeat(40) + "OLDER_READ_ANCHOR 旧消息锚点。"
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        gateway.reply = RICH_REPLY
+        gateway.delayMs = 12
+        gateway.beforeFinish = gate
+        gateway.finishGateReached = false
+        repository.insertConversation(Conversation.ofId(id, messages = listOf(
+            MessageNode.of(UIMessage.user("Older question")),
+            MessageNode.of(UIMessage.assistant(older)),
+        )).copy(title = "Production older anchor fixture"))
+        try {
+            open(id).use { scenario ->
+                compose.waitUntil(30_000) { compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+                compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).onFirst().performTextInput("Rich reply below older anchor")
+                val send = sendStopButton(R.string.send).fetchSemanticsNode().boundsInWindow.center
+                compose.mainClock.autoAdvance = false
+                tap(send.x, send.y)
+                withTimeout(45_000) {
+                    while (!gateway.finishGateReached || "RICH_END" !in text(service, id)) pump(32)
+                }
+                awaitImeHidden(scenario)
+                pumpUntil(15_000, "rendered reply tail") { tokenTop("RICH_END") != null }
+                pump(1_500)
+                val height = run { var h = 0; scenario.onActivity { h = it.window.decorView.height }; h }
+                drag(scenario, stepPx = 28f)
+                val before = requireNotNull(tokenTop("OLDER_READ_ANCHOR")) { "Older anchor is not rendered" }
+                val replyTopBefore = requireNotNull(tokenTop("RICH_INTRO"))
+                check(before in 0f..height.toFloat()) { "Older anchor is not visible: $before" }
+                check(replyTopBefore in 0f..height.toFloat()) { "Reply must stay visible: $replyTopBefore" }
+                check(timelineScrollValue() > 0f) { "Reader must be away from the bottom" }
+                check(!richSettled()) { "Reply settled before generation ended" }
+                check(service.getGenerationJobStateFlow(id).value?.isActive == true)
+                gate.complete(Unit)
+                withTimeout(20_000) {
+                    while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
+                }
+                pump(1_500)
+                val after = requireNotNull(tokenTop("OLDER_READ_ANCHOR"))
+                val replyTopAfter = tokenTop("RICH_INTRO")
+                pump(1_000)
+                val stable = requireNotNull(tokenTop("OLDER_READ_ANCHOR"))
+                val deferred = !richSettled() && imagePlaceholderVisible()
+                returnToBottom(scenario)
+                pumpUntil(10_000, "settled rich renderer after returning to the bottom") { richSettled() }
+                val result = org.json.JSONObject().apply {
+                    put("before", before); put("after", after); put("stable", stable)
+                    put("replyTopBefore", replyTopBefore); put("replyTopAfter", replyTopAfter ?: -1f)
+                    put("deferredWhileVisible", deferred); put("settledAfterReturningToBottom", true)
+                    put("coordinateSpace", "Text positionInRoot + TextLayoutResult.getBoundingBox")
+                }
+                writeEvidence("production-older-anchor", result)
+                check(kotlin.math.abs(after - before) <= 2f) { "Older reading anchor jumped: $before->$after" }
+                check(kotlin.math.abs(stable - after) <= 2f) { "Older reading anchor drifted: $after->$stable" }
+                check(deferred) { "Visible off-bottom reply swapped renderers under the reader" }
+                withTimeout(15_000) {
+                    while (storedText(requireNotNull(repository.getConversationById(id))) != RICH_REPLY) delay(50)
+                }
+                Log.i(TAG, "production-older-anchor passed before=$before after=$after stable=$stable deferred=true settledAtBottom=true Room=true")
+            }
+        } finally {
+            compose.mainClock.autoAdvance = true
+            gate.complete(Unit)
+            gateway.beforeFinish = null
+            service.stopGeneration(id)
+            repository.getConversationById(id)?.let { service.deleteConversation(it) }
+        }
+    }
+
     @Test(timeout = 90_000)
     fun reopenDurableReplyInFreshProcess(): Unit = runBlocking {
         requireFixture()
@@ -276,5 +664,18 @@ class ChatInteractionDeviceRegressionTest {
     }
     private fun sha(value: String) = MessageDigest.getInstance("SHA-256").digest(value.toByteArray())
         .joinToString("") { "%02x".format(it) }
-    companion object { private const val TAG = "AmberDeviceRegression"; private const val PROOF_PREF = "chat-device-proof" }
+    companion object {
+        private const val TAG = "AmberDeviceRegression"
+        private const val PROOF_PREF = "chat-device-proof"
+        private const val RICH_CELL = "CELL_ALPHA"
+        private const val RICH_IMAGE_ALT = "FIXTURE_IMAGE_ALT"
+        private val RICH_REPLY = "RICH_INTRO 富文本回复，生成结束后应切换为正式渲染。\n\n" +
+            "| 项目 | 结果 |\n| --- | --- |\n| $RICH_CELL | CELL_BETA |\n\n" +
+            "```kotlin\nfun richFixture() = 42\n```\n\n" +
+            "![$RICH_IMAGE_ALT](file:///data/local/tmp/amber-missing-fixture-image.png)\n\n" +
+            "RICH_END 完成。\n\n" +
+            // The production accumulator may hold the last coalesced frame until
+            // stream completion; this tail keeps RICH_END in the published prefix.
+            "收尾段落保持完整输出。\n\n".repeat(6) + "RICH_TAIL 结束。"
+    }
 }

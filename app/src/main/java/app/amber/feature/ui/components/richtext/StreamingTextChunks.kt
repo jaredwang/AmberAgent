@@ -21,7 +21,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 
-internal const val STREAMING_TEXT_CHUNK_CHARS = 768
+// Main-thread traces show active Text/StaticLayout measurement dominates long
+// mixed messages. Keep its natural-line tail small; completed layers remain
+// cached, and neither the source nor the pacing cadence changes.
+internal const val STREAMING_TEXT_CHUNK_CHARS = 256
 internal const val STREAMING_TEXT_CHUNK_MIN_LENGTH = 3_072
 private const val STREAMING_TEXT_CHUNK_TAIL_KEEP = 96
 
@@ -49,6 +52,14 @@ internal fun splitStreamingTextChunks(text: AnnotatedString): List<StreamingText
         }
         add(StreamingTextChunk(start, text.subSequence(start, text.length)))
     }
+}
+
+/** Worker-side identity reuse, including styles, links and seam metrics. */
+internal fun reuseStreamingTextChunks(
+    previous: List<StreamingTextChunk>,
+    next: List<StreamingTextChunk>,
+): List<StreamingTextChunk> = next.mapIndexed { index, chunk ->
+    previous.getOrNull(index)?.takeIf { it == chunk } ?: chunk
 }
 
 /** Two native lines reproduce the baseline distance across a chunk seam. */
@@ -115,6 +126,7 @@ internal class StreamingChunkPlanner {
         suffix: String,
         windowChars: Int,
         baseColor: Color,
+        preparedBaseChunks: List<StreamingTextChunk>? = null,
     ): List<StreamingTextChunk> {
         val length = base.length + suffix.length
         val baseChanged = baseRef !== base
@@ -122,6 +134,11 @@ internal class StreamingChunkPlanner {
             baseHasCr = base.text.indexOf('\r') >= 0
             resetState()
             baseRef = base
+            if (!preparedBaseChunks.isNullOrEmpty() && preparedBaseChunks.size > 1) {
+                committedChunks.addAll(preparedBaseChunks.dropLast(1))
+                tailStart = preparedBaseChunks.last().start
+                chunked = true
+            }
         }
         val fallback = length < STREAMING_TEXT_CHUNK_MIN_LENGTH ||
             baseHasCr || suffix.indexOf('\r') >= 0 ||
@@ -256,12 +273,13 @@ internal fun StreamingChunkedDisplayText(
     modifier: Modifier,
     style: TextStyle,
     onChunkPlaced: ((start: Int, topInRoot: Float, layout: TextLayoutResult) -> Unit)? = null,
+    preparedBaseChunks: List<StreamingTextChunk>? = null,
 ) {
     val planner = remember { StreamingChunkPlanner() }
     // Reveal dry-out can recompose many frames with identical inputs; do not
     // re-split or rebuild the tail AnnotatedString for those.
     val chunks = remember(base, suffix, windowChars, baseColor) {
-        planner.chunks(base, suffix, windowChars, baseColor)
+        planner.chunks(base, suffix, windowChars, baseColor, preparedBaseChunks)
     }
     StreamingChunkLayout(chunks, modifier, style, onChunkPlaced)
 }

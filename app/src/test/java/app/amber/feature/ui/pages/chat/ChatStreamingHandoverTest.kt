@@ -1,0 +1,126 @@
+package app.amber.feature.ui.pages.chat
+
+import android.app.Application
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = Application::class)
+class ChatStreamingHandoverTest {
+    @get:Rule val compose = createComposeRule()
+
+    @Test fun pinnedViewportAlwaysAllowsTheSwap() {
+        assertTrue(streamingSettleAllowed(0, 0, 24, itemVisible = true))
+        assertTrue(streamingSettleAllowed(0, 24, 24, itemVisible = true))
+    }
+
+    @Test fun visibleMessageDefersWhileOffBottom() {
+        // Anchor inside the message, or the message visible under an older anchor.
+        assertFalse(streamingSettleAllowed(0, 25, 24, itemVisible = true))
+        assertFalse(streamingSettleAllowed(1, 300, 24, itemVisible = true))
+        assertFalse(streamingSettleAllowed(4, 0, 24, itemVisible = true))
+    }
+
+    @Test fun invisibleMessageAllowsTheSwapOffBottom() {
+        assertTrue(streamingSettleAllowed(3, 10, 24, itemVisible = false))
+        assertTrue(streamingSettleAllowed(0, 900, 24, itemVisible = false))
+    }
+
+    /**
+     * Real reverseLayout LazyColumn: the gate reads the same layout info the
+     * timeline does. A visible message's height change moves the content
+     * above it unless held, which is why visible off-bottom swaps defer.
+     */
+    @Test fun gateAndHoldFollowReverseLayoutGeometry() {
+        var messageHeight by mutableIntStateOf(100)
+        var held = true
+        lateinit var state: LazyListState
+        var followPx = 0
+        compose.setContent {
+            state = rememberLazyListState()
+            followPx = with(LocalDensity.current) { 24.dp.roundToPx() }
+            LazyColumn(
+                Modifier.height(400.dp),
+                state = state,
+                reverseLayout = true,
+                contentPadding = PaddingValues(top = 16.dp, bottom = 8.dp),
+            ) {
+                items(40, key = { it }) { index ->
+                    val height = when (index) {
+                        0 -> 40
+                        1 -> messageHeight
+                        else -> 120
+                    }
+                    Box(
+                        Modifier
+                            .then(if (index == 1 && held) Modifier.holdReadingOnTailGrowth(state, 1, followPx) else Modifier)
+                            .fillMaxWidth()
+                            .height(height.dp),
+                    )
+                }
+            }
+        }
+        val handover = compose.runOnIdle { TimelineStreamingHandover(state, 1, followPx) }
+        compose.runOnIdle { assertTrue("pinned", handover.allowsSettledPresentation()) }
+
+        // Off-bottom with the message fully visible under older content: defer.
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, followPx + 10) } }
+        compose.waitForIdle()
+        fun olderOffset() = state.layoutInfo.visibleItemsInfo.first { it.index == 2 }.offset
+        val before = compose.runOnIdle { assertFalse(handover.allowsSettledPresentation()); olderOffset() }
+        // The settled hold restores the content above after a height change...
+        compose.runOnIdle { messageHeight = 180 }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals("held content above moved", before, olderOffset()) }
+        // ...while reverseLayout alone moves everything above a resized item.
+        held = false
+        compose.runOnIdle { messageHeight = 100 }
+        compose.waitForIdle()
+        val unheldBefore = compose.runOnIdle { olderOffset() }
+        compose.runOnIdle { messageHeight = 180 }
+        compose.waitForIdle()
+        compose.runOnIdle { assertNotEquals(unheldBefore, olderOffset()) }
+
+        // The message spans the viewport top (anchor inside it): defer.
+        compose.runOnIdle { messageHeight = 2_000 }
+        compose.waitForIdle()
+        compose.runOnIdle { runBlocking { state.scrollToItem(1, 600) } }
+        compose.waitForIdle()
+        compose.runOnIdle { assertFalse(handover.allowsSettledPresentation()) }
+
+        // Message entirely below the viewport: nothing visible can move.
+        compose.runOnIdle { runBlocking { state.scrollToItem(10, 0) } }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertTrue(state.layoutInfo.visibleItemsInfo.none { it.index == 1 })
+            assertTrue(handover.allowsSettledPresentation())
+        }
+
+        // Back to the bottom.
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, 0) } }
+        compose.waitForIdle()
+        compose.runOnIdle { assertTrue(handover.allowsSettledPresentation()) }
+    }
+}
