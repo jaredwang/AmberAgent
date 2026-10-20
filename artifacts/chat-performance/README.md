@@ -102,3 +102,15 @@ SDK arm64 adb在当前Darwin27 USB后端崩溃，脚本用 `arch -x86_64 /Users/
 最终 `:app:assembleFullDebug` 成功（`final-main-build.log`）；`final-install-unlocked.txt` 为Success，`final-launch-unlocked.txt` 为Status: ok / COLD，`final-state-unlocked.txt` 确认应用进程存活、keyguard=false、peak=120/min=null。最终标准输出主APK SHA-256 `cf1982ed0aa9d52ad2e52f4f938a355c41bbef894799c9b38e56b593411beb3c`；与测量APK的差异仅为后续源码注释/调试行号及重打包，生产行为未继续更改。所有APK校验在 `final-apk-sha256.txt`。
 
 正常应用两次启动按原有 `AmberAgentApp.incrementLaunchCount()` 增加了 `launch_count`，所以最终整个DataStore哈希为 `4447cbebe21028a21fb79ad189e6667f36576334b9de0753faa263a36fd4b38e`。`launch-count-only-proof.json` 的字节级证明：仅在内存将这一个protobuf整数减2、保留其余字节，恰好得到测试前SHA `02a081c2…bee14`；模型及所有其他设置完全相同。没有把计数写回手机。用于比对的临时设置二进制已删除，未提交用户设置。
+
+
+## 第二轮施工（OpenCode，2026-10-20，partial）
+
+起点 `61c6f7a8f`，代码提交 `87d4595750c512923684eb58565a0425b6e71650`。详细报告、逐轮数据和限制见 [OPENCODE-RESULT.md](OPENCODE-RESULT.md)。
+
+- 修复 `ChatVirtualItemCache` 对超预算/失败 Markdown 的无限预热重排：确定性 `PREPARED/UNCACHEABLE/FAILED`、每内容 3 次上限、每轮 6 项、无大文本/AST 长期保存；新增 6 个 JVM 测试。
+- 分块渲染复用已提交 chunk 与接缝 bridge，仅重建尾块；kdoc/测试覆盖增量规划与跨帧复用。
+- 交互回归的两个根因均为测试定位/同步：取消后长消息首行被正确钉底裁到视口上方（改为真实拖动到消息头再长按）；停止按钮使用了过期的 IME 偏移（改为 IME 隐藏后重新测量可见停止控件）。同一测试 APK 连续 3 轮、最终提交 1 轮均通过。
+- 新增真机 UI 证据：跨 Text 原生拖动选区复制 859 字符（含换行/中文/ZWJ/组合字符）；320dp + 1.0/1.3/0.85 字体缩放跨 3072 阈值首行 baseline 不变；离底生成期间锚点 0px 漂移，但切到 settled block 时有一次 -2245px 跳变（列为 partial）。
+- 性能 5 对交替（同夹具、同生产布局）：中文 P95 中位数 22.88→20.18ms、分配 139→115MB、GC 3→2 次；短答无稳定收益；混合 Markdown P95 中位数 79.13→86.88ms、>32ms 36%–75%，**卡顿未解决**。基线自身 5 轮从 ~60 漂到 ~110ms，存在明显时间/设备状态趋势，不把差异全部归因于代码。
+- 主 APK（最终提交）`opencode-final-commit.apk` SHA-256 `278450d04126c0f922084bccbfb74ef2c8fd04656465a0ce01b6e4c0b40dcb12`；测试 APK `opencode-regression-test-commit.apk` SHA-256 `a5e4fc6993b8598937b424f7edc789e79f26d8533e5caa2a1119d4d8966c2463`。未 push/PR。
