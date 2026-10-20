@@ -150,6 +150,7 @@ internal fun buildChatMessageVirtualItems(
     loading: Boolean,
     lastMessage: Boolean,
     forceSingleItem: Boolean = false,
+    parseMarkdown: (String) -> app.amber.feature.ui.components.richtext.MarkdownParseResult? = MessageRenderCache::markdownParseResult,
 ): List<ChatMessageVirtualItem>? {
     val message = node.currentMessage
     if (message.role != MessageRole.ASSISTANT || forceSingleItem || (loading && lastMessage)) {
@@ -202,7 +203,7 @@ internal fun buildChatMessageVirtualItems(
                         }
                         val shouldVirtualize = shouldVirtualizeMarkdownContent(content)
                         val parseResult = if (shouldVirtualize) {
-                            MessageRenderCache.markdownParseResult(content)
+                            parseMarkdown(content)
                         } else {
                             null
                         }

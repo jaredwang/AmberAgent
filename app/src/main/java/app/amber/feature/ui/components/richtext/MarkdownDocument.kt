@@ -92,15 +92,11 @@ internal fun MarkdownBlockLegacy(
     val streamingParseCache = remember {
         StreamingMarkdownParseCache()
     }
+    // A cache miss must never parse (or wait for another parse) in composition.
+    // A lossless plain-text snapshot remains visible until background styling is ready.
+    val initialParse = remember { cachedMarkdownParseResult(semanticContent) }
     var (data, setData) = remember {
-        mutableStateOf(
-            if (parseAsStreamingState) {
-                streamingParseCache.parse(semanticContent)
-            } else {
-                streamingParseCache.reset()
-                MarkdownParseCache.getOrParse(semanticContent)
-            }
-        )
+        mutableStateOf(initialParse ?: plainMarkdownSnapshot(semanticContent))
     }
 
     // 监听内容变化，重新解析AST树
@@ -153,7 +149,7 @@ internal fun MarkdownBlockLegacy(
         }
     }
     LaunchedEffect(Unit) {
-        var lastParsedContent = semanticContent
+        var lastParsedContent: String? = if (initialParse != null) semanticContent else null
         var lastParsedStreaming = parseAsStreamingState
         var lastDeferred = deferStreamingParse
         var lastStreamingParseAtMs = 0L
@@ -239,7 +235,13 @@ internal fun MarkdownBlockLegacy(
       CompositionLocalProvider(
           LocalMarkdownFillWidth provides fillWidth,
       ) {
-        if (data.hasHtmlBlocks) {
+        if (data.isPlainTextFallback) {
+            androidx.compose.material3.Text(
+                text = renderContent,
+                modifier = modifier.padding(start = 4.dp),
+                style = style,
+            )
+        } else if (data.hasHtmlBlocks) {
             MarkdownNew(
                 content = renderContent,
                 modifier = modifier.amberTraceMeasure("Amber MarkdownBlock html measure"),

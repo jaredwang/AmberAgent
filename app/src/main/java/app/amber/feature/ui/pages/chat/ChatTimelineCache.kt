@@ -6,10 +6,18 @@ import app.amber.core.model.AssistantRegex
 import app.amber.feature.ui.components.message.ChatMessageVirtualItem
 import app.amber.feature.ui.components.message.buildChatMessageVirtualItems
 import kotlin.uuid.Uuid
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import app.amber.feature.ui.components.richtext.cachedMarkdownParseResult
+import app.amber.feature.ui.components.richtext.prewarmMarkdownContent
+import app.amber.feature.ui.components.richtext.parseMarkdownContent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private const val CHAT_TIMELINE_PLAN_CACHE_MAX_ENTRIES = 2048
 private const val CHAT_TIMELINE_PLAN_CACHE_MAX_MARKDOWN_CHARS = 1_200_000
-private const val CHAT_TIMELINE_STREAMING_TAIL_PROTECT_COUNT = 2
 
 private data class ChatTimelinePlanInputs(
     val assistant: List<AssistantRegex>,
@@ -19,6 +27,7 @@ private data class ChatTimelinePlanInputs(
     val pendingMessageCount: Int,
     val postSendState: PostSendTimelineState,
     val protectedStreamingNodeIds: Set<Uuid>,
+    val preparedRevision: Int,
 )
 
 /** entry 若新增依赖相邻节点或其它 composition 状态，必须同步加入 [ChatTimelinePlanInputs]。 */
@@ -26,6 +35,7 @@ internal class ChatTimelinePlanReuseCache {
     private var previousNodes: List<MessageNode>? = null
     private var previousInputs: ChatTimelinePlanInputs? = null
     private var previousPlan: ChatTimelinePlan? = null
+    private var reusablePrefix: ChatTimelinePrefix? = null
 
     fun build(
         conversation: Conversation,
@@ -47,6 +57,7 @@ internal class ChatTimelinePlanReuseCache {
             pendingMessageCount = pendingMessageCount,
             postSendState = postSendState,
             protectedStreamingNodeIds = protectedStreamingNodeIds.toSet(),
+            preparedRevision = virtualItemCache.preparedRevision,
         )
         val priorNodes = previousNodes
         val priorPlan = previousPlan
@@ -63,11 +74,9 @@ internal class ChatTimelinePlanReuseCache {
         } else {
             null
         }
-        val reusedPrefixEntries = if (prefixStart != null && priorPlan != null) {
-            priorPlan.entries.subList(prefixStart, priorPlan.entries.size)
-        } else {
-            null
-        }
+        val prefix = if (prefixStart != null && priorPlan != null) {
+            reusablePrefix ?: priorPlan.historyPrefix(prefixStart)
+        } else null
         val plan = buildChatTimelinePlan(
             conversation = conversation,
             assistant = assistant,
@@ -78,8 +87,9 @@ internal class ChatTimelinePlanReuseCache {
             postSendState = postSendState,
             virtualItemCache = virtualItemCache,
             protectedStreamingNodeIds = protectedStreamingNodeIds,
-            reusedPrefixEntries = reusedPrefixEntries,
+            reusedPrefix = prefix,
         )
+        reusablePrefix = prefix
         previousNodes = nodes
         previousInputs = inputs
         previousPlan = plan
@@ -90,6 +100,7 @@ internal class ChatTimelinePlanReuseCache {
 internal class ChatVirtualItemCache(
     private val maxEntries: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_ENTRIES,
     private val maxMarkdownChars: Int = CHAT_TIMELINE_PLAN_CACHE_MAX_MARKDOWN_CHARS,
+    private val parseMissingMarkdownSynchronously: Boolean = true,
 ) {
     private val entries = object : LinkedHashMap<ChatVirtualItemCacheKey, List<ChatMessageVirtualItem>?>(
         maxEntries.coerceAtLeast(1),
@@ -106,6 +117,39 @@ internal class ChatVirtualItemCache(
     var misses: Int = 0
         private set
 
+    private val pendingMarkdown = LinkedHashSet<String>()
+    var preparationRequests by mutableIntStateOf(0)
+        private set
+    var preparedRevision by mutableIntStateOf(0)
+        private set
+
+    suspend fun preparePendingMarkdown() {
+        val batch = pendingMarkdown.toList()
+        if (batch.isEmpty()) return
+        withContext(Dispatchers.Default) { batch.forEach(::prewarmMarkdownContent) }
+        pendingMarkdown.removeAll(batch.toSet())
+        // Results cached as "single item while missing" must be rebuilt as well.
+        preparedRevision++
+    }
+
+    private val visualCounts = mutableStateMapOf<Uuid, Int>()
+    var protectionRevision by mutableIntStateOf(0)
+        private set
+
+    fun noteVisualActivity(nodeId: Uuid, active: Boolean) {
+        val count = (visualCounts[nodeId] ?: 0) + if (active) 1 else -1
+        if (count > 0) visualCounts[nodeId] = count else visualCounts.remove(nodeId)
+    }
+
+    fun activeVisualNodeIds(): Set<Uuid> = visualCounts.keys.toSet()
+
+    fun releaseCompletedOffscreen(visibleNodeIds: Set<Uuid>, loadingNodeId: Uuid?) {
+        val changed = streamingAssistantNodeIds.removeAll { nodeId ->
+            nodeId != loadingNodeId && nodeId !in visibleNodeIds && nodeId !in visualCounts
+        }
+        if (changed) protectionRevision++
+    }
+
     private val streamingAssistantNodeIds = ArrayDeque<Uuid>()
 
     /**
@@ -114,11 +158,8 @@ internal class ChatVirtualItemCache(
      * conversation does not force its Markdown into one expensive item.
      */
     fun observeStreamingAssistant(nodeId: Uuid) {
-        streamingAssistantNodeIds.remove(nodeId)
+        if (nodeId in streamingAssistantNodeIds) return
         streamingAssistantNodeIds.addLast(nodeId)
-        while (streamingAssistantNodeIds.size > CHAT_TIMELINE_STREAMING_TAIL_PROTECT_COUNT) {
-            streamingAssistantNodeIds.removeFirst()
-        }
     }
 
     fun protectedStreamingNodeIds(): Set<Uuid> = streamingAssistantNodeIds.toSet()
@@ -144,6 +185,7 @@ internal class ChatVirtualItemCache(
             return entries[key]
         }
         misses++
+        var awaitingMarkdown = false
         val value = buildChatMessageVirtualItems(
             node = node,
             assistant = regexes,
@@ -151,7 +193,17 @@ internal class ChatVirtualItemCache(
             loading = loading,
             lastMessage = lastMessage,
             forceSingleItem = forceSingleItem,
+            parseMarkdown = { content ->
+                if (parseMissingMarkdownSynchronously) parseMarkdownContent(content) else {
+                    cachedMarkdownParseResult(content) ?: run {
+                        awaitingMarkdown = true
+                        if (pendingMarkdown.add(content)) preparationRequests++
+                        null
+                    }
+                }
+            },
         )
+        if (awaitingMarkdown) return value
         val markdownChars = value.markdownCharCost()
         if (markdownChars > maxMarkdownChars) {
             return value

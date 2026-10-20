@@ -141,7 +141,7 @@ private data class MdBlockCtx(
     val headingFontScale: Float,
 )
 
-private class JoinedBlock(
+internal class JoinedBlock(
     val text: AnnotatedString,
     /** True when this block is a paragraph — non-last paragraphs gain a gap line. */
     val isParagraph: Boolean,
@@ -178,6 +178,7 @@ internal fun mdNodeToAnnotatedString(
     enableLatexRendering: Boolean = true,
     headingFontScale: Float = 1f,
     imageFallbackLabel: String,
+    blockCache: StreamingTextBlockCache? = null,
 ): AnnotatedString {
     val ctx = MdBlockCtx(
         style = style,
@@ -187,7 +188,55 @@ internal fun mdNodeToAnnotatedString(
         headingFontScale = headingFontScale,
     )
     val children = if (root.type == MdNodeType.Root) root.children else listOf(root)
-    return joinBlocks(buildBlocks(children, source, ctx, onClickUrl, codeHighlights), style)
+    val blocks = if (blockCache == null) {
+        buildBlocks(children, source, ctx, onClickUrl, codeHighlights)
+    } else {
+        blockCache.map(children, source, codeHighlights) { child ->
+            buildBlock(child, source, ctx, onClickUrl, codeHighlights)
+        }
+    }
+    return joinBlocks(blocks, style)
+}
+
+/**
+ * Per-message, per-style cache. A full parse still resolves references and block
+ * boundaries correctly; unchanged blocks reuse their spans unless reference
+ * definitions could change their meaning.
+ * Keeping just the last snapshot bounds memory without polluting history's LRU.
+ */
+internal class StreamingTextBlockCache {
+    private data class Key(val type: MdNodeType, val raw: String)
+    private var entries = emptyMap<Key, JoinedBlock?>()
+    private var highlights = emptyMap<String, List<HighlightToken>>()
+    var mappedBlocks: Int = 0
+        private set
+
+    internal fun map(
+        nodes: List<MdNode>,
+        source: String,
+        codeHighlights: Map<String, List<HighlightToken>>,
+        build: (MdNode) -> JoinedBlock?,
+    ): List<JoinedBlock> {
+        // Reference definitions are the Markdown construct that can restyle an
+        // earlier, byte-identical block. Fall back conservatively for that input.
+        val hasReferences = "]:" in source
+        val prior = if (!hasReferences && highlights == codeHighlights) entries else emptyMap()
+        val next = HashMap<Key, JoinedBlock?>()
+        val result = ArrayList<JoinedBlock>()
+        for (node in nodes) {
+            if (node.isBlockquoteMarker) continue
+            val key = Key(node.type, node.textIn(source))
+            val block = if (prior.containsKey(key)) prior[key] else {
+                mappedBlocks++
+                build(node)
+            }
+            next[key] = block
+            if (block != null && (block.text.isNotEmpty() || !block.nested.isNullOrEmpty())) result += block
+        }
+        entries = if (hasReferences) emptyMap() else next
+        highlights = codeHighlights.toMap()
+        return result
+    }
 }
 
 /** Same length+hash key shape the render layer and the highlight pipeline agree on. */

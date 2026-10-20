@@ -1,6 +1,5 @@
 package app.amber.feature.ui.pages.chat
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -12,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import app.amber.feature.ui.components.richtext.LocalStreamingTextVisualActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -171,35 +172,11 @@ internal fun LazyListScope.chatTimelineItems(
                 Column(
                     modifier = Modifier
                         .then(
-                            // 流式尾部平滑生长：reverseLayout 锚定底部边，
-                            // 每次换行/增块的高度增长默认是单帧阶梯跳
-                            // （"一行一行往上跳"）。单处 animateContentSize
-                            // 把每次增高变成连续伸展 → 已读内容平滑上滑。
-                            // 规格用 no-bounce 弹簧而不是 tween：换行每
-                            // ~150ms 重定向一次，弹簧重定向时保持当前速度
-                            // （速度连续），tween 每次重启都从 0 加速——
-                            // 那是 2026-08-16 录屏里 6Hz 脉动的来源。
-                            // 启用窗口覆盖 loading + drain 宽限期（生成结束
-                            // 后尾巴还在逐帧生长、动作行也在此刻插入）。
-                            // 注意 2026-05-14 教训（ChatMessage.kt:235 注释）：
-                            // 嵌套多层动画曾致流式卡顿——只允许这一处、
-                            // 永远不要在消息内部再叠加。
-                            // 离底阅读时由 holdReadingOnTailGrowth 抵消增高（滞后一帧），
-                            // 近底仍原生钉底跟随；它须在最外层，读到动画后的尺寸。
+                            // Keep gestures and reading anchors out of the height
+                            // animation loop. Only an idle pinned viewport smooths growth.
                             if (isLoadingMessage || (isLastMessage && drainAmortizeGrace)) {
-                                Modifier.holdReadingOnTailGrowth(
-                                    state = state,
-                                    lazyIndex = planIndex,
-                                    followBottomPx = bottomPinBufferPx,
-                                ).animateContentSize(
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioNoBouncy,
-                                        stiffness = Spring.StiffnessMedium,
-                                    ),
-                                )
-                            } else {
-                                Modifier
-                            }
+                                Modifier.streamingTailLayout(state, planIndex, bottomPinBufferPx)
+                            } else Modifier
                         )
                         .padding(bottom = TimelineItemSpacing)
                 ) {
@@ -235,6 +212,10 @@ internal fun LazyListScope.chatTimelineItems(
                                     null
                                 }
                         }
+                        val visualActivity = remember(node.id, chatTimelinePlan.visualActivityCache) {
+                            { active: Boolean -> chatTimelinePlan.visualActivityCache?.noteVisualActivity(node.id, active); Unit }
+                        }
+                        CompositionLocalProvider(LocalStreamingTextVisualActivity provides visualActivity) {
                         ChatMessage(
                             node = node,
                             model = messageModel,
@@ -271,6 +252,7 @@ internal fun LazyListScope.chatTimelineItems(
                             onMiniAppModify = onMiniAppModify,
                             lastMessage = isLastMessage,
                         )
+                        }
                     }
                 }
             }

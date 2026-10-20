@@ -81,6 +81,7 @@ internal fun ChatPageTimelineContent(
         activeGeneration = activeGeneration,
         hasHistoryLoadingItem = !timelineLoadState.isFullyLoaded,
         pendingMessageCount = pendingUserMessages.size,
+        listState = state,
     )
 
     LaunchedEffect(resolvedNodeId, conversation.messageNodes.size, timelineLoadState.initialized, timelineLoadState.isFullyLoaded, timelinePrepared, timelineReady) {

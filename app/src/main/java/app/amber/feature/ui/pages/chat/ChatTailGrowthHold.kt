@@ -1,11 +1,43 @@
 package app.amber.feature.ui.pages.chat
 
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import kotlinx.coroutines.launch
+
+/** Only an idle, pinned viewport animates height; reading/gestures use natural layout. */
+@Composable
+internal fun Modifier.streamingTailLayout(
+    state: LazyListState,
+    lazyIndex: Int,
+    followBottomPx: Int,
+): Modifier {
+    val animateHeight by remember(state, followBottomPx) {
+        derivedStateOf {
+            shouldAnimateStreamingTail(
+                state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset,
+                followBottomPx, state.isScrollInProgress,
+            )
+        }
+    }
+    return holdReadingOnTailGrowth(state, lazyIndex, followBottomPx).then(
+        if (animateHeight) Modifier.animateContentSize(
+            spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
+        ) else Modifier,
+    )
+}
+
+internal fun shouldAnimateStreamingTail(index: Int, offset: Int, threshold: Int, scrolling: Boolean): Boolean =
+    !scrolling && index == 0 && offset <= threshold
 
 /**
  * 离底阅读时钉住正在流式增高的尾消息上方的已读内容。
@@ -16,7 +48,7 @@ import kotlinx.coroutines.launch
  * dispatchRawDelta 不经 scroll mutex，不取消进行中的拖动/惯性。不能在回调里直接滚：
  * 补偿越出乐观平移时 LazyList 会同步 forceRemeasure、移除挤出视口的 item 节点，
  * 而 OnPositionedDispatcher 正在遍历同一批 children → NPE（Issue #21）。
- * 代价是补偿滞后一帧；animateContentSize 下每帧 ΔH 很小。
+ * 补偿只随自然高度变化发生；离底与手势期间不叠加高度动画。
  * 近底（≤ [followBottomPx]）时不补偿，保留原生钉底跟随。
  */
 internal fun Modifier.holdReadingOnTailGrowth(
@@ -78,7 +110,12 @@ private class HoldReadingOnTailGrowthNode(
             applyScheduled = false
             val pending = pendingDelta
             pendingDelta = 0
-            if (pending != 0) state.dispatchRawDelta(pending.toFloat())
+            // The user may have returned to the bottom before this dispatch.
+            val nowNearBottom = state.firstVisibleItemIndex == 0 &&
+                state.firstVisibleItemScrollOffset <= followBottomPx
+            if (pending != 0 && !nowNearBottom && lazyIndex >= state.firstVisibleItemIndex) {
+                state.dispatchRawDelta(pending.toFloat())
+            }
         }
     }
 }

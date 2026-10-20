@@ -33,7 +33,7 @@ fun MarkdownNew(
     paragraphSpacing: Dp = 0.dp,
 ) {
     var document by remember {
-        mutableStateOf(parseMarkdownHtmlDocument(content))
+        mutableStateOf<org.jsoup.nodes.Document?>(null)
     }
 
     val updatedContent by rememberUpdatedState(content)
@@ -57,8 +57,13 @@ fun MarkdownNew(
                 Arrangement.Top
             },
         ) {
-            document.body().childNodes().fastForEach { node ->
-                HtmlBodyNode(node = node, onClickCitation = onClickCitation)
+            val prepared = document
+            if (prepared == null) {
+                androidx.compose.material3.Text(content, style = style)
+            } else {
+                prepared.body().childNodes().fastForEach { node ->
+                    HtmlBodyNode(node = node, onClickCitation = onClickCitation)
+                }
             }
         }
     }

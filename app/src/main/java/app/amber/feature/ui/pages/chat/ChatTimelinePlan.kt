@@ -7,6 +7,12 @@ import app.amber.ai.ui.UIMessagePart
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.lazy.LazyListState
+import kotlinx.coroutines.flow.collect
 import app.amber.agent.BuildConfig
 import app.amber.core.model.AssistantRegex
 import app.amber.core.utils.ChatSendTransitionTracker
@@ -25,8 +31,16 @@ internal fun rememberChatTimelinePlan(
     activeGeneration: Boolean,
     hasHistoryLoadingItem: Boolean,
     pendingMessageCount: Int,
+    listState: LazyListState? = null,
 ): ChatTimelinePlan {
-    val virtualItemCache = remember(conversation.id) { ChatVirtualItemCache() }
+    val virtualItemCache = remember(conversation.id) {
+        ChatVirtualItemCache(parseMissingMarkdownSynchronously = false)
+    }
+    LaunchedEffect(virtualItemCache) {
+        snapshotFlow { virtualItemCache.preparationRequests }.collect {
+            virtualItemCache.preparePendingMarkdown()
+        }
+    }
     val planReuseCache = remember(conversation.id) { ChatTimelinePlanReuseCache() }
     val postSendState = remember(conversation.id, conversation.messageNodes, activeGeneration) {
         buildPostSendTimelineState(conversation, activeGeneration)
@@ -37,6 +51,21 @@ internal fun rememberChatTimelinePlan(
         virtualItemCache.observeStreamingAssistant(lastNode.id)
     }
     val protectedStreamingNodeIds = virtualItemCache.protectedStreamingNodeIds()
+    val loadingNodeId = lastNode?.id?.takeIf { timelineLoading }
+    val updatedLoadingNodeId by rememberUpdatedState(loadingNodeId)
+    LaunchedEffect(virtualItemCache, listState) {
+        if (listState != null) snapshotFlow {
+            Triple(
+                listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? Uuid }.toSet(),
+                updatedLoadingNodeId,
+                virtualItemCache.activeVisualNodeIds(),
+            )
+        }.collect { (visibleIds, loadingId, _) ->
+            if (listState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
+                virtualItemCache.releaseCompletedOffscreen(visibleIds, loadingId)
+            }
+        }
+    }
     return remember(
         conversation.messageNodes,
         regexes,
@@ -47,6 +76,8 @@ internal fun rememberChatTimelinePlan(
         postSendState,
         virtualItemCache,
         protectedStreamingNodeIds,
+        virtualItemCache.preparedRevision,
+        virtualItemCache.protectionRevision,
     ) {
         measureChatTimelinePlan(
             messageCount = conversation.messageNodes.size,
@@ -62,7 +93,7 @@ internal fun rememberChatTimelinePlan(
                 postSendState = postSendState,
                 virtualItemCache = virtualItemCache,
                 protectedStreamingNodeIds = protectedStreamingNodeIds,
-            )
+            ).copy(visualActivityCache = virtualItemCache)
         }
     }
 }
@@ -136,6 +167,7 @@ internal data class ChatTimelinePlan(
     private val lazyIndexByMessageIndex: Map<Int, Int>,
     val postSendState: PostSendTimelineState,
     val timelineLoading: Boolean,
+    val visualActivityCache: ChatVirtualItemCache? = null,
 ) {
     fun messageIndexAt(lazyIndex: Int): Int? = lazyItemMessageIndexes.getOrNull(lazyIndex)
 
@@ -202,7 +234,7 @@ internal fun buildChatTimelinePlan(
     postSendState: PostSendTimelineState,
     virtualItemCache: ChatVirtualItemCache,
     protectedStreamingNodeIds: Set<Uuid> = emptySet(),
-    reusedPrefixEntries: List<ChatTimelineEntry>? = null,
+    reusedPrefix: ChatTimelinePrefix? = null,
 ): ChatTimelinePlan {
     val regexes = assistant.orEmpty()
     // Built in reading order (oldest → newest, slices in reading order), then
@@ -210,7 +242,7 @@ internal fun buildChatTimelinePlan(
     // lazy index 0 must be the visual bottom (newest content). A flat reversal
     // flips both the inter-message order and the intra-message virtual slice
     // order in one step.
-    val entries = if (reusedPrefixEntries == null) {
+    val tailEntries = if (reusedPrefix == null) {
         buildList {
             if (hasHistoryLoadingItem) add(ChatTimelineEntry.HistoryLoading)
             conversation.messageNodes.forEachIndexed { index, node ->
@@ -230,16 +262,18 @@ internal fun buildChatTimelinePlan(
                 timelineLoading, postSendState, virtualItemCache, protectedStreamingNodeIds,
             )
             addTimelineTrailingEntries(postSendState, pendingMessageCount)
-        }.reversed() + reusedPrefixEntries
+        }.reversed()
     }
-    val lazyItemMessageIndexes = entries.map { entry -> entry.messageIndex }
+    val tailIndexes = tailEntries.map { entry -> entry.messageIndex }
+    val entries = reusedPrefix?.let { JoinedTimelineList(tailEntries, it.entries) } ?: tailEntries
+    val lazyItemMessageIndexes = reusedPrefix?.let { JoinedTimelineList(tailIndexes, it.messageIndexes) } ?: tailIndexes
     // First occurrence in reversed order = the message's reading-last slice
     // (visual bottom). scrollToItem under reverseLayout pins the target at the
     // viewport's bottom edge, so jumping there makes the message unfold upward
     // into view — visually equivalent to the old forward-layout jump to a
     // message's first item at the top edge.
-    val lazyIndexByMessageIndex = buildMap {
-        lazyItemMessageIndexes.forEachIndexed { lazyIndex, messageIndex ->
+    val tailLookup = buildMap {
+        tailIndexes.forEachIndexed { lazyIndex, messageIndex ->
             if (messageIndex != null && !containsKey(messageIndex)) {
                 put(messageIndex, lazyIndex)
             }
@@ -248,10 +282,53 @@ internal fun buildChatTimelinePlan(
     return ChatTimelinePlan(
         entries = entries,
         lazyItemMessageIndexes = lazyItemMessageIndexes,
-        lazyIndexByMessageIndex = lazyIndexByMessageIndex,
+        lazyIndexByMessageIndex = reusedPrefix?.let {
+            ShiftedTimelineLookup(tailLookup, it.lazyIndexes, tailEntries.size)
+        } ?: tailLookup,
         postSendState = postSendState,
         timelineLoading = timelineLoading,
     )
+}
+
+/** Immutable history storage shared by all pure tail updates, without copy chains. */
+internal data class ChatTimelinePrefix(
+    val entries: List<ChatTimelineEntry>,
+    val messageIndexes: List<Int?>,
+    val lazyIndexes: Map<Int, Int>,
+)
+
+internal fun ChatTimelinePlan.historyPrefix(start: Int): ChatTimelinePrefix {
+    val indexes = lazyItemMessageIndexes.subList(start, entries.size)
+    val lookup = buildMap {
+        indexes.forEachIndexed { index, message ->
+            if (message != null && !containsKey(message)) put(message, index)
+        }
+    }
+    return ChatTimelinePrefix(entries.subList(start, entries.size), indexes, lookup)
+}
+
+internal class JoinedTimelineList<T>(
+    internal val tail: List<T>, internal val history: List<T>,
+) : AbstractList<T>(), java.util.RandomAccess {
+    override val size: Int = tail.size + history.size
+    override fun get(index: Int): T {
+        if (index !in indices) throw IndexOutOfBoundsException("$index / $size")
+        return if (index < tail.size) tail[index] else history[index - tail.size]
+    }
+}
+
+private class ShiftedTimelineLookup(
+    private val tail: Map<Int, Int>,
+    private val history: Map<Int, Int>,
+    private val shift: Int,
+) : AbstractMap<Int, Int>() {
+    override fun get(key: Int): Int? = tail[key] ?: history[key]?.plus(shift)
+    override val entries: Set<Map.Entry<Int, Int>> by lazy {
+        buildMap {
+            history.forEach { (message, index) -> put(message, index + shift) }
+            putAll(tail)
+        }.entries
+    }
 }
 
 private fun MutableList<ChatTimelineEntry>.addTimelineMessageEntries(

@@ -35,6 +35,7 @@ internal data class MarkdownParseResult(
     val preprocessed: String,
     val tree: MdNode,
     val hasHtmlBlocks: Boolean,
+    val isPlainTextFallback: Boolean = false,
     val stableTopLevelBlocks: List<MarkdownTopLevelBlockSnapshot> = emptyList(),
     val activeBaseOffset: Int = 0,
     val syntheticSuffixStart: Int = Int.MAX_VALUE,
@@ -76,6 +77,10 @@ internal class EmptyMarkdownRootNode(
         return if (type in types) this else null
     }
 }
+
+/** Temporary, lossless UI fallback; never inserted into the parse cache. */
+internal fun plainMarkdownSnapshot(content: String): MarkdownParseResult =
+    MarkdownParseResult(content, EmptyMarkdownRootNode(content.length), false, isPlainTextFallback = true)
 
 private const val MARKDOWN_PARSE_CACHE_VERSION = 1
 private const val MARKDOWN_PARSE_CACHE_MAX_ENTRIES = 128
