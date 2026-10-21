@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import app.amber.ai.ui.UIMessagePart
+import app.amber.feature.ui.components.richtext.coilImageData
 import app.amber.core.model.MessageNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -65,7 +66,7 @@ internal fun TimelineImagePrefetch(
                         if (requested.put(url, true) == null) {
                             loader.enqueue(
                                 ImageRequest.Builder(context)
-                                    .data(url)
+                                    .data(coilImageData(url) ?: url)
                                     .build(),
                             )
                         }
