@@ -58,7 +58,7 @@ N 的选择见 `round4-diagnosis/parse-threshold.json`：本轮没有真机 4ms 
 
 本轮 hold 改成 `LayoutModifierNode`（`c5997134f`，随后 `46bdd72b0` 混合）：
 
-- **空闲：** 在 `measure` 里对高度差调用 `LazyListState.requestScrollToItem(index, offset)`。该 API 可在测量阶段调用，同一帧的下一轮 layout 用补偿后的 offset。不能在 measure 里 `dispatchRawDelta`：会在测量中 `forceRemeasure`，Robolectric 抛 `IllegalArgumentException`（`round4-diagnosis/hold-same-frame.log`）。
+- **空闲：** 在 `measure` 里对高度差调用 `LazyListState.requestScrollToItem(index, offset)`。该 API 可在测量阶段调用，同一帧的下一轮 layout 用补偿后的 offset。不能在 measure 里 `dispatchRawDelta`：会在测量中 `forceRemeasure`，Robolectric 抛 `IllegalArgumentException`（`round4-diagnosis/hold-same-frame-rerun.log`，4 个 hold/handover 用例失败）。`hold-same-frame.log` 是更早一次并发 Gradle 的 Kotlin daemon OOM，不是 IAE 证据。
 - **拖动/惯性：** 不调用 `requestScrollToItem`（会取消手势，`ChatListNormalAnchorTest` 在 idle-only 构建上失败：期望 134.0 实为 74.0，差 60dp）。高度差记在 `onGloballyPositioned`，协程里 `dispatchRawDelta`，避免 Issue #21 的同步 NPE。
 - `applyingHold` 防止 `requestScrollToItem` 触发的嵌套 measure 重入。
 - `streamingSettleAllowed`：空闲一律允许切换（含离底可见）；`scrollInProgress` 时推迟，停下后下一次 gate poll 切换（远小于 2s）。
