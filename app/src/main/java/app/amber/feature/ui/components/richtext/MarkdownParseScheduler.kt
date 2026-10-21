@@ -14,6 +14,9 @@ internal val LocalMarkdownParseDispatcher = staticCompositionLocalOf<CoroutineDi
     Dispatchers.Default
 }
 
+/** Test hook: true while the invisible pending placeholder is on screen. */
+internal val LocalMarkdownPendingProbe = staticCompositionLocalOf<((Boolean) -> Unit)?> { null }
+
 /**
  * Max UTF-16 length parsed on the composition thread on a cache miss.
  *
@@ -26,9 +29,10 @@ internal val LocalMarkdownParseDispatcher = staticCompositionLocalOf<CoroutineDi
  * Bound is the largest measured length class on 25128PNA1C whose every
  * main-thread [MarkdownParseCache.getOrParse] sample is ≤4ms
  * (`round4-diagnosis/parse-threshold.json`). 512 chars already exceeds
- * that budget (median 4.93ms). The 32-sample snapshot corpus is almost
- * entirely over this bound, so those suites wait for the formatted dump
- * rather than assuming a synchronous first frame.
+ * that budget (median 4.93ms). Snapshot suites inject a paused
+ * [LocalMarkdownParseDispatcher], advance it until parse work is done,
+ * then waitForIdle before asserting. They do not poll until the dump
+ * equals the golden.
  */
 internal const val MARKDOWN_SYNC_PARSE_MAX_CHARS = 256
 

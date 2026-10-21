@@ -31,13 +31,6 @@
 # aborts (SIGABRT) the moment DeepRead extracts an article. Keep its ctor+fields.
 -keep class app.amber.feature.deepread.nativebridge.ExtractedArticle { *; }
 
-# ChatRenderingDevicePerfTest looks up this JVM method by name on both
-# debug and benchmarkRelease. A three-argument wrapper is otherwise inlined
-# away in release and the fixture hits NoSuchMethodError.
--keep class app.amber.feature.ui.pages.chat.ChatTailGrowthHoldKt {
-    androidx.compose.ui.Modifier streamingTailLayout(...);
-}
-
 # keep jlatexmath
 -keep class org.scilab.forge.jlatexmath.** {*;}
 

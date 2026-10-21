@@ -38,7 +38,7 @@ import app.amber.feature.ui.context.Navigator
 import com.dokar.sonner.ToasterState
 import kotlinx.coroutines.CoroutineScope
 import app.amber.feature.ui.pages.chat.holdReadingOnTailGrowth
-import app.amber.feature.ui.pages.chat.streamingTailLayout
+import app.amber.agent.chatfixture.streamingTailLayout
 import org.json.JSONObject
 import org.json.JSONArray
 import java.io.File

@@ -37,6 +37,8 @@ val uploadCrashlyticsMapping = projectProperty("uploadCrashlyticsMapping", "UPLO
     .toBooleanStrict()
 val baseApplicationId = "app.amber.agent"
 val graphiteDebugApplicationIdSuffix = ".graphite"
+val chatDeviceFixtureEnabled =
+    project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true
 
 // Build types that share the Amber UI/runtime contract — must each call
 // `applyAmberUiBuildConfig(...)` in the `buildTypes {}` block below to set
@@ -144,7 +146,7 @@ android {
         versionCode = 396
         versionName = "2.6.8"
 
-        testInstrumentationRunner = if (project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true) {
+        testInstrumentationRunner = if (chatDeviceFixtureEnabled) {
             "app.amber.agent.ChatDeviceFixtureRunner"
         } else if (project.findProperty("uiSmokeTest")?.toString()?.toBoolean() == true) {
             "app.amber.agent.AmberAgentUiSmokeTestRunner"
@@ -307,6 +309,9 @@ android {
             (this as ExtensionAware).extensions.configure<CrashlyticsExtension>("firebaseCrashlytics") {
                 mappingFileUploadEnabled = false
             }
+            if (chatDeviceFixtureEnabled) {
+                proguardFiles("proguard-chat-device-fixture.pro")
+            }
         }
         create("nonMinifiedRelease") {
             initWith(getByName("release"))
@@ -356,7 +361,13 @@ android {
     }
     sourceSets {
         getByName("androidTest").assets.srcDirs("$projectDir/schemas")
-        getByName("main").assets.srcDir("$buildDir/generated/assets/embeddedTerminalRuntime")
+        getByName("main") {
+            assets.srcDir("$buildDir/generated/assets/embeddedTerminalRuntime")
+            if (chatDeviceFixtureEnabled) {
+                java.srcDir("src/chatDeviceFixture/java")
+                kotlin.srcDir("src/chatDeviceFixture/java")
+            }
+        }
         getByName("test") {
             // Shared iOS/Android golden fixtures live at repo-root test-fixtures/
             // (same wiring as :feature:novel).
@@ -1099,7 +1110,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     // Opt-in empty host for the debug-signed, release-derived .debug variant.
     // Keeps device renderer checks isolated from the canonical installed app.
-    if (project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true) {
+    if (chatDeviceFixtureEnabled) {
         add("baselineImplementation", libs.androidx.ui.test.manifest)
+        // Align androidx.tracing so AndroidJUnitRunner.onCreate can resolve
+        // Trace.beginSection(String) from the instrumented app process.
+        // benchmarkReleaseImplementation keeps this out of ordinary debug/release.
+        add("benchmarkReleaseImplementation", "androidx.tracing:tracing:1.2.0")
+        androidTestImplementation("androidx.tracing:tracing:1.2.0")
     }
 }

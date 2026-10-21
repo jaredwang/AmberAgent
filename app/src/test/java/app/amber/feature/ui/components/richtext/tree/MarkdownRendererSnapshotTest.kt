@@ -7,12 +7,14 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import app.amber.agent.ui.components.richtext.nativebridge.PackedAstReader
 import app.amber.core.settings.Settings
+import app.amber.feature.ui.components.richtext.LocalMarkdownParseDispatcher
 import app.amber.feature.ui.components.richtext.MARKDOWN_SYNC_PARSE_MAX_CHARS
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.context.LocalToaster
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
 import com.dokar.sonner.ToasterState
 import app.amber.feature.ui.context.LocalSettings
 import app.amber.feature.ui.context.Navigator
@@ -50,8 +52,10 @@ internal const val MARKDOWN_CORPUS_DIR = "src/test/resources/markdown-corpus"
  *    in ChatMessageRenderers.kt. Samples longer than
  *    [MARKDOWN_SYNC_PARSE_MAX_CHARS] (every corpus file except
  *    `30-empty-and-whitespace`) take the pending-placeholder first frame, so
- *    this suite waits until the dump equals the golden (the documented ready
- *    signal). Goldens are unchanged.
+ *    this suite injects a paused [LocalMarkdownParseDispatcher], waits for
+ *    idle, advances the dispatcher (MarkdownDocument parse, then nested
+ *    MarkdownNew HTML parse), then [waitForIdle] again before asserting.
+ *    Goldens are unchanged. The suite does not poll until dump equals golden.
  *  - The renderer requires three CompositionLocals: [LocalSettings] (read for
  *    `displaySetting.enableLatexRendering`, default true), [LocalNavController]
  *    (HighlightCodeBlock stores a Navigator for an "open in WebView" click that
@@ -114,6 +118,7 @@ class MarkdownRendererSnapshotTest(
         val content = sampleFile.readText()
 
         val highlighter = Highlighter(RuntimeEnvironment.getApplication())
+        val parseDispatcher = StandardTestDispatcher()
         compose.setContent {
             // Minimal locals the renderer reads:
             //  - LocalSettings (enableLatexRendering),
@@ -124,25 +129,30 @@ class MarkdownRendererSnapshotTest(
             //    LaunchedEffect; the visible Text starts as the raw `code` and the
             //    dump captures only `.text` (not span colors), so the code-block text
             //    is the raw source regardless of whether highlighting completes.
+            //  - LocalMarkdownParseDispatcher (paused so over-N cache misses stay
+            //    on the placeholder until this test advances the scheduler).
             CompositionLocalProvider(
                 LocalSettings provides Settings(),
                 LocalNavController provides Navigator(mutableListOf()),
                 LocalHighlighter provides highlighter,
                 LocalToaster provides ToasterState(CoroutineScope(Dispatchers.Unconfined)),
+                LocalMarkdownParseDispatcher provides parseDispatcher,
             ) {
                 MaterialTheme {
                     MarkdownBlock(content = content)
                 }
             }
         }
+        // MarkdownDocument parse, then nested MarkdownNew HTML parse
+        // (sample 20). Each stage is an explicit dispatcher drain + idle,
+        // not a poll until dump equals golden.
+        compose.waitForIdle()
+        parseDispatcher.scheduler.advanceUntilIdle()
+        compose.waitForIdle()
+        parseDispatcher.scheduler.advanceUntilIdle()
+        compose.waitForIdle()
         val goldenFile = File(SNAPSHOT_DIR, "$sampleName.txt")
         if (UPDATE_SNAPSHOTS) {
-            compose.waitUntil(15_000) {
-                val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
-                content.length <= MARKDOWN_SYNC_PARSE_MAX_CHARS ||
-                    content.isBlank() ||
-                    dump.isNotBlank()
-            }
             goldenFile.parentFile?.mkdirs()
             goldenFile.writeText(compose.onRoot().fetchSemanticsNode().dumpNormalized())
             return
@@ -157,11 +167,6 @@ class MarkdownRendererSnapshotTest(
         // Sample 30's golden is intentionally empty: whitespace-only input renders
         // nothing. The non-empty goldens guard the "renders nothing for valid input"
         // regression class (a renderer that silently drops content fails them).
-        // Over-N samples start as an invisible placeholder; the ready signal is
-        // dump == golden (formatted tree, not raw `##` / `<div>`).
-        compose.waitUntil(15_000) {
-            compose.onRoot().fetchSemanticsNode().dumpNormalized() == expected
-        }
         val actual = compose.onRoot().fetchSemanticsNode().dumpNormalized()
         if (expected != actual) {
             throw AssertionError(buildSnapshotDiff(sampleName, expected, actual))

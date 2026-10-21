@@ -1,6 +1,6 @@
 package app.amber.feature.ui.pages.chat
 
-import androidx.annotation.Keep
+import android.os.Trace
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.animation.animateContentSize
@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.Measurable
@@ -20,6 +20,7 @@ import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.LayoutModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.unit.Constraints
+import app.amber.agent.BuildConfig
 import kotlinx.coroutines.launch
 
 /**
@@ -29,29 +30,6 @@ import kotlinx.coroutines.launch
  * and the last token overflows the timeline until the spring finishes
  * (device productionPinned: RICH_TAIL 2511 > timeline 2056, then 1741).
  */
-/**
- * Three-argument JVM ABI shared with `round3-final-v3.apk`.
- *
- * ChatRenderingDevicePerfTest calls `streamingTailLayout(list, 1, 24)`.
- * Default parameters on the five-argument function compile that call into
- * `(Modifier, LazyListState, IIZ, Object, Composer, II)`, which round3 does
- * not have (NoSuchMethodError on 392288d7 baseline-r1). This overload keeps
- * the round3 descriptor `(Modifier, LazyListState, II, Composer, I)`.
- */
-@Keep
-@Composable
-fun Modifier.streamingTailLayout(
-    state: LazyListState,
-    lazyIndex: Int,
-    followBottomPx: Int,
-): Modifier {
-    // Block body + @Keep: release R8 inlines an expression-body wrapper and
-    // drops the three-argument JVM method ChatRenderingDevicePerfTest calls.
-    return streamingTailLayout(
-        state, lazyIndex, followBottomPx, animate = true, itemKey = null,
-    )
-}
-
 @Composable
 internal fun Modifier.streamingTailLayout(
     state: LazyListState,
@@ -121,6 +99,67 @@ internal fun shouldHoldReadingOnTailGrowth(
 }
 
 /**
+ * Skip [LazyListState.layoutInfo] on the last-message always-on hold when
+ * the item height has not changed. Reading layoutInfo every measure was the
+ * short-scene P95 suspect (4c item 2).
+ */
+internal fun idleHoldShouldReadLayout(
+    lastHeight: Int,
+    height: Int,
+    pendingIdleDelta: Int,
+): Boolean {
+    if (lastHeight < 0) return false
+    return height != lastHeight || pendingIdleDelta != 0
+}
+
+/**
+ * Drop the in-flight idle [requestedIndex] once height has been stable
+ * for [dropAfterStableFrames] measures. Late-frame reconcile needs the
+ * target for one positioned pass after growth; keeping it forever yanks
+ * a later [androidx.compose.foundation.lazy.LazyListState.scrollToItem]
+ * back to the in-growth offset (4c `cancelRegenerateSwitchHistoryAndCopy`
+ * could not reach `DEVICE_FINAL_COPY_MARKER`).
+ */
+internal fun idleHoldShouldDropSettledTarget(
+    lastHeight: Int,
+    height: Int,
+    pendingIdleDelta: Int,
+    stableFrameCount: Int,
+    firstVisibleIndex: Int,
+    firstVisibleOffset: Int,
+    requestedIndex: Int,
+    requestedOffset: Int,
+    dropAfterStableFrames: Int = 2,
+): Boolean {
+    if (requestedIndex < 0) return false
+    if (lastHeight < 0) return false
+    if (height != lastHeight || pendingIdleDelta != 0) return false
+    if (stableFrameCount < dropAfterStableFrames) return false
+    // Drop only when the list left the idle target (scrollToItem(0) or
+    // another item). Keeping the target while still off-bottom lets
+    // late-frame reconcile cover image/math height that arrives after
+    // two placeholder frames (4c image-math 664px).
+    if (firstVisibleIndex != requestedIndex) return true
+    return requestedOffset > 2 && firstVisibleOffset <= 2
+}
+
+/**
+ * User drag/fling owns [androidx.compose.foundation.lazy.LazyListState.isScrollInProgress]
+ * when this node did not start the scroll with [androidx.compose.foundation.lazy.LazyListState.requestScrollToItem]
+ * or a late-frame [androidx.compose.foundation.lazy.LazyListState.dispatchRawDelta].
+ *
+ * An outstanding idle target is not part of the gate: 4c device
+ * `idleHoldThenImmediateDragMovesByInjectedDistance` injected 80px after
+ * slop and the list offset moved 80px, but tying ownership to
+ * `requestedIndex < 0` kept the idle path live and the older-item Y
+ * lagged 10px while height was still changing.
+ */
+internal fun userGestureOwnsScroll(
+    scrollInProgress: Boolean,
+    programmaticScroll: Boolean,
+): Boolean = scrollInProgress && !programmaticScroll
+
+/**
  * Idle hold target after a height delta. Growing adds to the first-visible
  * offset. Shrinking below 0 walks toward newer items (lower index in
  * reverseLayout). Growing past the first-visible item's size walks toward
@@ -155,14 +194,19 @@ internal fun compensatedScrollTarget(
  *
  * reverseLayout 下 LazyList 保持最底可见 item 的底边不动：尾消息（或它下方的
  * 尾部 item）作锚时，每次增高 ΔH 都会把已读内容顶上去 ΔH——上滑后仍被持续带走。
- * 空闲时在 **measure** 里 `requestScrollToItem`（可在测量阶段调用，下一轮
- * 同帧 layout 用上新 offset）。不能在 measure 里 `dispatchRawDelta`：会在
+ * 空闲时在 **measure** 里 `requestScrollToItem`（测量阶段可调用）。真机上
+ * LazyList 常把新 offset 晚一帧才反映到 `firstVisibleItemScrollOffset`，
+ * 所以 [onGloballyPositioned] 之后用协程 `dispatchRawDelta` 补上差值。
+ * 这是**晚一帧补偿**，不能写成同帧。不能在 measure 里 `dispatchRawDelta`：会在
  * 测量中 forceRemeasure，Robolectric 上抛 IllegalArgumentException。
+ * 不再额外 `withFrameNanos`：同一夹具在 b4477f42b 上增高中间帧 0px，
+ * 多等一帧 vsync 后 HEAD 中间帧 216px。
  * 拖动/惯性中不调用 `requestScrollToItem`（它会取消手势）；手势期间高度
  * 变化在 onGloballyPositioned 之后用协程 `dispatchRawDelta` 补偿，不取消
  * 手势。不能在 OnPositioned 回调里同步滚：补偿越出乐观平移时 LazyList
  * 会同步 forceRemeasure、移除挤出视口的 item 节点，而
  * OnPositionedDispatcher 正在遍历同一批 children → NPE（Issue #21）。
+ * 高度未变时不读 `layoutInfo`，避免末条常驻 hold 每帧 measure。
  * 补偿只随自然高度变化发生；离底与手势期间不叠加高度动画。
  * 近底（≤ [followBottomPx]）时不补偿，保留原生钉底跟随。
  */
@@ -211,6 +255,7 @@ private class HoldReadingOnTailGrowthNode(
     // gesture: skipping idle hold for it drops the next height delta
     // (device fling generating −144px after the same idle path as drag).
     private var programmaticScroll = false
+    private var stableIdleFrames = 0
 
     // LazyList 复用 slot 时上一 item 的高度不是本 item 的增高基线。
     override fun onReset() {
@@ -221,6 +266,7 @@ private class HoldReadingOnTailGrowthNode(
         requestedIndex = -1
         requestedOffset = -1
         programmaticScroll = false
+        stableIdleFrames = 0
     }
 
     override fun onDetach() {
@@ -230,6 +276,7 @@ private class HoldReadingOnTailGrowthNode(
         requestedIndex = -1
         requestedOffset = -1
         programmaticScroll = false
+        stableIdleFrames = 0
     }
 
     override fun MeasureScope.measure(
@@ -242,8 +289,31 @@ private class HoldReadingOnTailGrowthNode(
         // Idle / our own requestScrollToItem: compensate in measure.
         // A real user drag/fling owns isScrollInProgress without
         // programmaticScroll; requestScrollToItem would cancel it.
-        if (!userGestureOwnsScroll()) {
+        // Height-stable frames skip layoutInfo (short P95).
+        if (userGestureOwnsScroll()) {
+            requestedIndex = -1
+            stableIdleFrames = 0
+        } else if (idleHoldShouldReadLayout(lastHeight, height, pendingIdleDelta)) {
+            stableIdleFrames = 0
             applyIdleHold(height)
+        } else if (lastHeight < 0) {
+            lastHeight = height
+        } else {
+            stableIdleFrames += 1
+            if (idleHoldShouldDropSettledTarget(
+                    lastHeight,
+                    height,
+                    pendingIdleDelta,
+                    stableIdleFrames,
+                    state.firstVisibleItemIndex,
+                    state.firstVisibleItemScrollOffset,
+                    requestedIndex,
+                    requestedOffset,
+                )
+            ) {
+                requestedIndex = -1
+                requestedOffset = -1
+            }
         }
         return layout(placeable.width, placeable.height) {
             placeable.place(0, 0)
@@ -254,9 +324,8 @@ private class HoldReadingOnTailGrowthNode(
         // Device production completion (392288d7): requestScrollToItem(2, 171)
         // during measure of the growing first-visible item did not stick
         // (scrollValue stayed 1105 while the token moved 132px). After
-        // layout, dispatch the missed offset. Skip when the published
-        // pair already matches — chunk-ui same-frame hold still uses
-        // requestScrollToItem alone.
+        // layout, dispatch the missed offset on the next frame. This is
+        // late-frame compensation, not same-frame.
         if (!userGestureOwnsScroll() && requestedIndex >= 0 && !applyingHold) {
             reconcileIdleRequest()
         }
@@ -294,11 +363,16 @@ private class HoldReadingOnTailGrowthNode(
         reconcileScheduled = true
         coroutineScope.launch {
             try {
-                withFrameNanos { }
+                // Round3 applied dispatchRawDelta in this coroutine without
+                // waiting an extra vsync. withFrameNanos here sampled as a
+                // 216px intermediate jump on the same fixture that is 0px
+                // on b4477f42b. Keep the coroutine so we are not inside
+                // OnPositionedDispatcher (Issue #21).
                 if (userGestureOwnsScroll() || requestedIndex < 0) return@launch
                 if (state.firstVisibleItemIndex != requestedIndex) return@launch
                 val stillMissed = requestedOffset - state.firstVisibleItemScrollOffset
                 if (stillMissed == 0) return@launch
+                programmaticScroll = true
                 state.dispatchRawDelta(stillMissed.toFloat())
             } finally {
                 reconcileScheduled = false
@@ -307,6 +381,18 @@ private class HoldReadingOnTailGrowthNode(
     }
 
     private fun applyIdleHold(height: Int) {
+        val tracing = BuildConfig.DEBUG && runCatching {
+            Trace.beginSection("AmberTailIdleHold")
+            true
+        }.getOrDefault(false)
+        try {
+            applyIdleHoldBody(height)
+        } finally {
+            if (tracing) runCatching { Trace.endSection() }
+        }
+    }
+
+    private fun applyIdleHoldBody(height: Int) {
         val previous = lastHeight
         val holding = shouldHold()
         if (previous < 0 || !holding) {
@@ -318,7 +404,7 @@ private class HoldReadingOnTailGrowthNode(
         }
         val delta = height - previous
         lastHeight = height
-        if (delta == 0) return
+        if (delta == 0 && pendingIdleDelta == 0) return
         if (userGestureOwnsScroll()) return
         if (applyingHold) {
             // requestScrollToItem remeasures this node. Fold the nested
@@ -374,7 +460,7 @@ private class HoldReadingOnTailGrowthNode(
     }
 
     private fun userGestureOwnsScroll(): Boolean =
-        state.isScrollInProgress && !programmaticScroll && requestedIndex < 0
+        userGestureOwnsScroll(state.isScrollInProgress, programmaticScroll)
 
     private fun shouldHold(): Boolean {
         val visible = state.layoutInfo.visibleItemsInfo

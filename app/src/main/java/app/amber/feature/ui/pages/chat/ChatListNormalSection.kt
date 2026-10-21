@@ -239,6 +239,11 @@ internal fun ChatListNormal(
                         plan = chatTimelinePlan,
                         messageNodes = conversation.messageNodes,
                     )
+                    TimelineMarkdownPrefetch(
+                        listState = state,
+                        plan = chatTimelinePlan,
+                        messageNodes = conversation.messageNodes,
+                    )
                     LazyColumn(
                         state = state,
                         // 底部锚定列表：index 0 是视觉底部（最新内容），流式增长从锚定的

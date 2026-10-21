@@ -28,16 +28,16 @@ internal object ChatDeviceImageFixtures {
                 ?.any { ALT in it } == true
         }
 
-    fun writePng(context: Context): String {
+    fun writePng(context: Context, width: Int = 480, height: Int = 320, name: String = "amber-fixture-image.png"): String {
         val dirs = listOf(context.filesDir, context.applicationContext.filesDir)
             .map { it.canonicalFile }
             .distinctBy { it.path }
         var written: File? = null
         for (dir in dirs) {
             dir.mkdirs()
-            val file = File(dir, "amber-fixture-image.png")
+            val file = File(dir, name)
             if (!file.exists() || file.length() == 0L) {
-                val bmp = Bitmap.createBitmap(480, 320, Bitmap.Config.ARGB_8888)
+                val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 Canvas(bmp).apply {
                     drawColor(Color.rgb(32, 110, 200))
                     drawText(

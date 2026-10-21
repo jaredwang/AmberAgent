@@ -56,6 +56,90 @@ class ChatTailGrowthHoldTest {
         )
     }
 
+    @Test
+    fun idleHoldDoesNotReadLayoutInfoWhenHeightIsUnchanged() {
+        assertFalse(idleHoldShouldReadLayout(lastHeight = -1, height = 180, pendingIdleDelta = 0))
+        assertFalse(idleHoldShouldReadLayout(lastHeight = 180, height = 180, pendingIdleDelta = 0))
+        assertTrue(idleHoldShouldReadLayout(lastHeight = 180, height = 240, pendingIdleDelta = 0))
+        assertTrue(idleHoldShouldReadLayout(lastHeight = 180, height = 180, pendingIdleDelta = 12))
+    }
+
+    @Test
+    fun idleHoldDropsSettledTargetAfterTwoStableFrames() {
+        fun drop(
+            height: Int = 180,
+            pending: Int = 0,
+            frames: Int = 2,
+            visibleIndex: Int = 0,
+            visibleOffset: Int = 0,
+            requestedIndex: Int = 0,
+            requestedOffset: Int = 80,
+        ) = idleHoldShouldDropSettledTarget(
+            lastHeight = 180,
+            height = height,
+            pendingIdleDelta = pending,
+            stableFrameCount = frames,
+            firstVisibleIndex = visibleIndex,
+            firstVisibleOffset = visibleOffset,
+            requestedIndex = requestedIndex,
+            requestedOffset = requestedOffset,
+        )
+        assertFalse(drop(height = 240))
+        assertFalse(drop(pending = 12))
+        assertFalse(drop(frames = 1))
+        assertFalse(drop(visibleOffset = 80, requestedOffset = 80))
+        assertTrue(drop(visibleOffset = 0, requestedOffset = 80))
+        assertTrue(drop(visibleIndex = 0, requestedIndex = 1, visibleOffset = 0, requestedOffset = 80))
+    }
+
+    /**
+     * 4c device cancelRegenerate: after a long regenerate the test
+     * scrollToItem(0) to expose DEVICE_FINAL_COPY_MARKER. Skipping
+     * layoutInfo on stable-height frames left requestedIndex at the
+     * in-growth offset, and reconcile yanked the tail marker off screen.
+     */
+    @Test
+    fun idleHoldDoesNotYankScrollToNewestAfterHeightSettles() {
+        var streamHeight by mutableIntStateOf(180)
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.height(400.dp), state = state, reverseLayout = true) {
+                item(key = 0) { Box(Modifier.fillMaxWidth().height(8.dp)) }
+                item(key = 1) {
+                    Box(
+                        Modifier
+                            .holdReadingOnTailGrowth(state, 1, 24, itemKey = 1)
+                            .fillMaxWidth()
+                            .height(streamHeight.dp),
+                    )
+                }
+                items(8, key = { it + 2 }) {
+                    Box(Modifier.fillMaxWidth().height(80.dp))
+                }
+            }
+        }
+        compose.runOnIdle { runBlocking { state.scrollToItem(1, 40) } }
+        compose.waitForIdle()
+        compose.runOnIdle { streamHeight = 720 }
+        compose.waitForIdle()
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, 0) } }
+        compose.waitForIdle()
+        assertEquals(0, state.firstVisibleItemIndex)
+        assertTrue(
+            "idle reconcile yanked scrollToItem(0): offset=${state.firstVisibleItemScrollOffset}",
+            state.firstVisibleItemScrollOffset <= 2,
+        )
+    }
+
+    @Test
+    fun userDragOwnsScrollEvenWhenIdleHoldTargetIsOutstanding() {
+        assertTrue(userGestureOwnsScroll(scrollInProgress = true, programmaticScroll = false))
+        assertFalse(userGestureOwnsScroll(scrollInProgress = true, programmaticScroll = true))
+        assertFalse(userGestureOwnsScroll(scrollInProgress = false, programmaticScroll = false))
+        assertFalse(userGestureOwnsScroll(scrollInProgress = false, programmaticScroll = true))
+    }
+
     /**
      * Device completion on 392288d7: LazyList still published first=0/0
      * (pinned) while layoutInfo already listed the growing message at

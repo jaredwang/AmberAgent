@@ -154,11 +154,13 @@ internal fun MarkdownBlockLegacy(
         parsedPreprocessed = data.preprocessed,
         syntheticSuffixStart = data.syntheticSuffixStart,
     )
+    val pendingProbe = LocalMarkdownPendingProbe.current
     SideEffect {
         StreamingRenderProbe.liveSuffixLength = streamingLiveSuffix.text.length
         if (!parseAsStreamingState) {
             StreamingRenderProbe.resetStreamingDiagnostics()
         }
+        pendingProbe?.invoke(data.isPendingPlaceholder)
     }
     LaunchedEffect(Unit) {
         var lastParsedContent: String? = when {

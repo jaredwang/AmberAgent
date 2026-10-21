@@ -9,6 +9,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -18,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,7 +47,7 @@ import app.amber.feature.ui.components.richtext.rememberStreamingPresentationLif
 import app.amber.feature.ui.pages.chat.TimelineStreamingHandover
 import app.amber.feature.ui.pages.chat.holdReadingOnTailGrowth
 import app.amber.feature.ui.pages.chat.rememberHandoverReadingHold
-import app.amber.feature.ui.pages.chat.streamingTailLayout
+import app.amber.agent.chatfixture.streamingTailLayout
 import app.amber.highlight.Highlighter
 import app.amber.highlight.LocalHighlighter
 import kotlinx.coroutines.delay
@@ -917,6 +920,143 @@ class ChatStreamingChunkUiDeviceTest {
                 assertTrue("Local fixture image did not load (size=${imageWidth}x$imageHeight)", imageLoaded())
             } catch (error: Throwable) {
                 Log.i(TAG, "image-math-frames failed: $error")
+                failure = error
+            }
+        }
+        compose.mainClock.autoAdvance = true
+        failure?.let { throw it }
+    }
+
+    /**
+     * 4c item 3: 1–2 frames after idle hold fires on an off-bottom growing
+     * item, a real drag must move by the injected distance and keep
+     * isScrollInProgress. requestScrollToItem would cancel the gesture.
+     */
+    @Test(timeout = 90_000)
+    fun idleHoldThenImmediateDragMovesByInjectedDistance() {
+        compose.mainClock.autoAdvance = false
+        fun pump(milliseconds: Long) {
+            val deadline = SystemClock.uptimeMillis() + milliseconds
+            while (SystemClock.uptimeMillis() < deadline) {
+                compose.mainClock.advanceTimeBy(16)
+                SystemClock.sleep(16)
+            }
+        }
+        val listRef = AtomicReference<LazyListState>()
+        val olderY = java.util.Collections.synchronizedList(ArrayList<Float>())
+        var streamHeight by mutableIntStateOf(180)
+        var failure: Throwable? = null
+        launchHost().use { scenario ->
+            scenario.onActivity { activity ->
+                activity.setContent {
+                    MaterialTheme {
+                        val list = rememberLazyListState()
+                        listRef.set(list)
+                        LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
+                            item("tail") { Box(Modifier.fillMaxWidth().height(8.dp)) }
+                            item("stream") {
+                                Box(
+                                    Modifier
+                                        .streamingTailLayout(list, 1, 24, animate = false, itemKey = "stream")
+                                        .fillMaxWidth()
+                                        .height(streamHeight.dp),
+                                )
+                            }
+                            items(20, key = { "older-$it" }) { index ->
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(80.dp)
+                                        .then(
+                                            if (index == 0) Modifier.onGloballyPositioned {
+                                                olderY += it.positionInRoot().y
+                                            } else Modifier,
+                                        ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            try {
+                pump(800)
+                runBlocking {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        listRef.get().scrollToItem(1, 80)
+                    }
+                }
+                pump(400)
+                check(listRef.get().firstVisibleItemIndex >= 1) {
+                    "Need an off-bottom reading anchor before growth"
+                }
+                streamHeight = 320
+                pump(32)
+                pump(16)
+                check(olderY.isNotEmpty()) { "Older item never laid out" }
+                val before = olderY.last()
+                val offsetBefore = listRef.get().firstVisibleItemScrollOffset
+                var hostView: android.view.View? = null
+                scenario.onActivity { hostView = it.window.decorView }
+                val view = requireNotNull(hostView) { "Host decor view missing" }
+                val x = view.width * 0.5f
+                val y0 = view.height * 0.40f
+                val slopPx = 48f
+                val dragPx = 80f
+                val down = SystemClock.uptimeMillis()
+                fun send(action: Int, y: Float, at: Long) {
+                    instrumentation.runOnMainSync {
+                        val event = android.view.MotionEvent.obtain(down, at, action, x, y, 0)
+                        view.dispatchTouchEvent(event)
+                        event.recycle()
+                    }
+                }
+                send(android.view.MotionEvent.ACTION_DOWN, y0, down)
+                send(android.view.MotionEvent.ACTION_MOVE, y0 + slopPx, SystemClock.uptimeMillis())
+                pump(32)
+                val afterSlopY = olderY.last()
+                val afterSlopOffset = listRef.get().firstVisibleItemScrollOffset
+                var sawGesture = listRef.get().isScrollInProgress
+                repeat(8) { step ->
+                    pump(16)
+                    send(
+                        android.view.MotionEvent.ACTION_MOVE,
+                        y0 + slopPx + dragPx * (step + 1) / 8f,
+                        SystemClock.uptimeMillis(),
+                    )
+                    if (listRef.get().isScrollInProgress) sawGesture = true
+                }
+                pump(16)
+                val duringOffset = listRef.get().firstVisibleItemScrollOffset
+                val duringY = olderY.last()
+                send(android.view.MotionEvent.ACTION_UP, y0 + slopPx + dragPx, SystemClock.uptimeMillis())
+                pump(48)
+                val movedY = kotlin.math.abs(duringY - afterSlopY)
+                val movedOffset = kotlin.math.abs(duringOffset - afterSlopOffset).toFloat()
+                val json = JSONObject()
+                    .put("beforeY", before.toDouble())
+                    .put("afterSlopY", afterSlopY.toDouble())
+                    .put("duringY", duringY.toDouble())
+                    .put("movedY", movedY.toDouble())
+                    .put("movedOffset", movedOffset.toDouble())
+                    .put("dragPx", dragPx.toDouble())
+                    .put("offsetBefore", offsetBefore)
+                    .put("afterSlopOffset", afterSlopOffset)
+                    .put("duringOffset", duringOffset)
+                    .put("sawGesture", sawGesture)
+                    .put("firstIndex", listRef.get().firstVisibleItemIndex)
+                Log.i(TAG, "idle-hold-then-drag $json")
+                capture("idle-hold-then-drag", json)
+                assertTrue("drag did not take ownership of scroll: $json", sawGesture)
+                assertTrue(
+                    "injected ${dragPx}px drag after slop moved list offset ${movedOffset}px: $json",
+                    kotlin.math.abs(movedOffset - dragPx) <= 2f,
+                )
+                assertTrue(
+                    "injected ${dragPx}px drag after slop moved older item ${movedY}px: $json",
+                    kotlin.math.abs(movedY - dragPx) <= 2f,
+                )
+            } catch (error: Throwable) {
+                Log.i(TAG, "idle-hold-then-drag failed: $error")
                 failure = error
             }
         }
