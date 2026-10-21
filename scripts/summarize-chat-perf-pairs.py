@@ -12,7 +12,18 @@ import statistics
 import sys
 from pathlib import Path
 
-PROFILES = ("short", "chinese", "mixed")
+KNOWN_PROFILES = ("short", "chinese", "mixed", "history-cold", "long-unbroken")
+
+
+def discover_profiles(pairs):
+    names = None
+    for baseline, optimized in pairs:
+        for directory in (Path(baseline), Path(optimized)):
+            found = {path.stem for path in directory.glob("*.json") if path.stem != "pairs-summary"}
+            names = found if names is None else names & found
+    if not names:
+        return KNOWN_PROFILES[:3]
+    return tuple(name for name in KNOWN_PROFILES if name in names) or tuple(sorted(names))
 
 
 def percentile(values, p):
@@ -57,23 +68,24 @@ def median(values):
 
 
 def main(output, pairs):
+    profiles = discover_profiles(pairs)
     rounds = {"baseline": [], "optimized": []}
     for index, (baseline, optimized) in enumerate(pairs, 1):
-        rounds["baseline"].append({p: frames(Path(baseline), p) for p in PROFILES})
-        rounds["optimized"].append({p: frames(Path(optimized), p) for p in PROFILES})
+        rounds["baseline"].append({p: frames(Path(baseline), p) for p in profiles})
+        rounds["optimized"].append({p: frames(Path(optimized), p) for p in profiles})
     medians = {}
     for side in rounds:
         medians[side] = {}
-        for profile in PROFILES:
+        for profile in profiles:
             medians[side][profile] = {
                 key: median([r[profile][key] for r in rounds[side]])
                 for key in ("p50_ms", "p95_ms", "p99_ms", "over_32_pct",
                             "gfxinfo_janky_pct", "gc_count", "gc_time_ms",
                             "blocking_gc_count", "blocking_gc_time_ms", "bytes_allocated", "frames")
             }
-    result = {"rounds": rounds, "medians": medians}
+    result = {"profiles": list(profiles), "rounds": rounds, "medians": medians}
     Path(output).write_text(json.dumps(result, indent=2) + "\n")
-    for profile in PROFILES:
+    for profile in profiles:
         print(profile)
         for side in ("baseline", "optimized"):
             m = medians[side][profile]

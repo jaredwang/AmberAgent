@@ -38,7 +38,10 @@ trap restore_launch_preferences EXIT
 # Per-run test evidence written by the instrumentation (never user data).
 evidence_dir="/sdcard/Android/data/$package/files"
 run_adb shell "rm -f $evidence_dir/production-*.json" || true
-for method in ${CHAT_DEVICE_METHODS:-cancelRegenerateSwitchHistoryAndCopy reopenDurableReplyInFreshProcess productionPinnedCompletionShowsSettledRichMarkdown productionCompletionPreservesOffBottomReadingAnchor productionCancelPreservesOffBottomReadingAnchor productionVisibleReplyDefersUnderOlderReadingAnchor}; do
+failed=0
+ran=0
+: > "$output_dir/summary.txt"
+for method in ${CHAT_DEVICE_METHODS:-cancelRegenerateSwitchHistoryAndCopy reopenDurableReplyInFreshProcess productionPinnedCompletionShowsSettledRichMarkdown productionCompletionPreservesOffBottomReadingAnchor productionCancelPreservesOffBottomReadingAnchor productionVisibleReplySwapsUnderOlderReadingAnchor}; do
   # The panel's 60s idle timeout would stop the activity mid-method; a wake
   # key is ordinary input (no setting change) and restarts that timer.
   run_adb shell input keyevent KEYCODE_WAKEUP
@@ -51,8 +54,15 @@ for method in ${CHAT_DEVICE_METHODS:-cancelRegenerateSwitchHistoryAndCopy reopen
     "$package.test/app.amber.agent.ChatDeviceFixtureRunner" | tee "$output_dir/$method.txt"
   wait "$kick_pid" || true
   run_adb logcat -d -s AmberDeviceRegression:I > "$output_dir/$method-logcat.txt"
-  rg -q 'OK \(1 test\)' "$output_dir/$method.txt"
+  ran=$((ran + 1))
+  if rg -q 'OK \(1 test\)' "$output_dir/$method.txt"; then
+    printf 'OK %s\n' "$method" | tee -a "$output_dir/summary.txt"
+  else
+    printf 'FAIL %s\n' "$method" | tee -a "$output_dir/summary.txt"
+    failed=$((failed + 1))
+  fi
 done
+printf 'ran=%s failed=%s\n' "$ran" "$failed" | tee -a "$output_dir/summary.txt"
 mkdir -p "$output_dir/evidence"
 for evidence in $(run_adb shell ls "$evidence_dir" | tr -d '\r' | grep '^production-.*[.]json$' || true); do
   run_adb pull "$evidence_dir/$evidence" "$output_dir/evidence/" >> "$output_dir/pull-evidence.txt" 2>&1 || true
@@ -61,3 +71,7 @@ restore_launch_preferences
 trap - EXIT
 run_adb shell run-as "$package" sha256sum files/datastore/settings.preferences_pb > "$output_dir/user-model-settings-after.sha256"
 cmp "$output_dir/user-model-settings-before.sha256" "$output_dir/user-model-settings-after.sha256"
+if (( failed > 0 )); then
+  echo "$failed/$ran methods failed; see $output_dir/summary.txt" >&2
+  exit 1
+fi
