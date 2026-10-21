@@ -294,9 +294,15 @@ class ChatInteractionDeviceRegressionTest {
         val end = SystemClock.uptimeMillis() + timeoutMs
         while (!condition()) {
             if (SystemClock.uptimeMillis() >= end) {
-                Log.i(TAG, "timeout $label rich=${richState()} texts=" + renderedTexts().joinToString(" | ") {
-                    "${it.text.take(24).replace('\n', ' ')}(${it.text.length})@${it.top}"
-                })
+                val imageBox = fixtureImageBounds()
+                Log.i(
+                    TAG,
+                    "timeout $label rich=${richState()} image=${imageBox?.let { "${it.width}x${it.height}@${it.top}" } ?: "none"} " +
+                        "uri=${runCatching { fixtureImageUri() }.getOrNull()} texts=" +
+                        renderedTexts().joinToString(" | ") {
+                            "${it.text.take(24).replace('\n', ' ')}(${it.text.length})@${it.top}"
+                        },
+                )
                 error("Timed out waiting for $label")
             }
             pump(32)
