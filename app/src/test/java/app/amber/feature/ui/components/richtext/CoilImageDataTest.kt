@@ -24,4 +24,22 @@ class CoilImageDataTest {
     fun httpsUrlStaysAString() {
         assertEquals("https://example.com/a.png", coilImageData("https://example.com/a.png"))
     }
+
+    @Test
+    fun httpUrlStaysAString() {
+        assertEquals("http://example.com/a.png", coilImageData("http://example.com/a.png"))
+    }
+
+    @Test
+    fun contentUriStaysAString() {
+        val uri = "content://media/external/images/media/12"
+        assertEquals(uri, coilImageData(uri))
+    }
+
+    @Test
+    fun blankAndNullPassThrough() {
+        assertEquals(null, coilImageData(null))
+        assertEquals("", coilImageData(""))
+        assertEquals("   ", coilImageData("   "))
+    }
 }

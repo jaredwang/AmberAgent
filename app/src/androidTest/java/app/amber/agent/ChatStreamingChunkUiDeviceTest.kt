@@ -467,22 +467,31 @@ class ChatStreamingChunkUiDeviceTest {
 
                 // Grow through several natural-line chunk boundaries.
                 val appended = target.substring(initial)
-                runBlocking {
-                    var end = 0
-                    while (end < appended.length) {
-                        end = (end + 12).coerceAtMost(appended.length)
+                val finishingDuringGesture = endMode == "drag" || endMode == "fling"
+                val idleEnd = if (finishingDuringGesture) (appended.length * 2 / 3).coerceAtLeast(12) else appended.length
+                val growthFrames = ArrayList<Float>()
+                val gestureGrowthFrames = ArrayList<Float>()
+                suspend fun feed(from: Int, to: Int, into: ArrayList<Float>) {
+                    var end = from
+                    while (end < to) {
+                        end = (end + 12).coerceAtMost(to)
                         suffix.value = appended.substring(0, end)
                         compose.mainClock.advanceTimeBy(33)
                         delay(33)
+                        chunkAnchorY()?.let { into += it }
                     }
                 }
-                awaitCondition(15_000) { chunkNodes().any { "END_OF_ANCHOR_OUTPUT" in it.text } }
+                runBlocking { feed(0, idleEnd, growthFrames) }
+                val growthMaxDeviation = (growthFrames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+                val growthOver2 = growthFrames.count { kotlin.math.abs(it - baseline) > 2f }
+                if (!finishingDuringGesture) {
+                    awaitCondition(15_000) { chunkNodes().any { "END_OF_ANCHOR_OUTPUT" in it.text } }
+                }
                 pump(1_200)
                 val during = requireNotNull(chunkAnchorY()) { "Anchor chunk disappeared while generating" }
-                Log.i(TAG, "anchor during=$during mode=$endMode")
+                Log.i(TAG, "anchor during=$during mode=$endMode index=${listRef.get().firstVisibleItemIndex} offset=${listRef.get().firstVisibleItemScrollOffset}")
                 val relativeBefore = during - messageTop.get()
                 val scrollOffsetBeforeEnd = listRef.get().firstVisibleItemScrollOffset
-                val finishingDuringGesture = endMode == "drag" || endMode == "fling"
                 if (finishingDuringGesture) {
                     val gestureDown = SystemClock.uptimeMillis()
                     send(android.view.MotionEvent.ACTION_DOWN, y0, gestureDown)
@@ -491,7 +500,12 @@ class ChatStreamingChunkUiDeviceTest {
                         send(android.view.MotionEvent.ACTION_MOVE, y0 + (step + 1) * 28f, SystemClock.uptimeMillis())
                     }
                     check(listRef.get().isScrollInProgress) { "Generation must finish during an actual drag" }
+                    runBlocking { feed(idleEnd, appended.length, gestureGrowthFrames) }
+                    awaitCondition(15_000) { chunkNodes().any { "END_OF_ANCHOR_OUTPUT" in it.text } }
                 }
+                val gestureGrowthMax = if (gestureGrowthFrames.isEmpty()) 0f else
+                    (gestureGrowthFrames + during).maxOf { kotlin.math.abs(it - during) }
+                val gestureGrowthOver2 = gestureGrowthFrames.count { kotlin.math.abs(it - during) > 2f }
                 if (endMode != "fling") streaming.value = false
                 if (finishingDuringGesture) {
                     repeat(5) { step ->
@@ -532,10 +546,28 @@ class ChatStreamingChunkUiDeviceTest {
                 val swapDeadline = SystemClock.uptimeMillis() + 2_000
                 while (!settledNow() && SystemClock.uptimeMillis() < swapDeadline) pump(32)
 
-                val afterSwitch = requireNotNull(chunkAnchorY())
+                fun stabilizeAnchor(timeout: Long): Float {
+                    var last: Float? = null
+                    var hits = 0
+                    val deadline = SystemClock.uptimeMillis() + timeout
+                    while (SystemClock.uptimeMillis() < deadline) {
+                        val y = chunkAnchorY()
+                        if (y != null) {
+                            if (last != null && kotlin.math.abs(y - last) <= 2f) {
+                                hits++
+                                if (hits >= 3) return y
+                            } else {
+                                hits = 0
+                            }
+                            last = y
+                        }
+                        pump(32)
+                    }
+                    return requireNotNull(chunkAnchorY()) { "Anchor disappeared while waiting to settle" }
+                }
+                val afterSwitch = stabilizeAnchor(8_000)
                 val relativeAfter = afterSwitch - messageTop.get()
-                pump(1_000)
-                val stableAgain = requireNotNull(chunkAnchorY())
+                val stableAgain = stabilizeAnchor(8_000)
                 Log.i(TAG, "anchor during=$during settled=$afterSwitch static=$stableAgain")
                 val switchDelta = afterSwitch - baseline
                 val settledNow = settledNow()
@@ -552,6 +584,12 @@ class ChatStreamingChunkUiDeviceTest {
                     put("switchDelta", switchDelta)
                     put("stableAgain", stableAgain)
                     put("settledAfterDrain", settledNow)
+                    put("growthMaxDeviation", growthMaxDeviation)
+                    put("growthOver2pxFrames", growthOver2)
+                    put("growthSamples", growthFrames.size)
+                    put("gestureGrowthMaxDeviation", gestureGrowthMax)
+                    put("gestureGrowthOver2pxFrames", gestureGrowthOver2)
+                    put("gestureGrowthSamples", gestureGrowthFrames.size)
                     put("coordinateSpace", "unclipped Text positionInRoot + character bounding box")
                     put("targetLength", target.length)
                     put("initialLength", initial)
@@ -559,12 +597,22 @@ class ChatStreamingChunkUiDeviceTest {
                 }
                 // Integer placeable rounding plus LazyList scroll quantization.
                 val tolerance = 2f
-                if (endMode != "pinned") assertTrue("Anchor drifted while generating: ${during - baseline}px",
-                    kotlin.math.abs(during - baseline) <= tolerance)
+                if (endMode != "pinned") {
+                    assertTrue("Anchor drifted while generating: ${during - baseline}px",
+                        kotlin.math.abs(during - baseline) <= tolerance)
+                    Log.i(TAG, "growth-frames n=${growthFrames.size} maxDeviation=$growthMaxDeviation over2=$growthOver2 gestureMax=$gestureGrowthMax gestureOver2=$gestureGrowthOver2")
+                }
                 val handoverDelta = if (finishingDuringGesture) relativeAfter - relativeBefore else afterSwitch - during
                 runCatching { capture("anchor-$endMode", json) }
-                assertTrue("Settled renderer did not take over after idle (mode=$endMode)", settledNow)
-                if (endMode != "pinned") {
+                if (endMode == "pinned") {
+                    assertTrue("Settled renderer did not take over after idle (mode=$endMode)", settledNow)
+                    assertEquals(0, listRef.get().firstVisibleItemIndex)
+                    assertTrue(listRef.get().firstVisibleItemScrollOffset <= 24)
+                } else {
+                    assertFalse(
+                        "Settled renderer took over while the reading anchor was inside the message (mode=$endMode)",
+                        settledNow,
+                    )
                     assertTrue("Anchor jumped across generation end: ${handoverDelta}px",
                         kotlin.math.abs(handoverDelta) <= tolerance)
                 }
@@ -572,13 +620,9 @@ class ChatStreamingChunkUiDeviceTest {
                     assertEquals("Finishing must not force the reader back to the bottom", 1, listRef.get().firstVisibleItemIndex)
                     assertTrue(listRef.get().firstVisibleItemScrollOffset >= scrollOffsetBeforeEnd)
                 }
-                if (endMode == "pinned") {
-                    assertEquals(0, listRef.get().firstVisibleItemIndex)
-                    assertTrue(listRef.get().firstVisibleItemScrollOffset <= 24)
-                }
                 assertTrue("Anchor kept drifting while static: ${stableAgain - afterSwitch}px",
                     kotlin.math.abs(stableAgain - afterSwitch) <= tolerance)
-                Log.i(TAG, "switch-displacement=$switchDelta")
+                Log.i(TAG, "switch-displacement=$switchDelta growthMax=$growthMaxDeviation over2=$growthOver2")
                 Log.i(TAG, "anchor-passed mode=$endMode tolerance=$tolerance anchor=$baseline during=$during settled=$afterSwitch static=$stableAgain relative=$relativeBefore->$relativeAfter")
                 if (endMode != "pinned") {
                     runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { listRef.get().scrollToItem(0) } }
@@ -621,11 +665,10 @@ class ChatStreamingChunkUiDeviceTest {
         Box(
             modifier
                 .then(
-                    when {
-                        active -> Modifier.streamingTailLayout(list, 1, followBottomPx)
-                        hold -> Modifier.holdReadingOnTailGrowth(list, 1, followBottomPx)
-                        else -> Modifier
-                    }
+                    if (active || hold) Modifier.streamingTailLayout(
+                        list, 1, followBottomPx, animate = active,
+                    )
+                    else Modifier
                 )
                 .padding(12.dp)
         ) {
@@ -776,20 +819,7 @@ class ChatStreamingChunkUiDeviceTest {
                 SystemClock.sleep(16)
             }
         }
-        val imageFile = File(context.filesDir, "amber-fixture-image.png")
-        val bmp = android.graphics.Bitmap.createBitmap(480, 320, android.graphics.Bitmap.Config.ARGB_8888)
-        android.graphics.Canvas(bmp).apply {
-            drawColor(android.graphics.Color.rgb(32, 110, 200))
-            val paint = android.graphics.Paint().apply {
-                color = android.graphics.Color.WHITE
-                textSize = 64f
-                isAntiAlias = true
-            }
-            drawText("FIXTURE", 80f, 180f, paint)
-        }
-        imageFile.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
-        bmp.recycle()
-        val imageUri = "file://${imageFile.absolutePath}"
+        val imageUri = ChatDeviceImageFixtures.writePng(context)
         val reply = "RICH_INTRO 回复。\n\n行内公式 MATH_INLINE_MARK \$E=mc^2\$ 之后。\n\n" +
             "\$\$\n\\sum_{n=1}^{N} n = \\frac{N(N+1)}{2}\n\$\$\n\nMATH_BLOCK_AFTER 块级公式之后。\n\n" +
             "![FIXTURE_IMAGE_ALT]($imageUri)\n\n" +
@@ -856,11 +886,9 @@ class ChatStreamingChunkUiDeviceTest {
                 var imageWidth = 0f
                 fun imageLoaded() = imageHeight > 0f && imageWidth / imageHeight > 1.2f
                 while (SystemClock.uptimeMillis() < imageDeadline) {
-                    val imageNode = compose.onAllNodes(
-                        hasContentDescription("FIXTURE_IMAGE_ALT"), useUnmergedTree = true,
-                    ).fetchSemanticsNodes().firstOrNull()
-                    imageHeight = imageNode?.boundsInRoot?.height ?: 0f
-                    imageWidth = imageNode?.boundsInRoot?.width ?: 0f
+                    val imageNode = ChatDeviceImageFixtures.bounds(compose)
+                    imageHeight = imageNode?.height ?: 0f
+                    imageWidth = imageNode?.width ?: 0f
                     if (imageLoaded()) break
                     pump(32)
                 }

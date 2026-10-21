@@ -31,18 +31,76 @@ import org.robolectric.annotation.Config
 class ChatStreamingHandoverTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun idleViewportAlwaysAllowsTheSwap() {
-        assertTrue(streamingSettleAllowed(0, 0, 24, itemVisible = true, scrollInProgress = false))
-        assertTrue(streamingSettleAllowed(0, 24, 24, itemVisible = true, scrollInProgress = false))
-        assertTrue(streamingSettleAllowed(0, 25, 24, itemVisible = true, scrollInProgress = false))
-        assertTrue(streamingSettleAllowed(1, 300, 24, itemVisible = true, scrollInProgress = false))
-        assertTrue(streamingSettleAllowed(3, 10, 24, itemVisible = false, scrollInProgress = false))
+    @Test fun pinnedOrInvisibleIdleViewportAllowsTheSwap() {
+        assertTrue(
+            streamingSettleAllowed(
+                0, 0, 24,
+                itemVisible = true, readingLineInsideItem = true, scrollInProgress = false,
+            ),
+        )
+        assertTrue(
+            streamingSettleAllowed(
+                0, 24, 24,
+                itemVisible = true, readingLineInsideItem = true, scrollInProgress = false,
+            ),
+        )
+        assertTrue(
+            streamingSettleAllowed(
+                3, 10, 24,
+                itemVisible = false, readingLineInsideItem = false, scrollInProgress = false,
+            ),
+        )
+    }
+
+    @Test fun idleReadingLineInsideTheReplyDefersTheSwap() {
+        assertFalse(
+            streamingSettleAllowed(
+                0, 25, 24,
+                itemVisible = true, readingLineInsideItem = true, scrollInProgress = false,
+            ),
+        )
+        assertFalse(
+            streamingSettleAllowed(
+                1, 300, 24,
+                itemVisible = true, readingLineInsideItem = true, scrollInProgress = false,
+            ),
+        )
+    }
+
+    @Test fun idleOlderAnchorAllowsImmediateSwap() {
+        assertTrue(
+            streamingSettleAllowed(
+                0, 25, 24,
+                itemVisible = true, readingLineInsideItem = false, scrollInProgress = false,
+            ),
+        )
+        assertTrue(
+            streamingSettleAllowed(
+                1, 300, 24,
+                itemVisible = true, readingLineInsideItem = false, scrollInProgress = false,
+            ),
+        )
     }
 
     @Test fun inProgressGestureDefersTheSwap() {
-        assertFalse(streamingSettleAllowed(0, 0, 24, itemVisible = true, scrollInProgress = true))
-        assertFalse(streamingSettleAllowed(1, 300, 24, itemVisible = true, scrollInProgress = true))
-        assertFalse(streamingSettleAllowed(3, 10, 24, itemVisible = false, scrollInProgress = true))
+        assertFalse(
+            streamingSettleAllowed(
+                0, 0, 24,
+                itemVisible = true, readingLineInsideItem = false, scrollInProgress = true,
+            ),
+        )
+        assertFalse(
+            streamingSettleAllowed(
+                1, 300, 24,
+                itemVisible = true, readingLineInsideItem = true, scrollInProgress = true,
+            ),
+        )
+        assertFalse(
+            streamingSettleAllowed(
+                3, 10, 24,
+                itemVisible = false, readingLineInsideItem = false, scrollInProgress = true,
+            ),
+        )
     }
 
     /**
@@ -102,12 +160,15 @@ class ChatStreamingHandoverTest {
         compose.waitForIdle()
         compose.runOnIdle { assertNotEquals(unheldBefore, olderOffset()) }
 
-        // The message spans the viewport top (anchor inside it): idle swap is allowed.
+        // The message spans the viewport (reading line inside it): defer.
         compose.runOnIdle { messageHeight = 2_000 }
         compose.waitForIdle()
         compose.runOnIdle { runBlocking { state.scrollToItem(1, 600) } }
         compose.waitForIdle()
-        compose.runOnIdle { assertTrue(handover.allowsSettledPresentation()) }
+        compose.runOnIdle {
+            assertTrue(readingLineInsideItem(state.layoutInfo, 1))
+            assertFalse("inside-reply must defer", handover.allowsSettledPresentation())
+        }
 
         // Message entirely below the viewport: nothing visible can move.
         compose.runOnIdle { runBlocking { state.scrollToItem(10, 0) } }
