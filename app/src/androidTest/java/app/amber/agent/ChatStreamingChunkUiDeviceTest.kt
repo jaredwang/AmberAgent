@@ -666,7 +666,7 @@ class ChatStreamingChunkUiDeviceTest {
             modifier
                 .then(
                     if (active || hold) Modifier.streamingTailLayout(
-                        list, 1, followBottomPx, animate = active,
+                        list, 1, followBottomPx, animate = active, itemKey = null,
                     )
                     else Modifier
                 )

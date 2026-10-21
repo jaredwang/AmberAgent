@@ -146,6 +146,7 @@ class ChatRenderingDevicePerfTest {
                             LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
                                 item("tail") { Text("render fixture") }
                                 item("stream") {
+                                    // Three-argument form is the round3-final-v3 JVM ABI.
                                     val growth = if (optimizedLayout) Modifier.streamingTailLayout(list, 1, 24) else {
                                         Modifier.holdReadingOnTailGrowth(list, 1, 24)
                                             .animateContentSize(spring(dampingRatio = Spring.DampingRatioNoBouncy,

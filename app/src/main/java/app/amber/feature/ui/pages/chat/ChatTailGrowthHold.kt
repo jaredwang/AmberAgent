@@ -28,13 +28,31 @@ import kotlinx.coroutines.launch
  * and the last token overflows the timeline until the spring finishes
  * (device productionPinned: RICH_TAIL 2511 > timeline 2056, then 1741).
  */
+/**
+ * Three-argument JVM ABI shared with `round3-final-v3.apk`.
+ *
+ * ChatRenderingDevicePerfTest calls `streamingTailLayout(list, 1, 24)`.
+ * Default parameters on the five-argument function compile that call into
+ * `(Modifier, LazyListState, IIZ, Object, Composer, II)`, which round3 does
+ * not have (NoSuchMethodError on 392288d7 baseline-r1). This overload keeps
+ * the round3 descriptor `(Modifier, LazyListState, II, Composer, I)`.
+ */
 @Composable
 internal fun Modifier.streamingTailLayout(
     state: LazyListState,
     lazyIndex: Int,
     followBottomPx: Int,
-    animate: Boolean = true,
-    itemKey: Any? = null,
+): Modifier = streamingTailLayout(
+    state, lazyIndex, followBottomPx, animate = true, itemKey = null,
+)
+
+@Composable
+internal fun Modifier.streamingTailLayout(
+    state: LazyListState,
+    lazyIndex: Int,
+    followBottomPx: Int,
+    animate: Boolean,
+    itemKey: Any?,
 ): Modifier {
     val animateHeight by remember(state, followBottomPx, animate) {
         derivedStateOf {
