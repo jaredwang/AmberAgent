@@ -7,10 +7,12 @@ import androidx.compose.ui.Modifier
 import app.amber.feature.ui.pages.chat.streamingTailLayout as productionStreamingTailLayout
 
 /**
- * Fixture-only streamingTailLayout overloads. Compiled into the app only
- * when `-PchatDeviceFixture=true`. Production `main` does not ship this
- * class. Device tests import this package so HEAD and the b4477f42b
- * worktree baseline resolve the same JVM class.
+ * Fixture-only streamingTailLayout overloads. This source set is wired into
+ * the `debug` build type unconditionally, so default fullDebug app and
+ * androidTest builds resolve it. The `baseline` and `benchmarkRelease`
+ * build types include it only with `-PchatDeviceFixture=true`. It is never
+ * compiled into `main` or `release`. Device tests import this package so
+ * HEAD and the b4477f42b worktree baseline resolve the same JVM class.
  */
 @Keep
 @Composable

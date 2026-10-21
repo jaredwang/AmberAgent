@@ -360,7 +360,18 @@ android {
         getByName("androidTest").assets.srcDirs("$projectDir/schemas")
         getByName("main") {
             assets.srcDir("$buildDir/generated/assets/embeddedTerminalRuntime")
-            if (chatDeviceFixtureEnabled) {
+        }
+        // Debug source set so default fullDebug app + androidTest resolve the fixture ABI without a property; never main/release.
+        getByName("debug") {
+            java.srcDir("src/chatDeviceFixture/java")
+            kotlin.srcDir("src/chatDeviceFixture/java")
+        }
+        if (chatDeviceFixtureEnabled) {
+            getByName("baseline") {
+                java.srcDir("src/chatDeviceFixture/java")
+                kotlin.srcDir("src/chatDeviceFixture/java")
+            }
+            getByName("benchmarkRelease") {
                 java.srcDir("src/chatDeviceFixture/java")
                 kotlin.srcDir("src/chatDeviceFixture/java")
             }
