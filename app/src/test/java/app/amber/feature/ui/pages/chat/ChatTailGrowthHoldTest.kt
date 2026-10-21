@@ -11,10 +11,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,5 +62,103 @@ class ChatTailGrowthHoldTest {
         }
 
         compose.runOnIdle { assertEquals(0, state.firstVisibleItemIndex) }
+    }
+
+    /**
+     * Same-frame hold: growing the tail while off-bottom must not move the
+     * older item in any layout pass, including the frame the height changes.
+     */
+    @Test
+    fun tailGrowthDoesNotMoveOlderItemInAnyLayoutPass() {
+        var tailHeight by mutableIntStateOf(80)
+        val olderTops = mutableListOf<Float>()
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.height(300.dp), state = state, reverseLayout = true) {
+                item(key = 0) {
+                    Box(
+                        Modifier
+                            .holdReadingOnTailGrowth(state, 0, 0)
+                            .fillMaxWidth()
+                            .height(tailHeight.dp),
+                    )
+                }
+                item(key = 1) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .onGloballyPositioned { olderTops += it.positionInRoot().y },
+                    )
+                }
+                items(8, key = { it + 2 }) {
+                    Box(Modifier.fillMaxWidth().height(80.dp))
+                }
+            }
+        }
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, 40) } }
+        compose.waitForIdle()
+        val start = olderTops.size
+        val baseline = olderTops.last()
+        compose.runOnIdle { tailHeight = 180 }
+        compose.waitForIdle()
+        val frames = olderTops.drop(start)
+        val maxDev = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+        assertTrue(
+            "older item moved ${maxDev}px across ${frames.size} passes (baseline=$baseline tops=$frames)",
+            maxDev <= 2f,
+        )
+        compose.runOnIdle { assertEquals(0, state.firstVisibleItemIndex) }
+    }
+
+    /**
+     * Two height steps in one off-bottom session: handover (80→180) then an
+     * image-load-sized jump (180→280). Every recorded pass of the older item
+     * must stay within 2px of the baseline.
+     */
+    @Test
+    fun twoStepTailGrowthDoesNotMoveOlderItemInAnyLayoutPass() {
+        var tailHeight by mutableIntStateOf(80)
+        val olderTops = mutableListOf<Float>()
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.height(300.dp), state = state, reverseLayout = true) {
+                item(key = 0) {
+                    Box(
+                        Modifier
+                            .holdReadingOnTailGrowth(state, 0, 0)
+                            .fillMaxWidth()
+                            .height(tailHeight.dp),
+                    )
+                }
+                item(key = 1) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .onGloballyPositioned { olderTops += it.positionInRoot().y },
+                    )
+                }
+                items(8, key = { it + 2 }) {
+                    Box(Modifier.fillMaxWidth().height(80.dp))
+                }
+            }
+        }
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, 40) } }
+        compose.waitForIdle()
+        val start = olderTops.size
+        val baseline = olderTops.last()
+        compose.runOnIdle { tailHeight = 180 }
+        compose.waitForIdle()
+        compose.runOnIdle { tailHeight = 280 }
+        compose.waitForIdle()
+        val frames = olderTops.drop(start)
+        val maxDev = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+        assertTrue(
+            "older item moved ${maxDev}px across ${frames.size} passes (baseline=$baseline tops=$frames)",
+            maxDev <= 2f,
+        )
     }
 }

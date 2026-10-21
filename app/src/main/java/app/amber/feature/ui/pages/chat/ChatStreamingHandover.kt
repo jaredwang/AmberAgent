@@ -18,26 +18,29 @@ import kotlinx.coroutines.delay
  * The timeline is a reverseLayout LazyColumn: the bottom edge of the first
  * visible item is the scroll anchor and lazy offsets grow upward. A height
  * change of any visible message therefore moves everything above it, even
- * when the reading anchor is in an older message. The post-layout
- * [holdReadingOnTailGrowth] correction lands one frame late (measured on
- * device: the content above shows a 240px displacement for one frame), so a
- * visible off-bottom swap cannot be made seamless.
+ * when the reading anchor is in an older message.
  *
- * 1. Pinned to the bottom: swap now; native bottom anchoring keeps the
- *    newest content pinned (content above moves, as it does while following).
- * 2. Not visible (below the viewport or not laid out): swap now; items below
- *    the first visible item never move visible content.
- * 3. Visible while off-bottom (anchor inside the message, or the message is
- *    fully or partly visible under an older anchor): defer until 1 or 2
- *    holds, or until the lazy item leaves composition, which recreates it
- *    settled. Returning to the bottom always ends the deferral.
+ * [holdReadingOnTailGrowth] now applies [LazyListState.dispatchRawDelta]
+ * during measure so the same layout pass places the content above with the
+ * compensated offset. Visible off-bottom swaps are therefore allowed as soon
+ * as the reader is not dragging or flinging. Competing with an in-progress
+ * gesture would steal the scroll; after the gesture ends the next gate poll
+ * swaps within the same idle frame (well under 2s).
  */
+@Suppress("UNUSED_PARAMETER")
 internal fun streamingSettleAllowed(
     firstVisibleIndex: Int,
     firstVisibleOffset: Int,
     followBottomPx: Int,
     itemVisible: Boolean,
-): Boolean = (firstVisibleIndex == 0 && firstVisibleOffset <= followBottomPx) || !itemVisible
+    scrollInProgress: Boolean,
+): Boolean {
+    if (scrollInProgress) return false
+    // Geometry is compensated in the same measure pass by
+    // [holdReadingOnTailGrowth]; pinned, invisible, and visible off-bottom
+    // swaps are all safe once the reader is idle.
+    return true
+}
 
 /**
  * Per-message handover state owned by the timeline. The gate reads
@@ -61,6 +64,7 @@ internal class TimelineStreamingHandover(
         followBottomPx = followBottomPx,
         // visibleItemsInfo excludes beyond-bounds/prefetched extras.
         itemVisible = state.layoutInfo.visibleItemsInfo.any { it.key == itemKey },
+        scrollInProgress = state.isScrollInProgress,
     )
 
     override fun onAwaitingChange(awaiting: Boolean) {

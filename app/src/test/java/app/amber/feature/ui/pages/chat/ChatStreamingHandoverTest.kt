@@ -31,27 +31,25 @@ import org.robolectric.annotation.Config
 class ChatStreamingHandoverTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun pinnedViewportAlwaysAllowsTheSwap() {
-        assertTrue(streamingSettleAllowed(0, 0, 24, itemVisible = true))
-        assertTrue(streamingSettleAllowed(0, 24, 24, itemVisible = true))
+    @Test fun idleViewportAlwaysAllowsTheSwap() {
+        assertTrue(streamingSettleAllowed(0, 0, 24, itemVisible = true, scrollInProgress = false))
+        assertTrue(streamingSettleAllowed(0, 24, 24, itemVisible = true, scrollInProgress = false))
+        assertTrue(streamingSettleAllowed(0, 25, 24, itemVisible = true, scrollInProgress = false))
+        assertTrue(streamingSettleAllowed(1, 300, 24, itemVisible = true, scrollInProgress = false))
+        assertTrue(streamingSettleAllowed(3, 10, 24, itemVisible = false, scrollInProgress = false))
     }
 
-    @Test fun visibleMessageDefersWhileOffBottom() {
-        // Anchor inside the message, or the message visible under an older anchor.
-        assertFalse(streamingSettleAllowed(0, 25, 24, itemVisible = true))
-        assertFalse(streamingSettleAllowed(1, 300, 24, itemVisible = true))
-        assertFalse(streamingSettleAllowed(4, 0, 24, itemVisible = true))
-    }
-
-    @Test fun invisibleMessageAllowsTheSwapOffBottom() {
-        assertTrue(streamingSettleAllowed(3, 10, 24, itemVisible = false))
-        assertTrue(streamingSettleAllowed(0, 900, 24, itemVisible = false))
+    @Test fun inProgressGestureDefersTheSwap() {
+        assertFalse(streamingSettleAllowed(0, 0, 24, itemVisible = true, scrollInProgress = true))
+        assertFalse(streamingSettleAllowed(1, 300, 24, itemVisible = true, scrollInProgress = true))
+        assertFalse(streamingSettleAllowed(3, 10, 24, itemVisible = false, scrollInProgress = true))
     }
 
     /**
      * Real reverseLayout LazyColumn: the gate reads the same layout info the
      * timeline does. A visible message's height change moves the content
-     * above it unless held, which is why visible off-bottom swaps defer.
+     * above it unless held; with same-frame hold, idle off-bottom swaps are
+     * allowed.
      */
     @Test fun gateAndHoldFollowReverseLayoutGeometry() {
         var messageHeight by mutableIntStateOf(100)
@@ -85,11 +83,12 @@ class ChatStreamingHandoverTest {
         val handover = compose.runOnIdle { TimelineStreamingHandover(state, 1, followPx) }
         compose.runOnIdle { assertTrue("pinned", handover.allowsSettledPresentation()) }
 
-        // Off-bottom with the message fully visible under older content: defer.
+        // Off-bottom with the message fully visible under older content: idle swap is allowed;
+        // the hold keeps the content above from moving.
         compose.runOnIdle { runBlocking { state.scrollToItem(0, followPx + 10) } }
         compose.waitForIdle()
         fun olderOffset() = state.layoutInfo.visibleItemsInfo.first { it.index == 2 }.offset
-        val before = compose.runOnIdle { assertFalse(handover.allowsSettledPresentation()); olderOffset() }
+        val before = compose.runOnIdle { assertTrue(handover.allowsSettledPresentation()); olderOffset() }
         // The settled hold restores the content above after a height change...
         compose.runOnIdle { messageHeight = 180 }
         compose.waitForIdle()
@@ -103,12 +102,12 @@ class ChatStreamingHandoverTest {
         compose.waitForIdle()
         compose.runOnIdle { assertNotEquals(unheldBefore, olderOffset()) }
 
-        // The message spans the viewport top (anchor inside it): defer.
+        // The message spans the viewport top (anchor inside it): idle swap is allowed.
         compose.runOnIdle { messageHeight = 2_000 }
         compose.waitForIdle()
         compose.runOnIdle { runBlocking { state.scrollToItem(1, 600) } }
         compose.waitForIdle()
-        compose.runOnIdle { assertFalse(handover.allowsSettledPresentation()) }
+        compose.runOnIdle { assertTrue(handover.allowsSettledPresentation()) }
 
         // Message entirely below the viewport: nothing visible can move.
         compose.runOnIdle { runBlocking { state.scrollToItem(10, 0) } }

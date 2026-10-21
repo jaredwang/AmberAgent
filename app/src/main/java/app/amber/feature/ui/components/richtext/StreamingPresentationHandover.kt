@@ -21,9 +21,9 @@ import kotlinx.coroutines.withContext
  * The streaming single-Text presentation is a degraded renderer (image labels,
  * monospace tables, raw math, no code cards). It must not outlive the drain,
  * but the settled block tree has different geometry, so the swap can move the
- * content the reader sees. Only the layer that owns the timeline's
- * LazyListState knows whether the reader is pinned to the bottom or this
- * message is visible; message blocks never infer viewport geometry themselves.
+ * content the reader sees. The timeline that owns LazyListState holds the
+ * reading position in the same measure pass and only defers while a drag or
+ * fling is in progress.
  */
 @Stable
 internal interface StreamingPresentationHandover {
