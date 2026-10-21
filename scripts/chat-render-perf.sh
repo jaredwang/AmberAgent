@@ -36,14 +36,21 @@ mkdir -p "$output_dir"
 run_adb get-state
 # Scope the display cap to this measurement and restore both original values.
 # A window hint alone is ignored by MIUI's touch boost on this device.
+# SKIP_REFRESH_CAP=true leaves system refresh settings alone (emulator smoke).
+skip_refresh_cap=false
+case "${SKIP_REFRESH_CAP:-}" in
+  true|1|yes) skip_refresh_cap=true ;;
+esac
 peak_before="$(run_adb shell settings get system peak_refresh_rate | tr -d '\r')"
 min_before="$(run_adb shell settings get system min_refresh_rate | tr -d '\r')"
 # MIUI keeps its own per-panel preference; peak/min alone are ignored once set.
 user_rate_before="$(run_adb shell settings get secure user_refresh_rate | tr -d '\r')"
 miui_rate_before="$(run_adb shell settings get secure miui_refresh_rate | tr -d '\r')"
-printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\nuser_refresh_rate=%s\nmiui_refresh_rate=%s\n' \
-  "$peak_before" "$min_before" "$user_rate_before" "$miui_rate_before" > "$output_dir/refresh-before.txt"
+printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\nuser_refresh_rate=%s\nmiui_refresh_rate=%s\nskip_refresh_cap=%s\n' \
+  "$peak_before" "$min_before" "$user_rate_before" "$miui_rate_before" "$skip_refresh_cap" \
+  > "$output_dir/refresh-before.txt"
 restore_refresh() {
+  if [[ "$skip_refresh_cap" == true ]]; then return 0; fi
   if [[ "$peak_before" == null ]]; then run_adb shell settings delete system peak_refresh_rate > /dev/null
   else run_adb shell settings put system peak_refresh_rate "$peak_before"; fi
   if [[ "$min_before" == null ]]; then run_adb shell settings delete system min_refresh_rate > /dev/null
@@ -55,6 +62,7 @@ restore_refresh() {
 }
 trap restore_refresh EXIT
 apply_refresh_cap() {
+  if [[ "$skip_refresh_cap" == true ]]; then return 0; fi
   # Re-assert for every profile: MIUI can promote the panel back to 120 Hz
   # between instrumentation processes even while the system cap is set.
   run_adb shell settings put system peak_refresh_rate 60.0
