@@ -1,5 +1,6 @@
 package app.amber.feature.ui.pages.chat
 
+import androidx.annotation.Keep
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.animation.animateContentSize
@@ -37,14 +38,19 @@ import kotlinx.coroutines.launch
  * not have (NoSuchMethodError on 392288d7 baseline-r1). This overload keeps
  * the round3 descriptor `(Modifier, LazyListState, II, Composer, I)`.
  */
+@Keep
 @Composable
-internal fun Modifier.streamingTailLayout(
+fun Modifier.streamingTailLayout(
     state: LazyListState,
     lazyIndex: Int,
     followBottomPx: Int,
-): Modifier = streamingTailLayout(
-    state, lazyIndex, followBottomPx, animate = true, itemKey = null,
-)
+): Modifier {
+    // Block body + @Keep: release R8 inlines an expression-body wrapper and
+    // drops the three-argument JVM method ChatRenderingDevicePerfTest calls.
+    return streamingTailLayout(
+        state, lazyIndex, followBottomPx, animate = true, itemKey = null,
+    )
+}
 
 @Composable
 internal fun Modifier.streamingTailLayout(
