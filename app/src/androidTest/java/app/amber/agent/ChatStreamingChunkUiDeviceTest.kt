@@ -853,12 +853,15 @@ class ChatStreamingChunkUiDeviceTest {
                 while (SystemClock.uptimeMillis() < swapDeadline && chunkNodes().none { it.text == "CELL_ALPHA" }) pump(32)
                 val imageDeadline = SystemClock.uptimeMillis() + 8_000
                 var imageHeight = 0f
+                var imageWidth = 0f
+                fun imageLoaded() = imageHeight > 0f && imageWidth / imageHeight > 1.2f
                 while (SystemClock.uptimeMillis() < imageDeadline) {
                     val imageNode = compose.onAllNodes(
                         hasContentDescription("FIXTURE_IMAGE_ALT"), useUnmergedTree = true,
                     ).fetchSemanticsNodes().firstOrNull()
                     imageHeight = imageNode?.boundsInRoot?.height ?: 0f
-                    if (imageHeight >= 180f) break
+                    imageWidth = imageNode?.boundsInRoot?.width ?: 0f
+                    if (imageLoaded()) break
                     pump(32)
                 }
                 val frames = synchronized(olderTops) { olderTops.drop(start) }
@@ -873,7 +876,7 @@ class ChatStreamingChunkUiDeviceTest {
                     put("streamingHadRawMath", streamingHadRawMath)
                     put("swappedCell", texts.any { it == "CELL_ALPHA" })
                     put("latex", latex); put("rawDollarParagraph", rawDollarParagraph)
-                    put("imageHeight", imageHeight)
+                    put("imageHeight", imageHeight); put("imageWidth", imageWidth)
                     put("imageUri", imageUri)
                 }
                 runCatching { capture("image-math-frames", json) }
@@ -883,7 +886,7 @@ class ChatStreamingChunkUiDeviceTest {
                 assertTrue("Older anchor moved in some frame: ${maxDeviation}px", maxDeviation <= 2f)
                 assertTrue("Settled math did not render as [Latex]", latex)
                 assertFalse("Settled tree invented a lone \$ node", rawDollarParagraph)
-                assertTrue("Local fixture image did not load (height=$imageHeight)", imageHeight >= 180f)
+                assertTrue("Local fixture image did not load (size=${imageWidth}x$imageHeight)", imageLoaded())
             } catch (error: Throwable) {
                 Log.i(TAG, "image-math-frames failed: $error")
                 failure = error

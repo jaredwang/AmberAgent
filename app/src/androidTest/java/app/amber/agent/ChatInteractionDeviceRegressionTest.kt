@@ -357,9 +357,15 @@ class ChatInteractionDeviceRegressionTest {
     /** The streaming presentation's image label is the only text carrying the alt. */
     private fun imagePlaceholderVisible() = renderedTexts().any { RICH_IMAGE_ALT in it.text }
     private fun mathSettled() = renderedTexts().any { "[Latex]" in it.text }
-    private fun fixtureImageHeight(): Float =
+    private fun fixtureImageHeight(): Float = fixtureImageBounds()?.height ?: 0f
+    private fun fixtureImageLoaded(): Boolean {
+        val bounds = fixtureImageBounds() ?: return false
+        // Placeholder is square (120dp min). The fixture PNG is 3:2.
+        return bounds.height > 0f && bounds.width / bounds.height > 1.2f
+    }
+    private fun fixtureImageBounds(): androidx.compose.ui.geometry.Rect? =
         compose.onAllNodes(hasContentDescription(RICH_IMAGE_ALT), useUnmergedTree = true)
-            .fetchSemanticsNodes().firstOrNull()?.boundsInRoot?.height ?: 0f
+            .fetchSemanticsNodes().firstOrNull()?.boundsInRoot
     private fun fixtureImageUri(): String {
         val file = java.io.File(context.filesDir, "amber-fixture-image.png")
         if (!file.exists() || file.length() == 0L) {
@@ -564,7 +570,7 @@ class ChatInteractionDeviceRegressionTest {
                 }
                 // No touch input after send: the reader stays pinned.
                 pumpUntil(10_000, "settled rich renderer after completion") { richSettled() }
-                pumpUntil(8_000, "local fixture image loaded") { fixtureImageHeight() >= 180f }
+                pumpUntil(8_000, "local fixture image loaded") { fixtureImageLoaded() }
                 val settledAt = tokenBottom("RICH_END")
                 val bottom = timelineNode().boundsInRoot.bottom
                 pump(1_000)
@@ -585,7 +591,7 @@ class ChatInteractionDeviceRegressionTest {
                 check(renderedTexts().none { it.text.trim() == "$" || it.text.trim() == "$$" }) {
                     "Settled tree invented a lone \$ node"
                 }
-                check(fixtureImageHeight() >= 180f) { "Local fixture image did not load" }
+                check(fixtureImageLoaded()) { "Local fixture image did not load (height=${fixtureImageHeight()})" }
                 check(scrollValue == 0f) { "Pinned completion left the bottom: $scrollValue" }
                 requireNotNull(settledAt); requireNotNull(stableAt)
                 check(settledAt <= bottom + 2f) { "Last message end is below the timeline: $settledAt > $bottom" }
@@ -661,7 +667,7 @@ class ChatInteractionDeviceRegressionTest {
                 }
                 pumpUntil(2_000, "settled rich renderer while visible off-bottom") { richSettled() }
                 val imageDeadline = SystemClock.uptimeMillis() + 8_000
-                while (SystemClock.uptimeMillis() < imageDeadline && fixtureImageHeight() < 180f) {
+                while (SystemClock.uptimeMillis() < imageDeadline && !fixtureImageLoaded()) {
                     tokenTop("OLDER_READ_ANCHOR")?.let { frames += it }
                     pump(32)
                 }
@@ -688,7 +694,7 @@ class ChatInteractionDeviceRegressionTest {
                 check(kotlin.math.abs(stable - after) <= 2f) { "Older reading anchor drifted: $after->$stable" }
                 check(swapped) { "Visible off-bottom reply did not swap to settled under the reader" }
                 check(mathSettled()) { "Settled math did not render as [Latex]" }
-                check(fixtureImageHeight() >= 180f) { "Local fixture image did not load" }
+                check(fixtureImageLoaded()) { "Local fixture image did not load (height=${fixtureImageHeight()})" }
                 withTimeout(15_000) {
                     while (storedText(requireNotNull(repository.getConversationById(id))) != reply) delay(50)
                 }
