@@ -41,24 +41,83 @@ skip_refresh_cap=false
 case "${SKIP_REFRESH_CAP:-}" in
   true|1|yes) skip_refresh_cap=true ;;
 esac
-peak_before="$(run_adb shell settings get system peak_refresh_rate | tr -d '\r')"
-min_before="$(run_adb shell settings get system min_refresh_rate | tr -d '\r')"
+# settings get prints "null" when unset. Never `put` an empty string: that
+# deletes the key on this panel (4c left user_refresh_rate/miui_refresh_rate
+# unset after a restore that treated a blank/whitespace capture as a value).
+read_setting() {
+  local ns="$1" key="$2"
+  local raw
+  raw="$(run_adb shell settings get "$ns" "$key" | tr -d '\r' | tail -n 1)"
+  raw="${raw#"${raw%%[![:space:]]*}"}"
+  raw="${raw%"${raw##*[![:space:]]}"}"
+  if [[ -z "$raw" || "$raw" == null || "$raw" == none ]]; then
+    printf 'null'
+  else
+    printf '%s' "$raw"
+  fi
+}
+normalize_setting() {
+  local v="$1"
+  if [[ "$v" == null || "$v" == none || -z "$v" ]]; then
+    printf 'null'
+    return
+  fi
+  if [[ "$v" =~ ^[0-9]+[.]0+$ ]]; then
+    printf '%s' "${v%%.*}"
+    return
+  fi
+  printf '%s' "$v"
+}
+write_setting() {
+  local ns="$1" key="$2" value="$3"
+  if [[ "$value" == null || -z "$value" ]]; then
+    run_adb shell settings delete "$ns" "$key" > /dev/null
+  else
+    run_adb shell settings put "$ns" "$key" "$value"
+  fi
+}
+peak_before="$(read_setting system peak_refresh_rate)"
+min_before="$(read_setting system min_refresh_rate)"
 # MIUI keeps its own per-panel preference; peak/min alone are ignored once set.
-user_rate_before="$(run_adb shell settings get secure user_refresh_rate | tr -d '\r')"
-miui_rate_before="$(run_adb shell settings get secure miui_refresh_rate | tr -d '\r')"
+user_rate_before="$(read_setting secure user_refresh_rate)"
+miui_rate_before="$(read_setting secure miui_refresh_rate)"
 printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\nuser_refresh_rate=%s\nmiui_refresh_rate=%s\nskip_refresh_cap=%s\n' \
   "$peak_before" "$min_before" "$user_rate_before" "$miui_rate_before" "$skip_refresh_cap" \
   > "$output_dir/refresh-before.txt"
 restore_refresh() {
   if [[ "$skip_refresh_cap" == true ]]; then return 0; fi
-  if [[ "$peak_before" == null ]]; then run_adb shell settings delete system peak_refresh_rate > /dev/null
-  else run_adb shell settings put system peak_refresh_rate "$peak_before"; fi
-  if [[ "$min_before" == null ]]; then run_adb shell settings delete system min_refresh_rate > /dev/null
-  else run_adb shell settings put system min_refresh_rate "$min_before"; fi
-  if [[ "$user_rate_before" == null ]]; then run_adb shell settings delete secure user_refresh_rate > /dev/null
-  else run_adb shell settings put secure user_refresh_rate "$user_rate_before"; fi
-  if [[ "$miui_rate_before" == null ]]; then run_adb shell settings delete secure miui_refresh_rate > /dev/null
-  else run_adb shell settings put secure miui_refresh_rate "$miui_rate_before"; fi
+  # peak/min first, then the MIUI keys. Deleting min_refresh_rate can clear
+  # user/miui on this panel, so write those last and retry once.
+  write_setting system peak_refresh_rate "$peak_before"
+  write_setting system min_refresh_rate "$min_before"
+  write_setting secure user_refresh_rate "$user_rate_before"
+  write_setting secure miui_refresh_rate "$miui_rate_before"
+  local user_now miui_now
+  user_now="$(read_setting secure user_refresh_rate)"
+  miui_now="$(read_setting secure miui_refresh_rate)"
+  if [[ "$(normalize_setting "$user_now")" != "$(normalize_setting "$user_rate_before")" || \
+        "$(normalize_setting "$miui_now")" != "$(normalize_setting "$miui_rate_before")" ]]; then
+    write_setting secure user_refresh_rate "$user_rate_before"
+    write_setting secure miui_refresh_rate "$miui_rate_before"
+  fi
+}
+verify_refresh_restored() {
+  local peak min user miui
+  peak="$(read_setting system peak_refresh_rate)"
+  min="$(read_setting system min_refresh_rate)"
+  user="$(read_setting secure user_refresh_rate)"
+  miui="$(read_setting secure miui_refresh_rate)"
+  printf 'peak_refresh_rate=%s\nmin_refresh_rate=%s\nuser_refresh_rate=%s\nmiui_refresh_rate=%s\nskip_refresh_cap=%s\n' \
+    "$peak" "$min" "$user" "$miui" "$skip_refresh_cap" \
+    > "$output_dir/refresh-after.txt"
+  if [[ "$skip_refresh_cap" == true ]]; then return 0; fi
+  if [[ "$(normalize_setting "$peak")" != "$(normalize_setting "$peak_before")" || \
+        "$(normalize_setting "$min")" != "$(normalize_setting "$min_before")" || \
+        "$(normalize_setting "$user")" != "$(normalize_setting "$user_rate_before")" || \
+        "$(normalize_setting "$miui")" != "$(normalize_setting "$miui_rate_before")" ]]; then
+    echo "Refresh restore mismatch: before peak=$peak_before min=$min_before user=$user_rate_before miui=$miui_rate_before after peak=$peak min=$min user=$user miui=$miui" >&2
+    return 1
+  fi
 }
 trap restore_refresh EXIT
 apply_refresh_cap() {
@@ -78,8 +137,22 @@ run_adb shell dumpsys window policy > "$output_dir/window-policy.txt"
 run_adb shell dumpsys display > "$output_dir/display.txt"
 run_adb shell getprop ro.build.fingerprint > "$output_dir/fingerprint.txt"
 shasum -a 256 "$main_apk" "$test_apk" > "$output_dir/apk-sha256.txt"
-run_adb install -r "$main_apk" | tee "$output_dir/install-main.txt"
-run_adb install -r "$test_apk" | tee "$output_dir/install-test.txt"
+install_apk() {
+  local apk="$1" log="$2"
+  run_adb shell input keyevent KEYCODE_WAKEUP || true
+  if run_adb install -r -t "$apk" | tee "$log"; then
+    return 0
+  fi
+  # Switching to a new package on this panel can raise
+  # INSTALL_FAILED_USER_RESTRICTED if the USB-install confirm is
+  # missed (4d baseline androidTest). Wake and retry once.
+  echo "Retrying install of $apk after wakeup" | tee -a "$log"
+  sleep 2
+  run_adb shell input keyevent KEYCODE_WAKEUP || true
+  run_adb install -r -t "$apk" | tee -a "$log"
+}
+install_apk "$main_apk" "$output_dir/install-main.txt"
+install_apk "$test_apk" "$output_dir/install-test.txt"
 # Both runs use the same temporary display cap, font, content and gestures.
 trace_running=false
 stop_trace() {
@@ -157,3 +230,5 @@ for profile in ${PROFILES:-short chinese mixed}; do
     "$output_dir/$profile-gfxinfo.txt"
   run_adb logcat -d -s AmberRenderPerf:I > "$output_dir/$profile-logcat.txt"
 done
+restore_refresh
+verify_refresh_restored

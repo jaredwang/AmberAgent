@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -182,5 +183,50 @@ class ChatStreamingHandoverTest {
         compose.runOnIdle { runBlocking { state.scrollToItem(0, 0) } }
         compose.waitForIdle()
         compose.runOnIdle { assertTrue(handover.allowsSettledPresentation()) }
+    }
+
+    @Test
+    fun tallReplyOccupyingBottomHalfDoesNotCaptureReadingLineWhenOlderVisibleAtTop() {
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(
+                Modifier.height(400.dp),
+                state = state,
+                reverseLayout = true,
+            ) {
+                items(12, key = { it }) { index ->
+                    val height = when (index) {
+                        0 -> 40
+                        1 -> 280
+                        else -> 120
+                    }
+                    Box(Modifier.fillMaxWidth().height(height.dp))
+                }
+            }
+        }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            val info = state.layoutInfo
+            val reply = info.visibleItemsInfo.first { it.key == 1 }
+            val older = info.visibleItemsInfo.first { it.key == 2 }
+            val midpoint = (info.viewportStartOffset + info.viewportEndOffset) / 2
+            val line = viewportReadingLine(info)
+            assertTrue(
+                "midpoint ($midpoint) is the 4c false-inside case; reply=${reply.offset}/${reply.size}",
+                midpoint >= reply.offset && midpoint < reply.offset + reply.size,
+            )
+            assertTrue(
+                "older item must contain the visual-top reading line ($line) older=${older.offset}/${older.size}",
+                line >= older.offset && line < older.offset + older.size,
+            )
+            assertFalse(
+                "tall reply must not own the reading line ($line) reply=${reply.offset}/${reply.size}",
+                readingLineInsideItem(info, 1),
+            )
+            assertTrue(readingLineInsideItem(info, 2))
+            val handover = TimelineStreamingHandover(state, 1, 24)
+            assertTrue("older-anchor must swap immediately", handover.allowsSettledPresentation())
+        }
     }
 }

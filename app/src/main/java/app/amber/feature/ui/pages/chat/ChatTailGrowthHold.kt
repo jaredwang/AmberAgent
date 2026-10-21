@@ -65,7 +65,13 @@ internal fun shouldAnimateStreamingTail(index: Int, offset: Int, threshold: Int,
  * treating that published pair as pinned dropped the last 19-char
  * (66–132px) streaming delta. Prefer an in-flight [requestedIndex]
  * that is still in [visibleItems], then the lowest index actually in
- * layoutInfo, then the published pair.
+ * layoutInfo (with that item's layout offset), then the published pair.
+ *
+ * Same-index published offset can lag too: TimelineTail stays at index 0,
+ * so a short off-bottom drag (88px) still matches published index 0 while
+ * `firstVisibleItemScrollOffset` is still 0. Using the published offset
+ * then looks pinned and eats the settle-height delta (4d
+ * `productionVisibleReplySwapsUnderOlderReadingAnchor`: 359→275, 84px).
  */
 internal fun readingAnchorFromLayout(
     visibleItems: List<LazyListItemInfo>,
@@ -79,12 +85,21 @@ internal fun readingAnchorFromLayout(
         return requestedIndex to requestedOffset
     }
     val layoutFirst = visibleItems.minByOrNull { it.index } ?: return publishedIndex to publishedOffset
-    val offset = if (layoutFirst.index == publishedIndex) {
-        publishedOffset
-    } else {
-        (viewportStartOffset - layoutFirst.offset).coerceAtLeast(0)
+    val layoutOffset = (viewportStartOffset - layoutFirst.offset).coerceAtLeast(0)
+    if (layoutFirst.index != publishedIndex) {
+        return layoutFirst.index to layoutOffset
     }
-    return layoutFirst.index to offset
+    // Same index: firstVisibleItemScrollOffset is the requestScrollToItem
+    // coordinate (content padding included). Always-using layoutOffset
+    // over-compensated by the reverseLayout bottom padding (handover
+    // geometry test: 106→114). Only override when the published pair
+    // still looks pinned while layout already shows the item scrolled in.
+    val publishedLooksPinned = publishedIndex == 0 && publishedOffset <= 2
+    val layoutScrolledIntoItem = layoutFirst.offset < viewportStartOffset
+    if (publishedLooksPinned && layoutScrolledIntoItem) {
+        return layoutFirst.index to layoutOffset
+    }
+    return publishedIndex to publishedOffset
 }
 
 /** Hold iff the reader is not pinned to the reverseLayout bottom. */
@@ -141,6 +156,31 @@ internal fun idleHoldShouldDropSettledTarget(
     // two placeholder frames (4c image-math 664px).
     if (firstVisibleIndex != requestedIndex) return true
     return requestedOffset > 2 && firstVisibleOffset <= 2
+}
+
+/**
+ * A non-animated [androidx.compose.foundation.lazy.LazyListState.scrollToItem]
+ * to the same index with a different offset must keep that target. The idle
+ * hold's in-flight [requestedOffset] would otherwise yank it back during
+ * growth (late-frame reconcile dispatches the missed delta).
+ *
+ * Lag after our own [androidx.compose.foundation.lazy.LazyListState.requestScrollToItem]
+ * still shows [lastSeenOffset]. An external jump lands on a third value.
+ */
+internal fun idleHoldShouldAdoptExternalScroll(
+    requestedIndex: Int,
+    requestedOffset: Int,
+    firstVisibleIndex: Int,
+    firstVisibleOffset: Int,
+    lastSeenOffset: Int,
+    applyingHold: Boolean,
+): Boolean {
+    if (applyingHold) return false
+    if (requestedIndex < 0 || lastSeenOffset < 0) return false
+    if (firstVisibleIndex != requestedIndex) return false
+    if (firstVisibleOffset == requestedOffset) return false
+    if (firstVisibleOffset == lastSeenOffset) return false
+    return true
 }
 
 /**
@@ -251,6 +291,7 @@ private class HoldReadingOnTailGrowthNode(
     // and add the next delta to that, not to stale state.
     private var requestedIndex = -1
     private var requestedOffset = -1
+    private var lastPublishedOffset = -1
     // requestScrollToItem flags isScrollInProgress. That is not a user
     // gesture: skipping idle hold for it drops the next height delta
     // (device fling generating −144px after the same idle path as drag).
@@ -265,6 +306,7 @@ private class HoldReadingOnTailGrowthNode(
         reconcileScheduled = false
         requestedIndex = -1
         requestedOffset = -1
+        lastPublishedOffset = -1
         programmaticScroll = false
         stableIdleFrames = 0
     }
@@ -275,6 +317,7 @@ private class HoldReadingOnTailGrowthNode(
         reconcileScheduled = false
         requestedIndex = -1
         requestedOffset = -1
+        lastPublishedOffset = -1
         programmaticScroll = false
         stableIdleFrames = 0
     }
@@ -286,6 +329,19 @@ private class HoldReadingOnTailGrowthNode(
         val placeable = measurable.measure(constraints)
         val height = placeable.height
         if (!state.isScrollInProgress) programmaticScroll = false
+        val publishedIndex = state.firstVisibleItemIndex
+        val publishedOffset = state.firstVisibleItemScrollOffset
+        if (idleHoldShouldAdoptExternalScroll(
+                requestedIndex = requestedIndex,
+                requestedOffset = requestedOffset,
+                firstVisibleIndex = publishedIndex,
+                firstVisibleOffset = publishedOffset,
+                lastSeenOffset = lastPublishedOffset,
+                applyingHold = applyingHold,
+            )
+        ) {
+            requestedOffset = publishedOffset
+        }
         // Idle / our own requestScrollToItem: compensate in measure.
         // A real user drag/fling owns isScrollInProgress without
         // programmaticScroll; requestScrollToItem would cancel it.
@@ -315,6 +371,7 @@ private class HoldReadingOnTailGrowthNode(
                 requestedOffset = -1
             }
         }
+        lastPublishedOffset = publishedOffset
         return layout(placeable.width, placeable.height) {
             placeable.place(0, 0)
         }
@@ -357,8 +414,23 @@ private class HoldReadingOnTailGrowthNode(
 
     private fun reconcileIdleRequest() {
         if (requestedIndex < 0) return
-        if (state.firstVisibleItemIndex != requestedIndex) return
-        val missed = requestedOffset - state.firstVisibleItemScrollOffset
+        val publishedIndex = state.firstVisibleItemIndex
+        val publishedOffset = state.firstVisibleItemScrollOffset
+        if (publishedIndex != requestedIndex) return
+        if (idleHoldShouldAdoptExternalScroll(
+                requestedIndex = requestedIndex,
+                requestedOffset = requestedOffset,
+                firstVisibleIndex = publishedIndex,
+                firstVisibleOffset = publishedOffset,
+                lastSeenOffset = lastPublishedOffset,
+                applyingHold = applyingHold,
+            )
+        ) {
+            requestedOffset = publishedOffset
+            lastPublishedOffset = publishedOffset
+            return
+        }
+        val missed = requestedOffset - publishedOffset
         if (missed == 0 || reconcileScheduled) return
         reconcileScheduled = true
         coroutineScope.launch {

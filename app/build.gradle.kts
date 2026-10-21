@@ -309,9 +309,6 @@ android {
             (this as ExtensionAware).extensions.configure<CrashlyticsExtension>("firebaseCrashlytics") {
                 mappingFileUploadEnabled = false
             }
-            if (chatDeviceFixtureEnabled) {
-                proguardFiles("proguard-chat-device-fixture.pro")
-            }
         }
         create("nonMinifiedRelease") {
             initWith(getByName("release"))
@@ -1112,10 +1109,5 @@ dependencies {
     // Keeps device renderer checks isolated from the canonical installed app.
     if (chatDeviceFixtureEnabled) {
         add("baselineImplementation", libs.androidx.ui.test.manifest)
-        // Align androidx.tracing so AndroidJUnitRunner.onCreate can resolve
-        // Trace.beginSection(String) from the instrumented app process.
-        // benchmarkReleaseImplementation keeps this out of ordinary debug/release.
-        add("benchmarkReleaseImplementation", "androidx.tracing:tracing:1.2.0")
-        androidTestImplementation("androidx.tracing:tracing:1.2.0")
     }
 }

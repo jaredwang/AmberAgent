@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -92,6 +93,50 @@ class ChatTailGrowthHoldTest {
         assertTrue(drop(visibleIndex = 0, requestedIndex = 1, visibleOffset = 0, requestedOffset = 80))
     }
 
+    @Test
+    fun idleHoldAdoptsExternalScrollToSameIndexNotLag() {
+        assertFalse(
+            idleHoldShouldAdoptExternalScroll(
+                requestedIndex = 1,
+                requestedOffset = 80,
+                firstVisibleIndex = 1,
+                firstVisibleOffset = 40,
+                lastSeenOffset = 40,
+                applyingHold = false,
+            ),
+        )
+        assertTrue(
+            idleHoldShouldAdoptExternalScroll(
+                requestedIndex = 1,
+                requestedOffset = 80,
+                firstVisibleIndex = 1,
+                firstVisibleOffset = 200,
+                lastSeenOffset = 80,
+                applyingHold = false,
+            ),
+        )
+        assertFalse(
+            idleHoldShouldAdoptExternalScroll(
+                requestedIndex = 1,
+                requestedOffset = 80,
+                firstVisibleIndex = 1,
+                firstVisibleOffset = 200,
+                lastSeenOffset = -1,
+                applyingHold = false,
+            ),
+        )
+        assertFalse(
+            idleHoldShouldAdoptExternalScroll(
+                requestedIndex = 1,
+                requestedOffset = 80,
+                firstVisibleIndex = 1,
+                firstVisibleOffset = 200,
+                lastSeenOffset = 80,
+                applyingHold = true,
+            ),
+        )
+    }
+
     /**
      * 4c device cancelRegenerate: after a long regenerate the test
      * scrollToItem(0) to expose DEVICE_FINAL_COPY_MARKER. Skipping
@@ -133,6 +178,50 @@ class ChatTailGrowthHoldTest {
     }
 
     @Test
+    fun idleHoldDoesNotYankProgrammaticScrollToItemOnSameIndexWhileGrowing() {
+        var streamHeight by mutableIntStateOf(180)
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.height(400.dp), state = state, reverseLayout = true) {
+                item(key = 0) { Box(Modifier.fillMaxWidth().height(8.dp)) }
+                item(key = 1) {
+                    Box(
+                        Modifier
+                            .holdReadingOnTailGrowth(state, 1, 24, itemKey = 1)
+                            .fillMaxWidth()
+                            .height(streamHeight.dp),
+                    )
+                }
+                items(8, key = { it + 2 }) {
+                    Box(Modifier.fillMaxWidth().height(80.dp))
+                }
+            }
+        }
+        compose.runOnIdle { runBlocking { state.scrollToItem(1, 40) } }
+        compose.waitForIdle()
+        compose.runOnIdle { streamHeight = 400 }
+        compose.waitForIdle()
+        val holdOffset = state.firstVisibleItemScrollOffset
+        check(state.firstVisibleItemIndex == 1)
+        check(holdOffset > 40) { "hold should have compensated growth: offset=$holdOffset" }
+        compose.runOnIdle { runBlocking { state.scrollToItem(1, 200) } }
+        compose.waitForIdle()
+        compose.runOnIdle { streamHeight = 640 }
+        compose.waitForIdle()
+        val after = state.firstVisibleItemScrollOffset
+        assertEquals(1, state.firstVisibleItemIndex)
+        assertTrue(
+            "scrollToItem(1, 200) must stay at the target (further growth may add to it): after=$after",
+            after >= 198,
+        )
+        assertTrue(
+            "scrollToItem(1, 200) must not return to the pre-scroll hold offset $holdOffset: after=$after",
+            kotlin.math.abs(after - holdOffset) > 2,
+        )
+    }
+
+    @Test
     fun userDragOwnsScrollEvenWhenIdleHoldTargetIsOutstanding() {
         assertTrue(userGestureOwnsScroll(scrollInProgress = true, programmaticScroll = false))
         assertFalse(userGestureOwnsScroll(scrollInProgress = true, programmaticScroll = true))
@@ -165,6 +254,32 @@ class ChatTailGrowthHoldTest {
                 firstIndex = anchor.first,
                 firstOffset = anchor.second,
                 followBottomPx = 66,
+                growingItemVisible = true,
+            ),
+        )
+    }
+
+    @Test
+    fun readingAnchorUsesLayoutOffsetWhenPublishedOffsetLagsOnSameIndex() {
+        val vis = listOf(
+            FakeItem(index = 0, key = "tail", offset = -88, size = 200),
+            FakeItem(index = 1, key = "msg", offset = 112, size = 800),
+            FakeItem(index = 2, key = "older", offset = 912, size = 200),
+        )
+        val anchor = readingAnchorFromLayout(
+            visibleItems = vis,
+            viewportStartOffset = 0,
+            publishedIndex = 0,
+            publishedOffset = 0,
+            requestedIndex = -1,
+            requestedOffset = -1,
+        )
+        assertEquals(0 to 88, anchor)
+        assertTrue(
+            shouldHoldReadingOnTailGrowth(
+                firstIndex = anchor.first,
+                firstOffset = anchor.second,
+                followBottomPx = 72,
                 growingItemVisible = true,
             ),
         )
@@ -701,6 +816,65 @@ class ChatTailGrowthHoldTest {
         val maxDev = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
         assertTrue(
             "older item moved ${maxDev}px while first-visible was the growing item " +
+                "(baseline=$baseline tops=$frames first=${state.firstVisibleItemIndex}/" +
+                "${state.firstVisibleItemScrollOffset})",
+            maxDev <= 2f,
+        )
+    }
+
+    /**
+     * 4d older-anchor device: one short drag leaves TimelineTail first-visible
+     * at offset 88 (just past the 24.dp pin buffer). Settled-tree height +84px
+     * must not move the older token; a stale published 0/0 would look pinned
+     * and eat the delta.
+     */
+    @Test
+    fun streamGrowthWhileFirstVisibleIsTheTailJustPastPinBufferDoesNotMoveOlderItem() {
+        var streamHeight by mutableIntStateOf(200)
+        val olderTops = mutableListOf<Float>()
+        lateinit var state: LazyListState
+        compose.setContent {
+            state = rememberLazyListState()
+            LazyColumn(Modifier.height(400.dp), state = state, reverseLayout = true) {
+                item(key = 0) { Box(Modifier.fillMaxWidth().height(200.dp)) }
+                item(key = 1) {
+                    Box(
+                        Modifier
+                            .holdReadingOnTailGrowth(state, 1, 24, itemKey = 1)
+                            .fillMaxWidth()
+                            .height(streamHeight.dp),
+                    )
+                }
+                item(key = 2) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .onGloballyPositioned { olderTops += it.positionInRoot().y },
+                    )
+                }
+                items(8, key = { it + 3 }) {
+                    Box(Modifier.fillMaxWidth().height(80.dp))
+                }
+            }
+        }
+        compose.runOnIdle { runBlocking { state.scrollToItem(0, 88) } }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertEquals(0, state.firstVisibleItemIndex)
+            assertTrue(
+                "need a just-off-bottom tail offset, was ${state.firstVisibleItemScrollOffset}",
+                state.firstVisibleItemScrollOffset >= 80,
+            )
+        }
+        val start = olderTops.size
+        val baseline = olderTops.last()
+        compose.runOnIdle { streamHeight = 284 }
+        compose.waitForIdle()
+        val frames = olderTops.drop(start)
+        val maxDev = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+        assertTrue(
+            "older item moved ${maxDev}px after +84px while first-visible was the tail " +
                 "(baseline=$baseline tops=$frames first=${state.firstVisibleItemIndex}/" +
                 "${state.firstVisibleItemScrollOffset})",
             maxDev <= 2f,

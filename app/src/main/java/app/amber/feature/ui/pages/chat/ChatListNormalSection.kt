@@ -243,6 +243,8 @@ internal fun ChatListNormal(
                         listState = state,
                         plan = chatTimelinePlan,
                         messageNodes = conversation.messageNodes,
+                        regexes = settings.regexes,
+                        sessionId = conversation.id,
                     )
                     LazyColumn(
                         state = state,

@@ -347,13 +347,14 @@ class ChatInteractionDeviceRegressionTest {
     private fun timelineScrollValue() = timelineNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
     /**
      * Screen-space equivalent of [app.amber.feature.ui.pages.chat.viewportReadingLine]:
-     * the vertical midpoint of the reverseLayout timeline. The production
-     * gate treats the reading line as inside the reply when this Y falls in
-     * that message's item; the older-anchor case needs the reply top below it.
+     * the visual top of the reverseLayout timeline (older-content edge), not
+     * the midpoint. The production gate treats the reading line as inside the
+     * reply when this Y falls in that message's item; the older-anchor case
+     * needs the reply top below it.
      */
     private fun timelineReadingLineY(): Float {
         val bounds = timelineNode().boundsInRoot
-        return (bounds.top + bounds.bottom) / 2f
+        return bounds.top + 1f
     }
 
     /**
@@ -675,14 +676,24 @@ class ChatInteractionDeviceRegressionTest {
                 var dragPasses = 0
                 fun olderY() = tokenTop("OLDER_READ_ANCHOR")
                 fun introY() = tokenTop("RICH_INTRO")
-                fun readingLineAboveReply(): Boolean {
+                fun olderAnchorReady(): Boolean {
                     val older = olderY() ?: return false
                     val intro = introY() ?: return false
+                    val bounds = timelineNode().boundsInRoot
+                    val lowerHalf = bounds.top + bounds.height * 0.5f
+                    // Visual-top is the production reading line; the fixture still
+                    // places the reply in the lower half so the reader is in the
+                    // older message (4c passing geometry). One short drag leaves
+                    // the reply filling the midpoint and a 84px settle jump
+                    // (359→275) that 6-pass 4c runs did not see.
                     return older in 0f..height.toFloat() &&
                         intro in 0f..height.toFloat() &&
-                        intro > readingLine
+                        intro > older &&
+                        intro > lowerHalf &&
+                        older < lowerHalf &&
+                        timelineScrollValue() > 0f
                 }
-                while (!readingLineAboveReply() && dragPasses < 40) {
+                while (!olderAnchorReady() && dragPasses < 40) {
                     drag(scenario, stepPx = 28f, steps = 4)
                     dragPasses++
                     Log.i(
@@ -715,7 +726,20 @@ class ChatInteractionDeviceRegressionTest {
                         pump(32)
                     }
                 }
-                pumpUntil(2_000, "settled rich renderer while visible off-bottom") { richSettled() }
+                try {
+                    pumpUntil(2_000, "settled rich renderer while visible off-bottom") { richSettled() }
+                } catch (error: Throwable) {
+                    Log.i(
+                        TAG,
+                        "older-anchor-gate-timeout " +
+                            "readingLine=$readingLine older=${olderY()} intro=${introY()} " +
+                            "height=$height scroll=${timelineScrollValue()} " +
+                            "rich=${richState()} image=${fixtureImageBounds()?.let { "${it.width}x${it.height}@${it.top}" }} " +
+                            "before=$before replyTopBefore=$replyTopBefore " +
+                            "samples=${frames.size} last=${frames.lastOrNull()}",
+                    )
+                    throw error
+                }
                 val imageDeadline = SystemClock.uptimeMillis() + 8_000
                 while (SystemClock.uptimeMillis() < imageDeadline && !fixtureImageLoaded()) {
                     tokenTop("OLDER_READ_ANCHOR")?.let { frames += it }
@@ -736,6 +760,19 @@ class ChatInteractionDeviceRegressionTest {
                 frames += stable
                 val swapped = richSettled()
                 val maxDeviation = (frames + before).maxOf { kotlin.math.abs(it - before) }
+                if (maxDeviation > 2f) {
+                    val bounds = timelineNode().boundsInRoot
+                    Log.i(
+                        TAG,
+                        "older-anchor-moved " +
+                            "readingLine=$readingLine older=${olderY()} intro=${introY()} " +
+                            "height=$height scroll=${timelineScrollValue()} " +
+                            "bounds=${bounds.top}..${bounds.bottom} " +
+                            "before=$before after=$after stable=$stable " +
+                            "replyTopBefore=$replyTopBefore replyTopAfter=$replyTopAfter " +
+                            "samples=$frames",
+                    )
+                }
                 returnToBottom(scenario)
                 pumpUntil(10_000, "settled rich renderer remains at the bottom") { richSettled() }
                 val result = org.json.JSONObject().apply {

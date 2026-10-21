@@ -511,15 +511,88 @@ class ChatStreamingChunkUiDeviceTest {
                 val gestureGrowthOver2 = gestureGrowthFrames.count { kotlin.math.abs(it - during) > 2f }
                 if (endMode != "fling") streaming.value = false
                 if (finishingDuringGesture) {
-                    repeat(5) { step ->
-                        pump(16)
-                        send(android.view.MotionEvent.ACTION_MOVE, y0 + 112f + (step + 1) * 28f, SystemClock.uptimeMillis())
-                    }
-                    if (endMode == "drag") pump(200)
-                    send(android.view.MotionEvent.ACTION_UP, y0 + 252f, SystemClock.uptimeMillis())
-                    if (endMode == "fling") {
-                        pump(48)
-                        check(listRef.get().isScrollInProgress) { "Generation must finish during actual inertia" }
+                    if (endMode == "drag") {
+                        repeat(5) { step ->
+                            pump(16)
+                            send(android.view.MotionEvent.ACTION_MOVE, y0 + 112f + (step + 1) * 28f, SystemClock.uptimeMillis())
+                        }
+                        pump(200)
+                        send(android.view.MotionEvent.ACTION_UP, y0 + 252f, SystemClock.uptimeMillis())
+                    } else {
+                        // Fling: continue the same pointer (DOWN already sent).
+                        // Remaining inertia on this fixture is ~19px (~1 frame).
+                        // Do not pump frames between UP and the inertia check —
+                        // pump(16)/pump(48) ate that window (4d run 8:
+                        // scroll=false offset=19123). Confirm isScrollInProgress
+                        // on the main thread immediately after UP, with lift
+                        // velocity still above min fling; retry one new flick
+                        // only if that first UP already settled.
+                        val list = listRef.get()
+                        val minFling = android.view.ViewConfiguration.get(context)
+                            .scaledMinimumFlingVelocity
+                            .toFloat()
+                        fun snapshot(): Triple<Boolean, Int, Int> {
+                            var inProgress = false
+                            var index = 0
+                            var offset = 0
+                            instrumentation.runOnMainSync {
+                                inProgress = list.isScrollInProgress
+                                index = list.firstVisibleItemIndex
+                                offset = list.firstVisibleItemScrollOffset
+                            }
+                            return Triple(inProgress, index, offset)
+                        }
+                        fun continueFlick(startY: Float): Triple<Boolean, Int, Int> {
+                            var lastY = startY
+                            var lastT = SystemClock.uptimeMillis()
+                            var prevY = startY
+                            var prevT = lastT
+                            repeat(6) { step ->
+                                compose.mainClock.advanceTimeBy(8)
+                                SystemClock.sleep(8)
+                                prevY = lastY
+                                prevT = lastT
+                                lastY = startY + (step + 1) * 48f
+                                lastT = SystemClock.uptimeMillis()
+                                send(android.view.MotionEvent.ACTION_MOVE, lastY, lastT)
+                            }
+                            val dt = (lastT - prevT).coerceAtLeast(1L)
+                            val vy = kotlin.math.abs((lastY - prevY) * 1000f / dt)
+                            val beforeUp = snapshot()
+                            send(
+                                android.view.MotionEvent.ACTION_UP,
+                                lastY,
+                                SystemClock.uptimeMillis(),
+                            )
+                            val after = snapshot()
+                            Log.i(
+                                TAG,
+                                "after-up scroll=${after.first} index=${after.second} offset=${after.third} " +
+                                    "from=${beforeUp.second}/${beforeUp.third} vy=$vy minFling=$minFling " +
+                                    "beforeUpScroll=${beforeUp.first}",
+                            )
+                            return Triple(after.first && vy > minFling, after.second, after.third)
+                        }
+                        fun newFlick(originY: Float): Triple<Boolean, Int, Int> {
+                            send(
+                                android.view.MotionEvent.ACTION_DOWN,
+                                originY,
+                                SystemClock.uptimeMillis(),
+                            )
+                            return continueFlick(originY)
+                        }
+                        var inertia = continueFlick(y0 + 112f)
+                        if (!inertia.first) inertia = newFlick(y0 + 0.15f * view.height)
+                        val confirm = snapshot()
+                        check(inertia.first && confirm.first) {
+                            "Generation must finish during actual inertia " +
+                                "scroll=${confirm.first} index=${confirm.second} " +
+                                "offset=${confirm.third}"
+                        }
+                        Log.i(
+                            TAG,
+                            "inertia-started index=${confirm.second} offset=${confirm.third}",
+                        )
                         streaming.value = false
                     }
                 }

@@ -73,9 +73,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.composables.icons.lucide.Play
 import app.amber.agent.R
 import app.amber.agent.Screen
-import app.amber.core.model.AssistantAffectScope
 import app.amber.core.model.AssistantRegex
-import app.amber.core.ai.generative.GenerativeUiPlanner
 import app.amber.core.ai.generative.GenerativeWidgetCopy
 import app.amber.core.ai.generative.GenerativeWidgetParser
 import app.amber.feature.ui.components.media.rememberVideoCover
@@ -321,12 +319,10 @@ internal fun MessagePartsBlock(
                                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                                         ) {
                                             MarkdownBlock(
-                                                content = GenerativeUiPlanner.stripVisualRouteTagsForDisplay(
-                                                    MessageRenderCache.visualRegexText(
-                                                        text = part.text,
-                                                        regexes = regexes,
-                                                        scope = AssistantAffectScope.USER,
-                                                    )
+                                                content = MessageRenderCache.displayMarkdownText(
+                                                    text = part.text,
+                                                    regexes = regexes,
+                                                    role = MessageRole.USER,
                                                 ),
                                                 fillWidth = false,
                                                 onClickCitation = handleClickCitation
@@ -341,10 +337,10 @@ internal fun MessagePartsBlock(
                                     // note above for why this is "is the trailing block" rather
                                     // than "is the last Text block".
                                     val isStreamingText = loading && blockIdx == lastBlockIdx
-                                    val assistantDisplayText = MessageRenderCache.visualRegexText(
+                                    val assistantDisplayText = MessageRenderCache.displayMarkdownText(
                                         text = part.text,
                                         regexes = regexes,
-                                        scope = AssistantAffectScope.ASSISTANT,
+                                        role = MessageRole.ASSISTANT,
                                     )
                                     // Streaming tail text block: single-Text markdown layer
                                     // (layout only grows, no block-tree re-layout mid-stream).

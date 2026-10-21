@@ -1,5 +1,6 @@
 package app.amber.feature.ui.pages.chat
 
+import android.util.Log
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -13,25 +14,67 @@ import androidx.compose.runtime.setValue
 import app.amber.feature.ui.components.richtext.StreamingPresentationHandover
 import kotlinx.coroutines.delay
 
+private const val HANDOVER_GATE_TAG = "AmberHandover"
+
 /**
- * Midpoint of the LazyList viewport in the same offset space as
+ * Reading line in the same offset space as
  * [androidx.compose.foundation.lazy.LazyListItemInfo.offset] / size.
  *
- * Device tests treat a visible token's unclipped `positionInRoot` +
- * `getBoundingBox` as the reading anchor. That token sits on screen, so
- * the viewport midpoint is the layoutInfo equivalent: a long reply that
- * fills the viewport contains the midpoint (anchor inside the reply);
- * a short reply stuck at the bottom under older content does not
- * (anchor in the older message).
+ * The timeline is a reverseLayout LazyColumn: offsets grow from the visual
+ * bottom (newest, [LazyListLayoutInfo.viewportStartOffset]) toward the
+ * visual top (older, [LazyListLayoutInfo.viewportEndOffset]). A reader who
+ * has scrolled to older content is looking at that top edge, so this is
+ * the last pixel inside the viewport — not the midpoint.
+ *
+ * A tall reply that fills the bottom half contains the midpoint even while
+ * the reader is in the older message above it; using the midpoint kept the
+ * settle gate deferred (4c `productionVisibleReplySwapsUnderOlderReadingAnchor`).
  */
 internal fun viewportReadingLine(layoutInfo: LazyListLayoutInfo): Int =
-    (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+    layoutInfo.viewportEndOffset - 1
 
 /** True when [viewportReadingLine] falls in the item identified by [itemKey]. */
 internal fun readingLineInsideItem(layoutInfo: LazyListLayoutInfo, itemKey: Any): Boolean {
     val item = layoutInfo.visibleItemsInfo.firstOrNull { it.key == itemKey } ?: return false
     val line = viewportReadingLine(layoutInfo)
     return line >= item.offset && line < item.offset + item.size
+}
+
+internal data class StreamingSettleGateSnapshot(
+    val viewportReadingLine: Int,
+    val itemOffset: Int?,
+    val itemSize: Int?,
+    val firstVisibleIndex: Int,
+    val firstVisibleOffset: Int,
+    val scrollInProgress: Boolean,
+    val awaiting: Boolean,
+    val itemVisible: Boolean,
+    val readingLineInsideItem: Boolean,
+) {
+    override fun toString(): String =
+        "line=$viewportReadingLine item=${itemOffset?.let { "$it/${itemSize}" } ?: "none"} " +
+            "first=$firstVisibleIndex/$firstVisibleOffset scroll=$scrollInProgress " +
+            "awaiting=$awaiting visible=$itemVisible inside=$readingLineInsideItem"
+}
+
+internal fun streamingSettleGateSnapshot(
+    state: LazyListState,
+    itemKey: Any,
+    awaiting: Boolean,
+): StreamingSettleGateSnapshot {
+    val info = state.layoutInfo
+    val item = info.visibleItemsInfo.firstOrNull { it.key == itemKey }
+    return StreamingSettleGateSnapshot(
+        viewportReadingLine = viewportReadingLine(info),
+        itemOffset = item?.offset,
+        itemSize = item?.size,
+        firstVisibleIndex = state.firstVisibleItemIndex,
+        firstVisibleOffset = state.firstVisibleItemScrollOffset,
+        scrollInProgress = state.isScrollInProgress,
+        awaiting = awaiting,
+        itemVisible = item != null,
+        readingLineInsideItem = readingLineInsideItem(info, itemKey),
+    )
 }
 
 /**
@@ -52,7 +95,7 @@ internal fun readingLineInsideItem(layoutInfo: LazyListLayoutInfo, itemKey: Any)
  * Idle rules:
  * 1. Pinned to the timeline bottom → swap.
  * 2. Reply not in `visibleItemsInfo` → swap.
- * 3. [readingLineInsideItem] → defer.
+ * 3. [readingLineInsideItem] (visual top of the reverseLayout viewport) → defer.
  * 4. Otherwise (older-message anchor, reply still visible) → swap.
  * A drag or fling always defers; the next idle poll applies 1–4.
  */
@@ -88,17 +131,27 @@ internal class TimelineStreamingHandover(
 
     val awaiting: Boolean get() = awaitingCount > 0
 
+    private var lastDeferLog: String? = null
+
     override fun allowsSettledPresentation(): Boolean {
-        val info = state.layoutInfo
-        return streamingSettleAllowed(
-            firstVisibleIndex = state.firstVisibleItemIndex,
-            firstVisibleOffset = state.firstVisibleItemScrollOffset,
+        val snapshot = streamingSettleGateSnapshot(state, itemKey, awaiting)
+        val allowed = streamingSettleAllowed(
+            firstVisibleIndex = snapshot.firstVisibleIndex,
+            firstVisibleOffset = snapshot.firstVisibleOffset,
             followBottomPx = followBottomPx,
             // visibleItemsInfo excludes beyond-bounds/prefetched extras.
-            itemVisible = info.visibleItemsInfo.any { it.key == itemKey },
-            readingLineInsideItem = readingLineInsideItem(info, itemKey),
-            scrollInProgress = state.isScrollInProgress,
+            itemVisible = snapshot.itemVisible,
+            readingLineInsideItem = snapshot.readingLineInsideItem,
+            scrollInProgress = snapshot.scrollInProgress,
         )
+        if (snapshot.awaiting && !allowed) {
+            val line = snapshot.toString()
+            if (line != lastDeferLog) {
+                lastDeferLog = line
+                Log.i(HANDOVER_GATE_TAG, "defer $line")
+            }
+        }
+        return allowed
     }
 
     override fun onAwaitingChange(awaiting: Boolean) {
