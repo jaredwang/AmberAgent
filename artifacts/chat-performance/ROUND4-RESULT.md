@@ -285,3 +285,161 @@ SERIAL=emulator-5554 ADB_ARCH=native \
 
 6. **benchmarkRelease（第 8 项）**  
    先 `assemble*BenchmarkReleaseAndroidTest`（或等价）打出 targetSdk/`applicationId=app.amber.agent` 的测试 APK。`PACKAGE=app.amber.agent` 跑 short / chinese / mixed / from-zero mixed 各 ≥3 对，对比 `round3-final-v3-benchmarkRelease.apk`。可重复 >10% 退化要定位。现有 `...graphite.test` APK 装不上这条变体。
+
+---
+
+## 4b 返工（真机 392288d7 / 25128PNA1C）
+
+负责人第四轮验收不通过后的返工。本条优先于计划第 10 节「本轮真机不连接」。模拟器已在性能测量前 `adb -s emulator-5554 emu kill`。ADB 一律 `arch -x86_64 …/adb -s 392288d7`。未 push、未建 PR、未改写历史、未清用户数据、未改用户模型/签名。
+
+已验收保持不动：第 1 项 settled 解析不走流式修补；第 3 项 main 基准归因；静止时 measure 中 `requestScrollToItem` 的同帧位置保持（另加 layout 后一帧 `dispatchRawDelta` 调和，因真机上对正在增高的 first-visible item 的 `requestScrollToItem` 不粘）。
+
+施工提交（相对 Round 4 HEAD `00efb134a`）：
+
+| SHA | 说明 |
+| --- | --- |
+| `8783ef675` | 回复内推迟 + 旧消息锚点即时切换 + 末条 hold 常驻 + idle 调和 |
+| `1589a779f` | 本地 markdown 图非 0×0 |
+| `1d15dd9ca` | 同步解析 N=256 |
+| `b2d5f763f` | 闸门/图片/parse 测试 |
+| `e98432f07` | 回归脚本失败后继续；summarize 发现 extra profile |
+| `5b4262408` | 夹具 3 参数 `streamingTailLayout` JVM ABI（对齐 round3 debug） |
+| `7c6e580f3` | release 保留该 3 参数方法（`@Keep` + 块体） |
+
+APK：
+
+| 用途 | 文件 | sha256 |
+| --- | --- | --- |
+| A–E 交互/夹具 | `round4-device/apks/fullDebug.apk`（hold-last） | `9f89b947b20916960ca04cf8fe71b15397c72da17b58f51a5c73b50e2b6e907f` |
+| A–E 测试 | `fullDebug-androidTest.apk`（hold-last） | `e4af60fba74524319db89078feb2cbc89991e41cf3cabbb1bb4fffd5a937f442` |
+| F 优化侧 | 同上路径，ABI 重建 | `6703fd6f1ee657388ecca0df34a36bbb98f949dd27fdef41d513f6b155f92804` |
+| F 夹具 | ABI 重建 androidTest | `dcb823b5318607cde6679c92c018e80acda964e41df561e494c914db343240f0` |
+| F 基线 | `round3-final-v3.apk` graphite | `b9b37f7835046488974106bd4378173fe6f02507d98c61c2f474bc5cdb10aa41` |
+| G 优化侧 | `fullBenchmarkRelease.apk` `applicationId=app.amber.agent` | `2eb77687577c7e77e713af482f1d2a1926d44ff52de406eedd349a95dbb7a007` |
+| G 夹具 | `fullBenchmarkRelease-androidTest.apk` targetPackage `app.amber.agent` | `73a7a49caa9f00257268a3d6869c6d117898d9759c3a3ee2936b214abbe26819` |
+| G 基线 | `round3-final-v3-benchmarkRelease.apk` | `7e5fd02a687da281d9f216c6cd61b824374ad2072ee747d43dc54d80e7bc0076` |
+
+### 逐项
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| A 第 4 项闸门 | **通过** | 完成/取消 `1195→1195`；旧消息锚点即时切换 `799→799`、`maxDeviation=0`、`swappedWhileVisible=true`。夹具 idle/drag/fling 起止相对坐标 `20198→20198` |
+| B 第 6 项本地图 | **通过** | 钉底 `imageHeight=720`（3:2）；夹具 `1080×248` 宽高比 4.35。`coilImageData`：`file:`→`File`；http/https/content 仍是字符串 |
+| C 第 2 项 N | **通过** | 真机 1k/2k/4k/8k 及 128–256–512。**N=256**（max 3.66ms）；512 已超 4ms |
+| D 第 5 项逐帧 | **部分** | 条目顶/相对坐标起止 ≤2px。流式增高中间帧 max 216px；拖动手势 max 88px；惯性 max 56px。未放宽 2px |
+| E 第 9 项回归 | **通过** | 交互 3×6/6；夹具 UI 7/7。脚本失败后继续跑完 |
+| F 第 7 项性能 | **部分** | 协议先写；60Hz trap 含 MIUI 并恢复。稳态 mixed 达标；from-zero 15% 未达标；short 有 2/3 对 p95 回退 >10% |
+| G 第 8 项 bench | **夹具已构建，成对无法跑** | 见下方缺失项 |
+| H 全量 JVM | **通过** | `head-full-12` `subsetOk=true`（OAuth 2 条，main 5/5） |
+| I 小修 | **通过** | `compensatedScrollTarget` 跨 item 收缩；`streamingSettleAllowed` 签名与语义一致 |
+
+### A. 离底闸门
+
+阅读线 = `layoutInfo` 中 `[viewportStartOffset, viewportEndOffset)` 的中点。落在该回复 item 范围内则推迟；落在上方旧消息且用户静止则即时切换，同帧补偿。未实现「按源偏移把锚点映射到 settled 顶级块」，因此回复内路径保持推迟（计划：做不到就保留推迟）。
+
+- `productionCompletionPreservesOffBottomReadingAnchor` / `productionCancelPreservesOffBottomReadingAnchor`：3× `1195→1195`，`swappedWhileAnchored=false`。完成时 `scrollBefore=1105` `scrollAfter=1237`（条目 +132px 与 offset 对消，timeline 阅读线不变）。
+- 原 `productionVisibleReplyDefersUnderOlderReadingAnchor` 更名为 `productionVisibleReplySwapsUnderOlderReadingAnchor`：旧消息锚点改为即时切换且逐帧 ≤2px（3× `before=after=799`，`maxDeviation=0`，`imageHeight=720`）。语义变化原因：阅读线在回复外时计划要求即时切换。
+- 夹具 `ChatStreamingChunkUiDeviceTest` idle/drag/fling 均 `OK (1 test)`，未放宽 2px。
+- 4b-final APK 上该旧消息用例曾 1/3 失败（Coil 增高时 hold 节点随 loading 拆掉）。末条 `streamingTailLayout` 改为 `isLastMessage || handoverReadingHold` 常驻后，hold-last APK 3 连续 6/6。
+- JVM：`ChatStreamingHandoverTest` / `ChatTailGrowthHoldTest` 覆盖阅读线在回复内推迟、在回复外即时切换。
+
+证据：`round4-device/regression-4b-hold-{1,2,3}/`，`round4-device/chunk-ui-4b-hold/`。
+
+### B. 本地图片 0×0
+
+根因（先红测试再修）：Coil 3 的 OkHttp 组件拒绝 `file://`；0 尺寸不发请求；测试 alt 只匹配无括号形式。`coilImageData` 把 `file:` / `<file:>` 映射为 `java.io.File`。http / https / content 仍传字符串，行为不变（`CoilImageDataTest`）。生产会走到 `file://` 的场景：助手 markdown 里的本地附件/生成图（夹具与钉底富文本）。预留 3:2 槽并以 `Size.ORIGINAL` 解码。
+
+真机：钉底 `imageHeight=720`（1080 宽 × 3:2）；夹具 image-math `1080×248` 宽高比 4.35>1.2；图片加载导致的离底锚点 `olderTops maxDeviation=0`。
+
+### C. 同步解析 N
+
+`MarkdownSyncParseDeviceTest` 在 392288d7 上对 `getOrParse` 主线程取样。`parse-threshold.json`：
+
+| 长度 | median ms | max ms | 全 ≤4ms |
+| --- | --- | --- | --- |
+| 256 | 2.80 | 3.66 | 是 |
+| 512 | 4.93 | 5.14 | 否 |
+| 1k | 6.93 | 7.51 | 否 |
+| 2k | 10.79 | 12.93 | 否 |
+| 4k | 16.94 | 19.12 | 否 |
+| 8k | 26.26 | 30.29 | 否 |
+
+N 从 8192 下调到 **256**。快照/settled 套件改为等到 formatted dump，golden 未改。
+
+### D. 拖动/惯性逐帧
+
+hold-last 夹具 evidence（`chunk-ui-4b-hold/evidence/`）：
+
+| 用例 | growth max | >2px 帧 | gesture max | gesture >2px | 起止相对 |
+| --- | --- | --- | --- | --- | --- |
+| idle | 216px | 49/349 | 0 | 0 | 20198→20198 |
+| drag | 216px | 47/233 | 88px | 117/117 | 20198→20198 |
+| fling | 216px | 46/233 | 56px | 117/117 | 20198→20198 |
+
+未修掉中间帧：hold 保的是 item 顶和列表 offset，单 Text 内部字符盒回流仍可跳。测试起止与交接相对坐标仍 ≤2px，未放宽断言。
+
+### E. 交互回归
+
+- `scripts/chat-device-regression.sh` 某一方法失败后继续跑完其余方法并写 summary。
+- hold-last APK：`regression-4b-hold-{1,2,3}` 各 6/6，`rounds_failed=0`。
+- `chunk-ui-4b-hold/summary.txt`：`ran=7 failed=0`。
+
+### F. 真机性能成对（graphite fullDebug vs round3-final-v3）
+
+`round4-perf/protocol.json` 在第一次测量前写入（锁屏中断与 ABI 重建有附注，不改「先写协议」）。`CHAT_RENDER_LAYOUT=true`，未设 `SKIP_REFRESH_CAP`。60Hz 覆盖 `peak_refresh_rate` / `min_refresh_rate` / `user_refresh_rate` / `miui_refresh_rate`。结束时恢复 `120 / null / 120 / 120`（`round4-perf/refresh-after-all-f.txt`）。预冷电池 ≤33°C、cpu0 ≤37.5°C。顺序 B/O、O/B、B/O，每场景 3 对。
+
+第一轮因 `KEYCODE_SLEEP` 进入 MIUI NotificationShade，用户解锁后重跑（屏幕保持亮着）。第二轮 baseline 因夹具把 `streamingTailLayout(list,1,24)` 编成 5 参数方法而 `NoSuchMethodError`；补 3 参数 overload 后第三轮完整跑完。
+
+数字（`round4-perf/device-pairs/summary.txt` 等）：
+
+**稳态 mixed（目标：中位 p95 相对 round3 回退 ≤5%）**  
+baseline 中位 p95=51.477，optimized=50.202（约 −2.5%）。over32 36.13%→19.1%。**达标**。
+
+**from-zero mixed（目标：中位 p95 改善 ≥15%，且 ≥2 对 p95 与 over32 同降）**  
+baseline 中位 p95=132.281，optimized=131.177（约 −0.8%）。over32 19.93%→21.02%。3 对里约 1 对两项同降。**未达标**。`round4-perf/device-fromzero/`。
+
+**short（目标：可重复 >10% 回退最多 1/3 对）**  
+中位 p95 22.641→18.82。分对 p95：22.641→26.499（+17%）、15.87→18.82（+19%）、22.93→18.088。**2/3 对 >10% 回退，未达标**。
+
+**chinese**  
+中位 p95 21.513→16.496。三对均下降。**达标**。
+
+**history-cold**  
+中位 p95 29.567→25.244。三对均下降。**达标**。`round4-perf/device-extra/`。
+
+**long-unbroken（先报数）**  
+中位 p95 37.211→37.540（+0.9%）。未改渲染几何。
+
+### G. benchmarkRelease 成对
+
+夹具已用现有 `testBuildType`/`-PdeviceTestBuildType=benchmarkRelease -PchatDeviceFixture=true` 打出，`applicationId`/`targetPackage=app.amber.agent`，runner `ChatDeviceFixtureRunner`。未改签名、未索取密钥（benchmarkRelease 走 debug 签名）。
+
+用户允许 USB 安装后，主包与测试包均 `Success`。`am instrument` 在 `AndroidJUnitRunner.onCreate` 崩溃：
+
+```
+java.lang.NoSuchMethodError: No static method beginSection(Ljava/lang/String;)V
+in class Landroidx/tracing/Trace;
+（class 来自主包 app.amber.agent base.apk）
+```
+
+**具体缺失项：**
+
+1. `round3-final-v3-benchmarkRelease.apk` 与当前 `fullBenchmarkRelease.apk` 的 `androidx.tracing.Trace` 都没有 `beginSection(Ljava/lang/String;)V`（dexdump 0 条；graphite `fullDebug` 有，故 F 能跑）。
+2. 当前 androidTest 的 `AndroidJUnitRunner`（espresso 3.7 / junit 1.3）在 `onCreate` 调用该方法。类从主包加载，测试包里带新 tracing 也没用。
+3. 不能改 round3 APK，不能改签名配置。给当前 bench 强行加入 tracing 1.3 也只能修优化侧，基线仍崩。
+4. 降级全仓 `androidx.test` 会动其它 androidTest，本轮未做。
+
+失败目录：`round4-perf/bench-pairs-aborted-user-restricted/`（MIUI 未点允许）、`round4-perf/bench-pairs-aborted-tracing-crash/`（安装成功后 runner 崩）。
+
+### H. 全量 JVM
+
+`round4-jvm/head-full-12-xml` + `attribution-4b-head-full-12.txt`：3193 tests，2 failed，`subsetOk=true`。失败即 main 上 5/5 的两条 `AntigravityOAuthSessionTest`。Coordinator 本 run 未失败（main 3/5）。源码含 Keep 提交。`d1d560e6d` 之后的全量。
+
+### I. 小修
+
+- `compensatedScrollTarget`：高度缩小沿更新的 item 走，不再 `coerceAtLeast(0)` 丢掉跨 item 补偿。
+- `streamingSettleAllowed`：去掉未用参数和 `@Suppress`，签名与「是否允许 settled 切换」一致。
+
+### 产品冷启动
+
+4b 结束后安装 ABI `fullDebug.apk` 并 `am start -W -n app.amber.agent.graphite/app.amber.agent.RouteActivity`：COLD，TotalTime 1512ms，焦点 `RouteActivity`（不是测试壳）。
