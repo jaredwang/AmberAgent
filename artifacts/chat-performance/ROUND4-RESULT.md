@@ -574,3 +574,107 @@ drop2 稳态 mixed 逐对 over32：5.97→5.58、5.69→6.41、6.15→5.18。中
 ### 产品冷启动
 
 4c 结束后安装 drop2 `fullDebug.apk` 并启动 `RouteActivity`，见本条提交后的 `am start -W` 输出。
+
+## 4d 返工（真机 392288d7 / 25128PNA1C）
+
+负责人第三次验收：4c 大部分通过（JVM 159 全绿；HEAD APK SHA `2f207feb…` 与测量一致；图片布局、历史冷启动占位通过；第 1、2、3、6、7、8、9 项通过；from-zero 接受为 known partial）。真机稳定性没有复现声称的 3×6/6 与 8/8：
+
+- `productionVisibleReplySwapsUnderOlderReadingAnchor`：负责人 5 次失败 1 次（加 4b 共 2/8），错误 `"Timed out waiting for settled rich renderer while visible off-bottom"`。证据 `artifacts/chat-performance/round4c-accept/`。
+- `readingAnchorSurvivesGenerationEndDuringFling`：负责人 4 次失败 3 次，错误 `"Generation must finish during actual inertia"`。
+
+未 push、未建 PR、未改写历史、未改 golden、未放宽断言、未加长超时。ADB 一律 `adb -s 392288d7`。性能测量前 `emu kill`。未使用 `KEYCODE_SLEEP`。未自行把当前刷新率改回 120（测量脚本按 `refresh-before` 恢复；本轮结束时设备仍是 `120 / null / 120 / 120`）。
+
+起点提交 `3687b0edf`。本条是 4d 源码与验收之后的报告提交。
+
+### 逐项
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| 1 旧消息锚点偶发不切换 | **通过** | 阅读线改为 reverseLayout 视口视觉顶端（`viewportEndOffset - 1`）。JVM `tallReplyOccupyingBottomHalfDoesNotCaptureReadingLineWhenOlderVisibleAtTop`。真机 older-anchor 20/0、completion-defer 20/0、cancel-defer 20/0。超时 dump 闸门全部输入 |
+| 2 惯性前置条件 | **通过** | UP 后立刻主线程读 `isScrollInProgress` 且 lift `vy > minFling`，不再 `pump(16)` 吃掉约 1 帧剩余惯性。锚点 ≤2px 未放宽。真机 fling 20/0 |
+| 3 TimelineMarkdownPrefetch | **通过** | 预热走 `MessageRenderCache.displayMarkdownText`（与 `ChatMessageMessagePartsBlock` 相同）。去重 `MarkdownPrefetchKey(nodeId, contentHash)`，`remember(sessionId)`。JVM 3/3。history-cold 三对均下降，中位 p95 30.561→22.789（−25.4%） |
+| 4 刷新率恢复 | **通过** | 空 `settings put` 会删键。restore 先 peak/min、再 user/miui，null 走 `settings delete`，结束自检 `refresh-after`≠`refresh-before` 则失败。本轮成对 before/after 均为 `120/null/120/120`。未改当前设备值 |
+| 5 baseline 变体第 8 项 | **通过（放弃 benchmarkRelease）** | `-PdeviceTestBuildType=baseline -PchatDeviceFixture=true`。基线 worktree `b4477f42b` 同变体。删除 `proguard-chat-device-fixture.pro` 与只为它加的 tracing。short/chinese 0/3 对 >10%；稳态 mixed 中位 −5.2%；from-zero 中位 +0.2% |
+| 6 增高中 scrollToItem | **通过** | 空闲 hold 采纳同 index 的第三方 `scrollToItem` offset。JVM `idleHoldDoesNotYankProgrammaticScrollToItemOnSameIndexWhileGrowing` |
+
+### 1. 阅读线与旧消息锚点
+
+4c 闸门用视口中点当阅读线。reverseLayout 下偏移从视觉底（新）长到视觉顶（旧）。回复较高、占满下半屏时，中点落在回复内，读者实际在上方旧消息，闸门一直 `readingLineInsideItem` 推迟，夹具等到超时。
+
+生产定义：`viewportReadingLine = layoutInfo.viewportEndOffset - 1`（视口内最后一像素，旧内容边）。kdoc 写明与真实读者位置一致，以及 4c 中点 false-inside。失败时 `TimelineStreamingHandover` 打 `AmberHandover defer`（`StreamingSettleGateSnapshot`：line / item offset/size / firstVisible / scrollInProgress / awaiting / inside）。测试超时同样 dump 这些输入。
+
+回复内推迟（completion / cancel）仍成立：巨大回复铺满视口时视觉顶端仍在回复内。
+
+夹具 `olderAnchorReady` 要求旧消息在上半、回复 intro 在下半、且 `scroll > 0`（4c 通过几何：older=799、intro=1279、maxDeviation=0）。一次短拖会停在 TimelineTail offset≈88、回复充满中点，settle 时整屏上移 84px（= `TimelineBottomSafetyPadding` 28.dp）；那是夹具停拖过早，不是闸门该推迟的几何。hold 侧对「published 仍 0/0、layout 已滚进 item」做了补偿，handover padding 用例仍走 published offset（106 不被改成 114）。
+
+真机（`round4d/older-anchor-20/`、`completion-defer-20/`、`cancel-defer-20/`）各 20 次 0 失败。回归里 older-anchor 同样 before=799 after=799 maxDeviation=0。
+
+### 2. 惯性确定后再结束生成
+
+剩余惯性在本夹具上约 19px（约 1 帧）。`pump(16)` / `pump(48)` 之后再采样会看到 `isScrollInProgress=false`（4d 首次 20× 的 run=8：`scroll=false offset=19123`，`round4d/fling-20-pump16-fail/`）。
+
+测试改为：同一指针续 6 次 48px MOVE → UP → 立刻主线程 snapshot；lift 速度 `vy > scaledMinimumFlingVelocity` 且 UP 后仍 `isScrollInProgress` 才 `streaming=false`。第一次已 settle 则再 flick 一次。超时仍 2s 窗口内的即时检查，未加长。锚点断言仍 ≤2px。
+
+真机 `round4d/fling-20/` 20/0。冒烟与 20× 日志：`after-up scroll=true vy≈1450–3000 minFling=150`。
+
+### 3. Prefetch 与渲染 cache key
+
+`MessageRenderCache.displayMarkdownText`：助手 `visualRegexText(..., ASSISTANT)`；用户先 visual-regex（USER）再 `stripVisualRouteTagsForDisplay`。`ChatMessageMessagePartsBlock`、`ChatTimelinePrewarm`、`TimelineMarkdownPrefetch` 共用。去重键 `MarkdownPrefetchKey(nodeId, contentHash)`。`remember(sessionId)`。
+
+JVM `TimelineMarkdownPrefetchTest`：有正则（SECRET→VISIBLE、用户 `[ROUTE:svg]`+画→绘）、更早历史插入后索引错位仍预热新 node、同 node 重新生成内容变化会再预热。3/3。
+
+history-cold 三对（graphite fullDebug，基线 `round4c/round3-fixture-fullDebug.apk` `2cf266d8…`，优化 `round4d/fullDebug.apk` `2375cd97…`，B/O O/B B/O，`round4d/device-extra/`）：
+
+| 对 | B p95 | O p95 | Δ |
+| --- | --- | --- | --- |
+| 1 | 28.378 | 22.489 | −20.8% |
+| 2 | 30.561 | 22.789 | −25.4% |
+| 3 | 30.699 | 22.998 | −25.1% |
+
+中位 30.561→22.789（−25.4%）。over32 中位 4.03%→2.48%。协议：`round4d/device-extra/protocol.json`。
+
+### 4. 刷新率恢复
+
+根因：本机 `settings put … ""` 删除该 key。4c 若把空白/null 当成要写入的值，user/miui 会被清掉。
+
+`chat-render-perf.sh`：`read_setting` 把 empty/null/none 规范成 `null`；`120.0` 与 `120` 视为相同；`write_setting` 对 null 走 `settings delete`，从不 put 空串。restore 先 peak/min、后 user/miui 并重试一次（删 min 可能连带清 MIUI 键）。profile 循环结束后 `restore_refresh` + `verify_refresh_restored`，不一致则失败并写 `refresh-after.txt`。EXIT trap 仍 restore。安装失败会重试一次（见第 5 项）。
+
+未在本轮把设备写成 120；测量前后捕获即为 120。history-cold 与 baseline 成对的 `refresh-before`/`refresh-after` 均为 `peak=120.0 min=null user=120 miui=120`。结束时设备同样是这组值。唯一缺 `refresh-after` 的是失败的 `device-baseline-pairs/baseline-r1-user-restricted/`（测试 APK 未装上，verify 未跑到；trap 仍 restore）。
+
+### 5. baseline 变体（放弃 benchmarkRelease）
+
+`benchmarkRelease` / arkRelease 夹具 Application `startKoin` 在 R8 下打不起来（4c 停在 `DefaultContextExtKt`）。删除 `app/proguard-chat-device-fixture.pro` 以及只为它加的 `androidx.tracing:tracing:1.2.0`（`benchmarkReleaseImplementation` + `androidTestImplementation`）。构建配置不再为那条走不通的路留 keep。
+
+改用已有 `baseline`：`initWith(release)`、debug 签名、包名后缀 `.debug`、`isDebuggable=false`、minify/shrink 关、profileable。当前侧 `-PdeviceTestBuildType=baseline -PchatDeviceFixture=true`。基线：临时 worktree `/tmp/amber-r3-4d-baseline` 于 `b4477f42b`，同一变体；夹具 ABI 5 参数委托到当时的 3 参数生产函数（同 4c）。
+
+包名 `app.amber.agent.debug`，runner `app.amber.agent.debug.test/app.amber.agent.ChatDeviceFixtureRunner`。
+
+APK：基线 `round4d/round3-fixture-fullBaseline.apk` `62eb8d6c…`；优化 `round4d/fullBaseline.apk` `f75403e0…`；测试 `round4d/fullBaseline-androidTest.apk` `232fcb27…`。
+
+首次装新包 `app.amber.agent.debug.test` 遇到 `INSTALL_FAILED_USER_RESTRICTED`（`baseline-r1-user-restricted/`）。亮屏后重装成功；`chat-render-perf.sh` 对 install 增加一次 wakeup 重试。
+
+稳态 short / chinese / mixed（`round4d/device-baseline-pairs/`）：
+
+| 场景 | 对1 Δ | 对2 Δ | 对3 Δ | 中位 p95 B→O |
+| --- | --- | --- | --- | --- |
+| short | +2.4% | −2.1% | −1.1% | 13.861→14.196（+2.4%） |
+| chinese | −3.3% | +9.9% | +2.3% | 15.365→15.711（+2.3%） |
+| mixed | −8.8% | +1.3% | −5.6% | 23.252→22.053（−5.2%） |
+
+0/3 对 short/chinese p95 退化 >10%（chinese 第 2 对 +9.9% 未超）。from-zero mixed（`round4d/device-baseline-fromzero/`）中位 75.144→75.323（+0.2%）。item 8 不要求第 7 项目标；无可重复 >10% 退化。
+
+### 6. 增高中的非动画 scrollToItem
+
+hold 仍有 `requestedIndex` 时，程序 `scrollToItem(同一 index, 其他 offset)` 必须停在目标。空闲 hold 把 published 看成第三方跳转（既不是 lastSeen，也不是 requested）则采纳，不再用 in-flight offset yank 回去。
+
+JVM：`idleHoldAdoptsExternalScrollToSameIndexNotLag`、`idleHoldDoesNotYankProgrammaticScrollToItemOnSameIndexWhileGrowing`（目标 200，继续增高后 offset≥198，且不回到采纳前的 hold offset）。
+
+### 最终验收
+
+- 真机交互回归连续 3 轮 6/6：`round4d/regression-{1,2,3}/summary.txt`（app `2375cd97…`，androidTest `9ce99d5d…`）。
+- 夹具项连续 20 次 0 失败：older-anchor / completion-defer / cancel-defer / fling（`round4d/{older-anchor,completion-defer,cancel-defer,fling}-20/summary.txt` 均为 `stopped_at=20 failed=0`）。
+- 全量 JVM 1 次：`round4d/jvm-full.log`，3200 tests，3 failed，15 skipped，`subsetOk=true`（`round4d/jvm-attribution-4d.txt`）。失败与 4c main 子集相同：两条 `AntigravityOAuthSessionTest` + `ChatRunCoordinatorTest.matching old Stop…`。定点：Handover 6/0、Hold 24/0、Prefetch 3/0。
+- history-cold 3 对：见第 3 项，`round4d/device-extra/`。
+- baseline 变体 3 对 + from-zero 3 对：见第 5 项。
+
+优化侧 graphite fullDebug SHA `2375cd97aa82d4d3598366088807e62e676945537efbb400838e3dfae4faaad4`。产品冷启动：安装该 APK 后 `am start -W -n app.amber.agent.graphite/app.amber.agent.RouteActivity`，COLD，TotalTime 1487ms，焦点 `RouteActivity`。
