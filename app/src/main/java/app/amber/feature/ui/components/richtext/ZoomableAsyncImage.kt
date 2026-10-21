@@ -21,6 +21,21 @@ import app.amber.feature.ui.components.ui.ImagePreviewDialog
 import app.amber.feature.ui.components.ui.LocalExportContext
 import app.amber.feature.ui.modifier.shimmer
 import app.amber.feature.ui.theme.LocalDarkMode
+import java.io.File
+
+/**
+ * Coil 3's OkHttp fetcher rejects `file://` strings. Local markdown images
+ * (attachments, device fixtures) must use [File] so FileFetcher decodes them.
+ */
+internal fun coilImageData(model: String?): Any? {
+    if (model.isNullOrBlank()) return model
+    val trimmed = model.trim().removePrefix("<").removeSuffix(">")
+    if (trimmed.startsWith("file:", ignoreCase = true)) {
+        val path = trimmed.substringAfter(":").removePrefix("//")
+        if (path.isNotBlank()) return File(path)
+    }
+    return model
+}
 
 @Composable
 fun ZoomableAsyncImage(
@@ -40,7 +55,7 @@ fun ZoomableAsyncImage(
     // data 是稳定 String，remember 后同一个请求复用内存缓存，命中即绘制。
     val coilModel = remember(model, export, context, placeholder) {
         ImageRequest.Builder(context)
-            .data(model)
+            .data(coilImageData(model))
             .placeholder(placeholder)
             .crossfade(false)
             .allowHardware(!export)
