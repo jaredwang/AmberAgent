@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import app.amber.agent.BuildConfig
 import app.amber.feature.ui.components.richtext.StreamingPresentationHandover
 import kotlinx.coroutines.delay
 
@@ -144,7 +145,7 @@ internal class TimelineStreamingHandover(
             readingLineInsideItem = snapshot.readingLineInsideItem,
             scrollInProgress = snapshot.scrollInProgress,
         )
-        if (snapshot.awaiting && !allowed) {
+        if (BuildConfig.DEBUG && snapshot.awaiting && !allowed) {
             val line = snapshot.toString()
             if (line != lastDeferLog) {
                 lastDeferLog = line
