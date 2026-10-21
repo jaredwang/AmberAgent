@@ -29,8 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import app.amber.core.settings.Settings
+import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.components.richtext.StreamingSingleTextMarkdown
+import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.context.LocalSettings
+import app.amber.feature.ui.context.LocalToaster
+import app.amber.feature.ui.context.Navigator
+import com.dokar.sonner.ToasterState
+import kotlinx.coroutines.CoroutineScope
 import app.amber.feature.ui.pages.chat.holdReadingOnTailGrowth
 import app.amber.feature.ui.pages.chat.streamingTailLayout
 import org.json.JSONObject
@@ -99,11 +105,21 @@ class ChatRenderingDevicePerfTest {
         val paragraph = when (profile) {
             "short" -> "简短回答：流式显示保持顺畅，Unicode 👩‍💻 é 不截断。\n\n"
             "chinese" -> "这是一段用于测量的中文长回答。稳定段落保持可读，滚动阅读时不应被不断增长的尾部带走。Unicode 👩‍💻 é。\n\n"
+            "long-unbroken" -> "超长无换行单段测量，Unicode 👩‍💻 é。" + "字".repeat(6_200)
+            "history-cold" -> "## 历史回滚\n\n缓存冷启动段落 **重点** 与 `code` 以及公式 \$E=mc^2\$。\n\n"
             else -> "## 测量小节\n\n中文说明 **重点** and [link](https://example.com).\n\n```kotlin\nfun answer(x: Int) = x + 42\n```\n\n| 项目 | 结果 |\n| --- | --- |\n| 文字 | 完整 |\n\n"
         }
-        val target = paragraph.repeat(if (profile == "short") 3 else 85)
+        val target = when (profile) {
+            "short" -> paragraph.repeat(3)
+            "long-unbroken" -> paragraph
+            "history-cold" -> paragraph.repeat(2)
+            else -> paragraph.repeat(85)
+        }
         val fromZero = InstrumentationRegistry.getArguments().getString("amberRenderFromZero") == "true"
-        val initial = if (profile == "short" || fromZero) 0 else target.length - 1600
+        val initial = when {
+            profile == "short" || profile == "history-cold" || fromZero -> 0
+            else -> target.length - 1600
+        }
         val listener = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
             val duration = metrics.getMetric(FrameMetrics.TOTAL_DURATION)
             durations.add(duration)
@@ -119,7 +135,12 @@ class ChatRenderingDevicePerfTest {
             val highlighter = Highlighter(activity)
             scenario.onActivity { host ->
                 host.setContent {
-                    CompositionLocalProvider(LocalSettings provides Settings(), LocalHighlighter provides highlighter) {
+                    CompositionLocalProvider(
+                        LocalSettings provides Settings(),
+                        LocalHighlighter provides highlighter,
+                        LocalNavController provides Navigator(mutableListOf()),
+                        LocalToaster provides ToasterState(CoroutineScope(Dispatchers.Unconfined)),
+                    ) {
                         MaterialTheme {
                             val list = rememberLazyListState()
                             LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
@@ -137,7 +158,13 @@ class ChatRenderingDevicePerfTest {
                                             onSettled = { settled.countDown() })
                                     }
                                 }
-                                items(40, key = { "history-$it" }) { Text("历史回复 $it：" + paragraph.take(100)) }
+                                items(40, key = { "history-$it" }) {
+                                    if (profile == "history-cold") {
+                                        MarkdownBlock("## 历史条目 $it\n\n" + paragraph + "条目编号 $it。")
+                                    } else {
+                                        Text("历史回复 $it：" + paragraph.take(100))
+                                    }
+                                }
                             }
                             LaunchedEffect(Unit) {
                                 delay(2500)

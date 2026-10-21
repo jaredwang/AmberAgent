@@ -356,6 +356,38 @@ class ChatInteractionDeviceRegressionTest {
     private fun richSettled(): Boolean = richState().let { it.first && it.second && it.third }
     /** The streaming presentation's image label is the only text carrying the alt. */
     private fun imagePlaceholderVisible() = renderedTexts().any { RICH_IMAGE_ALT in it.text }
+    private fun mathSettled() = renderedTexts().any { "[Latex]" in it.text }
+    private fun fixtureImageHeight(): Float =
+        compose.onAllNodes(hasContentDescription(RICH_IMAGE_ALT), useUnmergedTree = true)
+            .fetchSemanticsNodes().firstOrNull()?.boundsInRoot?.height ?: 0f
+    private fun fixtureImageUri(): String {
+        val file = java.io.File(context.filesDir, "amber-fixture-image.png")
+        if (!file.exists() || file.length() == 0L) {
+            val bmp = android.graphics.Bitmap.createBitmap(480, 320, android.graphics.Bitmap.Config.ARGB_8888)
+            android.graphics.Canvas(bmp).apply {
+                drawColor(android.graphics.Color.rgb(32, 110, 200))
+                val paint = android.graphics.Paint().apply {
+                    color = android.graphics.Color.WHITE
+                    textSize = 64f
+                    isAntiAlias = true
+                }
+                drawText("FIXTURE", 80f, 180f, paint)
+            }
+            file.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            bmp.recycle()
+        }
+        return "file://${file.absolutePath}"
+    }
+    private fun richReply(): String =
+        "RICH_INTRO 富文本回复，生成结束后应切换为正式渲染。\n\n" +
+            "| 项目 | 结果 |\n| --- | --- |\n| $RICH_CELL | CELL_BETA |\n\n" +
+            "```kotlin\nfun richFixture() = 42\n```\n\n" +
+            "行内公式 MATH_INLINE_MARK \$E=mc^2\$ 之后。\n\n" +
+            "\$\$\n\\sum_{n=1}^{N} n = \\frac{N(N+1)}{2}\n\$\$\n\n" +
+            "MATH_BLOCK_AFTER 块级公式之后。\n\n" +
+            "![$RICH_IMAGE_ALT](${fixtureImageUri()})\n\n" +
+            "RICH_END 完成。\n\n" +
+            "收尾段落保持完整输出。\n\n".repeat(6) + "RICH_TAIL 结束。"
 
     /** Real touch drag on the timeline; positive steps move the finger down (toward older content). */
     private suspend fun drag(scenario: ActivityScenario<RouteActivity>, stepPx: Float, steps: Int = 12) {
@@ -406,9 +438,8 @@ class ChatInteractionDeviceRegressionTest {
 
     /**
      * Off-bottom reader anchored inside a long generating reply. Ending the
-     * generation must not move the anchor character; the settled renderer is
-     * deferred while the anchor is inside the message and must take over once
-     * the reader returns to the bottom.
+     * generation must not move the anchor character; same-frame hold lets the
+     * settled renderer take over while the anchor stays inside the message.
      */
     private suspend fun verifyProductionReadingAnchor(cancel: Boolean) {
         requireFixture()
@@ -457,28 +488,28 @@ class ChatInteractionDeviceRegressionTest {
                     while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
                 }
                 pump(1_500)
+                pumpUntil(2_000, "settled renderer while the reading anchor is inside the message") {
+                    settledParagraph("PROD_READ_ANCHOR")
+                }
                 val after = requireNotNull(tokenTop("PROD_READ_ANCHOR"))
                 pump(1_000)
                 val stable = requireNotNull(tokenTop("PROD_READ_ANCHOR"))
-                // The anchor is inside this message: the handover is deferred,
-                // so the reader still sees the same Text geometry.
-                val deferred = streamingParagraph("PROD_READ_ANCHOR") && !settledParagraph("PROD_READ_ANCHOR")
+                val swapped = settledParagraph("PROD_READ_ANCHOR") && !streamingParagraph("PROD_READ_ANCHOR")
                 val finalText = text(service, id)
                 check(if (cancel) reply.startsWith(finalText) && "PROD_READ_ANCHOR" in finalText else finalText == reply)
-                // Returning to the bottom is a safe moment; the settled renderer must follow.
                 returnToBottom(scenario)
-                pumpUntil(10_000, "settled renderer after returning to the bottom") { settledParagraph("PROD_READ_ANCHOR") }
+                pumpUntil(10_000, "settled renderer remains after returning to the bottom") { settledParagraph("PROD_READ_ANCHOR") }
                 val settledAtBottom = !streamingParagraph("PROD_READ_ANCHOR")
                 val result = org.json.JSONObject().apply {
                     put("cancel", cancel); put("before", before); put("after", after); put("stable", stable)
-                    put("deferredWhileAnchored", deferred); put("settledAfterReturningToBottom", settledAtBottom)
+                    put("swappedWhileAnchored", swapped); put("settledAfterReturningToBottom", settledAtBottom)
                     put("coordinateSpace", "Text positionInRoot + TextLayoutResult.getBoundingBox")
                     put("sourceChars", reply.length); put("storedChars", finalText.length); put("sourceSha256", sha(reply))
                 }
                 writeEvidence("production-anchor-$cancel", result)
                 check(kotlin.math.abs(after - before) <= 2f) { "Production reading anchor jumped: $before->$after" }
                 check(kotlin.math.abs(stable - after) <= 2f) { "Production reading anchor drifted: $after->$stable" }
-                check(deferred) { "Renderer swapped while the reading anchor was inside the message" }
+                check(swapped) { "Settled renderer did not take over while the reading anchor was inside the message" }
                 check(settledAtBottom) { "Streaming presentation outlived the return to the bottom" }
                 withTimeout(15_000) {
                     while (storedText(requireNotNull(repository.getConversationById(id))) != finalText) delay(50)
@@ -505,8 +536,9 @@ class ChatInteractionDeviceRegressionTest {
         requireFixture()
         val (repository, service, gateway) = isolatedFixture()
         val id = Uuid.random()
+        val reply = richReply()
         val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
-        gateway.reply = RICH_REPLY
+        gateway.reply = reply
         gateway.delayMs = 12
         gateway.beforeFinish = gate
         gateway.finishGateReached = false
@@ -525,12 +557,14 @@ class ChatInteractionDeviceRegressionTest {
                 // Generation is still active: the degraded streaming presentation is on screen.
                 pumpUntil(10_000, "streaming presentation of the complete reply") { imagePlaceholderVisible() }
                 val sawStreamingPresentation = !richSettled()
+                val sawRawMath = renderedTexts().any { "\$E=mc^2\$" in it.text && it.text.length >= 256 }
                 gate.complete(Unit)
                 withTimeout(20_000) {
                     while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
                 }
                 // No touch input after send: the reader stays pinned.
                 pumpUntil(10_000, "settled rich renderer after completion") { richSettled() }
+                pumpUntil(8_000, "local fixture image loaded") { fixtureImageHeight() >= 180f }
                 val settledAt = tokenBottom("RICH_END")
                 val bottom = timelineNode().boundsInRoot.bottom
                 pump(1_000)
@@ -539,20 +573,27 @@ class ChatInteractionDeviceRegressionTest {
                 val result = org.json.JSONObject().apply {
                     put("sawStreamingPresentation", sawStreamingPresentation)
                     put("richSettled", richSettled()); put("imagePlaceholderVisible", imagePlaceholderVisible())
+                    put("mathSettled", mathSettled()); put("sawRawMath", sawRawMath)
+                    put("imageHeight", fixtureImageHeight())
                     put("timelineScrollValue", scrollValue.toDouble()); put("timelineBottom", bottom)
                     put("endBottomAtSettle", settledAt ?: -1f); put("endBottomStable", stableAt ?: -1f)
                 }
                 writeEvidence("production-rich-pinned", result)
                 check(sawStreamingPresentation) { "Streaming presentation was never observed" }
                 check(!imagePlaceholderVisible()) { "Degraded image label remained after the handover" }
+                check(mathSettled()) { "Settled math did not render as [Latex]" }
+                check(renderedTexts().none { it.text.trim() == "$" || it.text.trim() == "$$" }) {
+                    "Settled tree invented a lone \$ node"
+                }
+                check(fixtureImageHeight() >= 180f) { "Local fixture image did not load" }
                 check(scrollValue == 0f) { "Pinned completion left the bottom: $scrollValue" }
                 requireNotNull(settledAt); requireNotNull(stableAt)
                 check(settledAt <= bottom + 2f) { "Last message end is below the timeline: $settledAt > $bottom" }
                 check(kotlin.math.abs(stableAt - settledAt) <= 2f) { "Pinned bottom drifted after the handover: $settledAt->$stableAt" }
                 withTimeout(15_000) {
-                    while (storedText(requireNotNull(repository.getConversationById(id))) != RICH_REPLY) delay(50)
+                    while (storedText(requireNotNull(repository.getConversationById(id))) != reply) delay(50)
                 }
-                Log.i(TAG, "production-rich-pinned passed settled=true pinned=true Room=true")
+                Log.i(TAG, "production-rich-pinned passed settled=true pinned=true math=true image=true Room=true")
             }
         } finally {
             compose.mainClock.autoAdvance = true
@@ -566,9 +607,9 @@ class ChatInteractionDeviceRegressionTest {
     /**
      * The reader is anchored in an older message while the short reply below
      * stays visible off-bottom. reverseLayout would push the older content by
-     * the reply's height change, so the swap is deferred: nothing may move at
-     * generation end, and the settled renderer must appear once the reader
-     * returns to the bottom.
+     * the reply's height change; same-frame hold lets the settled tree (table,
+     * code card, real local image, math) take over immediately without moving
+     * the older anchor more than 2px in any sampled frame.
      */
     @Test(timeout = 120_000)
     fun productionVisibleReplyDefersUnderOlderReadingAnchor(): Unit = runBlocking {
@@ -578,8 +619,9 @@ class ChatInteractionDeviceRegressionTest {
         // Settled history is virtualized per Markdown block; keep the anchor in
         // the last block so it is composed just above the new exchange.
         val older = "旧消息段落用于阅读位置，保持稳定。\n\n".repeat(40) + "OLDER_READ_ANCHOR 旧消息锚点。"
+        val reply = richReply()
         val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
-        gateway.reply = RICH_REPLY
+        gateway.reply = reply
         gateway.delayMs = 12
         gateway.beforeFinish = gate
         gateway.finishGateReached = false
@@ -609,32 +651,48 @@ class ChatInteractionDeviceRegressionTest {
                 check(timelineScrollValue() > 0f) { "Reader must be away from the bottom" }
                 check(!richSettled()) { "Reply settled before generation ended" }
                 check(service.getGenerationJobStateFlow(id).value?.isActive == true)
+                val frames = ArrayList<Float>()
                 gate.complete(Unit)
                 withTimeout(20_000) {
-                    while (service.getGenerationJobStateFlow(id).value?.isActive == true) pump(32)
+                    while (service.getGenerationJobStateFlow(id).value?.isActive == true) {
+                        tokenTop("OLDER_READ_ANCHOR")?.let { frames += it }
+                        pump(32)
+                    }
                 }
-                pump(1_500)
+                pumpUntil(2_000, "settled rich renderer while visible off-bottom") { richSettled() }
+                val imageDeadline = SystemClock.uptimeMillis() + 8_000
+                while (SystemClock.uptimeMillis() < imageDeadline && fixtureImageHeight() < 180f) {
+                    tokenTop("OLDER_READ_ANCHOR")?.let { frames += it }
+                    pump(32)
+                }
                 val after = requireNotNull(tokenTop("OLDER_READ_ANCHOR"))
+                frames += after
                 val replyTopAfter = tokenTop("RICH_INTRO")
                 pump(1_000)
                 val stable = requireNotNull(tokenTop("OLDER_READ_ANCHOR"))
-                val deferred = !richSettled() && imagePlaceholderVisible()
+                frames += stable
+                val swapped = richSettled()
+                val maxDeviation = (frames + before).maxOf { kotlin.math.abs(it - before) }
                 returnToBottom(scenario)
-                pumpUntil(10_000, "settled rich renderer after returning to the bottom") { richSettled() }
+                pumpUntil(10_000, "settled rich renderer remains at the bottom") { richSettled() }
                 val result = org.json.JSONObject().apply {
                     put("before", before); put("after", after); put("stable", stable)
                     put("replyTopBefore", replyTopBefore); put("replyTopAfter", replyTopAfter ?: -1f)
-                    put("deferredWhileVisible", deferred); put("settledAfterReturningToBottom", true)
+                    put("swappedWhileVisible", swapped); put("settledAfterReturningToBottom", true)
+                    put("maxDeviation", maxDeviation); put("layoutSamples", frames.size)
+                    put("imageHeight", fixtureImageHeight()); put("mathSettled", mathSettled())
                     put("coordinateSpace", "Text positionInRoot + TextLayoutResult.getBoundingBox")
                 }
                 writeEvidence("production-older-anchor", result)
-                check(kotlin.math.abs(after - before) <= 2f) { "Older reading anchor jumped: $before->$after" }
+                check(maxDeviation <= 2f) { "Older reading anchor moved in some frame: ${maxDeviation}px $before->$after samples=$frames" }
                 check(kotlin.math.abs(stable - after) <= 2f) { "Older reading anchor drifted: $after->$stable" }
-                check(deferred) { "Visible off-bottom reply swapped renderers under the reader" }
+                check(swapped) { "Visible off-bottom reply did not swap to settled under the reader" }
+                check(mathSettled()) { "Settled math did not render as [Latex]" }
+                check(fixtureImageHeight() >= 180f) { "Local fixture image did not load" }
                 withTimeout(15_000) {
-                    while (storedText(requireNotNull(repository.getConversationById(id))) != RICH_REPLY) delay(50)
+                    while (storedText(requireNotNull(repository.getConversationById(id))) != reply) delay(50)
                 }
-                Log.i(TAG, "production-older-anchor passed before=$before after=$after stable=$stable deferred=true settledAtBottom=true Room=true")
+                Log.i(TAG, "production-older-anchor passed before=$before after=$after stable=$stable swapped=true maxDeviation=$maxDeviation Room=true")
             }
         } finally {
             compose.mainClock.autoAdvance = true
@@ -669,13 +727,5 @@ class ChatInteractionDeviceRegressionTest {
         private const val PROOF_PREF = "chat-device-proof"
         private const val RICH_CELL = "CELL_ALPHA"
         private const val RICH_IMAGE_ALT = "FIXTURE_IMAGE_ALT"
-        private val RICH_REPLY = "RICH_INTRO 富文本回复，生成结束后应切换为正式渲染。\n\n" +
-            "| 项目 | 结果 |\n| --- | --- |\n| $RICH_CELL | CELL_BETA |\n\n" +
-            "```kotlin\nfun richFixture() = 42\n```\n\n" +
-            "![$RICH_IMAGE_ALT](file:///data/local/tmp/amber-missing-fixture-image.png)\n\n" +
-            "RICH_END 完成。\n\n" +
-            // The production accumulator may hold the last coalesced frame until
-            // stream completion; this tail keeps RICH_END in the published prefix.
-            "收尾段落保持完整输出。\n\n".repeat(6) + "RICH_TAIL 结束。"
     }
 }

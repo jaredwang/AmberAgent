@@ -528,7 +528,9 @@ class ChatStreamingChunkUiDeviceTest {
                 compose.waitForIdle()
                 val motionDeadline = SystemClock.uptimeMillis() + 10_000
                 while (listRef.get().isScrollInProgress && SystemClock.uptimeMillis() < motionDeadline) pump(32)
-                pump(1_200)
+                fun settledNow() = chunkNodes().any { "ANCHOR_POINT" in it.text && it.text.length < 200 }
+                val swapDeadline = SystemClock.uptimeMillis() + 2_000
+                while (!settledNow() && SystemClock.uptimeMillis() < swapDeadline) pump(32)
 
                 val afterSwitch = requireNotNull(chunkAnchorY())
                 val relativeAfter = afterSwitch - messageTop.get()
@@ -536,6 +538,7 @@ class ChatStreamingChunkUiDeviceTest {
                 val stableAgain = requireNotNull(chunkAnchorY())
                 Log.i(TAG, "anchor during=$during settled=$afterSwitch static=$stableAgain")
                 val switchDelta = afterSwitch - baseline
+                val settledNow = settledNow()
                 val json = JSONObject().apply {
                     put("endMode", endMode)
                     put("firstVisibleIndexAfter", listRef.get().firstVisibleItemIndex)
@@ -548,6 +551,7 @@ class ChatStreamingChunkUiDeviceTest {
                     put("afterSwitch", afterSwitch)
                     put("switchDelta", switchDelta)
                     put("stableAgain", stableAgain)
+                    put("settledAfterDrain", settledNow)
                     put("coordinateSpace", "unclipped Text positionInRoot + character bounding box")
                     put("targetLength", target.length)
                     put("initialLength", initial)
@@ -557,19 +561,10 @@ class ChatStreamingChunkUiDeviceTest {
                 val tolerance = 2f
                 if (endMode != "pinned") assertTrue("Anchor drifted while generating: ${during - baseline}px",
                     kotlin.math.abs(during - baseline) <= tolerance)
-                // Both samples use the Text layout origin in root coordinates,
-                // without the semantics bounds clipping to the viewport.
                 val handoverDelta = if (finishingDuringGesture) relativeAfter - relativeBefore else afterSwitch - during
-                // Settled MarkdownBlock renders the token paragraph as its own short Text.
-                val settledNow = chunkNodes().any { "ANCHOR_POINT" in it.text && it.text.length < 200 }
-                json.put("settledAfterDrain", settledNow)
                 runCatching { capture("anchor-$endMode", json) }
-                if (endMode == "pinned") {
-                    // Rule 1: pinned readers get the settled renderer at once and stay pinned.
-                    assertTrue("Pinned handover did not show the settled renderer", settledNow)
-                } else {
-                    // Rule 3: the anchor is inside this message, so the swap is deferred.
-                    assertFalse("Renderer swapped while the anchor was inside the message", settledNow)
+                assertTrue("Settled renderer did not take over after idle (mode=$endMode)", settledNow)
+                if (endMode != "pinned") {
                     assertTrue("Anchor jumped across generation end: ${handoverDelta}px",
                         kotlin.math.abs(handoverDelta) <= tolerance)
                 }
@@ -586,12 +581,11 @@ class ChatStreamingChunkUiDeviceTest {
                 Log.i(TAG, "switch-displacement=$switchDelta")
                 Log.i(TAG, "anchor-passed mode=$endMode tolerance=$tolerance anchor=$baseline during=$during settled=$afterSwitch static=$stableAgain relative=$relativeBefore->$relativeAfter")
                 if (endMode != "pinned") {
-                    // Returning to the bottom is a safe handover moment.
                     runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { listRef.get().scrollToItem(0) } }
                     awaitCondition(10_000) {
                         chunkNodes().any { "ANCHOR_POINT" in it.text && it.text.length < 200 }
                     }
-                    Log.i(TAG, "settled-renderer-after-return-to-bottom mode=$endMode")
+                    Log.i(TAG, "settled-renderer-stays-after-return-to-bottom mode=$endMode")
                 }
             } catch (error: Throwable) {
                 failure = error
@@ -654,9 +648,9 @@ class ChatStreamingChunkUiDeviceTest {
 
     /**
      * Frame-granular check of the off-bottom handover below an older anchor:
-     * the reply finishes while visible under the reader. Every layout pass of
-     * the older item above is recorded and none may move it; the settled tree
-     * must take over once the reader returns to the bottom.
+     * the reply finishes while visible under the reader. Same-frame hold must
+     * keep every layout pass of the older item within 2px while the settled
+     * tree takes over immediately (no infinite deferral).
      */
     @Test(timeout = 120_000)
     fun visibleReplyHandoverUnderOlderAnchorHoldsEveryFrame() {
@@ -732,35 +726,166 @@ class ChatStreamingChunkUiDeviceTest {
                 val deadline = SystemClock.uptimeMillis() + 10_000
                 while (SystemClock.uptimeMillis() < deadline && drained.count > 0) pump(32)
                 check(drained.count == 0L) { "Streaming presentation never drained" }
-                pump(1_500)
+                val swapDeadline = SystemClock.uptimeMillis() + 2_000
+                while (SystemClock.uptimeMillis() < swapDeadline && chunkNodes().none { it.text == "CELL_ALPHA" }) pump(32)
+                val swappedWhileVisible = chunkNodes().any { it.text == "CELL_ALPHA" }
                 val frames = synchronized(olderTops) { olderTops.drop(start) }
                 val maxDeviation = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
-                val deferred = chunkNodes().none { it.text == "CELL_ALPHA" }
                 val passes = synchronized(passLog) { passLog.takeLast(frames.size + 2) }
                 passes.forEach { Log.i(TAG, "older-anchor-pass $it") }
-                // Returning to the bottom ends the deferral.
                 runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { listRef.get().scrollToItem(0) } }
-                val settleDeadline = SystemClock.uptimeMillis() + 10_000
-                while (SystemClock.uptimeMillis() < settleDeadline && chunkNodes().none { it.text == "CELL_ALPHA" }) pump(32)
-                val settledAtBottom = chunkNodes().any { it.text == "CELL_ALPHA" }
                 pump(500)
+                val settledAtBottom = chunkNodes().any { it.text == "CELL_ALPHA" }
                 val heightAfter = listRef.get().layoutInfo.visibleItemsInfo.first { it.key == "stream" }.size
                 val json = JSONObject().apply {
                     put("baseline", baseline); put("layoutPasses", frames.size)
                     put("olderTops", org.json.JSONArray(frames)); put("maxDeviation", maxDeviation)
-                    put("deferredWhileVisible", deferred); put("settledAtBottom", settledAtBottom)
+                    put("swappedWhileVisible", swappedWhileVisible); put("settledAtBottom", settledAtBottom)
                     put("replyHeightStreaming", heightBefore); put("replyHeightSettled", heightAfter)
                     put("passes", org.json.JSONArray(passes))
                 }
                 runCatching { capture("older-anchor-frames", json) }
-                Log.i(TAG, "older-anchor-frames baseline=$baseline passes=${frames.size} maxDeviation=$maxDeviation deferred=$deferred settledAtBottom=$settledAtBottom height=$heightBefore->$heightAfter tops=$frames")
+                Log.i(TAG, "older-anchor-frames baseline=$baseline passes=${frames.size} maxDeviation=$maxDeviation swapped=$swappedWhileVisible settledAtBottom=$settledAtBottom height=$heightBefore->$heightAfter tops=$frames")
                 assertTrue("Older anchor moved in some frame: ${maxDeviation}px", maxDeviation <= 2f)
-                assertTrue("Visible off-bottom reply swapped renderers under the reader", deferred)
-                assertTrue("Settled renderer did not take over at the bottom", settledAtBottom)
+                assertTrue("Visible off-bottom reply did not swap to settled under the reader", swappedWhileVisible)
+                assertTrue("Settled renderer did not remain at the bottom", settledAtBottom)
                 // The settled tree really has different geometry (the case being guarded).
                 assertTrue("Settled reply height did not differ", kotlin.math.abs(heightAfter - heightBefore) > 2)
             } catch (error: Throwable) {
                 Log.i(TAG, "older-anchor-frames failed: $error")
+                failure = error
+            }
+        }
+        compose.mainClock.autoAdvance = true
+        failure?.let { throw it }
+    }
+
+    /**
+     * Streaming image label degrades, then the settled tree loads a real local
+     * PNG (no network) and a math block. Every older-item layout pass during
+     * the swap and the image-height change stays within 2px; formulas must
+     * render as [Latex], not as an extra `$` node or raw delimiter paragraph.
+     */
+    @Test(timeout = 120_000)
+    fun visibleReplyImageAndMathHandoverHoldsEveryFrame() {
+        compose.mainClock.autoAdvance = false
+        fun pump(milliseconds: Long) {
+            val deadline = SystemClock.uptimeMillis() + milliseconds
+            while (SystemClock.uptimeMillis() < deadline) {
+                compose.mainClock.advanceTimeBy(16)
+                SystemClock.sleep(16)
+            }
+        }
+        val imageFile = File(context.filesDir, "amber-fixture-image.png")
+        val bmp = android.graphics.Bitmap.createBitmap(480, 320, android.graphics.Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(bmp).apply {
+            drawColor(android.graphics.Color.rgb(32, 110, 200))
+            val paint = android.graphics.Paint().apply {
+                color = android.graphics.Color.WHITE
+                textSize = 64f
+                isAntiAlias = true
+            }
+            drawText("FIXTURE", 80f, 180f, paint)
+        }
+        imageFile.outputStream().use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        bmp.recycle()
+        val imageUri = "file://${imageFile.absolutePath}"
+        val reply = "RICH_INTRO 回复。\n\n行内公式 MATH_INLINE_MARK \$E=mc^2\$ 之后。\n\n" +
+            "\$\$\n\\sum_{n=1}^{N} n = \\frac{N(N+1)}{2}\n\$\$\n\nMATH_BLOCK_AFTER 块级公式之后。\n\n" +
+            "![FIXTURE_IMAGE_ALT]($imageUri)\n\n" +
+            "| 项目 | 结果 |\n| --- | --- |\n| CELL_ALPHA | CELL_BETA |\n\nRICH_END 完成。"
+        val streaming = MutableStateFlow(true)
+        val drained = CountDownLatch(1)
+        val listRef = AtomicReference<LazyListState>()
+        val olderTops = java.util.Collections.synchronizedList(ArrayList<Float>())
+        var failure: Throwable? = null
+        launchHost().use { scenario ->
+            scenario.onActivity { activity ->
+                val settings = Settings()
+                val highlighter = Highlighter(activity)
+                activity.setContent {
+                    val navigator = remember { app.amber.feature.ui.context.Navigator(mutableListOf()) }
+                    CompositionLocalProvider(
+                        LocalSettings provides settings,
+                        LocalHighlighter provides highlighter,
+                        app.amber.feature.ui.context.LocalNavController provides navigator,
+                    ) {
+                        MaterialTheme {
+                            val active by streaming.collectAsState()
+                            val list = rememberLazyListState()
+                            listRef.set(list)
+                            LazyColumn(Modifier.fillMaxSize(), state = list, reverseLayout = true) {
+                                item("tail") { Text("render fixture tail") }
+                                item("stream") {
+                                    HandoverStreamItem(list, reply, active, onDrained = { drained.countDown() })
+                                }
+                                items(30, key = { "older-$it" }) { index ->
+                                    Text(
+                                        "OLDER $index 旧消息阅读段落，保持稳定。".repeat(6),
+                                        Modifier.then(
+                                            if (index == 0) Modifier.onGloballyPositioned {
+                                                olderTops += it.positionInRoot().y
+                                            } else Modifier
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            try {
+                pump(2_000)
+                runBlocking { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    listRef.get().scrollToItem(1, 60)
+                } }
+                pump(800)
+                check(listRef.get().layoutInfo.visibleItemsInfo.any { it.key == "older-0" })
+                val start = olderTops.size
+                val baseline = olderTops.last()
+                val streamingHadImageLabel = chunkNodes().any { "FIXTURE_IMAGE_ALT" in it.text }
+                val streamingHadRawMath = chunkNodes().any { "\$E=mc^2\$" in it.text || "MATH_INLINE_MARK" in it.text }
+                streaming.value = false
+                val drainDeadline = SystemClock.uptimeMillis() + 10_000
+                while (SystemClock.uptimeMillis() < drainDeadline && drained.count > 0) pump(32)
+                check(drained.count == 0L) { "Streaming presentation never drained" }
+                val swapDeadline = SystemClock.uptimeMillis() + 2_000
+                while (SystemClock.uptimeMillis() < swapDeadline && chunkNodes().none { it.text == "CELL_ALPHA" }) pump(32)
+                val imageDeadline = SystemClock.uptimeMillis() + 8_000
+                var imageHeight = 0f
+                while (SystemClock.uptimeMillis() < imageDeadline) {
+                    val imageNode = compose.onAllNodes(
+                        hasContentDescription("FIXTURE_IMAGE_ALT"), useUnmergedTree = true,
+                    ).fetchSemanticsNodes().firstOrNull()
+                    imageHeight = imageNode?.boundsInRoot?.height ?: 0f
+                    if (imageHeight >= 180f) break
+                    pump(32)
+                }
+                val frames = synchronized(olderTops) { olderTops.drop(start) }
+                val maxDeviation = (frames + baseline).maxOf { kotlin.math.abs(it - baseline) }
+                val texts = chunkNodes().map { it.text }
+                val latex = texts.any { "[Latex]" in it }
+                val rawDollarParagraph = texts.any { it.trim() == "$" || it.trim() == "$$" }
+                val json = JSONObject().apply {
+                    put("baseline", baseline); put("layoutPasses", frames.size)
+                    put("olderTops", org.json.JSONArray(frames)); put("maxDeviation", maxDeviation)
+                    put("streamingHadImageLabel", streamingHadImageLabel)
+                    put("streamingHadRawMath", streamingHadRawMath)
+                    put("swappedCell", texts.any { it == "CELL_ALPHA" })
+                    put("latex", latex); put("rawDollarParagraph", rawDollarParagraph)
+                    put("imageHeight", imageHeight)
+                    put("imageUri", imageUri)
+                }
+                runCatching { capture("image-math-frames", json) }
+                Log.i(TAG, "image-math-frames $json")
+                assertTrue("Streaming never showed the degraded image label", streamingHadImageLabel)
+                assertTrue("Visible off-bottom reply did not swap to settled", texts.any { it == "CELL_ALPHA" })
+                assertTrue("Older anchor moved in some frame: ${maxDeviation}px", maxDeviation <= 2f)
+                assertTrue("Settled math did not render as [Latex]", latex)
+                assertFalse("Settled tree invented a lone \$ node", rawDollarParagraph)
+                assertTrue("Local fixture image did not load (height=$imageHeight)", imageHeight >= 180f)
+            } catch (error: Throwable) {
+                Log.i(TAG, "image-math-frames failed: $error")
                 failure = error
             }
         }

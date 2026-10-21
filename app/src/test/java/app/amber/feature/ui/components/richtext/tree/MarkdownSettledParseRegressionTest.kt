@@ -144,6 +144,56 @@ class MarkdownSettledParseRegressionTest {
     }
 
     @Test
+    fun finalParseOfInlineAndBlockMathKeepsFormulaNodes() {
+        val inline = corpus("18-katex-inline.md")
+        val block = corpus("19-katex-block.md")
+        val inlineResult = StreamingMarkdownParseCache().finalParse(inline)
+        val blockResult = StreamingMarkdownParseCache().finalParse(block)
+        assertTrue(
+            "sample 18 settled parse lost MathInline",
+            inlineResult.containsType(MdNodeType.MathInline),
+        )
+        assertTrue(
+            "sample 19 settled parse lost MathBlock",
+            blockResult.containsType(MdNodeType.MathBlock),
+        )
+        assertFalse(
+            "sample 18 ended with a synthetic closer '${inlineResult.trailingVisibleText()}'",
+            inlineResult.trailingVisibleText() in setOf("$", "**", "$$"),
+        )
+        assertFalse(
+            "sample 19 ended with a synthetic closer '${blockResult.trailingVisibleText()}'",
+            blockResult.trailingVisibleText() in setOf("$", "**", "$$"),
+        )
+    }
+
+    @Test
+    fun settledMathDumpUsesLatexPlaceholderNotRawDelimitersOrExtraCloser() {
+        val content = corpus("18-katex-inline.md")
+        compose.setContent { MarkdownHost(content) }
+        compose.waitUntil(8_000) {
+            val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
+            dump.contains("text=KaTeX — Inline Math") && !dump.contains("text=## KaTeX")
+        }
+        val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
+        assertTrue("settled math dump missing [Latex] placeholder:\n$dump", dump.contains("[Latex]"))
+        assertTrue(
+            "settled math dump dropped the formula child:\n$dump",
+            dump.contains("text=\$E = mc^2\$"),
+        )
+        val lastText = dump.lineSequence().map { it.trim() }.lastOrNull { it.startsWith("text=") }
+        assertFalse(
+            "settled math dump ended with synthetic closer $lastText:\n$dump",
+            lastText == "text=$" || lastText == "text=**" || lastText == "text=$$",
+        )
+        val parentLine = dump.lineSequence().first { "mass-energy" in it }
+        assertTrue(
+            "parent paragraph still showed raw dollar delimiters: $parentLine",
+            "[Latex]" in parentLine && "\$E = mc^2\$" !in parentLine,
+        )
+    }
+
+    @Test
     fun cacheMissFirstFrameDoesNotShowRawHtmlMarkup() {
         val content = corpus("20-html-block.md")
         val paused = StandardTestDispatcher()
@@ -197,6 +247,15 @@ class MarkdownSettledParseRegressionTest {
 
     private fun corpus(name: String): String =
         File("src/test/resources/markdown-corpus", name).readText()
+}
+
+private fun MarkdownParseResult.containsType(type: MdNodeType): Boolean {
+    fun walk(node: MdNode): Boolean {
+        if (node.type == type) return true
+        return node.children.any { walk(it) }
+    }
+    if (walk(tree)) return true
+    return stableTopLevelBlocks.any { walk(it.parseResult.tree) }
 }
 
 private fun MarkdownParseResult.trailingVisibleText(): String {
