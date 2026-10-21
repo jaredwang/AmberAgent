@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import app.amber.agent.ui.components.richtext.nativebridge.PackedAstReader
 import app.amber.core.settings.Settings
+import app.amber.feature.ui.components.richtext.MARKDOWN_SYNC_PARSE_MAX_CHARS
 import app.amber.feature.ui.components.richtext.MarkdownBlock
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.context.LocalToaster
@@ -46,7 +47,11 @@ internal const val MARKDOWN_CORPUS_DIR = "src/test/resources/markdown-corpus"
  * Determinism / normalization (see [dumpNormalized]):
  *  - Renders through the production chat entry [MarkdownBlock] with the default
  *    (non-streaming) params — exactly the non-widget assistant-message path
- *    in ChatMessageRenderers.kt. Streaming is off, so no async re-parse runs.
+ *    in ChatMessageRenderers.kt. Samples longer than
+ *    [MARKDOWN_SYNC_PARSE_MAX_CHARS] (every corpus file except
+ *    `30-empty-and-whitespace`) take the pending-placeholder first frame, so
+ *    this suite waits until the dump equals the golden (the documented ready
+ *    signal). Goldens are unchanged.
  *  - The renderer requires three CompositionLocals: [LocalSettings] (read for
  *    `displaySetting.enableLatexRendering`, default true), [LocalNavController]
  *    (HighlightCodeBlock stores a Navigator for an "open in WebView" click that
@@ -130,14 +135,16 @@ class MarkdownRendererSnapshotTest(
                 }
             }
         }
-        compose.waitForIdle()
-
-        val actual = compose.onRoot().fetchSemanticsNode().dumpNormalized()
         val goldenFile = File(SNAPSHOT_DIR, "$sampleName.txt")
-
         if (UPDATE_SNAPSHOTS) {
+            compose.waitUntil(15_000) {
+                val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
+                content.length <= MARKDOWN_SYNC_PARSE_MAX_CHARS ||
+                    content.isBlank() ||
+                    dump.isNotBlank()
+            }
             goldenFile.parentFile?.mkdirs()
-            goldenFile.writeText(actual)
+            goldenFile.writeText(compose.onRoot().fetchSemanticsNode().dumpNormalized())
             return
         }
 
@@ -150,6 +157,12 @@ class MarkdownRendererSnapshotTest(
         // Sample 30's golden is intentionally empty: whitespace-only input renders
         // nothing. The non-empty goldens guard the "renders nothing for valid input"
         // regression class (a renderer that silently drops content fails them).
+        // Over-N samples start as an invisible placeholder; the ready signal is
+        // dump == golden (formatted tree, not raw `##` / `<div>`).
+        compose.waitUntil(15_000) {
+            compose.onRoot().fetchSemanticsNode().dumpNormalized() == expected
+        }
+        val actual = compose.onRoot().fetchSemanticsNode().dumpNormalized()
         if (expected != actual) {
             throw AssertionError(buildSnapshotDiff(sampleName, expected, actual))
         }

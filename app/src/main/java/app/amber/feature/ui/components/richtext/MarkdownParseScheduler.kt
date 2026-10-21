@@ -23,11 +23,14 @@ internal val LocalMarkdownParseDispatcher = staticCompositionLocalOf<CoroutineDi
  * placeholder until the background parse is ready. Oversize uncacheable
  * content still uses the visible lossless raw fallback.
  *
- * Bound chosen so the 32-sample snapshot corpus (all < 5 KiB) stays on the
- * sync path, matching `main`. Device traces of the 4ms composition budget
- * are pending real-device recheck; see round4-diagnosis/parse-threshold.json.
+ * Bound is the largest measured length class on 25128PNA1C whose every
+ * main-thread [MarkdownParseCache.getOrParse] sample is ≤4ms
+ * (`round4-diagnosis/parse-threshold.json`). 512 chars already exceeds
+ * that budget (median 4.93ms). The 32-sample snapshot corpus is almost
+ * entirely over this bound, so those suites wait for the formatted dump
+ * rather than assuming a synchronous first frame.
  */
-internal const val MARKDOWN_SYNC_PARSE_MAX_CHARS = 8_192
+internal const val MARKDOWN_SYNC_PARSE_MAX_CHARS = 256
 
 internal fun markdownAllowsSyncParse(content: String): Boolean =
     content.length <= MARKDOWN_SYNC_PARSE_MAX_CHARS && isMarkdownContentCacheable(content)

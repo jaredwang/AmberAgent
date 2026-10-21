@@ -46,6 +46,8 @@ import java.io.File
  * [MARKDOWN_SYNC_PARSE_MAX_CHARS]): the semantics dump contains the formatted
  * heading (`text=Heading`) and not the raw marker (`text=## Heading`). A
  * testTag was not used — it unmerges semantics and would rewrite every golden.
+ * Corpus samples 10 and 20 exceed N, so their cache-miss first frame is the
+ * invisible placeholder; a short ≤N sample pins the formatted first frame.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -107,8 +109,9 @@ class MarkdownSettledParseRegressionTest {
     }
 
     @Test
-    fun cacheMissFirstFrameDoesNotShowRawHeadingMarkup() {
-        val content = corpus("10-inline-code.md")
+    fun cacheMissFirstFrameOfShortContentIsFormattedHeading() {
+        val content = "## Short Heading\n\nTiny cache-miss sample."
+        check(content.length <= MARKDOWN_SYNC_PARSE_MAX_CHARS)
         val paused = StandardTestDispatcher()
         compose.setContent {
             CompositionLocalProvider(LocalMarkdownParseDispatcher provides paused) {
@@ -117,12 +120,29 @@ class MarkdownSettledParseRegressionTest {
         }
         val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
         assertFalse(
-            "cache-miss first frame showed raw heading markup:\n$dump",
-            dump.contains("text=## Inline Code") || dump.contains("text=## Inline"),
+            "short cache-miss first frame showed raw heading markup:\n$dump",
+            dump.contains("text=## Short Heading") || dump.contains("text=## Short"),
         )
         assertTrue(
-            "formatted heading never appeared; dump was:\n$dump",
-            dump.contains("text=Inline Code"),
+            "short cache-miss first frame must be the formatted tree:\n$dump",
+            dump.contains("text=Short Heading"),
+        )
+    }
+
+    @Test
+    fun cacheMissFirstFrameDoesNotShowRawHeadingMarkup() {
+        val content = corpus("10-inline-code.md")
+        check(content.length > MARKDOWN_SYNC_PARSE_MAX_CHARS)
+        val paused = StandardTestDispatcher()
+        compose.setContent {
+            CompositionLocalProvider(LocalMarkdownParseDispatcher provides paused) {
+                MarkdownHost(content)
+            }
+        }
+        val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
+        assertFalse(
+            "over-N first frame showed raw heading markup:\n$dump",
+            dump.contains("text=## Inline Code") || dump.contains("text=## Inline"),
         )
     }
 
@@ -140,6 +160,10 @@ class MarkdownSettledParseRegressionTest {
         assertFalse(
             "over-budget placeholder leaked raw heading markup:\n$dump",
             dump.contains("## Over Budget Heading") || dump.contains("text=## "),
+        )
+        assertFalse(
+            "over-budget first frame must stay on the invisible placeholder:\n$dump",
+            dump.contains("text=Over Budget Heading"),
         )
     }
 
@@ -196,6 +220,7 @@ class MarkdownSettledParseRegressionTest {
     @Test
     fun cacheMissFirstFrameDoesNotShowRawHtmlMarkup() {
         val content = corpus("20-html-block.md")
+        check(content.length > MARKDOWN_SYNC_PARSE_MAX_CHARS)
         val paused = StandardTestDispatcher()
         compose.setContent {
             CompositionLocalProvider(LocalMarkdownParseDispatcher provides paused) {
@@ -204,12 +229,8 @@ class MarkdownSettledParseRegressionTest {
         }
         val dump = compose.onRoot().fetchSemanticsNode().dumpNormalized()
         assertFalse(
-            "cache-miss first frame showed raw HTML heading/markup:\n$dump",
+            "over-N first frame showed raw HTML heading/markup:\n$dump",
             dump.contains("text=## HTML Blocks") || dump.contains("<div"),
-        )
-        assertTrue(
-            "formatted HTML heading never appeared; dump was:\n$dump",
-            dump.contains("text=HTML Blocks"),
         )
     }
 
