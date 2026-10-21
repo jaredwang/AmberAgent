@@ -30,6 +30,11 @@ import kotlin.uuid.Uuid
  * index: loading earlier history shifts indexes, and regenerate changes
  * content under the same node. [remember] is keyed by [sessionId] so a
  * conversation switch does not keep the previous set.
+ *
+ * The actively generating message (the last node while [ChatTimelinePlan.timelineLoading]
+ * is true) is excluded and never added to [requested]. Streaming already parses it on
+ * its own throttle, and per-token prefixes must not be fully parsed or evict history
+ * from the cache. Its settled body is prefetched once loading ends.
  */
 @Composable
 internal fun TimelineMarkdownPrefetch(
@@ -42,6 +47,7 @@ internal fun TimelineMarkdownPrefetch(
 ) {
     val requested = remember(sessionId) { HashSet<MarkdownPrefetchKey>() }
     LaunchedEffect(listState, plan, messageNodes, regexes, sessionId) {
+        val excludedNodeId = generatingPrefetchExclusion(plan, messageNodes)
         snapshotFlow {
             val info = listState.layoutInfo
             val first = info.visibleItemsInfo.firstOrNull()?.index
@@ -62,6 +68,7 @@ internal fun TimelineMarkdownPrefetch(
                     lazyFrom = from,
                     lazyTo = to,
                     requested = requested,
+                    excludedNodeId = excludedNodeId,
                 )
                 if (bodies.isEmpty()) return@collect
                 withContext(Dispatchers.Default) {
@@ -77,6 +84,12 @@ internal fun TimelineMarkdownPrefetch(
 
 internal data class MarkdownPrefetchKey(val nodeId: Uuid, val contentHash: Int)
 
+/** The generating tail (mirrors `loadingNodeId` in [rememberChatTimelinePlan]); null when idle. */
+internal fun generatingPrefetchExclusion(
+    plan: ChatTimelinePlan,
+    messageNodes: List<MessageNode>,
+): Uuid? = messageNodes.lastOrNull()?.id?.takeIf { plan.timelineLoading }
+
 internal fun collectMarkdownPrefetchBodies(
     plan: ChatTimelinePlan,
     messageNodes: List<MessageNode>,
@@ -84,12 +97,14 @@ internal fun collectMarkdownPrefetchBodies(
     lazyFrom: Int,
     lazyTo: Int,
     requested: MutableSet<MarkdownPrefetchKey>,
+    excludedNodeId: Uuid?,
 ): List<String> {
     if (lazyTo < lazyFrom) return emptyList()
     return buildList {
         for (lazyIndex in lazyFrom..lazyTo) {
             val messageIndex = plan.messageIndexAt(lazyIndex) ?: continue
             val node = messageNodes.getOrNull(messageIndex) ?: continue
+            if (node.id == excludedNodeId) continue
             for (body in node.prefetchMarkdownBodies(regexes)) {
                 val key = MarkdownPrefetchKey(node.id, body.hashCode())
                 if (!requested.add(key)) continue
@@ -104,10 +119,12 @@ internal fun collectMarkdownPrefetchBodies(
     regexes: List<AssistantRegex>,
     messageIndexRange: IntRange,
     requested: MutableSet<MarkdownPrefetchKey>,
+    excludedNodeId: Uuid?,
 ): List<String> {
     return buildList {
         for (index in messageIndexRange) {
             val node = messageNodes.getOrNull(index) ?: continue
+            if (node.id == excludedNodeId) continue
             for (body in node.prefetchMarkdownBodies(regexes)) {
                 val key = MarkdownPrefetchKey(node.id, body.hashCode())
                 if (!requested.add(key)) continue
