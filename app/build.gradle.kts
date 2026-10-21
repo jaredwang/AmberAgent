@@ -37,6 +37,8 @@ val uploadCrashlyticsMapping = projectProperty("uploadCrashlyticsMapping", "UPLO
     .toBooleanStrict()
 val baseApplicationId = "app.amber.agent"
 val graphiteDebugApplicationIdSuffix = ".graphite"
+val chatDeviceFixtureEnabled =
+    project.findProperty("chatDeviceFixture")?.toString()?.toBoolean() == true
 
 // Build types that share the Amber UI/runtime contract — must each call
 // `applyAmberUiBuildConfig(...)` in the `buildTypes {}` block below to set
@@ -144,7 +146,9 @@ android {
         versionCode = 396
         versionName = "2.6.8"
 
-        testInstrumentationRunner = if (project.findProperty("uiSmokeTest")?.toString()?.toBoolean() == true) {
+        testInstrumentationRunner = if (chatDeviceFixtureEnabled) {
+            "app.amber.agent.ChatDeviceFixtureRunner"
+        } else if (project.findProperty("uiSmokeTest")?.toString()?.toBoolean() == true) {
             "app.amber.agent.AmberAgentUiSmokeTestRunner"
         } else {
             "app.amber.agent.AmberAgentAndroidTestRunner"
@@ -354,7 +358,24 @@ android {
     }
     sourceSets {
         getByName("androidTest").assets.srcDirs("$projectDir/schemas")
-        getByName("main").assets.srcDir("$buildDir/generated/assets/embeddedTerminalRuntime")
+        getByName("main") {
+            assets.srcDir("$buildDir/generated/assets/embeddedTerminalRuntime")
+        }
+        // Debug source set so default fullDebug app + androidTest resolve the fixture ABI without a property; never main/release.
+        getByName("debug") {
+            java.srcDir("src/chatDeviceFixture/java")
+            kotlin.srcDir("src/chatDeviceFixture/java")
+        }
+        if (chatDeviceFixtureEnabled) {
+            getByName("baseline") {
+                java.srcDir("src/chatDeviceFixture/java")
+                kotlin.srcDir("src/chatDeviceFixture/java")
+            }
+            getByName("benchmarkRelease") {
+                java.srcDir("src/chatDeviceFixture/java")
+                kotlin.srcDir("src/chatDeviceFixture/java")
+            }
+        }
         getByName("test") {
             // Shared iOS/Android golden fixtures live at repo-root test-fixtures/
             // (same wiring as :feature:novel).
@@ -1095,4 +1116,9 @@ dependencies {
     androidTestImplementation(libs.androidx.room.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Opt-in empty host for the debug-signed, release-derived .debug variant.
+    // Keeps device renderer checks isolated from the canonical installed app.
+    if (chatDeviceFixtureEnabled) {
+        add("baselineImplementation", libs.androidx.ui.test.manifest)
+    }
 }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.DefaultAlpha
@@ -22,6 +23,9 @@ import app.amber.feature.ui.components.ui.LocalExportContext
 import app.amber.feature.ui.modifier.shimmer
 import app.amber.feature.ui.theme.LocalDarkMode
 
+/** Test hook: decoded pixel size after Coil success. Null in production. */
+internal val LocalMarkdownImageDecodeProbe = staticCompositionLocalOf<((Int, Int) -> Unit)?> { null }
+
 @Composable
 fun ZoomableAsyncImage(
     model: String?,
@@ -35,6 +39,7 @@ fun ZoomableAsyncImage(
     val context = LocalContext.current
     val placeholder = if(LocalDarkMode.current) R.drawable.placeholder_dark else R.drawable.placeholder
     val export = LocalExportContext.current
+    val decodeProbe = LocalMarkdownImageDecodeProbe.current
     // 必须记住请求：流式渲染每帧都会重组，每次新建 ImageRequest 会让 Coil 把它当成
     // 新请求重启加载，图还在屏幕里就退回占位/水波纹——这正是"滚回屏幕前一直是空白"。
     // data 是稳定 String，remember 后同一个请求复用内存缓存，命中即绘制。
@@ -64,9 +69,13 @@ fun ZoomableAsyncImage(
         onLoading = {
             loading = true
         },
-        onSuccess = {
+        onSuccess = { state ->
             loading = false
             loaded = true
+            val size = state.painter.intrinsicSize
+            if (size.width > 0f && size.height > 0f) {
+                decodeProbe?.invoke(size.width.toInt(), size.height.toInt())
+            }
         },
         onError = {
             loading = false

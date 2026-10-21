@@ -37,4 +37,5 @@ docs/cloud-design/**/.thumbnail
 
 # Local agent tooling & Python cache
 .zcode/
+.workbuddy/
 __pycache__/

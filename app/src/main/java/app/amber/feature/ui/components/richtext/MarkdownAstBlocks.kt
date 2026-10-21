@@ -73,6 +73,17 @@ internal fun TraceMarkdownComposable(section: String, content: @Composable () ->
  * Used by user message bubbles to allow adaptive width.
  */
 internal val LocalMarkdownFillWidth = compositionLocalOf { true }
+
+/**
+ * Alt text for a markdown image node.
+ *
+ * JVM `linkLabel` is the raw LINK_TEXT including `[ ]` (golden
+ * `06-images.txt` pins `image=[Android robot logo]`). Native `linkLabel`
+ * is the concatenated alt without brackets. Device tests match both forms
+ * rather than rewriting this string, so the snapshot golden stays stable.
+ */
+internal fun markdownImageContentDescription(node: MdNode): String =
+    node.linkLabel.orEmpty()
 internal val LocalMarkdownSourceOffsetBase = compositionLocalOf { 0 }
 internal val LocalMarkdownSyntheticSuffixStart = compositionLocalOf { Int.MAX_VALUE }
 internal val LocalStreamingMarkdownMotionScope = compositionLocalOf<StreamingMarkdownMotionScope?> { null }
@@ -535,7 +546,7 @@ internal fun MarkdownNode(
         MdNodeType.Image -> {
             // alt = LINK_TEXT text (untrimmed, mapping doc §3 E4 — linkLabel relocates the
             // findChildOfTypeRecursive(LINK_TEXT) dig); src via imageSrc accessor.
-            val altText = node.linkLabel ?: ""
+            val altText = markdownImageContentDescription(node)
             val imageUrl = node.imageSrc ?: ""
             if (LocalSearchImageUrls.current?.contains(imageUrl) == true) return
             StreamingBlockReveal(node = node, modifier = modifier) { revealModifier ->

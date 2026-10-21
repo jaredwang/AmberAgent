@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,6 +81,7 @@ internal fun ChatPageTimelineContent(
         activeGeneration = activeGeneration,
         hasHistoryLoadingItem = !timelineLoadState.isFullyLoaded,
         pendingMessageCount = pendingUserMessages.size,
+        listState = state,
     )
 
     LaunchedEffect(resolvedNodeId, conversation.messageNodes.size, timelineLoadState.initialized, timelineLoadState.isFullyLoaded, timelinePrepared, timelineReady) {
@@ -344,27 +343,6 @@ internal fun ChatPageTimelineHost(
                     },
                     chatTimelinePlan = chatTimelinePlan,
                 )
-                // V3 convo-screen.jsx:27-32 底部 56dp fade scrim ——
-                // 长消息滚动接近 composer pill 时溶解到 bg，不硬切边线
-                // 仅对话态显示（空白态不需要）
-                if (hasMessages) {
-                    val chatBg = LocalChatTheme.current.bg
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = innerPadding.calculateBottomPadding())
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .background(
-                                androidx.compose.ui.graphics.Brush.verticalGradient(
-                                    0.00f to chatBg.copy(alpha = 0f),
-                                    0.75f to chatBg,
-                                    1.00f to chatBg,
-                                )
-                            )
-                    )
-                }
-
                 // V3 空白态: hero 问候语 (此 else 分支已守护 initialized=true, 不会闪现)
                 // review P2 #3: 之前 (isEmpty && loadingJob==null) 在 "loading && empty" 中间态没 UI,
                 // 401/慢响应时整屏空白看着像卡死. 改成 isEmpty 时 hero 一直保留 (loading 时 hero 上叠
