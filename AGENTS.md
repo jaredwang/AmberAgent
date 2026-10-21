@@ -7,4 +7,4 @@
 - Android 修改完成后，默认构建对应 APK、安装到已连接的真机并启动运行验证；若无可用真机或安装、启动失败，明确说明未完成的验证及原因。
 - 只把稳定、平台无关且已有两端消费者的能力提议迁往版本化的 AmberAgent Core 制品；本仓 `core/` 仍是 Android 平台实现。
 - 不把 iOS 过渡实现当作 Android 已验证行为；跨端契约任务必须分别给出两端证据。
-- 远端拓扑：`origin` 是上游 `soul99soul-glitch/AmberAgent`（只读），`fork` 是 `jaredwang/AmberAgent`。改动推 `fork`，PR 打上游 `main`；本仓没有 `master` 分支。
+- 远端拓扑：`origin` 是上游 `soul99soul-glitch/AmberAgent`（只读）。改动推到你自己的 fork 远端（按本地 checkout 的实际配置），PR 打上游 `main`；本仓没有 `master` 分支。
