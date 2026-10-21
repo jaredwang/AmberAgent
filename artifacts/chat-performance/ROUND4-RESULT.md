@@ -443,3 +443,134 @@ in class Landroidx/tracing/Trace;
 ### 产品冷启动
 
 4b 结束后安装 ABI `fullDebug.apk` 并 `am start -W -n app.amber.agent.graphite/app.amber.agent.RouteActivity`：COLD，TotalTime 1512ms，焦点 `RouteActivity`（不是测试壳）。
+
+## 4c 返工（真机 392288d7 / 25128PNA1C）
+
+负责人第二次验收：4b 部分通过后的返工。已通过并保持不动：第 1、3 项；A（回复内推迟，旧消息锚点即时切换）；C（N=256）；H；I。未 push、未建 PR、未改写历史、未改 golden、未放宽断言、未加长超时。ADB 一律 `adb -s 392288d7`。性能测量前 `emu kill`。未使用 `KEYCODE_SLEEP`。
+
+起点提交 `aa2f7aceb`。本条是 4c 源码与验收之后的报告提交。
+
+### 逐项
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| 1 图片范围 | **通过** | main `462c7f924` 上 `file://` Markdown 图能显示（`round4c/main-file-image-probe.json` displayed=true）。撤回 `coilImageData` / `Size.ORIGINAL` / 共享 `defaultMinSize`+`aspectRatio`。`MarkdownAstBlocks` 恢复 `heightIn(min=120.dp, max=420.dp)`。真机竖图 360×720≤1260px；4000×3000 解码 1080×810≤layout×density；工具缩略图高 192=64.dp。`MarkdownImageLayoutDeviceTest` 3/3 |
+| 2 短答 P95 | **通过** | 高度未变时不读 `layoutInfo`。drop2 三对 p95 22.156→17.768、21.063→16.671、21.660→20.952，**0/3 对超过 10%**，中位 −18.0%。`AmberTailIdleHold` n=23 / 1.41ms。`round4c/device-pairs/` |
+| 3 第 5 项逐帧 | **通过（与 round3 持平）** | 同一夹具：b4477f42b idle/drag/fling 中间帧 0/88/88；HEAD 去掉额外 `withFrameNanos` 后同样 0/88/88。`idleHoldThenImmediateDragMovesByInjectedDistance` 过 slop 后注入 80px，位移 80/80。kdoc 写明晚一帧补偿 |
+| 4 from-zero | **部分（保留）** | drop2 中位 p95 108.464→107.446（−0.9%），未达 −15%。热点仍是 `TextAnnotatedStringNode:measure` + `Constructing StaticLayout` + `AndroidOwner:draw`。`round4c/trace-fromzero-4c-*.json`、`round4c/device-fromzero/` |
+| 5 第 8 项 bench | **阻塞点明确** | 两侧从源码构建 benchmarkRelease，`-PchatDeviceFixture=true` 对齐 `androidx.tracing:1.2.0`（dex 有 `beginSection(Ljava/lang/String;)V`）。keep 过 Trace、`kotlin.LazyKt`、`FirebaseApp.getApps`。探针卡在 `ChatDeviceFixtureApplication.onCreate` → `startKoin` → `org.koin.core.context.DefaultContextExtKt` ClassNotFound。夹具 Application 拉起全套 Koin/WorkManager，继续 keep 是打地鼠。`round4c/bench-head-probe-firebase.txt` |
+| 6 测试兼容代码 | **通过** | 生产 `main` 去掉 `@Keep` 三参数重载和 `proguard-rules.pro` keep。夹具 ABI 在 `src/chatDeviceFixture/java/app/amber/agent/chatfixture/`，仅 `-PchatDeviceFixture=true`。基线从 `b4477f42b` worktree 重建 |
+| 7 快照 | **通过** | 注入 `StandardTestDispatcher`，`advanceUntilIdle` + `waitForIdle` 后再断言。golden 未改。`MarkdownRendererSnapshotTest` 32/32 |
+| 8 history-cold 占位 | **通过** | 视口透明占位 `pendingFrames=2`，最长连续 1 帧 / 106ms。`TimelineMarkdownPrefetch` 在进入视口前预热。drop2 history-cold 三对均下降，中位 −12.1%。`round4c/history-placeholder-device.txt`、`round4c/device-extra/` |
+| 9 报告准确性 | **通过** | 4b history-cold 第 3 对 24.562→25.821（+5.1%），不是三对均下降。稳态 mixed >32ms：第 1 对 4.45→5.87、第 2 对 37.96→19.1（唯一下降）、第 3 对 36.13→39.58 |
+
+### 1. 图片修复收窄
+
+先在 `main` `462c7f924` 真机构建上验证 `file://` Markdown 图：`displayed=true`（`round4c/main-file-image-probe.json`）。问题在夹具/共享组件，不在 Coil FileFetcher。
+
+撤回：`coilImageData` 与 `CoilImageDataTest`；`ZoomableAsyncImage` 的 `.size(Size.ORIGINAL)`、`defaultMinSize(120.dp)`、`aspectRatio`。数据仍走 `.data(model)` 字符串，与 main 一致。保留：`MarkdownAstBlocks` 调用处 `heightIn(min = 120.dp, max = 420.dp)`。
+
+真机 `MarkdownImageLayoutDeviceTest`（`round4c/image-layout-logcat.txt`）：
+
+| 用例 | 结果 |
+| --- | --- |
+| 竖图 1:3（240×720 PNG） | 显示 360×720，上限 420.dp=1260px |
+| 4000×3000 | 布局 1080×810，解码 1080×810，上限 layout×density 3242×2432 |
+| ChatMessageTools 缩略图 `height(64.dp)` | 高 192px = 64.dp，未被 120.dp min 拉高 |
+
+### 2. 短答 P95
+
+红测试：`idleHoldDoesNotReadLayoutInfoWhenHeightIsUnchanged`。修复：`idleHoldShouldReadLayout` 在高度未变且无 pending idle delta 时跳过 `layoutInfo`。DEBUG 段 `AmberTailIdleHold` 只包实际补偿。
+
+4c 基线从 `b4477f42b` 源码 + 同一夹具 ABI 重建：`round3-fixture-fullDebug.apk` `2cf266d8…`。优化侧最终 HEAD fullDebug `2f207feb…`（含 yank/drop2）。
+
+drop2 三对 short p95：**0/3 超过 10%**。
+
+| 对 | B p95 | O p95 | Δ |
+| --- | --- | --- | --- |
+| 1 | 22.156 | 17.768 | −19.8% |
+| 2 | 21.063 | 16.671 | −20.9% |
+| 3 | 21.660 | 20.952 | −3.3% |
+
+中位 21.660→17.768（−18.0%）。optimized short.ctrace `AmberTailIdleHold` n=23 elapsed=1.41ms。
+
+### 3. 第 5 项逐帧与手势
+
+同一夹具、同一测试 APK：
+
+| 构建 | idle 增高 max / 手势 max | drag | fling |
+| --- | --- | --- | --- |
+| b4477f42b `chunk-ui-round3` | 0 / 0 | 0 / 88 | 0 / 88 |
+| HEAD 多一帧 `withFrameNanos` | 216 / 68 | 216 / 56 | 216 / 88 |
+| HEAD 去掉额外 vsync `chunk-ui-head-novsync` | 0 / 0 | 0 / 88 | 0 / 88 |
+
+根因：`reconcileIdleRequest` 里额外 `withFrameNanos` 让增高中间帧被取样成 216px。去掉后与 round3 一致。协程 `dispatchRawDelta` 仍保留（Issue #21）。kdoc 写明这是**晚一帧补偿**，不再写同帧。
+
+新增真机：离底流式增高、idle hold 触发后 1–2 帧内注入真实拖动（先过 ~48px slop，再注入 80px）。`idleHoldThenImmediateDragMovesByInjectedDistance`：`movedY=80 movedOffset=80`。`userGestureOwnsScroll` 不再把未完成的 `requestedIndex` 算作程序滚动。
+
+88px 手势偏差与 round3 相同，不是本轮新增。
+
+稳定高度后若仍按旧 `requestedIndex` 调和，会把 `scrollToItem(0)` 拽回去（cancelRegenerate 找不到 `DEVICE_FINAL_COPY_MARKER`）。改为只在滚到 offset 0 或换了 item 时丢掉 idle 目标，增高过程中继续 hold。红测试：`idleHoldDoesNotYankScrollToNewestAfterHeightSettles`、`idleHoldDropsSettledTargetAfterTwoStableFrames`。drop2 后 cancel 探针与 image-math 664px 用例均过。
+
+### 4. from-zero
+
+目标：中位 p95 相对 round3 改善 ≥15%。drop2 108.464→107.446（−0.9%）。三对 +0.3% / +0.6% / −0.9%。热点（`trace-fromzero-4c-b1.json` / `trace-fromzero-4c-o1.json`）仍是文本排版与绘制，不是 hold 的 `layoutInfo`（O 侧 `AmberTailIdleHold` n=1122 / 24ms）。保留部分达标。
+
+### 5. benchmarkRelease 成对
+
+临时 worktree `/tmp/amber-r3-4c-bench` 检出 `b4477f42b`，叠与 HEAD 相同的 `-PchatDeviceFixture=true` overlay：`androidx.tracing:tracing:1.2.0` 只进 `benchmarkReleaseImplementation` + fixture `androidTest`，`proguard-chat-device-fixture.pro` keep `Trace.beginSection(String)`。未改签名。普通 debug/release 不加该依赖。
+
+dexdump HEAD bench：`Landroidx/tracing/Trace;.beginSection:(Ljava/lang/String;)V` 存在。
+
+探针链（均在测试开始前、`ChatDeviceFixtureApplication.onCreate`）：
+
+1. 无 keep：`NoSuchMethodError Trace.beginSection(String)`（4b）
+2. tracing keep：`NoClassDefFoundError kotlin.LazyKt`（`round4c/bench-head-probe.txt`）
+3. LazyKt keep：`NoSuchMethodError FirebaseApp.getApps(Context)`（`round4c/bench-head-probe-drop2.txt`）
+4. Firebase keep：`ClassNotFoundException org.koin.core.context.DefaultContextExtKt`（`round4c/bench-head-probe-firebase.txt`）
+
+夹具 Application 会 `startKoin` + WorkManager + 全套模块。minified `benchmarkRelease` 的 app classloader 是父加载器，剥掉的 Koin/Firebase 符号会挡住测试 APK 里的完整拷贝。继续 keep 会沿着 Koin 图打地鼠，不能在「只对齐 tracing、不影响普通构建」的约束下把 runner 跑起来。**具体阻塞点：`DefaultContextExtKt` / 夹具 Application 的全量 Koin 启动 vs R8。** 未跑成 3 对。
+
+### 6. 测试钩子移出生产
+
+- 删除 `ChatTailGrowthHold` 生产三参数 `@Keep` 重载。
+- 删除 `app/proguard-rules.pro` 对该方法的 keep。
+- 新源码集 `app/src/chatDeviceFixture/java/app/amber/agent/chatfixture/StreamingTailLayoutFixtureAbi.kt`：3 参数与 5 参数 overload 都委托生产 5 参数。HEAD 与 `b4477f42b` worktree 使用同一 JVM 类名 `app.amber.agent.chatfixture.StreamingTailLayoutFixtureAbiKt`。
+- `proguard-chat-device-fixture.pro` 仅在 `-PchatDeviceFixture=true` 的 benchmarkRelease 应用。
+
+### 7. 快照准备信号
+
+`MarkdownRendererSnapshotTest` 不再等到 dump 等于 golden。注入 `LocalMarkdownParseDispatcher = StandardTestDispatcher()`，组合后 `advanceUntilIdle()` + `waitForIdle()`（HTML 样本再排一次），然后断言。golden 文件未改。定点 32/32。
+
+### 8. history-cold 透明占位
+
+真机 `HistoryColdPlaceholderDeviceTest`：超过 N=256 的历史段落，视口内 `pendingFrames=2`，最长连续 1 帧、106ms（`round4c/history-placeholder-logcat.txt`）。未超过「明显 >2 帧」。仍增加 `TimelineMarkdownPrefetch`：对当前可见范围 ±8 个 item 在 `Dispatchers.Default` 上预热 `MarkdownParseCache`。
+
+drop2 history-cold 三对均下降：30.917→24.874、27.026→23.743、26.019→22.331。中位 27.026→23.743（−12.1%）。
+
+### 9. 4b 用词更正（本条覆盖 4b 报告中的两句）
+
+4b 原文写 history-cold「三对均下降」。实际 p95：34.968→25.244、29.567→25.146、**24.562→25.821（+5.1%）**。中位仍下降（29.567→25.244），第 3 对上升。
+
+4b 原文写稳态 mixed over32 36.13%→19.1%。那是中位。逐对：4.45→5.87、**37.96→19.1（唯一下降）**、36.13→39.58。
+
+### 最终验收
+
+- 真机交互回归连续 3 轮 6/6：`round4c/regression-{1,2,3}/summary.txt`（drop2 APK `2f207feb…`）。
+- 夹具 UI 原 7 项 + idle-hold-drag 共 8/8：`round4c/chunk-ui-final/summary.txt`。
+- 成对（drop2，基线 `round3-fixture-fullDebug.apk` `2cf266d8…`，B/O、O/B、B/O）：
+  - short：0/3 对 >10%，中位 −18.0%
+  - chinese：中位 −2.1%（第 3 对 +7.2%）
+  - 稳态 mixed：中位 p95 +0.1%（≤5%），over32 5.97%→5.58%
+  - history-cold：三对均下降，中位 −12.1%
+  - from-zero mixed：中位 −0.9%，未达 −15%，保留部分
+- 全量 JVM：`round4-jvm/head-full-14-xml`，3192 tests，3 failed，`subsetOk=true`（`round4c/jvm-attribution-4c.txt`）。失败为 main 5/5 两条 OAuth 与 main 3/5 Coordinator。
+- 定点 JVM：`ChatTailGrowthHoldTest` 20/20；快照 32/32。
+
+60Hz trap 覆盖 peak/min/user/miui 并在脚本 EXIT 时恢复。协议：`round4c/protocol.json`（测量前写入；基线 APK 在夹具 ABI 对齐后改为从 `b4477f42b` 重建的 `round3-fixture-fullDebug.apk`；优化侧最终 sha `2f207feb…`）。
+
+drop2 稳态 mixed 逐对 over32：5.97→5.58、5.69→6.41、6.15→5.18。中位下降。chinese 第 3 对 +7.2% 未超 10%。
+
+### 产品冷启动
+
+4c 结束后安装 drop2 `fullDebug.apk` 并启动 `RouteActivity`，见本条提交后的 `am start -W` 输出。
