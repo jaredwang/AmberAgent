@@ -20,12 +20,14 @@ import kotlinx.coroutines.delay
  * change of any visible message therefore moves everything above it, even
  * when the reading anchor is in an older message.
  *
- * [holdReadingOnTailGrowth] now applies [LazyListState.dispatchRawDelta]
- * during measure so the same layout pass places the content above with the
- * compensated offset. Visible off-bottom swaps are therefore allowed as soon
- * as the reader is not dragging or flinging. Competing with an in-progress
- * gesture would steal the scroll; after the gesture ends the next gate poll
- * swaps within the same idle frame (well under 2s).
+ * [holdReadingOnTailGrowth] compensates reverseLayout growth two ways:
+ * idle viewports call [LazyListState.requestScrollToItem] during measure so
+ * the next layout pass in the same frame places the content above with the
+ * compensated offset; in-progress drag/fling uses a coroutine
+ * [LazyListState.dispatchRawDelta] from onGloballyPositioned so the gesture
+ * is not cancelled. Visible off-bottom swaps are therefore allowed as soon
+ * as the reader is idle. After a gesture ends the next gate poll swaps
+ * within the same idle frame (well under 2s).
  */
 @Suppress("UNUSED_PARAMETER")
 internal fun streamingSettleAllowed(
