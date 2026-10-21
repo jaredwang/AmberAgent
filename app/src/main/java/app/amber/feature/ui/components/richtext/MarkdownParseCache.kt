@@ -36,6 +36,11 @@ internal data class MarkdownParseResult(
     val tree: MdNode,
     val hasHtmlBlocks: Boolean,
     val isPlainTextFallback: Boolean = false,
+    /**
+     * Invisible equal-measurement placeholder used on a cache miss while the
+     * real tree is prepared off the main thread. Never shown as raw markup.
+     */
+    val isPendingPlaceholder: Boolean = false,
     val stableTopLevelBlocks: List<MarkdownTopLevelBlockSnapshot> = emptyList(),
     val activeBaseOffset: Int = 0,
     val syntheticSuffixStart: Int = Int.MAX_VALUE,
@@ -81,6 +86,19 @@ internal class EmptyMarkdownRootNode(
 /** Temporary, lossless UI fallback; never inserted into the parse cache. */
 internal fun plainMarkdownSnapshot(content: String): MarkdownParseResult =
     MarkdownParseResult(content, EmptyMarkdownRootNode(content.length), false, isPlainTextFallback = true)
+
+/**
+ * Cache-miss placeholder that keeps the source's layout size but is not
+ * user-visible and contributes no semantics. Never inserted into the parse cache.
+ */
+internal fun pendingMarkdownSnapshot(content: String): MarkdownParseResult =
+    MarkdownParseResult(
+        preprocessed = content,
+        tree = EmptyMarkdownRootNode(content.length),
+        hasHtmlBlocks = false,
+        isPlainTextFallback = true,
+        isPendingPlaceholder = true,
+    )
 
 private const val MARKDOWN_PARSE_CACHE_VERSION = 1
 private const val MARKDOWN_PARSE_CACHE_MAX_ENTRIES = 128

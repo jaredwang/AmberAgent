@@ -19,12 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.transform
@@ -92,11 +93,22 @@ internal fun MarkdownBlockLegacy(
     val streamingParseCache = remember {
         StreamingMarkdownParseCache()
     }
-    // A cache miss must never parse (or wait for another parse) in composition.
-    // A lossless plain-text snapshot remains visible until background styling is ready.
+    val parseDispatcher = LocalMarkdownParseDispatcher.current
+    // Cache hits and short cache-miss content are ready on the first frame.
+    // Longer cacheable content uses an invisible placeholder; oversize
+    // uncacheable content keeps the visible lossless raw fallback.
     val initialParse = remember { cachedMarkdownParseResult(semanticContent) }
+    val syncParseOnMiss = !parseAsStreamingState && markdownAllowsSyncParse(semanticContent)
     var (data, setData) = remember {
-        mutableStateOf(initialParse ?: plainMarkdownSnapshot(semanticContent))
+        mutableStateOf(
+            when {
+                initialParse != null -> initialParse
+                parseAsStreamingState -> plainMarkdownSnapshot(semanticContent)
+                syncParseOnMiss -> MarkdownParseCache.getOrParse(semanticContent)
+                isMarkdownContentCacheable(semanticContent) -> pendingMarkdownSnapshot(semanticContent)
+                else -> plainMarkdownSnapshot(semanticContent)
+            }
+        )
     }
 
     // 监听内容变化，重新解析AST树
@@ -149,7 +161,10 @@ internal fun MarkdownBlockLegacy(
         }
     }
     LaunchedEffect(Unit) {
-        var lastParsedContent: String? = if (initialParse != null) semanticContent else null
+        var lastParsedContent: String? = when {
+            initialParse != null || syncParseOnMiss -> semanticContent
+            else -> null
+        }
         var lastParsedStreaming = parseAsStreamingState
         var lastDeferred = deferStreamingParse
         var lastStreamingParseAtMs = 0L
@@ -193,7 +208,7 @@ internal fun MarkdownBlockLegacy(
                     return@collectLatest
                 }
                 try {
-                    val parsed = withContext(Dispatchers.Default) {
+                    val parsed = withContext(parseDispatcher) {
                         if (parseAsStreaming) {
                             streamingParseCache.parse(content = latestContent)
                         } else {
@@ -238,8 +253,17 @@ internal fun MarkdownBlockLegacy(
         if (data.isPlainTextFallback) {
             androidx.compose.material3.Text(
                 text = renderContent,
-                modifier = modifier.padding(start = 4.dp),
+                modifier = modifier
+                    .padding(start = 4.dp)
+                    .then(
+                        if (data.isPendingPlaceholder) {
+                            Modifier.clearAndSetSemantics { }
+                        } else {
+                            Modifier
+                        }
+                    ),
                 style = style,
+                color = if (data.isPendingPlaceholder) Color.Transparent else Color.Unspecified,
             )
         } else if (data.hasHtmlBlocks) {
             MarkdownNew(

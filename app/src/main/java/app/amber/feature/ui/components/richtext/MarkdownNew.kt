@@ -14,15 +14,16 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withContext
 
 @Composable
 fun MarkdownNew(
@@ -32,20 +33,34 @@ fun MarkdownNew(
     onClickCitation: (String) -> Unit = {},
     paragraphSpacing: Dp = 0.dp,
 ) {
+    val syncParseOnMiss = markdownAllowsSyncParse(content)
     var document by remember {
-        mutableStateOf<org.jsoup.nodes.Document?>(null)
+        mutableStateOf(
+            if (syncParseOnMiss) parseMarkdownHtmlDocument(content) else null
+        )
     }
 
     val updatedContent by rememberUpdatedState(content)
+    val parseDispatcher = LocalMarkdownParseDispatcher.current
     LaunchedEffect(Unit) {
+        var lastParsed: String? = if (syncParseOnMiss) content else null
         snapshotFlow { updatedContent }
             .distinctUntilChanged()
-            .mapLatest {
-                parseMarkdownHtmlDocument(it)
-            }
             .catch { it.printStackTrace() }
-            .flowOn(Dispatchers.Default)
-            .collect { document = it }
+            .collect { latest ->
+                if (latest == lastParsed) return@collect
+                try {
+                    val parsed = withContext(parseDispatcher) {
+                        parseMarkdownHtmlDocument(latest)
+                    }
+                    lastParsed = latest
+                    document = parsed
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Throwable) {
+                    error.printStackTrace()
+                }
+            }
     }
 
     ProvideTextStyle(style) {
@@ -59,7 +74,12 @@ fun MarkdownNew(
         ) {
             val prepared = document
             if (prepared == null) {
-                androidx.compose.material3.Text(content, style = style)
+                androidx.compose.material3.Text(
+                    text = content,
+                    modifier = Modifier.clearAndSetSemantics { },
+                    style = style,
+                    color = Color.Transparent,
+                )
             } else {
                 prepared.body().childNodes().fastForEach { node ->
                     HtmlBodyNode(node = node, onClickCitation = onClickCitation)
