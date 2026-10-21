@@ -1,5 +1,6 @@
 package app.amber.feature.ui.pages.chat
 
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,34 +14,61 @@ import app.amber.feature.ui.components.richtext.StreamingPresentationHandover
 import kotlinx.coroutines.delay
 
 /**
+ * Midpoint of the LazyList viewport in the same offset space as
+ * [androidx.compose.foundation.lazy.LazyListItemInfo.offset] / size.
+ *
+ * Device tests treat a visible token's unclipped `positionInRoot` +
+ * `getBoundingBox` as the reading anchor. That token sits on screen, so
+ * the viewport midpoint is the layoutInfo equivalent: a long reply that
+ * fills the viewport contains the midpoint (anchor inside the reply);
+ * a short reply stuck at the bottom under older content does not
+ * (anchor in the older message).
+ */
+internal fun viewportReadingLine(layoutInfo: LazyListLayoutInfo): Int =
+    (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+
+/** True when [viewportReadingLine] falls in the item identified by [itemKey]. */
+internal fun readingLineInsideItem(layoutInfo: LazyListLayoutInfo, itemKey: Any): Boolean {
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { it.key == itemKey } ?: return false
+    val line = viewportReadingLine(layoutInfo)
+    return line >= item.offset && line < item.offset + item.size
+}
+
+/**
  * Whether a drained streaming message may swap to the settled renderer now.
  *
  * The timeline is a reverseLayout LazyColumn: the bottom edge of the first
  * visible item is the scroll anchor and lazy offsets grow upward. A height
- * change of any visible message therefore moves everything above it, even
- * when the reading anchor is in an older message.
+ * change of any visible message therefore moves everything above it.
  *
- * [holdReadingOnTailGrowth] compensates reverseLayout growth two ways:
- * idle viewports call [LazyListState.requestScrollToItem] during measure so
- * the next layout pass in the same frame places the content above with the
- * compensated offset; in-progress drag/fling uses a coroutine
- * [LazyListState.dispatchRawDelta] from onGloballyPositioned so the gesture
- * is not cancelled. Visible off-bottom swaps are therefore allowed as soon
- * as the reader is idle. After a gesture ends the next gate poll swaps
- * within the same idle frame (well under 2s).
+ * [holdReadingOnTailGrowth] keeps older-item tops in the same measure pass,
+ * so a visible reply may swap immediately when the reader is looking at
+ * older content. Swapping while the reader is looking *inside* the reply
+ * jumps the character they are reading: the settled block tree does not
+ * share the streaming single-Text geometry. That case stays deferred until
+ * the viewport is pinned, the reply leaves the viewport, or the item
+ * leaves composition.
+ *
+ * Idle rules:
+ * 1. Pinned to the timeline bottom → swap.
+ * 2. Reply not in `visibleItemsInfo` → swap.
+ * 3. [readingLineInsideItem] → defer.
+ * 4. Otherwise (older-message anchor, reply still visible) → swap.
+ * A drag or fling always defers; the next idle poll applies 1–4.
  */
-@Suppress("UNUSED_PARAMETER")
 internal fun streamingSettleAllowed(
     firstVisibleIndex: Int,
     firstVisibleOffset: Int,
     followBottomPx: Int,
     itemVisible: Boolean,
+    readingLineInsideItem: Boolean,
     scrollInProgress: Boolean,
 ): Boolean {
     if (scrollInProgress) return false
-    // Geometry is compensated in the same measure pass by
-    // [holdReadingOnTailGrowth]; pinned, invisible, and visible off-bottom
-    // swaps are all safe once the reader is idle.
+    if (!itemVisible) return true
+    val pinnedToBottom = firstVisibleIndex == 0 && firstVisibleOffset <= followBottomPx
+    if (pinnedToBottom) return true
+    if (readingLineInsideItem) return false
     return true
 }
 
@@ -60,14 +88,18 @@ internal class TimelineStreamingHandover(
 
     val awaiting: Boolean get() = awaitingCount > 0
 
-    override fun allowsSettledPresentation(): Boolean = streamingSettleAllowed(
-        firstVisibleIndex = state.firstVisibleItemIndex,
-        firstVisibleOffset = state.firstVisibleItemScrollOffset,
-        followBottomPx = followBottomPx,
-        // visibleItemsInfo excludes beyond-bounds/prefetched extras.
-        itemVisible = state.layoutInfo.visibleItemsInfo.any { it.key == itemKey },
-        scrollInProgress = state.isScrollInProgress,
-    )
+    override fun allowsSettledPresentation(): Boolean {
+        val info = state.layoutInfo
+        return streamingSettleAllowed(
+            firstVisibleIndex = state.firstVisibleItemIndex,
+            firstVisibleOffset = state.firstVisibleItemScrollOffset,
+            followBottomPx = followBottomPx,
+            // visibleItemsInfo excludes beyond-bounds/prefetched extras.
+            itemVisible = info.visibleItemsInfo.any { it.key == itemKey },
+            readingLineInsideItem = readingLineInsideItem(info, itemKey),
+            scrollInProgress = state.isScrollInProgress,
+        )
+    }
 
     override fun onAwaitingChange(awaiting: Boolean) {
         awaitingCount = (awaitingCount + if (awaiting) 1 else -1).coerceAtLeast(0)

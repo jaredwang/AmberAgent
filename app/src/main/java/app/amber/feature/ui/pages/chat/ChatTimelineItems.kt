@@ -189,17 +189,20 @@ internal fun LazyListScope.chatTimelineItems(
                 Column(
                     modifier = Modifier
                         .then(
-                            // Keep gestures and reading anchors out of the height
-                            // animation loop. Only an idle pinned viewport smooths growth.
-                            when {
-                                isLoadingMessage || (isLastMessage && drainAmortizeGrace) ->
-                                    Modifier.streamingTailLayout(state, planIndex, bottomPinBufferPx)
-                                // Loading just ended or a handover is pending/just done:
-                                // late height changes (final chunk, settled tree's async
-                                // adjustments) must not push content above off-bottom.
-                                handoverReadingHold ->
-                                    Modifier.holdReadingOnTailGrowth(state, planIndex, bottomPinBufferPx)
-                                else -> Modifier
+                            // One stable hold node for the last message's whole
+                            // lifetime. Coil decode and latex layout land after
+                            // loading/awaiting/grace drop; tearing the node down
+                            // then zeros lastHeight and the older reading token
+                            // can leave composition (392288d7
+                            // productionVisibleReply, 1/3 runs).
+                            if (isLastMessage || handoverReadingHold) {
+                                Modifier.streamingTailLayout(
+                                    state, planIndex, bottomPinBufferPx,
+                                    animate = isLoadingMessage,
+                                    itemKey = node.id,
+                                )
+                            } else {
+                                Modifier
                             }
                         )
                         .padding(bottom = TimelineItemSpacing)
