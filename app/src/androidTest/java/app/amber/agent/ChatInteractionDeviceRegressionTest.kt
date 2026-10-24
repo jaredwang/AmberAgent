@@ -343,6 +343,10 @@ class ChatInteractionDeviceRegressionTest {
     private fun timelineNode() = compose.onAllNodes(
         SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange), useUnmergedTree = true,
     ).fetchSemanticsNodes().first { it.config[SemanticsProperties.VerticalScrollAxisRange].reverseScrolling }
+    private fun timelineIndexMatcher() = SemanticsMatcher("reverse timeline with ScrollToIndex") { node ->
+        node.config.getOrNull(SemanticsProperties.VerticalScrollAxisRange)?.reverseScrolling == true &&
+            node.config.contains(SemanticsActions.ScrollToIndex)
+    }
     /** Lazy list semantics: 0 only at item 0 with zero scroll offset (the absolute bottom). */
     private fun timelineScrollValue() = timelineNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
     /**
@@ -629,6 +633,359 @@ class ChatInteractionDeviceRegressionTest {
             gateway.beforeFinish = null
             service.stopGeneration(id)
             repository.getConversationById(id)?.let { service.deleteConversation(it) }
+        }
+    }
+
+    /**
+     * Measurement only (PR #31 review item 2), not a pass/fail gate: the real
+     * timeline streams a long pinned reply under 30 warmed history replies.
+     * Separates the observed stream-completion window from a fixed settle
+     * window. The generation window ends at the first observation that the full
+     * reply is present and its job is inactive; the 16ms poll is a target step
+     * that includes scheduling delay, so the window is not strict streaming-only.
+     * Cache misses are exact counter deltas; newly observed cache keys come
+     * from 5ms LRU snapshots and can miss entries evicted between samples.
+     * Frame metrics are asynchronous window callbacks, with callback drops
+     * recorded separately. Completion time is observed at 16ms polling
+     * resolution. These are same-device comparison signals, not a benchmark.
+     * The same test APK runs against app builds before and after the prefetch
+     * exclusion.
+     */
+    @Test(timeout = 240_000)
+    fun productionLongReplyPrefetchParseBudget(): Unit = runBlocking {
+        requireFixture()
+        val (repository, service, gateway) = isolatedFixture()
+        val id = Uuid.random()
+        val historyBodies = (0 until 30).map(::prefetchHistoryBody)
+        val history = buildList {
+            historyBodies.forEachIndexed { turn, body ->
+                add(MessageNode.of(UIMessage.user("Prefetch history question $turn")))
+                add(MessageNode.of(UIMessage.assistant(body)))
+            }
+        }
+        val reply = prefetchLongReply()
+        gateway.reply = reply
+        gateway.delayMs = 20
+        gateway.beforeFinish = null
+        repository.insertConversation(Conversation.ofId(id, messages = history).copy(title = "Prefetch measurement fixture"))
+        val cache = ParseCacheProbe()
+        val worker = android.os.HandlerThread("prefetch-frames").apply { start() }
+        try {
+            open(id).use { scenario ->
+                compose.waitUntil(30_000) { compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+                suspend fun walkHistory() {
+                    val indexed = timelineIndexMatcher()
+                    compose.waitUntil(30_000) {
+                        compose.onAllNodes(indexed, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+                    }
+                    for (index in listOf(15, 30, 45, 58, 0)) {
+                        compose.onNode(indexed, useUnmergedTree = true).performScrollToIndex(index)
+                        compose.waitForIdle()
+                        delay(400)
+                    }
+                    delay(1_500)
+                }
+                walkHistory()
+                val historyCachedBefore = cache.cachedCount(historyBodies)
+
+                val generationFrames = java.util.Collections.synchronizedList(mutableListOf<Double>())
+                val settleFrames = java.util.Collections.synchronizedList(mutableListOf<Double>())
+                val generationFrameDrops = java.util.concurrent.atomic.AtomicInteger()
+                val settleFrameDrops = java.util.concurrent.atomic.AtomicInteger()
+                val frameHandler = android.os.Handler(worker.looper)
+                var activeFrameListener: android.view.Window.OnFrameMetricsAvailableListener? = null
+                suspend fun drainFrameCallbacks() {
+                    val barrier = java.util.concurrent.CountDownLatch(1)
+                    check(frameHandler.post { barrier.countDown() }) { "Frame metrics handler is no longer running" }
+                    check(barrier.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                        "Timed out draining frame metrics callbacks"
+                    }
+                }
+                try {
+                    compose.onAllNodes(hasSetTextAction(), useUnmergedTree = true).onFirst()
+                        .performTextInput("Long reply for prefetch measurement")
+                    val send = sendStopButton(R.string.send).fetchSemanticsNode().boundsInWindow.center
+
+                    fun frameListener(
+                        frames: MutableList<Double>,
+                        dropped: java.util.concurrent.atomic.AtomicInteger,
+                    ) = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, dropCount ->
+                        frames.add(metrics.getMetric(android.view.FrameMetrics.TOTAL_DURATION) / 1_000_000.0)
+                        if (dropCount > 0) dropped.addAndGet(dropCount)
+                    }
+                    suspend fun stopFrameWindow(listener: android.view.Window.OnFrameMetricsAvailableListener): Pair<Long, Long> {
+                        scenario.onActivity { it.window.removeOnFrameMetricsAvailableListener(listener) }
+                        activeFrameListener = null
+                        val removedAt = SystemClock.uptimeMillis()
+                        drainFrameCallbacks()
+                        return removedAt to SystemClock.uptimeMillis()
+                    }
+                    fun addFrameWindow(listener: android.view.Window.OnFrameMetricsAvailableListener) {
+                        scenario.onActivity { it.window.addOnFrameMetricsAvailableListener(listener, frameHandler) }
+                        activeFrameListener = listener
+                    }
+                    fun addFrameSummary(
+                        result: org.json.JSONObject,
+                        prefix: String,
+                        frames: List<Double>,
+                        dropped: Int,
+                    ) {
+                        val sorted = synchronized(frames) { frames.sorted() }
+                        fun pct(q: Double): Double {
+                            if (sorted.isEmpty()) return -1.0
+                            val index = (kotlin.math.ceil(q * sorted.size).toInt() - 1).coerceIn(0, sorted.lastIndex)
+                            return sorted[index]
+                        }
+                        result.put("${prefix}Frames", sorted.size)
+                        result.put("${prefix}P50", pct(0.50))
+                        result.put("${prefix}P95", pct(0.95))
+                        result.put("${prefix}P99", pct(0.99))
+                        result.put("${prefix}Over32Pct", if (sorted.isEmpty()) -1.0 else 100.0 * sorted.count { it > 32.0 } / sorted.size)
+                        result.put("${prefix}FrameMetricsDropCount", dropped)
+                    }
+
+                    compose.mainClock.autoAdvance = false
+                    cache.startTracking()
+                    val generationListener = frameListener(generationFrames, generationFrameDrops)
+                    addFrameWindow(generationListener)
+                    val generationStartedAt = SystemClock.uptimeMillis()
+                    tap(send.x, send.y)
+                    withTimeout(150_000) {
+                        while (true) {
+                            if (text(service, id).length >= reply.length &&
+                                service.getGenerationJobStateFlow(id).value?.isActive != true
+                            ) break
+                            pump(16)
+                        }
+                    }
+                    // This is the first 16ms-poll observation that the full reply
+                    // is present and the production generation job has stopped.
+                    val streamingEndedAt = SystemClock.uptimeMillis()
+                    val generationObservedMs = streamingEndedAt - generationStartedAt
+                    val generationCache = requireNotNull(cache.freezeWindow(historyBodies))
+                    val generationCacheClosedAt = generationCache.closedAtUptimeMs
+                    val (generationListenerRemovedAt, generationFrameDrainFinishedAt) =
+                        stopFrameWindow(generationListener)
+                    cache.joinSampler()
+                    val historyCachedAtStreamEnd = requireNotNull(generationCache.cachedBodiesCount)
+
+                    // TimelineMarkdownPrefetch may prepare the settled full reply
+                    // after loading ends, so keep that work in its own window.
+                    val settleStartedAt = SystemClock.uptimeMillis()
+                    cache.startTracking()
+                    val settleListener = frameListener(settleFrames, settleFrameDrops)
+                    addFrameWindow(settleListener)
+                    val settleFrameStartedAt = SystemClock.uptimeMillis()
+                    pump(2_000) // drain + settled handover, measured separately
+                    val settleEndedAt = SystemClock.uptimeMillis()
+                    val settleCache = requireNotNull(cache.freezeWindow(historyBodies))
+                    val settleCacheClosedAt = settleCache.closedAtUptimeMs
+                    val (settleListenerRemovedAt, settleFrameDrainFinishedAt) = stopFrameWindow(settleListener)
+                    cache.joinSampler()
+                    val historyCachedAfterSettle = requireNotNull(settleCache.cachedBodiesCount)
+                    compose.mainClock.autoAdvance = true
+                    awaitImeHidden(scenario)
+
+                    val result = org.json.JSONObject().apply {
+                        put("replyChars", reply.length)
+                        put("generationObservedMs", generationObservedMs)
+                        put("generationMisses", generationCache.misses)
+                        put("generationNewCacheKeysObserved", generationCache.newKeysObserved)
+                        put("generationNewCachedCharsObserved", generationCache.newCharsObserved)
+                        put("generationCacheClosedAtUptimeMs", generationCacheClosedAt)
+                        put("generationCacheCloseDelayMs", generationCacheClosedAt - streamingEndedAt)
+                        put("generationListenerRemovedAtUptimeMs", generationListenerRemovedAt)
+                        put("generationListenerRemoveDelayMs", generationListenerRemovedAt - streamingEndedAt)
+                        put("generationFrameDrainMs", generationFrameDrainFinishedAt - generationListenerRemovedAt)
+                        put("historyBodies", historyBodies.size)
+                        put("historyCachedBefore", historyCachedBefore)
+                        put("historyCachedAtStreamEnd", historyCachedAtStreamEnd)
+                        put("settleStartDelayMs", settleStartedAt - streamingEndedAt)
+                        put("settleWindowMs", settleEndedAt - settleStartedAt)
+                        put("settleFrameStartDelayMs", settleFrameStartedAt - streamingEndedAt)
+                        put("settleFrameWindowMs", settleEndedAt - settleFrameStartedAt)
+                        put("settleMisses", settleCache.misses)
+                        put("settleNewCacheKeysObserved", settleCache.newKeysObserved)
+                        put("settleNewCachedCharsObserved", settleCache.newCharsObserved)
+                        put("settleCacheClosedAtUptimeMs", settleCacheClosedAt)
+                        put("settleListenerRemovedAtUptimeMs", settleListenerRemovedAt)
+                        put("settleFrameDrainMs", settleFrameDrainFinishedAt - settleListenerRemovedAt)
+                        put("historyCachedAfterSettle", historyCachedAfterSettle)
+                        put(
+                            "observationNotes",
+                            "Generation ends at the first observation of a complete reply and inactive job, not a strict stream-only boundary. Polling uses a 16ms target step including scheduler delay. New-cache counts are unique keys seen in 5ms LRU samples and may miss transient evictions; frame callback drops are reported per window; fixture streams 12 characters every 20ms.",
+                        )
+                    }
+                    addFrameSummary(result, "generation", generationFrames, generationFrameDrops.get())
+                    addFrameSummary(result, "settle", settleFrames, settleFrameDrops.get())
+                    writeEvidence("production-prefetch-measure", result)
+                    check(text(service, id) == reply) { "Generated reply changed" }
+                } finally {
+                    compose.mainClock.autoAdvance = true
+                    activeFrameListener?.let { listener ->
+                        try {
+                            scenario.onActivity { it.window.removeOnFrameMetricsAvailableListener(listener) }
+                        } catch (_: Throwable) {
+                            // Activity teardown still releases the window listener.
+                        }
+                        activeFrameListener = null
+                        try {
+                            drainFrameCallbacks()
+                        } catch (_: Throwable) {
+                            // The worker is stopped by the outer finally block.
+                        }
+                    }
+                }
+            }
+        } finally {
+            compose.mainClock.autoAdvance = true
+            try {
+                cache.freezeWindow()
+            } finally {
+                cache.joinSampler()
+                worker.quitSafely()
+                try {
+                    worker.join(5_000)
+                } catch (_: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                }
+                service.stopGeneration(id)
+                repository.getConversationById(id)?.let { service.deleteConversation(it) }
+            }
+        }
+    }
+
+    private fun prefetchHistoryBody(turn: Int): String =
+        "## 历史第 $turn 轮\n\n这是第 $turn 轮的完整回答，包含 **加粗**、`code` 与 [链接](https://example.com/$turn)。\n\n" +
+            "- 要点一：缓存命中\n- 要点二：滚动回看\n\n```kotlin\nfun history$turn() = $turn\n```\n\n" +
+            "| 项目 | 值 |\n| --- | --- |\n| 轮次 | $turn |\n\n" + "历史正文用于填充长度。".repeat(30)
+
+    private fun prefetchLongReply(): String = buildString {
+        for (section in 0 until 40) {
+            append("## 第 $section 节\n\n中文说明 **重点** and [link](https://example.com/$section)。")
+            append("这一段用于验证生成中的长回复。\n\n```kotlin\nfun answer$section(x: Int) = x + $section\n```\n\n")
+            append("| 项目 | 结果 |\n| --- | --- |\n| 小节 | $section |\n\n")
+        }
+        append("PREFETCH_MEASURE_END")
+    }
+
+    private data class ParseCacheWindow(
+        val misses: Int,
+        val newKeysObserved: Int,
+        val newCharsObserved: Long,
+        val closedAtUptimeMs: Long,
+        val cachedBodiesCount: Int?,
+    )
+
+    /** Reads MarkdownParseCache without touching LRU access order; counts are sampled snapshots. */
+    private class ParseCacheProbe {
+        private val owner = Class.forName("app.amber.feature.ui.components.richtext.MarkdownParseCache")
+        private val instance = owner.getDeclaredField("INSTANCE").get(null)
+        private fun field(name: String) = owner.getDeclaredField(name).apply { isAccessible = true }
+        private val lock: Any = field("lock").get(instance)!!
+        private val missesField = field("misses")
+        private val samplingLock = Any()
+        @Suppress("UNCHECKED_CAST")
+        private val entries = field("entries").get(instance) as Map<Any, Any>
+        private var contentField: java.lang.reflect.Field? = null
+        private var preprocessedField: java.lang.reflect.Field? = null
+        private val seen = HashSet<ObservedCacheKey>()
+        @Volatile private var running = false
+        private var tracker: Thread? = null
+        private var missesAtStart = 0
+        private var newKeysObserved = 0
+        private var newCharsObserved = 0L
+
+        fun misses(): Int = synchronized(lock) { missesField.getInt(instance) }
+
+        private data class ObservedCacheKey(val content: String, val preprocessed: Boolean)
+
+        @Synchronized
+        private fun keys(): List<ObservedCacheKey> {
+            val raw = synchronized(lock) { entries.keys.toList() }
+            return raw.map(::observedKey)
+        }
+
+        @Synchronized
+        private fun observedKey(key: Any): ObservedCacheKey {
+            val f = contentField ?: key.javaClass.getDeclaredField("content").apply { isAccessible = true }
+                .also { contentField = it }
+            val p = preprocessedField ?: key.javaClass.getDeclaredField("preprocessed").apply { isAccessible = true }
+                .also { preprocessedField = it }
+            return ObservedCacheKey(f.get(key) as String, p.getBoolean(key))
+        }
+
+        fun cachedCount(bodies: List<String>): Int = keys().asSequence()
+            .filterNot { it.preprocessed }
+            .map { it.content }
+            .toSet()
+            .let { cached -> bodies.count { it in cached } }
+
+        private fun sample() {
+            val snapshot = keys()
+            synchronized(samplingLock) {
+                // A sample can be collecting LRU keys while the test closes the
+                // window. Freeze and sample share this lock so no counters move
+                // after the frozen result has been captured.
+                if (!running) return
+                for (key in snapshot) if (seen.add(key)) {
+                    newKeysObserved++
+                    newCharsObserved += key.content.length
+                }
+            }
+        }
+
+        fun startTracking() {
+            val initialKeys = keys()
+            val initialMisses = misses()
+            val sampler = Thread {
+                while (running) { sample(); Thread.sleep(5) }
+            }
+            synchronized(samplingLock) {
+                check(!running) { "Parse cache sampling is already active" }
+                check(tracker == null) { "Previous parse cache sampler has not joined" }
+                seen.clear()
+                seen.addAll(initialKeys)
+                newKeysObserved = 0
+                newCharsObserved = 0L
+                missesAtStart = initialMisses
+                tracker = sampler
+                running = true
+            }
+            sampler.start()
+        }
+
+        fun isTracking(): Boolean = running
+
+        /** Freeze counters and miss count immediately; does not wait for the sampler thread. */
+        fun freezeWindow(bodies: List<String>? = null): ParseCacheWindow? = synchronized(samplingLock) {
+            if (!running) return@synchronized null
+            running = false
+            val (misses, rawKeys) = synchronized(lock) {
+                missesField.getInt(instance) to entries.keys.toList()
+            }
+            val closedAtUptimeMs = SystemClock.uptimeMillis()
+            val snapshot = rawKeys.map(::observedKey)
+            val cachedBodiesCount = bodies?.let { expected ->
+                val cached = snapshot.asSequence().filterNot { it.preprocessed }.map { it.content }.toSet()
+                expected.count { it in cached }
+            }
+            ParseCacheWindow(
+                misses = misses - missesAtStart,
+                newKeysObserved = newKeysObserved,
+                newCharsObserved = newCharsObserved,
+                closedAtUptimeMs = closedAtUptimeMs,
+                cachedBodiesCount = cachedBodiesCount,
+            )
+        }
+
+        /** Join outside [samplingLock], after listeners have been closed. */
+        fun joinSampler() {
+            val sampler = synchronized(samplingLock) { tracker } ?: return
+            sampler.join()
+            synchronized(samplingLock) {
+                if (tracker === sampler) tracker = null
+            }
         }
     }
 
