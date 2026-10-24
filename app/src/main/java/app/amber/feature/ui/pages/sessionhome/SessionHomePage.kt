@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -116,6 +117,7 @@ fun SessionHomePage() {
     val deleteState = vm.deleteUndoState.collectAsStateWithLifecycle().value
     val deleteFailure = vm.deleteFailure.collectAsStateWithLifecycle().value
     val density = LocalDensity.current
+    val imeVisible = WindowInsets.isImeVisible
     var bottomOverlayHeight by remember { mutableIntStateOf(0) }
     var lastUndoCount by remember { mutableIntStateOf(1) }
     if (deleteState.pendingIds.isNotEmpty()) lastUndoCount = deleteState.pendingIds.size
@@ -181,14 +183,15 @@ fun SessionHomePage() {
             }
         }
     }
-    LaunchedEffect(deleteFailure) {
+    val deleteFailureMessage = when (deleteFailure?.kind) {
+        HomeDeleteFailureKind.Restored -> stringResource(R.string.session_home_delete_failed_restored)
+        HomeDeleteFailureKind.AlreadyDeleted -> stringResource(R.string.session_home_delete_cleanup_failed)
+        HomeDeleteFailureKind.Unverified -> stringResource(R.string.session_home_delete_unverified)
+        null -> null
+    }
+    LaunchedEffect(deleteFailure, deleteFailureMessage) {
         deleteFailure?.let { failure ->
-            val message = when (failure.kind) {
-                HomeDeleteFailureKind.Restored -> R.string.session_home_delete_failed_restored
-                HomeDeleteFailureKind.AlreadyDeleted -> R.string.session_home_delete_cleanup_failed
-                HomeDeleteFailureKind.Unverified -> R.string.session_home_delete_unverified
-            }
-            toaster.show(context.getString(message), type = ToastType.Error)
+            deleteFailureMessage?.let { message -> toaster.show(message, type = ToastType.Error) }
             vm.acknowledgeDeleteFailure(failure.sequence)
         }
     }
@@ -288,7 +291,7 @@ fun SessionHomePage() {
                             onOpenSearch = { homeSearchExpanded = true },
                             onOpenSettings = { navController.navigate(Screen.Setting) },
                             onOpenProfile = { navController.navigate(Screen.Profile) },
-                            onNewSession = if (inTwoPane) {
+                            onNewSession = if (inTwoPane && !imeVisible) {
                                 { openChat(Screen.Chat(id = Uuid.random().toString())) }
                             } else null,
                         )
@@ -402,7 +405,7 @@ fun SessionHomePage() {
                     .padding(bottom = 12.dp),
                 horizontalAlignment = Alignment.End,
             ) {
-                if (!inTwoPane) {
+                if (!inTwoPane && !imeVisible) {
                     // Floating new-session button —— iOS 同款胶囊（铅笔 + 新对话）
                     Box(
                         modifier = Modifier

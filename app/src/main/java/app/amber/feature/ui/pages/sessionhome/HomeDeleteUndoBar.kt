@@ -58,7 +58,11 @@ internal fun HomeDeleteUndoBar(
                 )
             }
             val countdown: @Composable () -> Unit = {
-                val description = stringResource(R.string.session_home_undo_seconds, seconds)
+                val description = pluralStringResource(
+                    R.plurals.session_home_undo_seconds,
+                    seconds,
+                    seconds,
+                )
                 Box(Modifier.size(40.dp).semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         progress = { seconds / 5f },
