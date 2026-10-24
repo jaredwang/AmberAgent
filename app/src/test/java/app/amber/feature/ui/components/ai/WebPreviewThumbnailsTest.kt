@@ -4,6 +4,8 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
+import java.io.File
+import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -25,7 +27,28 @@ class WebPreviewThumbnailsTest {
 
         assertEquals(page, WebPreviewThumbnails.fileFor(context, " https://example.com/page#section "))
         assertNotEquals(page, WebPreviewThumbnails.fileFor(context, "https://example.com/other"))
-        assertTrue(page.name.matches(Regex("preview-[0-9a-f]{32}\\.webp")))
+        assertTrue(page.name.matches(Regex("preview-v2-[0-9a-f]{32}\\.webp")))
+    }
+
+    @Test
+    fun cacheFileKeepsTrailingSlashInsideQueryValuesDistinct() {
+        WebPreviewThumbnails.write(context, "https://example.com/?next=/", solidBitmap())
+        assertNull(
+            "A different query value must not reuse the previous page's persisted thumbnail",
+            WebPreviewThumbnails.cached(context, "https://example.com/?next="),
+        )
+    }
+
+    @Test
+    fun legacyCollidingThumbnailIsIgnoredAfterCacheKeyVersionChange() {
+        val directory = WebPreviewThumbnails.directory(context).apply { mkdirs() }
+        val legacyNormalizedUrl = "https://example.com/?next=/".normalizedWebPreviewUrl()
+        val legacyDigest = MessageDigest.getInstance("SHA-256")
+            .digest(legacyNormalizedUrl.toByteArray(Charsets.UTF_8))
+            .joinToString("") { byte -> "%02x".format(byte) }
+        File(directory, "preview-${legacyDigest.take(32)}.webp").writeText("old colliding thumbnail")
+
+        assertNull(WebPreviewThumbnails.cached(context, "https://example.com/?next="))
     }
 
     @Test

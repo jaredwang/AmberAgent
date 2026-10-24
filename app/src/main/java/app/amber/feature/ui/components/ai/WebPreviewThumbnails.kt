@@ -3,6 +3,7 @@ package app.amber.feature.ui.components.ai
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
+import androidx.core.net.toUri
 import java.io.File
 import java.security.MessageDigest
 
@@ -22,7 +23,7 @@ internal object WebPreviewThumbnails {
     fun directory(context: Context): File = File(context.filesDir, DIRECTORY)
 
     fun fileFor(context: Context, url: String): File =
-        File(directory(context), thumbnailFileName(url.normalizedWebPreviewUrl()))
+        File(directory(context), thumbnailFileName(url.normalizedWebPreviewCacheUrl()))
 
     fun cached(context: Context, url: String): File? =
         fileFor(context, url).takeIf { it.isFile && it.length() > 0L }
@@ -58,5 +59,20 @@ internal object WebPreviewThumbnails {
 internal fun thumbnailFileName(normalizedUrl: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest(normalizedUrl.toByteArray(Charsets.UTF_8))
     val hex = digest.joinToString("") { byte -> "%02x".format(byte) }
-    return "preview-${hex.take(32)}.webp"
+    return "preview-v2-${hex.take(32)}.webp"
+}
+
+/** Normalize only the path. Trimming the complete URI would also strip a meaningful trailing
+ * slash from a query value (for example, `?next=/`) and collide with `?next=`. */
+private fun String.normalizedWebPreviewCacheUrl(): String {
+    val raw = trim()
+    if (raw.isBlank()) return raw
+    return runCatching {
+        val uri = raw.toUri()
+        uri.buildUpon()
+            .encodedPath(uri.encodedPath.orEmpty().trimEnd('/'))
+            .fragment(null)
+            .build()
+            .toString()
+    }.getOrDefault(raw.substringBefore('#'))
 }

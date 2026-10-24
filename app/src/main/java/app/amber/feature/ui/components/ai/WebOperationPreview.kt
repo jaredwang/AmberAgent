@@ -62,7 +62,9 @@ internal fun WebOperationPreviewThumbnail(
     val isCurrentPreview = remember(toolCallId, normalizedUrl, webState.loadId) {
         webState.matchesPreview(toolCallId = toolCallId, normalizedUrl = normalizedUrl)
     }
-    val cached by produceState<CachedWebThumbnail>(CachedWebThumbnail.Pending, normalizedUrl) {
+    // Use the raw URL as the producer key: preview matching has broader normalization, so two
+    // query-distinct URLs may share normalizedUrl but still need separate cache lookups.
+    val cached by produceState<CachedWebThumbnail>(CachedWebThumbnail.Pending, url) {
         value = withContext(Dispatchers.IO) {
             WebPreviewThumbnails.cached(context, url)?.let(CachedWebThumbnail::Found) ?: CachedWebThumbnail.Missing
         }
