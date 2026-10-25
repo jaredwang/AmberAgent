@@ -45,7 +45,8 @@ fun createSearchTools(
                 name = "search_web",
                 description = """
                     Search the web through AmberAgent Search Orchestrator.
-                    It uses enabled API services first, then a built-in free aggregate that queries Bing, Brave, DuckDuckGo, 360, Quark, Wikipedia, and Hacker News concurrently as fallback/cross-check.
+                    It selects up to 5 enabled sources by priority: configured services in settings order, then the built-in free aggregate. Selected source/query calls run concurrently, with at most 10 calls per search.
+                    When selected, the built-in free aggregate queries Bing, Brave, DuckDuckGo, 360, Quark, Wikipedia, and Hacker News concurrently.
                     Use this when the user asks for the latest news, current facts, or needs verification.
                     Enabled configured services: ${enabledServiceNames.ifBlank { "none" }}.
                     Built-in sources: $builtinStatus.
@@ -60,6 +61,8 @@ fun createSearchTools(
                     Response format:
                     - items[].id (short id), title, url, text, source_service, source_services, duplicate_count
                     - items[].images[] (optional): relevant image URLs from the search results
+                    - answers[].answer, source_service, service_id, query: provider-generated answers, separate from source-page snippets; repeated answers from the same source are deduplicated
+                    - answers[].source_kind, builtin, variant_index: answer source and query-variant provenance
                     - sources[].service, service_id, accepted_selectors, status, result_count, error
                     - If status=error with available_sources, retry once without services or with one exact selector from available_sources.
                     - search_service_hint (optional): free sources were weak; relay it to the user if the answer is limited by missing sources.

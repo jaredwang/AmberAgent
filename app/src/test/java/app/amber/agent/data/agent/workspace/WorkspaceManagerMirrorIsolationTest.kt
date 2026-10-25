@@ -152,11 +152,108 @@ class WorkspaceManagerMirrorIsolationTest {
         assertTrue(runCatching { manager.readBytesCapped("note.md", 3) }.isFailure)
     }
 
+    @Test
+    fun activeTerminalMirrorRejectsSafMutationsBeforeTheyCanBeAcknowledged() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+        listOf("note.md", "edit.md", "blob.bin", "move.md", "delete.md").forEach {
+            manager.writeText(it, "old")
+        }
+        val lease = manager.acquireTerminalMirror(refreshFromWorkspace = true)
+        try {
+            val failures = listOf(
+                runCatching { manager.writeText("note.md", "new") }.exceptionOrNull(),
+                runCatching { manager.editText("edit.md", "old", "edited", false) }.exceptionOrNull(),
+                runCatching { manager.writeBytes("blob.bin", "new".toByteArray()) }.exceptionOrNull(),
+                runCatching { manager.move("move.md", "moved.md") }.exceptionOrNull(),
+                runCatching { manager.deleteFile("delete.md") }.exceptionOrNull(),
+            )
+            failures.forEachIndexed { index, failure ->
+                assertTrue("SAF mutation $index must reject the active terminal owner; actual=$failure", failure is IllegalStateException)
+                assertTrue(failure?.message.orEmpty().contains("active terminal"))
+            }
+        } finally {
+            lease.release(syncBack = true)
+        }
+
+        assertEquals("old", manager.readText("note.md"))
+        manager.editText("note.md", "old", "accepted after job", false)
+        assertEquals("accepted after job", manager.readText("note.md"))
+    }
+
+    @Test
+    fun idleSafMutationsSurviveTheStaleMirrorFlushWhenClearingWorkspace() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+        listOf("note.md", "edit.md", "blob.bin", "move.md", "delete.md").forEach {
+            manager.writeText(it, "old")
+        }
+        manager.refreshMirrorFromWorkspace()
+        manager.mirrorDir.resolve("local-only.txt").writeText("keep local output")
+
+        manager.writeText("/workspace/note.md", "new")
+        manager.editText("edit.md", "old", "edited", false)
+        manager.writeBytes("blob.bin", "new binary".toByteArray())
+        manager.move("move.md", "moved.md")
+        assertTrue(manager.deleteFile("delete.md"))
+        manager.clearWorkspace()
+
+        assertEquals("new", provider.contents("note.md"))
+        assertEquals("edited", provider.contents("edit.md"))
+        assertEquals("new binary", provider.contents("blob.bin"))
+        assertEquals("old", provider.contents("moved.md"))
+        assertTrue("Moved source must not be recreated by the old mirror", provider.findByName("move.md") == null)
+        assertTrue("Deleted file must not be recreated by the old mirror", provider.findByName("delete.md") == null)
+        assertEquals("keep local output", provider.contents("local-only.txt"))
+    }
+
+    @Test
+    fun movingSafDirectoryRelocatesPrivateTerminalOutputWithoutRecreatingItsOldPath() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+        manager.writeText("source/saf.txt", "shared SAF file")
+        val lease = manager.acquireTerminalMirror(refreshFromWorkspace = true)
+        try {
+            lease.directory.resolve("source/private/generated.txt").apply {
+                parentFile?.mkdirs()
+                writeText("unsynced terminal output")
+            }
+            lease.directory.resolve("unrelated.txt").writeText("keep unrelated output")
+        } finally {
+            lease.release(syncBack = false)
+        }
+
+        manager.move("source", "destination")
+
+        assertEquals("unsynced terminal output", manager.mirrorDir.resolve("destination/private/generated.txt").takeIf { it.exists() }?.readText())
+        assertFalse(manager.mirrorDir.resolve("source").exists())
+        manager.syncFromMirror()
+        assertEquals("shared SAF file", manager.readText("destination/saf.txt"))
+        assertEquals("unsynced terminal output", manager.readText("destination/private/generated.txt"))
+        assertEquals("keep unrelated output", manager.readText("unrelated.txt"))
+        assertFalse(manager.list().any { it.name == "source" })
+    }
+
+    @Test
+    fun movingSafDirectoryRejectsAnExistingPrivateMirrorDestinationBeforeChangingSaf() = runBlocking {
+        manager.setWorkspace(treeUri("root-a:"))
+        manager.writeText("source/saf.txt", "shared SAF file")
+        manager.refreshMirrorFromWorkspace()
+        manager.mirrorDir.resolve("destination/private.txt").apply {
+            parentFile?.mkdirs()
+            writeText("existing private output")
+        }
+
+        val failure = runCatching { manager.move("source", "destination") }.exceptionOrNull()
+
+        assertTrue("A move must not discard private destination output", failure is IllegalArgumentException)
+        assertEquals("shared SAF file", manager.readText("source/saf.txt"))
+        assertEquals("existing private output", manager.mirrorDir.resolve("destination/private.txt").readText())
+        assertFalse(manager.list().any { it.name == "destination" })
+    }
+
     private fun treeUri(rootId: String): Uri =
         Uri.parse("content://$AUTHORITY/tree/${Uri.encode(rootId)}")
 
     private class WorkspaceTreeProvider : ContentProvider() {
-        private data class Doc(val id: String, val displayName: String, val mimeType: String)
+        private data class Doc(val id: String, val displayName: String, val mimeType: String, val parentId: String? = null)
 
         private val docs = LinkedHashMap<String, Doc>()
         private val backingDir = File.createTempFile("workspace-switch-", "").apply {
@@ -180,7 +277,8 @@ class WorkspaceManagerMirrorIsolationTest {
             val columns = projection ?: DEFAULT_COLUMNS
             val cursor = MatrixCursor(columns)
             if (uri.pathSegments.lastOrNull() == "children") {
-                docs.values.forEach { cursor.addRow(rowFor(it, columns)) }
+                val parentId = DocumentsContract.getDocumentId(uri)
+                docs.values.filter { it.parentId == parentId }.forEach { cursor.addRow(rowFor(it, columns)) }
             } else {
                 val documentId = runCatching { DocumentsContract.getDocumentId(uri) }
                     .getOrElse { DocumentsContract.getTreeDocumentId(uri) }
@@ -195,12 +293,26 @@ class WorkspaceManagerMirrorIsolationTest {
         }
 
         override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-            if (method != METHOD_CREATE_DOCUMENT || extras == null) return null
+            if (extras == null) return null
             val parentUri = extras.getParcelable<Uri>(EXTRA_URI) ?: return null
+            if (method == "android:renameDocument") {
+                val id = DocumentsContract.getDocumentId(parentUri)
+                val current = docs[id] ?: return null
+                docs[id] = current.copy(displayName = extras.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty())
+                return Bundle().apply { putParcelable(EXTRA_URI, parentUri) }
+            }
+            if (method == "android:deleteDocument") {
+                val id = DocumentsContract.getDocumentId(parentUri)
+                docs.remove(id)
+                backingFiles.remove(id)?.delete()
+                return Bundle()
+            }
+            if (method != METHOD_CREATE_DOCUMENT) return null
             val doc = Doc(
                 id = "doc-${nextId++}",
                 displayName = extras.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME).orEmpty(),
                 mimeType = extras.getString(DocumentsContract.Document.COLUMN_MIME_TYPE).orEmpty(),
+                parentId = DocumentsContract.getDocumentId(parentUri),
             )
             docs[doc.id] = doc
             val uri = DocumentsContract.buildDocumentUriUsingTree(parentUri, doc.id)
@@ -233,6 +345,8 @@ class WorkspaceManagerMirrorIsolationTest {
         }
 
         fun findByName(name: String): String? = docs.values.firstOrNull { it.displayName == name }?.id
+
+        fun contents(name: String): String? = findByName(name)?.let { backingFiles[it]?.readText() }
 
         private fun rowFor(doc: Doc, columns: Array<out String>): Array<Any?> = columns.map { column ->
             when (column) {

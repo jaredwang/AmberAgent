@@ -47,6 +47,7 @@ class SignalAggregator(
      */
     suspend fun collectAll(): Int = coroutineScope {
         val setting = settingProvider()
+        if (!setting.enabled) return@coroutineScope 0
         val enabledCollectors = collectors.filter { it.sourceType in setting.enabledSources }
         val batches = enabledCollectors.map { collector ->
             async(Dispatchers.IO) {
@@ -79,6 +80,8 @@ class SignalAggregator(
     private val ingestMutex = Mutex()
 
     suspend fun ingest(raw: RawBoardSignal): Boolean = ingestMutex.withLock {
+        val setting = settingProvider()
+        if (!setting.enabled || raw.sourceType !in setting.enabledSources) return@withLock false
         val now = System.currentTimeMillis()
         val dedupWindow = now - DEDUP_WINDOW_MS
 
@@ -143,7 +146,9 @@ class SignalAggregator(
     }
 
     suspend fun getFilteredSignalBatch(limit: Int = 200): FilteredSignalBatch {
-        val signals = boardRepository.getUnprocessedSignals(limit)
+        val setting = settingProvider()
+        if (!setting.enabled || setting.enabledSources.isEmpty()) return FilteredSignalBatch.EMPTY
+        val signals = boardRepository.getUnprocessedSignals(setting.enabledSources, limit)
         if (signals.isEmpty()) return FilteredSignalBatch.EMPTY
 
         val weights = boardRepository.getAllWeights()

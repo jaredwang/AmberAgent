@@ -181,7 +181,10 @@ class SyncRedactor(private val json: Json) {
         }
         if (keys.isEmpty()) return true
         return keys.all { key ->
-            this[key]?.jsonPrimitive?.contentOrNull == local[key]?.jsonPrimitive?.contentOrNull
+            val exportedValue = this[key]?.jsonPrimitive?.contentOrNull
+            // STANDARD masks usernames too; only the remaining, nonsecret scope can match them.
+            (key.isSensitiveFieldName() && exportedValue == SECRET_MASK) ||
+                exportedValue == local[key]?.jsonPrimitive?.contentOrNull
         }
     }
 

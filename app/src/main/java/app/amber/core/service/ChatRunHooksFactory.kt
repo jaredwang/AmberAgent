@@ -178,14 +178,16 @@ class ChatRunHooksFactory(
                         )
                         return@finalizeChatGeneration
                     }
-                    val currentConversation = conversationStore.getConversationFlow(conversationId).value
-                    val updatedConversation = currentConversation.copy(
-                        messageNodes = currentConversation.messageNodes.map { node ->
-                            node.copy(messages = node.messages.map { it.finishReasoning() })
-                        },
-                        updateAt = Instant.now(),
-                    )
-                    conversationStore.updateConversation(conversationId, updatedConversation, checkDeletedFiles = false)
+                    val updatedAt = Instant.now()
+                    conversationStore.updateConversationState(conversationId) { current ->
+                        current.copy(
+                            messageNodes = current.messageNodes.map { node ->
+                                node.copy(messages = node.messages.map { it.finishReasoning() })
+                            },
+                            updateAt = maxOf(current.updateAt, updatedAt),
+                        )
+                    }
+                    val updatedConversation = conversationStore.getConversationFlow(conversationId).value
                     val checkpointLoadState = conversationStore.session(conversationId).timelineLoadState.value
                     val conversationCheckpointed = conversationStore.checkpointConversation(
                         conversationId, updatedConversation, force = true,

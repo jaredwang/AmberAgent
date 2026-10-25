@@ -56,7 +56,6 @@ import app.amber.ai.util.mergeCustomBody
 import app.amber.ai.util.parseErrorDetail
 import app.amber.ai.util.stringSafe
 import app.amber.ai.util.toHeaders
-import app.amber.common.http.await
 import app.amber.common.http.jsonArrayOrNull
 import app.amber.common.http.jsonObjectOrNull
 import app.amber.common.http.jsonPrimitiveOrNull
@@ -132,19 +131,21 @@ class ChatCompletionsAPI(
 
         Log.i(TAG, "generateText: model=${params.model.modelId}")
 
-        var response = client.newCall(request).await()
-        if (providerSetting.authMode == OpenAIAuthMode.GROK_OAUTH && response.code == 401) {
-            response.close()
-            val refreshedToken = bearerResolver(providerSetting, true)
-            response = client.newCall(request.newBuilder()
-                .header("Authorization", "Bearer $refreshedToken")
-                .build()).await()
-        }
-        val bodyStr = response.use {
-            if (!it.isSuccessful) {
-                throw Exception("Failed to get response: ${it.code} ${it.body?.string()}")
+        val bodyStr = withCancellableCall {
+            var response = awaitResponse(client.newCall(request))
+            if (providerSetting.authMode == OpenAIAuthMode.GROK_OAUTH && response.code == 401) {
+                response.close()
+                val refreshedToken = bearerResolver(providerSetting, true)
+                response = awaitResponse(client.newCall(request.newBuilder()
+                    .header("Authorization", "Bearer $refreshedToken")
+                    .build()))
             }
-            it.body?.string().orEmpty()
+            response.use {
+                if (!it.isSuccessful) {
+                    throw Exception("Failed to get response: ${it.code} ${it.body?.string()}")
+                }
+                it.body?.string().orEmpty()
+            }
         }
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
@@ -810,18 +811,11 @@ class ChatCompletionsAPI(
             jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
         )
 
-        // 也许支持其他模态的输出content?
         val content = jsonObject["content"]?.jsonPrimitiveOrNull?.contentOrNull ?: ""
+        val contentArray = jsonObject["content"] as? JsonArray
         val hasReasoningContent = jsonObject.containsKey("reasoning_content")
         val reasoning = jsonObject["reasoning_content"]?.jsonPrimitiveOrNull?.contentOrNull
             ?: jsonObject["reasoning"]?.jsonPrimitiveOrNull?.contentOrNull
-            ?: jsonObject["content"]?.takeIf { it is JsonArray }?.let { arr ->
-                // Mistral接口
-                // {"id":"","object":"chat.completion.chunk","created":1772351733,"model":"magistral-medium-2509","choices":[{"index":0,"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":"好的"}]}]},"finish_reason":null}]}
-                arr.jsonArrayOrNull?.getOrNull(0)?.jsonObject?.get("thinking")?.jsonArrayOrNull?.getOrNull(0)?.jsonObjectOrNull?.get(
-                    "text"
-                )?.jsonPrimitiveOrNull?.contentOrNull
-            }
         val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
         val images = jsonObject["images"] as? JsonArray ?: JsonArray(emptyList())
 
@@ -837,6 +831,26 @@ class ChatCompletionsAPI(
                             metadata = if (hasReasoningContent) reasoningContentPresentMetadata() else null
                         )
                     )
+                }
+                // Mistral returns ordered content chunks in both completions and SSE deltas.
+                contentArray?.forEach { element ->
+                    val part = element as? JsonObject ?: return@forEach
+                    when (part["type"]?.jsonPrimitiveOrNull?.contentOrNull) {
+                        "text" -> part["text"]?.jsonPrimitiveOrNull?.contentOrNull
+                            ?.takeIf { it.isNotEmpty() }?.let { add(UIMessagePart.Text(it)) }
+                        "thinking" -> {
+                            val thought = when (val value = part["thinking"]) {
+                                is JsonPrimitive -> value.contentOrNull
+                                is JsonArray -> value.joinToString("") {
+                                    it.jsonObjectOrNull?.get("text")?.jsonPrimitiveOrNull?.contentOrNull.orEmpty()
+                                }
+                                else -> null
+                            }
+                            if (!thought.isNullOrEmpty()) {
+                                add(UIMessagePart.Reasoning(thought, createdAt = Clock.System.now(), finishedAt = null))
+                            }
+                        }
+                    }
                 }
                 toolCalls.forEach { toolCalls ->
                     val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull

@@ -1,5 +1,6 @@
 package app.amber.core.sync.webdav
 
+import android.net.Uri
 import android.util.Log
 import android.util.Xml
 import io.ktor.client.HttpClient
@@ -371,11 +372,10 @@ class WebDavClient(
     suspend fun list(path: String = ""): Result<List<WebDavResourceInfo>> = withContext(Dispatchers.IO) {
         runCatching {
             val result = propfind(path, depth = 1).getOrThrow()
-            // Filter out the parent directory itself (first entry)
-            if (result.isNotEmpty()) {
-                result.drop(1)
-            } else {
-                emptyList()
+            val collectionPath = Uri.parse(config.buildUrl(path)).path.orEmpty().trimEnd('/')
+            // PROPFIND response order is unspecified; identify the collection by its href.
+            result.filterNot { resource ->
+                Uri.parse(resource.href).path.orEmpty().trimEnd('/') == collectionPath
             }
         }
     }

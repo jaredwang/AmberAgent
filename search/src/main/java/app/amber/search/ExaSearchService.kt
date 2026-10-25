@@ -86,10 +86,12 @@ object ExaSearchService : SearchService<SearchServiceOptions.ExaOptions> {
                 .addHeader("Authorization", "Bearer $apiKey")
                 .build()
 
-            val response = httpClient.newCall(request).execute()
-            if (response.isSuccessful) {
+            httpClient.newCall(request).await().use { response ->
+                if (!response.isSuccessful) {
+                    error("Exa response failed #${response.code}: ${response.body?.string()}")
+                }
                 val bodyRaw = response.body.string()
-                val response = runCatching {
+                val payload = runCatching {
                     json.decodeFromString<ExaData>(bodyRaw)
                 }.onFailure {
                     error("Failed to decode Exa response (${bodyRaw.length} chars): ${it.message}")
@@ -97,17 +99,16 @@ object ExaSearchService : SearchService<SearchServiceOptions.ExaOptions> {
 
                 return@withContext Result.success(
                     SearchResult(
-                        answer = response.output?.content,
-                        items = response.results.map {
+                        answer = payload.output?.content,
+                        items = payload.results.map {
                             SearchResultItem(
                                 title = it.title,
                                 url = it.url,
-                                text = it.text ?: ""
+                                text = it.text ?: "",
+                                publishedAt = it.publishedDate,
                             )
                         }
                     ))
-            } else {
-                error("Exa response failed #${response.code}: ${response.body?.string()}")
             }
         }
     }

@@ -1,6 +1,7 @@
 package app.amber.feature.modelcouncil
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +72,7 @@ class CouncilRoomManager(
             peekRoom = ::peekRoom,
             mutate = ::mutate,
             mutateRoomOrNull = ::mutateRoomOrNull,
-            awaitUserAnswer = ::awaitUserAnswer,
+            askUser = ::askUser,
         )
     }
     private val autoRun by lazy {
@@ -87,7 +88,8 @@ class CouncilRoomManager(
             failActiveRoom = ::failActiveRoom,
             autoAssembleSeats = ::autoAssembleSeats,
             hasModeOverride = { id -> jobsLock.withLock { id in userModeOverrideIds } },
-            awaitUserAnswer = ::awaitUserAnswer,
+            applyDetectedMode = ::applyDetectedMode,
+            askUser = ::askUser,
         )
     }
 
@@ -129,12 +131,13 @@ class CouncilRoomManager(
     /**
      * Per-conversation pending ask_user awaiter. When the host asks the user a
      * question (FULL mode), [CouncilRoomAutoRun.run] suspends on
-     * [awaitUserAnswer], which parks a [CompletableDeferred] here. The user's
+     * [askUser], which parks a [CompletableDeferred] here. The user's
      * answer via [resumeAfterUserAnswer] completes it, un-suspending the loop.
      * [close] cancels it so a closing room tears the awaiter down cleanly. Guarded
      * by [jobsLock].
      */
-    private val pendingAskUser = mutableMapOf<Uuid, kotlinx.coroutines.CompletableDeferred<String>>()
+    private data class PendingQuestion(val messageId: String, val answer: CompletableDeferred<String>)
+    private val pendingAskUser = mutableMapOf<Uuid, PendingQuestion>()
 
     /** Per-conversation mutation lock; prevents races between host actions / user input. */
     private val locks = mutableMapOf<Uuid, Mutex>()
@@ -477,6 +480,17 @@ class CouncilRoomManager(
         }
     }
 
+    private suspend fun applyDetectedMode(conversationId: Uuid, mode: CouncilRoomMode) {
+        mutate(conversationId) { room ->
+            val overridden = jobsLock.withLock { conversationId in userModeOverrideIds }
+            if (room.status.terminal || overridden || room.mode == mode) {
+                CouncilRoomOpResult.Ok(room)
+            } else {
+                CouncilRoomOpResult.Ok(room.copy(mode = mode, status = statusForMode(mode)))
+            }
+        }
+    }
+
     /**
      * Append a user message into the room timeline. [mentionTargets] are
      * participant ids the user @-mentioned; PR2 uses these to route follow-ups.
@@ -488,14 +502,33 @@ class CouncilRoomManager(
         mentionTargets: List<String> = emptyList(),
         attachments: List<UIMessagePart> = emptyList(),
         attachmentText: String = "",
+    ): CouncilRoomOpResult = acceptUserMessage(conversationId, text, attachments, attachmentText)
+
+    private suspend fun acceptUserMessage(
+        conversationId: Uuid,
+        text: String,
+        attachments: List<UIMessagePart> = emptyList(),
+        attachmentText: String = "",
+        questionId: String? = null,
+        answerOnly: Boolean = false,
     ): CouncilRoomOpResult = withCapturedWriteContext {
-        val result = mutate(conversationId) { room ->
+        val result = lockFor(conversationId).withLock {
+            val room = store.observeRoom(conversationId).value
+                ?: return@withLock CouncilRoomOpResult.Err("not_found", "No room for this conversation.")
             if (room.status.terminal) {
-                return@mutate CouncilRoomOpResult.Err("room_terminal", "Room has ended; cannot send messages.")
+                return@withLock CouncilRoomOpResult.Err("room_terminal", "Room has ended; cannot send messages.")
             }
             // An attachment-only message (image / file, no text) is still valid.
             if (text.isBlank() && attachments.isEmpty()) {
-                return@mutate CouncilRoomOpResult.Err("empty_message", "Message text is empty.")
+                return@withLock CouncilRoomOpResult.Err("empty_message", "Message text is empty.")
+            }
+            val question = room.messages.lastOrNull { it.kind == CouncilMessageKind.ASK_USER }
+                ?.takeUnless { ask -> room.messages.any { it.authorId == COUNCIL_ROOM_USER_ID && it.replyToMessageId == ask.id } }
+                ?.takeIf { ask ->
+                    if (questionId != null) ask.id == questionId else answerOnly || room.status == CouncilRoomStatus.INTERRUPTED
+                }
+            if (answerOnly && question == null) {
+                return@withLock CouncilRoomOpResult.Err("no_pending_question", "No pending ask_user for this room.")
             }
             val now = nowMs()
             val isFirstUserMessage = room.messages.none { it.authorId == COUNCIL_ROOM_USER_ID }
@@ -511,6 +544,7 @@ class CouncilRoomManager(
                 status = CouncilMessageStatus.COMPLETED,
                 attachments = attachments,
                 attachmentText = attachmentText.take(MAX_CONTEXT_CHARS),
+                replyToMessageId = question?.id,
             )
             // The first user message IS the topic — promote it to the room
             // objective so every member/synthesis prompt deliberates on it. For an
@@ -529,11 +563,26 @@ class CouncilRoomManager(
             } else {
                 room.objective
             }
-            CouncilRoomOpResult.Ok(room.copy(
+            val next = room.copy(
                 objective = objective,
                 messages = room.messages + userMessage,
+                status = if (question != null && room.status == CouncilRoomStatus.INTERRUPTED) statusForMode(room.mode) else room.status,
                 updatedAtMs = now,
-            ))
+            )
+            currentCoroutineContext().ensureActive()
+            // Once the answer is visible, finish the matching waiter handoff even
+            // if the submitting page is leaving. Model work stays cancellable below.
+            withContext(NonCancellable) {
+                store.upsertRoom(next)
+                updateTaskStatus(next)
+                if (question != null) {
+                    jobsLock.withLock {
+                        pendingAskUser[conversationId]?.takeIf { it.messageId == question.id }
+                            ?.answer?.complete(userMessage.text)
+                    }
+                }
+            }
+            CouncilRoomOpResult.Ok(next)
         }
         if (result is CouncilRoomOpResult.Ok) {
             val current = peekRoom(conversationId)
@@ -828,101 +877,52 @@ class CouncilRoomManager(
 
     // ── ask_user (FULL mode HITL) ───────────────────────────────────────────
 
-    /**
-     * FULL mode: suspend the orchestration until the user answers a host question.
-     * Called from [CouncilRoomAutoRun.run] when the host emits an ask_user (either
-     * during the pre-topic research turn or the end-of-round review). Parks a
-     * [CompletableDeferred] in [pendingAskUser]; [resumeAfterUserAnswer] completes
-     * it; [close] cancels it.
-     *
-     * The host's question is already persisted as a COMPLETED CouncilMessage with
-     * [CouncilMessageKind.ASK_USER] (so the timeline shows the answer card) BEFORE
-     * this is called — this function only does the waiting.
-     *
-     * Bounded by the room's total timeout as a safety net so a deferred that's
-     * never completed (e.g. a crash in the answer path) can't leak the coroutine
-     * forever. Returns null on timeout; the caller treats that as "no answer" and
-     * continues the council.
-     */
-    private suspend fun awaitUserAnswer(conversationId: Uuid): String? {
-        val deferred = kotlinx.coroutines.CompletableDeferred<String>()
-        jobsLock.withLock { pendingAskUser[conversationId] = deferred }
+    /** Register the question's waiter before publishing its actionable timeline row. */
+    private suspend fun askUser(conversationId: Uuid, question: CouncilMessage): String? {
+        val pending = PendingQuestion(question.id, CompletableDeferred())
         return try {
-            val room = peekRoom(conversationId)
-            val bound = room?.totalTimeoutMs?.coerceAtLeast(60_000L) ?: Long.MAX_VALUE / 2
-            kotlinx.coroutines.withTimeoutOrNull(bound) { deferred.await() }
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            // close() cancelled the awaiting job — propagate so the loop dies.
-            throw e
+            val result = mutate(conversationId) { room ->
+                if (room.status.terminal) {
+                    return@mutate CouncilRoomOpResult.Err("room_terminal", "Room has ended.")
+                }
+                jobsLock.withLock { pendingAskUser[conversationId] = pending }
+                val messages = if (room.messages.any { it.id == question.id }) {
+                    room.messages.map { if (it.id == question.id) question else it }
+                } else {
+                    room.messages + question
+                }
+                CouncilRoomOpResult.Ok(room.copy(
+                    messages = messages,
+                    participants = room.participants.map { participant ->
+                        if (participant.id == question.authorId) participant.copy(status = CouncilParticipantStatus.IDLE) else participant
+                    },
+                    status = CouncilRoomStatus.INTERRUPTED,
+                    updatedAtMs = nowMs(),
+                ))
+            }
+            val room = (result as? CouncilRoomOpResult.Ok)?.room ?: return null
+            val bound = room.totalTimeoutMs.coerceAtLeast(60_000L)
+            withTimeoutOrNull(bound) { pending.answer.await() }
         } finally {
-            jobsLock.withLock { pendingAskUser.remove(conversationId) }
+            withContext(NonCancellable) {
+                jobsLock.withLock {
+                    if (pendingAskUser[conversationId] === pending) pendingAskUser.remove(conversationId)
+                }
+            }
         }
     }
 
-    /**
-     * Resume a council paused on [awaitUserAnswer] by submitting the user's answer.
-     * Appends the answer as a normal USER CouncilMessage (so the next round's
-     * buildAutoPrompt / appendSteeringNote pick it up automatically), then completes
-     * the parked deferred to un-suspend [CouncilRoomAutoRun.run]. Also flips the room
-     * status back from INTERRUPTED to the mode-appropriate running status.
-     *
-     * No-op (returns Err) if no ask_user is pending for this conversation.
-     */
+    /** Answer cards and the ordinary composer share acceptance and waiter ownership. */
     suspend fun resumeAfterUserAnswer(
         conversationId: Uuid,
         answer: String,
-    ): CouncilRoomOpResult {
-        val deferred = jobsLock.withLock { pendingAskUser.remove(conversationId) }
-        // Timeout / process death: no parked deferred. Still accept the answer as a
-        // USER message and try to wake orchestration so the reply is never silent-dropped.
-        val result = mutate(conversationId) { room ->
-            if (room.status.terminal) {
-                return@mutate CouncilRoomOpResult.Err("room_terminal", "Room has ended.")
-            }
-            if (deferred == null &&
-                room.status != CouncilRoomStatus.INTERRUPTED &&
-                !room.status.running
-            ) {
-                return@mutate CouncilRoomOpResult.Err(
-                    "no_pending_question",
-                    "No pending ask_user for this room.",
-                )
-            }
-            val now = nowMs()
-            val askMessage = room.messages.lastOrNull { it.kind == CouncilMessageKind.ASK_USER }
-            val userMessage = CouncilMessage(
-                id = msgId(),
-                authorId = COUNCIL_ROOM_USER_ID,
-                authorName = "You",
-                role = "user",
-                round = room.round,
-                mode = room.mode,
-                text = answer.take(MAX_MESSAGE_CHARS),
-                createdAtMs = now,
-                replyToMessageId = askMessage?.id,
-                status = CouncilMessageStatus.COMPLETED,
-            )
-            CouncilRoomOpResult.Ok(room.copy(
-                messages = room.messages + userMessage,
-                // Flip back from INTERRUPTED (set when the host asked) to the
-                // running status for the current mode so the UI shows live again.
-                status = if (room.status == CouncilRoomStatus.INTERRUPTED) {
-                    statusForMode(room.mode)
-                } else {
-                    room.status
-                },
-                updatedAtMs = now,
-            ))
-        }
-        if (result is CouncilRoomOpResult.Err) return result
-        if (deferred != null) {
-            deferred.complete(answer)
-        } else {
-            // Recovery path: restart auto-run after appending the answer.
-            maybeStartAutoRun(conversationId)
-        }
-        return result
-    }
+        questionId: String? = null,
+    ): CouncilRoomOpResult = acceptUserMessage(
+        conversationId = conversationId,
+        text = answer,
+        questionId = questionId,
+        answerOnly = true,
+    )
 
     // ── automatic orchestration ─────────────────────────────────────────────
 
@@ -1148,9 +1148,9 @@ class CouncilRoomManager(
             guestJobs.forEach { it.cancelAndJoin() }
             synthesisJob?.cancelAndJoin()
             // If the council was paused on an ask_user, cancel the parked awaiter
-            // so the suspended CouncilRoomAutoRun.run dies cleanly (its awaitUserAnswer
+            // so the suspended CouncilRoomAutoRun.run dies cleanly (its askUser
             // throws CancellationException, which the loop propagates to close).
-            askDeferred?.cancel()
+            askDeferred?.answer?.cancel()
 
             val mutex = lockFor(conversationId)
             val result = mutex.withLock {

@@ -50,6 +50,7 @@ internal object ResponseRequestEncoder {
             // the server rejects store=false for it).
             if (resume != null) {
                 put("store", true)
+                if (stream) put("background", true)
             } else if (!params.model.tools.contains(BuiltInTools.ImageGeneration)) {
                 put("store", false)
             }

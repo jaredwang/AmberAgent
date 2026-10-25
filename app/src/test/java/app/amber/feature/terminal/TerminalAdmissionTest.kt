@@ -1,8 +1,13 @@
 package app.amber.feature.terminal
 
 import android.app.Application
+import android.content.ComponentName
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.os.Bundle
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import app.amber.core.infra.AppScope
 import app.amber.core.settings.prefs.AgentPrefs
@@ -23,10 +28,17 @@ import app.amber.feature.workspace.WorkspaceManager
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ThreadContextElement
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -47,6 +59,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -202,6 +215,58 @@ class TerminalAdmissionTest {
         workspace.acquireTerminalMirror(refreshFromWorkspace = false).release(syncBack = false)
     }
 
+    @Test
+    fun `late Termux running projection cannot resurrect the completed durable task`(): Unit = runBlocking {
+        shadowOf(context.packageManager).installPackage(PackageInfo().apply { packageName = "com.termux" })
+        val originalContext = context
+        val originalScope = appScope
+        val projectionGate = FirstLaunchGate()
+        val gatedJob = SupervisorJob()
+        appScope = AppScope().also { scope ->
+            // Keep the real runtime launch and TaskStore update; delay only the first
+            // child at coroutine entry so the real completion projection overtakes it.
+            val delegate = AppScope::class.java.declaredFields.single {
+                CoroutineScope::class.java.isAssignableFrom(it.type)
+            }
+            delegate.isAccessible = true
+            delegate.set(scope, CoroutineScope(gatedJob + projectionGate))
+        }
+        context = object : ContextWrapper(originalContext) {
+            override fun checkSelfPermission(permission: String): Int =
+                if (permission == "com.termux.permission.RUN_COMMAND") PackageManager.PERMISSION_GRANTED
+                else super.checkSelfPermission(permission)
+
+            override fun startForegroundService(service: Intent): ComponentName {
+                check(projectionGate.entered.await(5, TimeUnit.SECONDS)) { "Initial running projection did not start" }
+                return ComponentName("com.termux", "com.termux.app.RunCommandService")
+            }
+        }
+        try {
+            val tasks = AgentTaskStore(context, Json)
+            val runtime = runtime(tasks)
+            val started = runtime.startJob("true", runtime = TerminalRuntimeKind.TERMUX_EXTERNAL)
+            assertEquals(TerminalJobStatus.RUNNING, started.status)
+            val initialProjection = gatedJob.children.first()
+            runtime.handleTermuxResult(Intent().apply {
+                putExtra("job_id", started.jobId)
+                putExtra("result", Bundle().apply { putInt("exitCode", 0) })
+            })
+            withTimeout(5_000) {
+                while (tasks.read(started.jobId)?.status != app.amber.feature.task.AgentTaskStatus.COMPLETED) delay(1)
+            }
+
+            projectionGate.release.countDown()
+            withTimeout(5_000) { initialProjection.join() }
+            assertEquals(app.amber.feature.task.AgentTaskStatus.COMPLETED, tasks.read(started.jobId)?.status)
+            assertEquals(TerminalJobStatus.COMPLETED, runtime.readJob(started.jobId).status)
+        } finally {
+            projectionGate.release.countDown()
+            gatedJob.cancelAndJoin()
+            appScope = originalScope
+            context = originalContext
+        }
+    }
+
     private fun runtime(tasks: AgentTaskStore, workspace: WorkspaceManager = WorkspaceManager(context)) = TerminalRuntime(
         context = context,
         appScope = appScope,
@@ -232,5 +297,21 @@ class TerminalAdmissionTest {
         fun runAll() {
             while (true) (queue.poll() ?: return).run()
         }
+    }
+
+    private class FirstLaunchGate : ThreadContextElement<Boolean>, AbstractCoroutineContextElement(Key) {
+        companion object Key : CoroutineContext.Key<FirstLaunchGate>
+        private val first = AtomicBoolean(true)
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+
+        override fun updateThreadContext(context: CoroutineContext): Boolean {
+            if (!first.compareAndSet(true, false)) return false
+            entered.countDown()
+            check(release.await(10, TimeUnit.SECONDS)) { "Delayed projection was not released" }
+            return true
+        }
+
+        override fun restoreThreadContext(context: CoroutineContext, oldState: Boolean) = Unit
     }
 }

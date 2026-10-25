@@ -67,23 +67,35 @@ class SearchPrefs(
         val refs = redactor.readRefs(p)
         val decodedServices = p[PreferencesKeys.SEARCH_SERVICES]
             ?.decodeSearchServicesDroppingLegacy()
+        val searchServices = decodedServices?.services?.let {
+            redactor.rehydrateSearchServices(it, refs)
+        } ?: listOf(SearchServiceOptions.DEFAULT)
         val storedSelected = p[PreferencesKeys.SEARCH_SELECTED] ?: 0
-        val storedEnabled = p[PreferencesKeys.SEARCH_ENABLED_SERVICE_IDS]?.let {
+        val adjustedSelected = decodedServices?.adjustedSelected(storedSelected) ?: storedSelected
+        val selected = if (searchServices.isEmpty()) 0 else adjustedSelected.coerceIn(0, searchServices.lastIndex)
+        val selectedWasRetired = storedSelected in decodedServices?.legacyIndices.orEmpty()
+        val rawEnabled = p[PreferencesKeys.SEARCH_ENABLED_SERVICE_IDS]
+        val storedEnabled = rawEnabled?.let {
             it.decodeJsonOrNull<List<Uuid>>()
         }.orEmpty()
-        val retainedEnabled = storedEnabled.filterNot {
-            it in decodedServices?.legacyServiceIds.orEmpty()
+        val legacyIds = decodedServices?.legacyServiceIds.orEmpty()
+        // Only versions without this key need selected-service migration.
+        // A present empty list is the user's choice to disable every profile.
+        val retainedEnabled = if (rawEnabled == null && !selectedWasRetired) {
+            searchServices.getOrNull(selected)?.let { listOf(it.id) }.orEmpty()
+        } else {
+            storedEnabled.filter { id ->
+                id !in legacyIds && searchServices.any { it.id == id }
+            }
         }
         return SearchPrefsData(
-            searchServices = decodedServices?.services?.let {
-                redactor.rehydrateSearchServices(it, refs)
-            } ?: listOf(SearchServiceOptions.DEFAULT),
+            searchServices = searchServices,
             searchCommonOptions = (p[PreferencesKeys.SEARCH_COMMON]?.let {
                 it.decodeJsonOrNull<SearchCommonOptions>()
             } ?: SearchCommonOptions()).let { options ->
                 options.copy(resultSize = options.resultSize.coerceIn(1, 30))
             },
-            searchServiceSelected = decodedServices?.adjustedSelected(storedSelected) ?: storedSelected,
+            searchServiceSelected = selected,
             searchEnabledServiceIds = retainedEnabled,
             searchBuiltinDuckDuckGoEnabled = p[PreferencesKeys.SEARCH_BUILTIN_DUCKDUCKGO_ENABLED] != false,
             searchBuiltinBingEnabled = p[PreferencesKeys.SEARCH_BUILTIN_BING_ENABLED] != false,
@@ -93,7 +105,7 @@ class SearchPrefs(
             searchGoogleWebViewFallbackEnabled = p[PreferencesKeys.SEARCH_GOOGLE_WEBVIEW_FALLBACK_ENABLED] != false,
             retiredServiceRequiresReconfiguration = decodedServices?.let { decoded ->
                 decoded.removedLegacy && (
-                    storedSelected in decoded.legacyIndices ||
+                    selectedWasRetired ||
                         (storedEnabled.any { it in decoded.legacyServiceIds } && retainedEnabled.isEmpty())
                     )
             } == true,

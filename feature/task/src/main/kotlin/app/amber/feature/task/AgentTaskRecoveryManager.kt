@@ -19,7 +19,7 @@ class AgentTaskRecoveryManager(
                 )
             }
         return when {
-            snapshot.type == "cron" -> snapshot.copy(
+            snapshot.type == "cron" && snapshot.status != AgentTaskStatus.CANCELLED -> snapshot.copy(
                 status = AgentTaskStatus.QUEUED,
                 queueState = AgentTaskQueueState.SCHEDULED,
                 recoveryState = AgentTaskRecoveryState.SCHEDULED,

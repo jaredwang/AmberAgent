@@ -1268,6 +1268,8 @@ class ReplayGoldenTest : DurableRuntimeTestBase() {
 
         override suspend fun saveConversation(conversationId: Uuid, conversation: Conversation) = Unit
 
+        override fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) = Unit
+
         override fun addError(error: Throwable, conversationId: Uuid?, title: String?) = Unit
     }
 

@@ -25,6 +25,7 @@ import app.amber.core.settings.CapabilityFlags
 import app.amber.core.sync.core.SyncRestoreWriteGate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -276,6 +277,69 @@ class RunRecoveryServiceResumeTest : DurableRuntimeTestBase() {
         assertEquals("run_1", run.runId)
         assertNotNull(run.finishedAtMs)
         assertNull(resumeStore.load("run_1"))
+    }
+
+    @Test
+    fun completedStatusWithoutOutputUsesRealSuffixStreamAndFullTerminalSnapshot() = runBlocking {
+        val conversationId = Uuid.random()
+        val runId = "run_real_suffix"
+        val setting = openAiSetting()
+        runTerminalStore.begin(runId, conversationId.toString(), null)
+        val resumeStore = RoomResponseResumeStore(dao = database.runResumeDao())
+        resumeStore.save(runId, "resp_1", 3, setting.id.toString())
+        val repo = conversationRepository()
+        repo.insertConversation(conversationWithPartial(conversationId, partialText = "ha"))
+
+        val transport = FakeSseTransport()
+        var statusRequests = 0
+        val api = ResponseAPI(
+            client = OkHttpClient.Builder().addInterceptor { chain ->
+                statusRequests += 1
+                Response.Builder()
+                    .request(chain.request())
+                    .protocol(Protocol.HTTP_1_1)
+                    .code(200)
+                    .message("OK")
+                    // Missing output takes the actual recovery SSE fallback.
+                    .body("""{"id":"resp_1","status":"completed"}"""
+                        .toResponseBody("application/json".toMediaType()))
+                    .build()
+            }.build(),
+            bearerResolver = { _, _ -> "test-token" },
+            transport = transport::invoke,
+        )
+        val gateway = FakeStoredResponseGateway().apply {
+            session = StoredResponseGateway.StoredResponseSession(
+                cursor = resumeStore.load(runId)!!,
+                providerSetting = setting,
+                api = api,
+            )
+        }
+        val recovery = launch {
+            recoveryService(gateway = gateway, flags = capabilityFlags(true), resumeStore = resumeStore).recover()
+        }
+        try {
+            withTimeout(10_000) { while (transport.streams.isEmpty()) yield() }
+            val (request, listener) = transport.streams.single()
+            val source = transport.sources.single()
+            assertEquals("true", request.url.queryParameter("stream"))
+            assertEquals("3", request.url.queryParameter("starting_after"))
+            listener.onEvent(source, null, "response.output_text.delta", deltaEvent(4, "resp_1", "msg_1", "ha"))
+            listener.onEvent(source, null, "response.output_text.done",
+                """{"type":"response.output_text.done","sequence_number":5,"item_id":"msg_1","text":"haha"}""")
+            listener.onEvent(source, null, "response.completed",
+                """{"type":"response.completed","sequence_number":6,"response":{"id":"resp_1","status":"completed","output":[{"type":"message","id":"msg_1","role":"assistant","content":[{"type":"output_text","text":"haha"}]}]}}""")
+            withTimeout(10_000) { recovery.join() }
+
+            assertEquals(1, statusRequests)
+            val updated = repo.getConversationById(conversationId)!!
+            val final = updated.messageNodes.last { it.role == MessageRole.ASSISTANT }.currentMessage
+            assertEquals("haha", final.parts.filterIsInstance<UIMessagePart.Text>().joinToString("") { it.text })
+            assertEquals(RunTerminalState.COMPLETED, runTerminalStore.get(runId)!!.state)
+            assertNull(resumeStore.load(runId))
+        } finally {
+            recovery.cancelAndJoin()
+        }
     }
 
     @Test

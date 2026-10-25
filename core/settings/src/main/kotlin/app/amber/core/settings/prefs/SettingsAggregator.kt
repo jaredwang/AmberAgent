@@ -470,8 +470,8 @@ internal fun applyCrossDomainConsistency(settings: Settings): Settings {
     val modelIds = migratedSettings.providers.flatMap { it.models }.map { m -> m.id }.toSet()
     fun Uuid.orAutoModelId(): Uuid =
         if (this != DEFAULT_AUTO_MODEL_ID && this !in modelIds) DEFAULT_AUTO_MODEL_ID else this
-    // Normalize search references on every read, including fresh installs and
-    // migration gaps where no settings write has occurred yet.
+    // Empty enabled IDs are an explicit user choice. SearchPrefs alone can
+    // distinguish a legacy missing key and migrate the selected service.
     val cleanedSearchSelected = if (migratedSettings.searchServices.isEmpty()) {
         0
     } else {
@@ -479,11 +479,6 @@ internal fun applyCrossDomainConsistency(settings: Settings): Settings {
     }
     val cleanedSearchEnabledIds = migratedSettings.searchEnabledServiceIds
         .filter { id -> migratedSettings.searchServices.any { service -> service.id == id } }
-        .ifEmpty {
-            migratedSettings.searchServices.getOrNull(cleanedSearchSelected)
-                ?.let { listOf(it.id) }
-                .orEmpty()
-        }
     return migratedSettings.copy(
         searchServiceSelected = cleanedSearchSelected,
         searchEnabledServiceIds = cleanedSearchEnabledIds,

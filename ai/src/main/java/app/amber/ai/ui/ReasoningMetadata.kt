@@ -29,6 +29,9 @@ internal fun JsonObject?.reasoningBlockId(): String? =
     this?.get(STREAM_REASONING_BLOCK_ID_METADATA_KEY)?.jsonPrimitive?.contentOrNull
         ?: this?.get("reasoning_id")?.jsonPrimitive?.contentOrNull
 
+internal fun JsonObject?.hasThoughtSignature(): Boolean =
+    this?.get("thoughtSignature")?.jsonPrimitive?.contentOrNull != null
+
 internal fun UIMessagePart.Reasoning.hasReasoningReplayMetadata(): Boolean =
     listOf("signature", "redacted_thinking_data", "encrypted_content", "thoughtSignature").any { key ->
         !metadata?.get(key)?.jsonPrimitive?.contentOrNull.isNullOrEmpty()

@@ -358,6 +358,46 @@ class JsCellRuntimeTest {
         assertTrue("output length ${output.length} exceeds cap", output.length <= 90)
     }
 
+    @Test
+    fun `each execution receives its own console output budget`() = runBlocking {
+        newRuntime(limits = testLimits().copy(outputChars = 20))
+        val tools = createJsCellTools(runtime, runId = null).associateBy { it.name }
+        val cellId = call(tools, "js_cell_create", buildJsonObject {})["cell_id"]?.asText()!!
+
+        repeat(3) {
+            val completed = call(tools, "js_cell_run", buildJsonObject {
+                put("cell_id", cellId)
+                put("code", "printOnce()")
+            })
+            assertEquals("completed", completed["status"]?.asText())
+            assertEquals("[LOG] hello", completed["output"]?.asText())
+            assertTrue(completed["truncated"]?.jsonPrimitive?.booleanOrNull != true)
+        }
+    }
+
+    @Test
+    fun `a truncated execution does not consume the next executions output budget`() = runBlocking {
+        newRuntime(limits = testLimits().copy(outputChars = 90), engineMode = FakeSession.Mode.Chatter)
+        val tools = createJsCellTools(runtime, runId = null).associateBy { it.name }
+        val cellId = call(tools, "js_cell_create", buildJsonObject {})["cell_id"]?.asText()!!
+        val first = call(tools, "js_cell_run", buildJsonObject {
+            put("cell_id", cellId)
+            put("code", "printMany()")
+        })
+        assertEquals(true, first["truncated"]?.jsonPrimitive?.booleanOrNull)
+        engine.sessions().single().mode = FakeSession.Mode.Sync("next")
+
+        val second = call(tools, "js_cell_run", buildJsonObject {
+            put("cell_id", cellId)
+            put("code", "printOnce()")
+        })
+
+        assertEquals("completed", second["status"]?.asText())
+        assertEquals("next", second["result"]?.asText())
+        assertEquals("[LOG] hello", second["output"]?.asText())
+        assertTrue(second["truncated"]?.jsonPrimitive?.booleanOrNull != true)
+    }
+
     // ------------------------------------------------------------------
     // helpers
     // ------------------------------------------------------------------

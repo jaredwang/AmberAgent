@@ -13,6 +13,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
 
 class WorkspaceManager(private val context: Context) {
     private val prefs = context.getSharedPreferences("amberagent_workspace", Context.MODE_PRIVATE)
@@ -84,19 +86,47 @@ class WorkspaceManager(private val context: Context) {
         documents.readBytesCapped(relativePath, maxBytes)
 
     suspend fun writeText(relativePath: String, content: String, append: Boolean = false): WorkspaceEntry =
-        documents.writeText(relativePath, content, append)
+        withDocumentMutation {
+            documents.writeText(relativePath, content, append).also { invalidateMirrorPaths(relativePath) }
+        }
 
     suspend fun writeBytes(
         relativePath: String,
         bytes: ByteArray,
         mimeType: String = "application/octet-stream",
         append: Boolean = false,
-    ): WorkspaceEntry = documents.writeBytes(relativePath, bytes, mimeType, append)
+    ): WorkspaceEntry = withDocumentMutation {
+        documents.writeBytes(relativePath, bytes, mimeType, append).also { invalidateMirrorPaths(relativePath) }
+    }
 
     suspend fun editText(relativePath: String, oldText: String, newText: String, replaceAll: Boolean): EditResult =
-        documents.editText(relativePath, oldText, newText, replaceAll)
+        withDocumentMutation {
+            documents.editText(relativePath, oldText, newText, replaceAll).also { invalidateMirrorPaths(relativePath) }
+        }
 
-    suspend fun move(sourcePath: String, targetPath: String): WorkspaceEntry = documents.move(sourcePath, targetPath)
+    suspend fun move(sourcePath: String, targetPath: String): WorkspaceEntry = withDocumentMutation {
+        val sourceMirror = mirrorPathInsideRoot(sourcePath)
+        val targetMirror = mirrorPathInsideRoot(targetPath)
+        require(targetMirror == null || !Files.exists(targetMirror.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+            "Target path already exists in the local workspace mirror: $targetPath"
+        }
+        val mirroredDirectory = sourceMirror != null &&
+            Files.isDirectory(sourceMirror.toPath(), LinkOption.NOFOLLOW_LINKS)
+        require(!mirroredDirectory || targetMirror != null) {
+            "Directory target is outside the local workspace mirror: $targetPath"
+        }
+        documents.move(sourcePath, targetPath).also { moved ->
+            if (moved.directory && mirroredDirectory) {
+                // A directory may contain terminal output that has never been flushed to SAF.
+                // Keep that output under the new path instead of treating it as disposable cache.
+                val destination = requireNotNull(targetMirror).toPath()
+                Files.createDirectories(destination.parent)
+                Files.move(requireNotNull(sourceMirror).toPath(), destination)
+            } else {
+                invalidateMirrorPaths(sourcePath, targetPath)
+            }
+        }
+    }
 
     suspend fun search(query: String, relativePath: String = ".", maxResults: Int = 50): List<SearchResult> =
         documents.search(query, relativePath, maxResults)
@@ -178,7 +208,41 @@ class WorkspaceManager(private val context: Context) {
      * [deleteWorkspaceFile] but for the SAF side (used by the artifact registry
      * to remove content files). Returns true only when a document was removed.
      */
-    suspend fun deleteFile(relativePath: String): Boolean = documents.deleteFile(relativePath)
+    suspend fun deleteFile(relativePath: String): Boolean = withDocumentMutation {
+        documents.deleteFile(relativePath).also { deleted ->
+            if (deleted) invalidateMirrorPaths(relativePath)
+        }
+    }
+
+    private suspend fun <T> withDocumentMutation(block: suspend () -> T): T = withContext(Dispatchers.IO) {
+        mirrorMutex.withLock {
+            check(activeTerminalMirrors == 0) {
+                "Stop active terminal jobs and sessions before modifying workspace files."
+            }
+            block()
+        }
+    }
+
+    private fun invalidateMirrorPaths(vararg relativePaths: String) {
+        relativePaths.mapNotNull(::mirrorPathInsideRoot).distinct().forEach { target ->
+            if (!Files.exists(target.toPath(), LinkOption.NOFOLLOW_LINKS)) return@forEach
+            // The SAF mutation now owns this path; retaining its old mirror would replay
+            // stale contents at the next flush, including workspace switching/clearing.
+            Files.walk(target.toPath()).use { paths ->
+                paths.sorted(Comparator.reverseOrder()).forEach { Files.delete(it) }
+            }
+        }
+    }
+
+    private fun mirrorPathInsideRoot(relativePath: String): File? {
+        val relative = WorkspacePaths.normalize(relativePath)
+        if (relative == ".") return null
+        val root = mirrorDir.canonicalFile
+        val target = mirrorDir.resolve(relative)
+        val parent = target.parentFile.canonicalFile
+        // Terminal-created symlinks must not redirect mirror mutations outside its root.
+        return target.takeIf { parent == root || parent.path.startsWith(root.path + File.separator) }
+    }
 
     /**
      * Delete a single file under the workspace mirror by its relative path. Holds the

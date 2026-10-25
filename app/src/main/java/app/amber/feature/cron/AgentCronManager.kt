@@ -316,6 +316,7 @@ class AgentCronManager(
                 } else {
                     if (!hasActiveManualRun(task.id)) {
                         workManager.cancelUniqueWork(workName(task.id)).result.get()
+                        agentTaskStore.upsert(task.toAgentTaskSnapshot())
                     }
                 }
             }

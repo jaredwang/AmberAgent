@@ -16,6 +16,7 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import app.amber.ai.core.InputSchema
@@ -26,6 +27,7 @@ import app.amber.search.SearchService.Companion.keyRoulette
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.time.LocalDate
 
 private const val TAG = "TavilySearchService"
 
@@ -90,6 +92,12 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
                 error("topic must be one of `general`, `news`, `finance`")
             }
 
+            val recencyDays = params["recency_days"]?.jsonPrimitive?.intOrNull?.coerceIn(1, 366)
+            val startDate = recencyDays?.let { LocalDate.now().minusDays(it.toLong()).toString() }
+                ?: params["start_date"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+            val timeRange = params["time_range"]?.jsonPrimitive?.contentOrNull
+                ?.takeIf { it in listOf("day", "week", "month", "year") }
+
             val body = buildJsonObject {
                 put("query", query)
                 put("max_results", commonOptions.resultSize)
@@ -98,6 +106,11 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
                 put("topic", topic)
                 put("include_answer", if (searchDepth == "advanced") "advanced" else "basic")
                 put("include_images", true)
+                if (startDate != null) {
+                    put("start_date", startDate)
+                } else if (timeRange != null) {
+                    put("time_range", timeRange)
+                }
             }
             val apiKey = keyRoulette.next(serviceOptions.apiKey, serviceOptions.id.toString())
 
@@ -172,6 +185,7 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
                     title = item.title,
                     url = item.url,
                     text = item.content,
+                    publishedAt = item.publishedDate,
                     images = if (index == 0) tavilyImages else emptyList(),
                 )
             }
@@ -201,7 +215,9 @@ object TavilySearchService : SearchService<SearchServiceOptions.TavilyOptions> {
         val url: String,
         val content: String,
         val score: Double,
-        val rawContent: String? = null
+        val rawContent: String? = null,
+        @SerialName("published_date")
+        val publishedDate: String? = null,
     )
 
     @Serializable

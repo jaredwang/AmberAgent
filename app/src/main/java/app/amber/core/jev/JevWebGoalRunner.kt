@@ -152,11 +152,28 @@ class JevWebGoalRunner(private val runtime: JevRuntime) {
                 "done" -> {
                     val verified = decision.doneVerified == true
                     steps += WebGoalStep(steps.size, "done", "verified=$verified", null)
-                    return if (verified) {
-                        WebGoalOutcome("completed", null, steps, state)
-                    } else {
-                        WebGoalOutcome("handback", "done_not_verified", steps, state)
+                    if (!verified) {
+                        return WebGoalOutcome("handback", "done_not_verified", steps, state)
                     }
+                    val fresh = try {
+                        driver.pageState()
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        return WebGoalOutcome("handback", "completion_observe_failed", steps, state)
+                    }
+                    if (runtime.configFor(JevPurpose.WEB_AUTOMATION) != config) {
+                        return WebGoalOutcome("handback", "configuration_changed", steps, fresh)
+                    }
+                    if (fresh.booleanField("requires_human") == true) {
+                        return WebGoalOutcome("needs_user_action", fresh.stringField("resume_condition"), steps, fresh)
+                    }
+                    // A navigation invalidates this decision. Ref snapshots and network signals
+                    // can change on the same page without invalidating the observed goal.
+                    if (fresh.stringField("url") != state.stringField("url")) {
+                        return WebGoalOutcome("handback", "completion_page_changed", steps, fresh)
+                    }
+                    return WebGoalOutcome("completed", null, steps, fresh)
                 }
                 "handback" -> {
                     steps += WebGoalStep(steps.size, "handback", decision.detail, null)
@@ -276,6 +293,7 @@ class JevWebGoalRunner(private val runtime: JevRuntime) {
                 state.stringField("title")?.let { put("title", it.take(120)) }
                 state.stringField("url")?.let { put("url", it) }
                 state.stringField("snapshot_id")?.let { put("snapshot_id", it) }
+                state.stringField("visible_text_sample")?.let { put("visible_text_sample", it.take(MAX_PAGE_TEXT_CHARS)) }
             })
             put("elements", buildJsonArray {
                 elements.forEachIndexed { index, element ->
@@ -319,7 +337,7 @@ class JevWebGoalRunner(private val runtime: JevRuntime) {
             put(
                 "done_check",
                 JevQuestion.Noul(
-                    instructions = "Judging only from state.page and state.actions_taken, is the goal already fully achieved?",
+                    instructions = "Does the current visible evidence in state.page and state.elements show that state.goal is fully achieved? Past actions or intentions alone do not prove completion.",
                 ),
             )
         }
@@ -428,5 +446,6 @@ class JevWebGoalRunner(private val runtime: JevRuntime) {
         const val DEFAULT_MAX_DURATION_MS = 600_000L
         const val MAX_NO_PROGRESS = 10
         const val MAX_ELEMENTS = 24
+        private const val MAX_PAGE_TEXT_CHARS = 1_200
     }
 }

@@ -36,6 +36,8 @@ object NovelWorkspaceProposalStore {
         NovelWorkspaceRestoreBoundary.write(expectedEpoch) {
             synchronized(this) {
                 validate(proposal)
+                // Existing unsupported proposals remain readable and rejectable; only new targets are admitted here.
+                proposal.entries.forEach { NovelWorkspacePaths.validateFile(it.path) }
                 val existing = load(proposal.projectDirectory)
                 require(existing.none { it.id == proposal.id }) { "提案 ID 已存在" }
                 (existing + proposal).also { save(proposal.projectDirectory, it) }

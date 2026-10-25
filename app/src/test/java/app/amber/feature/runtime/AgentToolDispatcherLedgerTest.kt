@@ -337,7 +337,8 @@ class AgentToolDispatcherLedgerTest : DurableRuntimeTestBase() {
             ToolRegistry.from(listOf(zcodeRead)).metadataFor("wm_zcode_read")?.outputBudgetChars,
         )
 
-        val idempotent = Tool(name = "file_write", description = "", execute = { emptyList() }).effectClass()
+        val idempotent = Tool(name = "file_write", description = "", execute = { emptyList() })
+            .effectClass("""{"path":"a.txt","content":"x","append":false}""")
         assertEquals(app.amber.feature.tools.ToolEffectClass.IDEMPOTENT_WRITE, idempotent)
 
         val unknown = Tool(name = "post_message", description = "", execute = { emptyList() }).effectClass()

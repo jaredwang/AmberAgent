@@ -41,6 +41,7 @@ import app.amber.core.repository.FilesRepository
 import app.amber.core.settings.CapabilityFlags
 import app.amber.core.settings.Settings
 import app.amber.core.settings.prefs.SettingsAggregator
+import app.amber.core.utils.JsonInstant
 import app.amber.feature.bubble.AgentBubbleReducer
 import app.amber.feature.bubble.AgentBubbleUiState
 import app.amber.feature.bubble.AgentBubblePhase
@@ -370,7 +371,8 @@ class ChatRunCoordinatorTest : DurableRuntimeTestBase() {
             enableLiveStatusNotification = false,
             keepGenerationAliveInBackground = false,
         ))))
-        val pendingStore = PendingMessageStore(fileContext, Json)
+        // Match production DI: queued creation times must be encoded even within their default millisecond.
+        val pendingStore = PendingMessageStore(fileContext, JsonInstant)
         val queue = PendingMessageQueue(scope, pendingStore)
         val errors = ChatErrorStore()
         val store = ConversationStore(repo, settings, scope, files, queue, errors)

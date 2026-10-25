@@ -32,27 +32,23 @@ class ChatEventProjector(
     ) {
         val expectedRestoreEpoch = captureRestoreEpoch()
         val messageId = Uuid.parse(event.messageId)
-        val conversation = conversationAccess.getConversationFlow(conversationId).value
-
-        val existingNodeIndex = conversation.messageNodes.indexOfFirst { node ->
-            node.messages.any { it.id == messageId }
-        }
-
-        val updatedConversation = if (existingNodeIndex >= 0) {
-            conversation.copy(updateAt = Instant.now())
-        } else {
-            Log.w(TAG, "Finalized assistant message $messageId before any message body was projected")
-            return
-        }
-
-        withRestoreWrite(expectedRestoreEpoch) {
-            conversationAccess.updateConversation(conversationId, updatedConversation, checkDeletedFiles = false)
+        val projected = withRestoreWrite(expectedRestoreEpoch) {
+            val conversation = conversationAccess.getConversationFlow(conversationId).value
+            if (conversation.messageNodes.none { node -> node.messages.any { it.id == messageId } }) {
+                Log.w(TAG, "Finalized assistant message $messageId before any message body was projected")
+                return@withRestoreWrite false
+            }
+            val updatedAt = Instant.now()
+            conversationAccess.updateConversationState(conversationId) { current ->
+                current.copy(updateAt = maxOf(current.updateAt, updatedAt))
+            }
             conversationRepo.updateConversationMetadata(
                 conversationId = conversationId,
-                updateAt = updatedConversation.updateAt,
+                updateAt = updatedAt,
             )
+            true
         }
-        Log.i(TAG, "Projected assistant message $messageId into conversation $conversationId")
+        if (projected) Log.i(TAG, "Projected assistant message $messageId into conversation $conversationId")
     }
 
     suspend fun commitEvent(

@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -86,6 +87,7 @@ object BraveSearchService : SearchService<SearchServiceOptions.BraveOptions> {
                         title = result.title,
                         url = result.url,
                         text = result.description ?: "",
+                        publishedAt = result.pageAge,
                         images = listOfNotNull(imgUrl),
                     )
                 } ?: emptyList()
@@ -130,6 +132,8 @@ object BraveSearchService : SearchService<SearchServiceOptions.BraveOptions> {
         val url: String,
         val description: String? = null,
         val thumbnail: Thumbnail? = null,
+        @SerialName("page_age")
+        val pageAge: String? = null,
     )
 
     @Serializable

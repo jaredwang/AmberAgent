@@ -246,6 +246,7 @@ class NovelWorkspaceRuntimeTest {
         var reviewCalls = 0
         var planningCalls = 0
         var minimumReviewBudget = Int.MAX_VALUE
+        val writingPrompts = mutableListOf<String>()
         private var chapterIndex = 0
         private var reviewIndex = 0
         private var planningIndex = 0
@@ -311,6 +312,7 @@ class NovelWorkspaceRuntimeTest {
                     if (nextPlan == null) put("nextPlan", JsonNull) else put("nextPlan", nextPlan)
                 }.toString()
             } else {
+                writingPrompts += prompt
                 writingCalls += 1
                 if (writingCalls <= failFirstNWritingCalls) throw RuntimeException("provider 429")
                 chapters.getOrElse(chapterIndex++) { chapters.last() }
@@ -1099,6 +1101,80 @@ class NovelWorkspaceRuntimeTest {
         assertTrue(listOf(initial, firstRewrite, secondRewrite).all { it.planDigest == job.planDigest })
         assertTrue(rejected.error?.contains("两次") == true)
         assertEquals(1, NovelWorkspaceLedger.load(dir).commits.size)
+    }
+
+    @Test
+    fun `targeted rewrites receive the immediately preceding private candidate title and prose`() = runTest {
+        val dir = installProject()
+        val initialBody = "赵大直接进入柴房。".repeat(100)
+        val repairedBody = "赵大为追查失踪军械摸黑进入柴房。".repeat(80)
+        val finalBody = "赵大查明军械去向，准备在天亮前向将军复命。".repeat(70)
+        val kernel = ReviewedBatchFakeKernel(
+            chapters = listOf("# 火起\n\n$initialBody", "# 追索\n\n$repairedBody", "# 破晓\n\n$finalBody"),
+            decisions = listOf(ReviewDecision.Rewrite, ReviewDecision.Rewrite, ReviewDecision.Pass),
+        )
+        val coordinator = ghostwriteCoordinator(NovelWorkspaceRuntime(kernel), testScheduler)
+        val job = coordinator.newJob(dir, "主线", targetChapterCount = 1)
+
+        val result = coordinator.runBatch(
+            job, dir, "B-1", Settings(), Model(), isPaused = { false },
+        ) { }
+
+        assertTrue(result is NovelWorkspaceBatchResult.Completed)
+        assertEquals(3, kernel.writingPrompts.size)
+        assertTrue(kernel.writingPrompts[1].contains("火起"))
+        assertTrue(kernel.writingPrompts[1].contains(initialBody))
+        assertTrue(kernel.writingPrompts[1].contains("补足赵大进入柴房的明确动机"))
+        assertTrue(kernel.writingPrompts[2].contains("追索"))
+        assertTrue(kernel.writingPrompts[2].contains(repairedBody))
+        assertEquals(1, NovelWorkspaceGhostwriteJobs.load(dir, job.id)!!.receipts.size)
+    }
+
+    @Test
+    fun `ordinary prose beginning with di and mentioning a badge stays in chapter body`() = runTest {
+        val body = "第一次看见那枚徽章时，他并不知道它的来历。\n\n" +
+            "他沿着昨夜留下的足迹向山谷走去，准备查清失踪的同伴去了哪里。".repeat(40)
+        for (versionBound in listOf(true, false)) {
+            val dir = installProject("prose-opening-$versionBound")
+            val coordinator = ghostwriteCoordinator(NovelWorkspaceRuntime(LoopingFakeKernel(emptyList(), body)), testScheduler)
+            val job = if (versionBound) coordinator.newJob(dir, "主线", 1) else null
+
+            val result = coordinator.ghostwriteOneChapter(
+                dir, "B-1", "主线", Settings(), Model(), 2,
+                ownerJobId = job?.id, ownerExecutionId = job?.executionKey,
+            )
+
+            assertNull(result.error)
+            if (versionBound) {
+                assertEquals("第 2 章", result.candidate!!.title)
+                assertEquals(body, result.candidate.body)
+            } else {
+                val store = NovelWorkspaceStore(dir)
+                val chapter = store.list("branches/主线/chapters").single { it.contains("/002-") }
+                val parsed = NovelWorkspaceMarkdown.parseFile(store.read(chapter)!!)
+                assertEquals("第 2 章", parsed.fields["title"])
+                assertEquals(body, parsed.body)
+            }
+        }
+    }
+
+    @Test
+    fun `numbered Chinese and Markdown English chapter headings still split from prose`() = runTest {
+        val body = "赵大摸黑进入柴房，终于发现昨夜军械失踪的真相。".repeat(60)
+        for ((index, title) in listOf("第二章 火起", "第2章 火起", "# Chapter 2: Before dawn").withIndex()) {
+            val dir = installProject("heading-$index")
+            val coordinator = ghostwriteCoordinator(NovelWorkspaceRuntime(LoopingFakeKernel(emptyList(), "$title\n\n$body")), testScheduler)
+            val job = coordinator.newJob(dir, "主线", 1)
+
+            val result = coordinator.ghostwriteOneChapter(
+                dir, "B-1", "主线", Settings(), Model(), 2,
+                ownerJobId = job.id, ownerExecutionId = job.executionKey,
+            )
+
+            assertNull(result.error)
+            assertEquals(title.removePrefix("# "), result.candidate!!.title)
+            assertEquals(body, result.candidate.body)
+        }
     }
 
     @Test

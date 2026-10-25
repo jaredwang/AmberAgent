@@ -106,7 +106,7 @@ class DeepReadSourcePrefetcher(
                         "queries=${queries.size} seeds=${seedSources.size}",
                 )
 
-                val searchResults = enabled.flatMap { service ->
+                val searchResults = settings.deepReadKeywordSearchServices(enabled).flatMap { service ->
                     queries.map { query ->
                         async {
                             try {
@@ -811,22 +811,44 @@ private fun Settings.enabledDeepReadSearchServices(): List<SearchServiceOptions>
                 .thenBy { (index, _) -> index }
         )
         .map { (_, service) -> service }
-        .plusDeepReadFallbacks()
+        .plusDeepReadFallbacks(
+            freeSearchEnabled = searchBuiltinDuckDuckGoEnabled || searchBuiltinBingEnabled,
+            jinaEnabled = searchBuiltinJinaEnabled,
+        )
+
+private fun Settings.deepReadKeywordSearchServices(
+    services: List<SearchServiceOptions>,
+): List<SearchServiceOptions> = services.filter { service ->
+    // The built-in Jina Reader supplies scraping only. Explicit profiles may
+    // intentionally point a keyless Jina service at a custom search endpoint.
+    service !is SearchServiceOptions.JinaOptions ||
+        service.apiKey.isNotBlank() || service.id in searchEnabledServiceIds
+}
 
 private const val MAX_DEEP_READ_SEARCH_SERVICES = 6
 
-private fun List<SearchServiceOptions>.plusDeepReadFallbacks(): List<SearchServiceOptions> {
-    if (isEmpty()) return this
-    val fallbacks = buildList<SearchServiceOptions> {
-        if (none { it.isUsableDeepReadSearchFallback() }) {
-            add(SearchServiceOptions.BingLocalOptions())
+private fun List<SearchServiceOptions>.plusDeepReadFallbacks(
+    freeSearchEnabled: Boolean,
+    jinaEnabled: Boolean,
+): List<SearchServiceOptions> {
+    var primary = take(MAX_DEEP_READ_SEARCH_SERVICES)
+    while (true) {
+        val fallbacks = buildList<SearchServiceOptions> {
+            if (freeSearchEnabled && primary.none { it.isUsableDeepReadSearchFallback() }) {
+                add(SearchServiceOptions.BingLocalOptions())
+            }
+            if (jinaEnabled && primary.none { it.supportsDeepReadScrape() }) {
+                add(SearchServiceOptions.JinaOptions())
+            }
         }
-        if (none { it.supportsDeepReadScrape() }) {
-            add(SearchServiceOptions.JinaOptions())
+        val reservedPrimary = take(MAX_DEEP_READ_SEARCH_SERVICES - fallbacks.size)
+        if (reservedPrimary.size == primary.size) {
+            return (primary + fallbacks).distinctBy { it.deepReadServiceKey() }
         }
+        // Reserving a fallback can remove the last configured scraper/search
+        // fallback. The prefix only shrinks, at most once per built-in source.
+        primary = reservedPrimary
     }
-    val primaryLimit = (MAX_DEEP_READ_SEARCH_SERVICES - fallbacks.size).coerceAtLeast(1)
-    return (take(primaryLimit) + fallbacks).distinctBy { it.deepReadServiceKey() }
 }
 
 private fun SearchServiceOptions.isUsableDeepReadSearchFallback(): Boolean = when (this) {

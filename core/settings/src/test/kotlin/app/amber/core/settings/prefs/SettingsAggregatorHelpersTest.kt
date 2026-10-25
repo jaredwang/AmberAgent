@@ -17,6 +17,7 @@ import app.amber.core.settings.SeedRoutingQuickMessages
 import app.amber.core.settings.SeedSvgQuickMessageId
 import app.amber.core.settings.getAmberQuickMessages
 import app.amber.core.settings.selectLegacyAssistantProfile
+import app.amber.search.SearchServiceOptions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -24,6 +25,27 @@ import org.junit.Test
 import kotlin.uuid.Uuid
 
 class SettingsAggregatorHelpersTest {
+
+    @Test
+    fun `consistency preserves an explicitly empty enabled search selection`() {
+        val configured = SearchServiceOptions.TavilyOptions(apiKey = "configured-key")
+        val input = composeRawSettings(
+            ui = UIPrefsData(),
+            search = SearchPrefsData(
+                searchServices = listOf(configured),
+                searchEnabledServiceIds = emptyList(),
+            ),
+            agent = AgentPrefsData(),
+            provider = ProviderPrefsData(),
+            chat = ChatPrefsData(),
+            ext = ExtensionPrefsData(),
+        )
+
+        assertTrue(applyCrossDomainConsistency(input).searchEnabledServiceIds.isEmpty())
+        assertTrue(applyCrossDomainConsistency(
+            input.copy(searchEnabledServiceIds = listOf(Uuid.random())),
+        ).searchEnabledServiceIds.isEmpty())
+    }
 
     @Test
     fun `legacy selection keeps the chosen profile and canonical Amber owner`() {

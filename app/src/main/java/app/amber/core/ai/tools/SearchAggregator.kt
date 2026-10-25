@@ -20,6 +20,7 @@ import app.amber.search.SearchCommonOptions
 import app.amber.search.SearchResult
 import app.amber.search.SearchService
 import app.amber.search.SearchServiceOptions
+import app.amber.search.ZhipuSearchService
 import java.net.URI
 import java.time.LocalDate
 import java.util.Locale
@@ -27,6 +28,7 @@ import kotlin.uuid.Uuid
 
 internal object SearchAggregator {
     private const val MAX_PARALLEL_SERVICES = 3
+    private const val MAX_ANSWER_LENGTH = 4_000
     private val allowedTopics = setOf("general", "news", "finance")
     private val allowedTimeRanges = setOf("day", "week", "month", "year", "any")
 
@@ -52,6 +54,7 @@ internal object SearchAggregator {
                 put("status", "error")
                 put("error", "No enabled search services are available. Enable at least one search service in Search Service settings.")
                 put("items", JsonArray(emptyList()))
+                put("answers", JsonArray(emptyList()))
                 put("sources", JsonArray(emptyList()))
             }
         }
@@ -91,9 +94,15 @@ internal object SearchAggregator {
             topic = topic,
             timeRange = timeRange,
         ).take(maxResults)
+        val answers = collectAnswers(calls)
 
         buildJsonObject {
-            put("status", if (items.isNotEmpty()) "ok" else "empty")
+            put("status", when {
+                items.isNotEmpty() -> "ok"
+                answers.isNotEmpty() && calls.any { it.result.isFailure } -> "partial"
+                answers.isNotEmpty() -> "ok"
+                else -> "empty"
+            })
             put("query", query)
             put("topic", topic)
             put("time_range", timeRange)
@@ -108,6 +117,7 @@ internal object SearchAggregator {
                     imagesBudget = (imagesBudget - emittedImages).coerceAtLeast(0)
                 }
             })
+            put("answers", answers)
             // Aggregate all unique images across items into a top-level block
             // so the LLM can't miss them buried inside individual items.
             val allImages = items.flatMap { it.images }.distinct().take(5)
@@ -149,16 +159,29 @@ internal object SearchAggregator {
         options: SearchServiceOptions,
         locale: Locale = Locale.getDefault(),
     ): JsonObject {
-        val nativeTopic = options.supportsNativeTopic()
-        val effectiveQuery = if (nativeTopic) {
+        val enhancedQuery = if (options is SearchServiceOptions.TavilyOptions) {
             query
         } else {
             enhanceQuery(query, topic, timeRange, recencyDays, locale)
         }
+        val effectiveQuery = if (
+            options is SearchServiceOptions.ZhipuOptions && enhancedQuery.length > ZhipuSearchService.MAX_QUERY_LENGTH
+        ) {
+            // Keep the caller's query intact; the adapter validates oversized originals.
+            query
+        } else {
+            enhancedQuery
+        }
         return buildJsonObject {
             put("query", effectiveQuery)
-            if (nativeTopic) {
+            if (options.supportsNativeTopic()) {
                 put("topic", topic)
+            }
+            if (options is SearchServiceOptions.TavilyOptions) {
+                if (timeRange in allowedTimeRanges && timeRange != "any") {
+                    put("time_range", timeRange)
+                }
+                recencyDays?.let { put("recency_days", it) }
             }
             if (options is SearchServiceOptions.FirecrawlOptions && topic == "news") {
                 put("sources", JsonArray(listOf(JsonPrimitive("news"), JsonPrimitive("web"))))
@@ -183,7 +206,9 @@ internal object SearchAggregator {
                 ?.joinToString("&")
                 ?.takeIf { it.isNotBlank() }
             buildString {
-                append(scheme).append("://").append(host).append(path)
+                append(scheme).append("://").append(host)
+                if (uri.port != -1) append(':').append(uri.port)
+                append(path)
                 if (query != null) append('?').append(query)
             }
         }.getOrElse {
@@ -195,6 +220,22 @@ internal object SearchAggregator {
         return title.lowercase(Locale.ROOT)
             .replace(Regex("[\\p{Punct}\\s]+"), "")
             .take(80)
+    }
+
+    private fun collectAnswers(results: List<SearchSourceResult>): JsonArray = buildJsonArray {
+        val seen = mutableSetOf<Pair<String, String>>()
+        results.forEach { source ->
+            val answer = source.result.getOrNull()?.answer?.trim()?.takeIf { it.isNotEmpty() }
+                ?: return@forEach
+            val serviceId = source.options.id.toString()
+            if (!seen.add(serviceId to answer)) return@forEach
+            add(buildJsonObject {
+                put("answer", answer.take(MAX_ANSWER_LENGTH))
+                put("source_service", source.serviceName)
+                put("service_id", serviceId)
+                put("query", source.params["query"] ?: JsonNull)
+            })
+        }
     }
 
     private fun mergeResults(
@@ -214,8 +255,8 @@ internal object SearchAggregator {
             result.items.forEachIndexed { index, item ->
                 val canonical = canonicalizeUrl(item.url)
                 val titleKey = source.domain(item.url) + "|" + normalizedTitle(item.title)
-                val key = if (canonical.isNotBlank()) canonical else titleKey
-                val existing = byKey[key] ?: byKey[titleKey]
+                val key = if (item.url.isNotBlank()) canonical else titleKey
+                val existing = byKey[key]
                 if (existing == null) {
                     val sourceBoost = (results.size - source.sourceIndex) * 10
                     val hitBoost = queryTokens.count { token ->
@@ -299,7 +340,9 @@ internal object SearchAggregator {
     }
 
     private fun SearchServiceOptions.supportsNativeTopic(): Boolean {
-        return this is SearchServiceOptions.TavilyOptions
+        return this is SearchServiceOptions.TavilyOptions ||
+            this is SearchServiceOptions.SerperOptions ||
+            this is SearchServiceOptions.SerpApiOptions
     }
 
     internal fun acceptedSelectors(options: SearchServiceOptions): List<String> {

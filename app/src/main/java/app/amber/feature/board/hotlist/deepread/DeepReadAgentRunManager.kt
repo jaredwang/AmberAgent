@@ -55,7 +55,7 @@ class DeepReadAgentRunManager(
     private val mutexes = ConcurrentHashMap<String, Mutex>()
     private val backgroundRuns = ConcurrentHashMap.newKeySet<String>()
 
-    private val artifactPublisher = DeepReadArtifactPublisher(artifactRepository)
+    private val artifactPublisher = DeepReadArtifactPublisher(artifactRepository, hotListRepository)
     private val magazineGenerator = DeepReadMagazineGenerator(
         appContext, kernel, toolSetFactory, playbookRepository, researchHarness, artifactPublisher,
     )

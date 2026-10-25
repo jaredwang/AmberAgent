@@ -12,22 +12,20 @@ import app.amber.core.settings.findProvider
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.settings.resolveTaskChatModel
 import app.amber.core.model.Conversation
-import app.amber.core.repository.ConversationRepository
 import app.amber.core.sync.core.SyncRestoreWriteEpoch
 import app.amber.core.sync.core.SyncRestoreWriteGate
 import app.amber.core.utils.applyPlaceholders
 import app.amber.core.utils.appLocaleDisplayName
-import java.time.Instant
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.uuid.Uuid
 
 class AiAuxiliaryGenerator(
     private val context: Context,
     private val settingsStore: SettingsAggregator,
     private val providerCatalog: ProviderCatalog,
-    private val conversationRepo: ConversationRepository,
-    private val conversationAccess: ConversationAccess,
+    private val conversationStore: ConversationStore,
     private val restoreWriteGate: SyncRestoreWriteGate? = null,
 ) {
     suspend fun generateTitle(
@@ -70,22 +68,13 @@ class AiAuxiliaryGenerator(
             )
 
             val title = result.choices[0].message?.toText()?.trim().orEmpty()
-            val updatedConversation = conversationAccess.getConversationFlow(conversationId).value.copy(
-                title = title,
-                updateAt = Instant.now(),
-            )
-            withRestoreWrite(expectedRestoreEpoch) {
-                conversationAccess.updateConversation(conversationId, updatedConversation, checkDeletedFiles = false)
-                conversationRepo.updateConversationMetadata(
-                    conversationId = conversationId,
-                    title = title,
-                    updateAt = updatedConversation.updateAt,
-                )
+            withContext(expectedRestoreEpoch?.let(::SyncRestoreWriteEpoch) ?: EmptyCoroutineContext) {
+                conversationStore.updateTitle(conversationId, title)
             }
         }.onFailure {
             if (it is CancellationException) throw it
             it.printStackTrace()
-            conversationAccess.addError(it, conversationId, title = context.getString(R.string.error_title_generate_title))
+            conversationStore.addError(it, conversationId, title = context.getString(R.string.error_title_generate_title))
         }
     }
 
@@ -100,11 +89,10 @@ class AiAuxiliaryGenerator(
             val provider = model.findProvider(settings.providers) ?: return
 
             withRestoreWrite(expectedRestoreEpoch) {
-                conversationAccess.getConversationFlowOrNull(conversationId)?.let { flow ->
-                    conversationAccess.updateConversation(
-                        conversationId,
-                        flow.value.copy(chatSuggestions = emptyList()),
-                    )
+                if (conversationStore.getConversationFlowOrNull(conversationId) != null) {
+                    conversationStore.updateConversationState(conversationId) {
+                        it.copy(chatSuggestions = emptyList())
+                    }
                 }
             }
 
@@ -132,18 +120,8 @@ class AiAuxiliaryGenerator(
                 result.choices[0].message?.toText()?.split("\n")?.map { it.trim() }
                     ?.filter { it.isNotBlank() } ?: emptyList()
 
-            val latest = conversationAccess.getConversationFlowOrNull(conversationId)?.value ?: conversation
-            val updatedConversation = latest.copy(
-                chatSuggestions = suggestions.take(10),
-                updateAt = Instant.now(),
-            )
-            withRestoreWrite(expectedRestoreEpoch) {
-                conversationAccess.updateConversation(conversationId, updatedConversation, checkDeletedFiles = false)
-                conversationRepo.updateConversationMetadata(
-                    conversationId = conversationId,
-                    chatSuggestions = updatedConversation.chatSuggestions,
-                    updateAt = updatedConversation.updateAt,
-                )
+            withContext(expectedRestoreEpoch?.let(::SyncRestoreWriteEpoch) ?: EmptyCoroutineContext) {
+                conversationStore.updateSuggestions(conversationId, suggestions.take(10))
             }
         }.onFailure {
             if (it is CancellationException) throw it

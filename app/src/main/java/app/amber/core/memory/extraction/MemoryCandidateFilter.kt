@@ -49,7 +49,7 @@ class MemoryCandidateFilter {
         if (kind == MemoryKind.NOTE) MemoryKind.PROJECT else kind
 
     private fun normalize(text: String): String =
-        text.lowercase().filter { it.isLetterOrDigit() }.take(200)
+        text.lowercase().filter { it.isLetterOrDigit() }
 
 }
 

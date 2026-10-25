@@ -43,12 +43,12 @@ interface BoardSignalDAO {
     @Query(
         """
         SELECT * FROM board_signal
-        WHERE processed = 0
+        WHERE processed = 0 AND source_type IN (:enabledSources)
         ORDER BY signal_time ASC
         LIMIT :limit
         """
     )
-    suspend fun getUnprocessed(limit: Int = 200): List<BoardSignalEntity>
+    suspend fun getUnprocessed(enabledSources: List<String>, limit: Int = 200): List<BoardSignalEntity>
 
     @Query("SELECT COUNT(*) FROM board_signal WHERE processed = 0")
     suspend fun countUnprocessed(): Int

@@ -92,6 +92,7 @@ class JsCellRuntime(
                     // of the cell's session survive across runs — store/load is
                     // the explicit cross-cell-state mechanism).
                     cell.output.clear()
+                    cell.outputCharsSoFar = 0
                     cell.outputTruncated = false
                     cell.terminalResult = null
                     cell.error = null

@@ -20,6 +20,30 @@ import org.junit.Test
 
 class MemoryDreamPlannerTest {
     @Test
+    fun deterministicMaintenanceDoesNotMergeLongPrefixMatchesOrIgnoreTheirCandidates() {
+        val now = System.currentTimeMillis()
+        val prefix = "Shared project context ".repeat(20)
+        fun record(id: Int, suffix: String) = MemoryRecord(
+            id = id, content = prefix + suffix, scope = MemoryScope.LONG_TERM,
+            kind = MemoryKind.PROJECT, assistantId = "__long_term__", updatedAt = now,
+        )
+        val first = record(1, "Alpha uses port 8080")
+        val second = record(2, "Beta uses port 9090")
+        val candidate = MemoryCandidate(
+            id = "distinct", content = prefix + "Gamma uses port 7070",
+            scope = MemoryScope.LONG_TERM, kind = MemoryKind.PROJECT,
+            confidence = 0.9f, createdAt = now,
+        )
+
+        val plan = MemoryDreamPlanner.planMaintenance(listOf(first, second, first.copy(id = 3)), listOf(candidate), now)
+
+        assertEquals(1, plan.mergeSuggestions.size)
+        val merge = plan.mergeSuggestions.single()
+        assertEquals(setOf(1, 3), (listOf(merge.targetMemoryId) + merge.duplicateMemoryIds).toSet())
+        assertTrue(plan.ignoreCandidateIds.isEmpty())
+    }
+
+    @Test
     fun localPlanBuildsReviewableDiffWithoutDeletingFormalMemories() {
         val now = 1_800_000_000_000L
         val plan = MemoryDreamPlanner.planLocally(

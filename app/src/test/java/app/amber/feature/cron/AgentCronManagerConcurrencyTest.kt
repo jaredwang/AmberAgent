@@ -5,8 +5,11 @@ import android.content.Context
 import androidx.work.Configuration
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.impl.WorkManagerImpl
+import app.amber.feature.task.AgentTaskStatus
 import app.amber.feature.task.AgentTaskStore
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
@@ -35,6 +38,7 @@ class AgentCronManagerConcurrencyTest {
     private lateinit var context: Context
     private lateinit var manager: AgentCronManager
     private lateinit var workManager: WorkManager
+    private lateinit var taskStore: AgentTaskStore
     private var taskId: String? = null
 
     @Before
@@ -54,7 +58,8 @@ class AgentCronManagerConcurrencyTest {
             )
         }
         workManager = WorkManager.getInstance(context)
-        manager = AgentCronManager(context, Json, AgentTaskStore(context, Json))
+        taskStore = AgentTaskStore(context, Json)
+        manager = AgentCronManager(context, Json, taskStore)
     }
 
     @After
@@ -115,7 +120,36 @@ class AgentCronManagerConcurrencyTest {
             manager.rescheduleAll()
 
             assertEquals(manualRequest.id, activeWork(task.id).id)
+            assertEquals(AgentTaskStatus.QUEUED, taskStore.read(task.id)?.status)
         }
+    }
+
+    @Test
+    fun `startup reprojects completed manual run from the disabled cron owner`() = runBlocking {
+        val task = manager.createTask(
+            title = "Disabled manual completion", prompt = "Test prompt", cronExpression = "*/5 * * * *",
+            timezoneId = "UTC", enabled = false,
+        )
+        taskId = task.id
+        assertTrue(manager.runTaskNow(task.id))
+        val manualRequest = activeWork(task.id)
+        val workSpecs = (workManager as WorkManagerImpl).workDatabase.workSpecDao()
+        // The inert executor lets this test drive the real worker-owned state transitions.
+        withContext(Dispatchers.IO) { workSpecs.setState(WorkInfo.State.RUNNING, manualRequest.id.toString()) }
+        assertTrue(manager.prepareTriggeredRun(task.id, manualRequest.id, manual = true) != null)
+        assertTrue(manager.markRunStarted(task.id, manualRequest.id))
+        assertTrue(manager.markRunCompleted(task.id, manualRequest.id))
+        assertEquals(AgentTaskStatus.COMPLETED, taskStore.read(task.id)?.status)
+        withContext(Dispatchers.IO) { workSpecs.setState(WorkInfo.State.SUCCEEDED, manualRequest.id.toString()) }
+
+        val recoveredTasks = AgentTaskStore(context, Json)
+        val startupManager = AgentCronManager(context, Json, recoveredTasks)
+        startupManager.rescheduleAll()
+
+        assertEquals(AgentTaskStatus.CANCELLED, recoveredTasks.read(task.id)?.status)
+        assertEquals(false, startupManager.listTasks().single().enabled)
+        assertTrue(workManager.getWorkInfosForUniqueWork("amberagent_cron_${task.id}").get()
+            .none { it.state in ACTIVE_STATES })
     }
 
     @Test

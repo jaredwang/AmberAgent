@@ -16,7 +16,7 @@ internal class CouncilRoomHostTurns(
     private val peekRoom: (Uuid) -> CouncilRoom?,
     private val mutate: suspend (Uuid, suspend (CouncilRoom) -> CouncilRoomOpResult) -> CouncilRoomOpResult,
     private val mutateRoomOrNull: suspend (Uuid, (CouncilRoom) -> CouncilRoom) -> CouncilRoom?,
-    private val awaitUserAnswer: suspend (Uuid) -> String?,
+    private val askUser: suspend (Uuid, CouncilMessage) -> String?,
 ) {
     /**
      * Host redirect for an un-targeted interjection: generate a short steering
@@ -275,29 +275,18 @@ internal class CouncilRoomHostTurns(
                 val question = outcome.displayQuestion.trim().ifBlank {
                     "Please clarify your request."
                 }
-                sink.completeMessage(
-                    conversationId = conversationId,
-                    messageId = messageId,
-                    status = CouncilMessageStatus.COMPLETED,
-                    text = question,
-                    warnings = emptyList(),
-                    error = "",
+                askUser(conversationId, CouncilMessage(
+                    id = messageId,
                     authorId = host.id,
-                    authorStatus = CouncilParticipantStatus.IDLE,
-                )
-                // Re-mark the just-completed message with kind = ASK_USER so the
-                // timeline renders the answer card instead of a plain bubble.
-                mutate(conversationId) { r ->
-                    val updated = r.messages.map { m ->
-                        if (m.id == messageId) m.copy(kind = CouncilMessageKind.ASK_USER) else m
-                    }
-                    CouncilRoomOpResult.Ok(r.copy(
-                        messages = updated,
-                        status = CouncilRoomStatus.INTERRUPTED,
-                        updatedAtMs = nowMs(),
-                    ))
-                }
-                awaitUserAnswer(conversationId)
+                    authorName = host.name,
+                    role = host.role,
+                    round = room.round,
+                    mode = room.mode,
+                    text = question,
+                    createdAtMs = now,
+                    status = CouncilMessageStatus.COMPLETED,
+                    kind = CouncilMessageKind.ASK_USER,
+                ))
                 null
             }
         }

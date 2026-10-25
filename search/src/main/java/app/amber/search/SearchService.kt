@@ -13,6 +13,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.internal.closeQuietly
 import okio.IOException
 import java.util.concurrent.TimeUnit
@@ -306,8 +307,24 @@ internal suspend fun Call.await(): Response {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response) { cause, _, _ ->
+                if (!continuation.isActive) {
                     response.closeQuietly()
+                    return
+                }
+                try {
+                    // Search consumers read the whole body. Keep the Call bound to
+                    // cancellation until that read finishes, rather than just headers.
+                    val buffered = response.use {
+                        val body = it.body
+                        it.newBuilder()
+                            .body(body.bytes().toResponseBody(body.contentType()))
+                            .build()
+                    }
+                    continuation.resume(buffered) { _, cancelledResponse, _ ->
+                        cancelledResponse.closeQuietly()
+                    }
+                } catch (error: Exception) {
+                    if (continuation.isActive) continuation.resumeWithException(error)
                 }
             }
         })

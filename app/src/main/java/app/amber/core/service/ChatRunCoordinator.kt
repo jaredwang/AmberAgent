@@ -926,15 +926,21 @@ class ChatRunCoordinator(
         answer: String? = null,
     ) {
         val session = getOrCreateSession(conversationId)
-        session.getJob()?.cancel()
-
-        session.setJob(appScope.launch(restoreWriteContext()) {
-            try {
-                applyToolApprovalDecision(conversationId, toolCallId, approved, reason, answer)
-            } catch (e: Exception) {
-                errorStore.addError(e, conversationId, title = context.getString(R.string.error_title_tool_approval))
+        val writeContext = restoreWriteContext()
+        appScope.launch(writeContext) {
+            session.dispatchToolApproval(
+                scope = appScope,
+                context = writeContext,
+                onError = { error ->
+                    errorStore.addError(error, conversationId, title = context.getString(R.string.error_title_tool_approval))
+                },
+            ) { decisionPersisted ->
+                applyToolApprovalDecision(
+                    conversationId, toolCallId, approved, reason, answer,
+                    onDecisionPersisted = decisionPersisted,
+                )
             }
-        })
+        }
     }
 
     /**
@@ -980,7 +986,7 @@ class ChatRunCoordinator(
             return@restore false
         }
         val session = getOrCreateSession(conversationId)
-        session.dispatchNotificationApproval(
+        session.dispatchToolApproval(
             scope = appScope,
             context = restoreWriteContext(captureRestoreEpoch()),
             onError = { error ->
@@ -1010,6 +1016,7 @@ class ChatRunCoordinator(
         val result = approvalActions.applyToolApprovalDecision(
             conversationId, toolCallId, approved, reason, answer,
         )
+        if (!result.applied) return
         onDecisionPersisted()
         if (result.shouldResume) continueGenerationInline(conversationId)
         _generationDoneFlow.emit(conversationId)

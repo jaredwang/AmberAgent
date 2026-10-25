@@ -110,10 +110,27 @@ class JevScreenGoalRunner(
                         attempt = attempt,
                     )
                     val asset = (attempt as? ScreenshotAttempt.Attached)?.asset
+                    if (asset != null) {
+                        // MediaProjection capture suspends; the foreground app may have changed
+                        // since the AX observation. Check its package before sending the frame.
+                        val foreground = withContext(mainDispatcher) { controller.captureScreenSnapshot() }
+                        if (foreground == null) {
+                            imageReport = "skipped:screen_unavailable"
+                            return@withTimeoutOrNull finish("handback", "screen_unavailable")
+                        }
+                        if (foreground.packageName != packageName) {
+                            imageReport = "skipped:foreground_package_changed"
+                            return@withTimeoutOrNull finish("needs_user_action", "foreground_package_changed")
+                        }
+                    }
                     val stateWithImage = if (asset == null) {
                         state
                     } else {
                         JsonObject(state + ("screen_image" to JsonPrimitive(reference)))
+                    }
+                    if (runtime.configFor(JevPurpose.SCREEN_AUTOMATION) != config) {
+                        if (asset != null) imageReport = "skipped:configuration_changed"
+                        return@withTimeoutOrNull finish("handback", "configuration_changed")
                     }
                     val outcome = runtime.decide(
                         purpose = JevPurpose.SCREEN_AUTOMATION,

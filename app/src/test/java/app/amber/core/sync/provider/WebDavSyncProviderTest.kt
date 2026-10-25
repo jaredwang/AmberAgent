@@ -203,6 +203,40 @@ class WebDavSyncProviderTest {
         SyncProviderUploadRequest(mode = SyncMode.FULL, passphrase = "test-passphrase", conflictPolicy = policy)
 
     @Test
+    fun `listSnapshots keeps a child returned before the collection itself`() = runBlocking {
+        val sidecarPath = "amber_agent_backups/snap-1.snapshot.json"
+        server.files[sidecarPath] = encodeSnapshotManifest(
+            JsonInstant,
+            SyncSnapshotManifest(snapshotId = "snap-1", createdAt = 1L),
+        ).toByteArray()
+        server.parentFirst = false
+
+        for (selfHref in listOf("/amber_agent_backups/", "https://dav.example.com/amber_agent_backups")) {
+            server.selfHref = selfHref
+
+            assertEquals(listOf("snap-1"), provider().listSnapshots().map { it.snapshotId })
+        }
+    }
+
+    @Test
+    fun `listSnapshots uses href identity when displayname differs from the filename`() = runBlocking {
+        val sidecarPath = "amber_agent_backups/snap-1.snapshot.json"
+        server.files[sidecarPath] = encodeSnapshotManifest(
+            JsonInstant,
+            SyncSnapshotManifest(snapshotId = "snap-1", createdAt = 1L),
+        ).toByteArray()
+
+        for (displayName in listOf("upload-123.tmp", "friendly.snapshot.json")) {
+            server.displayNames[sidecarPath] = displayName
+
+            assertEquals(listOf("snap-1"), provider().listSnapshots().map { it.snapshotId })
+        }
+        assertTrue(server.requests.filter { it.method == HttpMethod.Get }.all {
+            it.url.encodedPath == "/$sidecarPath"
+        })
+    }
+
+    @Test
     fun `listSnapshots issues propfind with depth and basic auth and parses sidecars`() = runBlocking {
         val sidecar = encodeSnapshotManifest(
             JsonInstant,
@@ -484,6 +518,9 @@ class WebDavSyncProviderTest {
         var failSidecarPublish = false
         /** 按完整文件路径注入 DELETE 错误；错误不能删除对应资源。 */
         val deleteFailures = mutableMapOf<String, HttpStatusCode>()
+        var parentFirst = true
+        var selfHref = "/amber_agent_backups/"
+        val displayNames = mutableMapOf<String, String>()
 
         suspend fun handle(scope: MockRequestHandleScope, request: HttpRequestData): HttpResponseData {
             requests += request
@@ -539,7 +576,7 @@ class WebDavSyncProviderTest {
                       <D:href>/$name</D:href>
                       <D:propstat>
                         <D:prop>
-                          <D:displayname>${name.substringAfterLast('/')}</D:displayname>
+                          <D:displayname>${displayNames[name] ?: name.substringAfterLast('/')}</D:displayname>
                           <D:getcontentlength>${body.size}</D:getcontentlength>
                           <D:getlastmodified>Tue, 15 Nov 1994 08:12:31 GMT</D:getlastmodified>
                           <D:resourcetype/>
@@ -549,10 +586,9 @@ class WebDavSyncProviderTest {
                     </D:response>
                     """.trimIndent()
                 }
-            return """<?xml version="1.0" encoding="utf-8"?>
-                <D:multistatus xmlns:D="DAV:">
+            val parent = """
                   <D:response>
-                    <D:href>/amber_agent_backups/</D:href>
+                    <D:href>$selfHref</D:href>
                     <D:propstat>
                       <D:prop>
                         <D:displayname>amber_agent_backups</D:displayname>
@@ -561,7 +597,10 @@ class WebDavSyncProviderTest {
                       <D:status>HTTP/1.1 200 OK</D:status>
                     </D:propstat>
                   </D:response>
-                  $entries
+            """.trimIndent()
+            return """<?xml version="1.0" encoding="utf-8"?>
+                <D:multistatus xmlns:D="DAV:">
+                  ${if (parentFirst) "$parent\n$entries" else "$entries\n$parent"}
                 </D:multistatus>
             """.trimIndent()
         }

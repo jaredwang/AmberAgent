@@ -139,10 +139,21 @@ object FreeSearchAggregator {
     }
 
     internal fun dedupeKey(url: String): String {
-        return url.trim().lowercase()
-            .removePrefix("https://").removePrefix("http://")
+        val trimmed = url.trim()
+        val withoutScheme = when {
+            trimmed.startsWith("https://", ignoreCase = true) -> trimmed.substring(8)
+            trimmed.startsWith("http://", ignoreCase = true) -> trimmed.substring(7)
+            else -> trimmed
+        }
+        val authority = withoutScheme.takeWhile { it !in "/?#" }
+        val hostStart = authority.lastIndexOf('@') + 1
+        val hostAndPort = authority.substring(hostStart).lowercase()
             .removePrefix("www.").removePrefix("m.")
-            .trimEnd('/')
+        val suffix = withoutScheme.substring(authority.length)
+        val rawPath = suffix.takeWhile { it != '?' && it != '#' }
+        // path/query 可能区分大小写，query 末尾的 / 也属于参数值。
+        return authority.substring(0, hostStart) + hostAndPort +
+            rawPath.trimEnd('/') + suffix.substring(rawPath.length)
     }
 
     // region Engines
