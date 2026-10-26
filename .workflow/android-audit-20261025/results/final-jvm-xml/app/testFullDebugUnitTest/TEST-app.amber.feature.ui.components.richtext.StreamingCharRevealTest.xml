@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.682Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="same frame batch cascades left to right" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.001"/>
+  <testcase name="character animates on its own clock from first sight" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="returns input unchanged when nothing animates" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.001"/>
+  <testcase name="promoted characters finish fading and disappear" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="suffix characters fade and lift on appearance" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.001"/>
+  <testcase name="returns input unchanged when baseColor unspecified" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="finished characters get no span" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="plain live suffix fades on the same mechanism" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="backward source offset clears stale stamps" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="carried over characters keep their timeline across parse ticks" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="unseen offsets render settled" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="does not split surrogate pairs" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="late characters start their own fade not the batch's" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="promoted characters continue their own fade curves" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="burst overflow finishes oldest characters instantly" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <testcase name="unknown promoted characters render opaque without spans" classname="app.amber.feature.ui.components.richtext.StreamingCharRevealTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

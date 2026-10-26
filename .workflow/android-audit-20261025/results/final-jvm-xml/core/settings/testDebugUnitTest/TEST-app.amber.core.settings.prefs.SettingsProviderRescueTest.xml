@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.prefs.SettingsProviderRescueTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:14.658Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="healthy custom provider configuration is never rescued even when backup looks richer" classname="app.amber.core.settings.prefs.SettingsProviderRescueTest" time="0.002"/>
+  <testcase name="recover adopts backup providers and model selections with dangling fallback" classname="app.amber.core.settings.prefs.SettingsProviderRescueTest" time="0.0"/>
+  <testcase name="wiped factory defaults with richer cached backup trigger rescue" classname="app.amber.core.settings.prefs.SettingsProviderRescueTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

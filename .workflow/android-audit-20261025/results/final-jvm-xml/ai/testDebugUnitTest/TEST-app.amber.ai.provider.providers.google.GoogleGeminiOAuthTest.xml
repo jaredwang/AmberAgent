@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.500Z" hostname="duguangdeMBP.lan" time="0.092">
+  <properties/>
+  <testcase name="missing token is not usable even when OAuth mode is selected" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.001"/>
+  <testcase name="token without onboarded project can complete lazy onboarding" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.086"/>
+  <testcase name="fully onboarded unexpired token is usable" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.001"/>
+  <testcase name="expired token without refresh credential is not usable" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.003"/>
+  <testcase name="blank access token is not usable" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.0"/>
+  <testcase name="expired token with refresh credential keeps the OAuth session usable" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

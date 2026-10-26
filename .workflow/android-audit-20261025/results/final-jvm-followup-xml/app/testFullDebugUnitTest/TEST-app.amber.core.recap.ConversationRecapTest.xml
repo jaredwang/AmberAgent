@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.recap.ConversationRecapTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.723Z" hostname="duguangdeMBP.lan" time="0.01">
+  <properties/>
+  <testcase name="incremental prompt sends only messages after the covered branch" classname="app.amber.core.recap.ConversationRecapTest" time="0.002"/>
+  <testcase name="parser accepts fenced json with prose and drops unknown refs" classname="app.amber.core.recap.ConversationRecapTest" time="0.001"/>
+  <testcase name="store state machine ends every attempt in a terminal state" classname="app.amber.core.recap.ConversationRecapTest" time="0.003"/>
+  <testcase name="parser keeps at most eight nodes and rejects missing overview" classname="app.amber.core.recap.ConversationRecapTest" time="0.0"/>
+  <testcase name="store round-trips and deletes the recap file" classname="app.amber.core.recap.ConversationRecapTest" time="0.002"/>
+  <testcase name="freshness turns stale on new messages and on a switched variant" classname="app.amber.core.recap.ConversationRecapTest" time="0.001"/>
+  <testcase name="window freshness matches the loaded suffix only" classname="app.amber.core.recap.ConversationRecapTest" time="0.0"/>
+  <testcase name="eligibility needs three user messages on the current branch" classname="app.amber.core.recap.ConversationRecapTest" time="0.0"/>
+  <testcase name="window jump check trusts unloaded pages only while more pages exist" classname="app.amber.core.recap.ConversationRecapTest" time="0.0"/>
+  <testcase name="prompt budget keeps the head and the newest messages" classname="app.amber.core.recap.ConversationRecapTest" time="0.0"/>
+  <testcase name="a reply growing in place makes the recap stale" classname="app.amber.core.recap.ConversationRecapTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

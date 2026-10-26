@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.RouteNavigationMotionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:37.617Z" hostname="duguangdeMBP.lan" time="11.088">
+  <properties/>
+  <testcase name="pushUsesActualRouteTransformToEnterFromTheRightWithoutScaling" classname="app.amber.agent.RouteNavigationMotionTest" time="10.415"/>
+  <testcase name="returnCoversMostOfTheDistanceByHalfDuration" classname="app.amber.agent.RouteNavigationMotionTest" time="0.205"/>
+  <testcase name="returnMatchesForwardMotionAtTheSameElapsedTime" classname="app.amber.agent.RouteNavigationMotionTest" time="0.277"/>
+  <testcase name="popUsesActualRouteTransformToExitToTheRightWithoutScaling" classname="app.amber.agent.RouteNavigationMotionTest" time="0.191"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

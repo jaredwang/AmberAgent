@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.CapabilityFlagsTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:07.331Z" hostname="duguangdeMBP.lan" time="0.326">
+  <properties/>
+  <testcase name="explicitFalseIsPersistedAndSurvivesReinstantiation" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.264"/>
+  <testcase name="setEnabledRoundTrip" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.014"/>
+  <testcase name="togglingOneCapabilityDoesNotAffectOthers" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.014"/>
+  <testcase name="threadGraphExplicitDisableSurvivesDefaultUpgrade" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.01"/>
+  <testcase name="releaseDefaultsEnableDurableRuntimeAndBackupProviders" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.006"/>
+  <testcase name="backupProviderExplicitDisableSurvivesDefaultUpgrade" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.008"/>
+  <testcase name="togglingFlagKeepsUnrelatedSettings" classname="app.amber.core.settings.CapabilityFlagsTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

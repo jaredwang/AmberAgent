@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.RequestSnapshotFactoryTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.468Z" hostname="duguangdeMBP.lan" time="0.014">
+  <properties/>
+  <testcase name="toolResultCharsCountNestedContentRecursively" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.008"/>
+  <testcase name="exactFillIsNotTruncated" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.001"/>
+  <testcase name="emptyMessageListYieldsEmptyPreview" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <testcase name="toolCatalogDigestIsOrderInsensitive" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <testcase name="toolWithoutOutputOmitsResultMarker" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.001"/>
+  <testcase name="systemBlockTagsPreserveOrder" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <testcase name="everyPartSubtypeGetsItsPlaceholder" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.003"/>
+  <testcase name="messagesDigestBindsTheSerializedRequestNotTheFallbackText" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.001"/>
+  <testcase name="oneCharOverCapIsTruncated" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <testcase name="emptyToolsDigestTheEmptyCatalog" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <testcase name="singlePartLargerThanCapIsHardCapped" classname="app.amber.core.ai.RequestSnapshotFactoryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

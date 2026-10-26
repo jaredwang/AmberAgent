@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.utils.VersionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.549Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="prerelease ordering" classname="app.amber.core.utils.VersionTest" time="0.001"/>
+  <testcase name="prerelease has lower precedence than release" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="numeric identifiers have lower precedence than string" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="different length versions" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="numeric prerelease identifiers compared as numbers" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="semver full precedence chain" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="companion compare function" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="prerelease with more fields has higher precedence" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="string extension operators" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="build metadata is ignored" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <testcase name="basic version comparison" classname="app.amber.core.utils.VersionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

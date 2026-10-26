@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatRunPresenterTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.226Z" hostname="duguangdeMBP.lan" time="0.057">
+  <properties/>
+  <testcase name="task registry invokes the explicit cancel command and preserves retry projection" classname="app.amber.core.service.ChatRunPresenterTest" time="0.01"/>
+  <testcase name="accepted completion persists task outcome and clears cancel capability" classname="app.amber.core.service.ChatRunPresenterTest" time="0.009"/>
+  <testcase name="old run completion cannot settle successor task or its persisted snapshot" classname="app.amber.core.service.ChatRunPresenterTest" time="0.009"/>
+  <testcase name="cancelled and failed generation tasks retain their distinct error codes" classname="app.amber.core.service.ChatRunPresenterTest" time="0.008"/>
+  <testcase name="notification intents retain their conversation and run after successor creation" classname="app.amber.core.service.ChatRunPresenterTest" time="0.013"/>
+  <testcase name="unscoped notification intent does not inherit a previous run" classname="app.amber.core.service.ChatRunPresenterTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

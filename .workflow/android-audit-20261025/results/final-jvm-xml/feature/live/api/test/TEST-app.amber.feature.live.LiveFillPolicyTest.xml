@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveFillPolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-17T17:44:50.727Z" hostname="duguangdeMacBook-Pro.local" time="0.004">
+  <properties/>
+  <testcase name="confirmed overwrite fills and identical existing is idempotent fill" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.003"/>
+  <testcase name="stale card is rejected to copy" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <testcase name="denylisted package falls back to copy" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <testcase name="existing foreign text requires confirmation" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <testcase name="confirmation cannot bypass earlier gates" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <testcase name="non chat scene falls back to copy" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <testcase name="missing target or mismatched context falls back to copy" classname="app.amber.feature.live.LiveFillPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

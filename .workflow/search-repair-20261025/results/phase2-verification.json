@@ -1,0 +1,44 @@
+{
+  "reports": [
+    {
+      "name": "app.amber.search.FreeSearchAggregatorTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:02:04.252Z"
+    },
+    {
+      "name": "app.amber.search.SearchBodyCancellationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:02:04.569Z"
+    },
+    {
+      "name": "app.amber.search.SearchProviderProtocolRegressionTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:02:04.639Z"
+    },
+    {
+      "name": "app.amber.search.SearchAdapterMappingTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:02:04.541Z"
+    },
+    {
+      "name": "app.amber.core.ai.tools.SearchAuditRegressionTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:02:17.944Z"
+    }
+  ],
+  "excluded_for_next_phase": [
+    "SearchProviderProtocolRegressionTest.freeSearchDedupePreservesCaseSensitivePathAndQuery"
+  ],
+  "source_review": "phase2_review: no remaining blocking findings; Jina date seam fixed",
+  "xml_note": "AGP supplied default JUnit XML destination; reports copied immediately after own finished task."
+}

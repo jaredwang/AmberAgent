@@ -1,0 +1,23 @@
+{
+  "task": ":core:jev:testDebugUnitTest",
+  "command": [
+    "./gradlew",
+    "--max-workers=3",
+    "-Dorg.gradle.internal.http.socketTimeout=15000",
+    "-Dorg.gradle.internal.http.connectionTimeout=15000",
+    "-PantigravityClientId=amber-audit-fixture",
+    "-PantigravityClientSecret=amber-audit-fixture",
+    ":core:jev:testDebugUnitTest"
+  ],
+  "exit_code": 0,
+  "counts": {
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "snapshot": ".workflow/android-audit-20261025/results/final-jvm-followup-xml/core/jev/testDebugUnitTest",
+  "log": ".workflow/android-audit-20261025/logs/final-jev-online.log",
+  "purpose": "resolve uncached tracing AAR online and verify the previously blocked current module"
+}

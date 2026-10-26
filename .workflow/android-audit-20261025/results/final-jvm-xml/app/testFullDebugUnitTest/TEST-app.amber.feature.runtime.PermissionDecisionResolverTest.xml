@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.PermissionDecisionResolverTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:46.001Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="mandatoryApprovalStillRequiresPromptWithRegularAutoApproveOnly" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.001"/>
+  <testcase name="traceExplainsAlwaysAskHold" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="askUserAlwaysNeedsHumanAnswerEvenWhenUnattendedExecutionIsEnabled" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentCanUseHighRiskAutoApprovalWhenExplicitlyEnabled" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="externalCliCouncilSeatCanUseHighRiskAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="removingWebsiteCannotBypassConfirmationInUnattendedMode" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="highRiskToolStillHoldsWithoutHighRiskAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentHistoryReadRequiresGrantForSilentApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentStillNeedsApprovalWithoutHighRiskAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentCanStartNestedSubAgentWhenUnattendedAutoApprovalIsEnabled" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.001"/>
+  <testcase name="traceExplainsCronApprovalHold" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="mandatoryApprovalOverridesPriorRunTrust" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="runPlanUpdateKeepsInternalReadOnlyPolicyDespiteUpdateToken" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="memoryToolPolicyDistinguishesReadsFromMutations" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="httpMethodPolicyDistinguishesReadsFromMutations" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentHistoryReadWithGrantIsSilentlyApproved" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="writeActionToolFamiliesAskButReadOnlySiblingsAllowWithRegularAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentSensitiveToolUsesUnattendedAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="directPhoneCallAndDialerUseUnattendedAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentStartUsesGlobalAutoApprovalInMainContext" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.001"/>
+  <testcase name="highRiskAutoApprovalWorksWithoutTheRegularAutoApprovalSwitch" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="addingWebsiteAlwaysRequiresItsOwnUserConfirmation" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="explicitlyConfirmedWebsiteAdditionCanProceed" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="workspaceWriteUsesUnattendedAutoApprovalEvenWhenOrdinaryAutoApprovalIsDisabledForTool" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="mandatoryApprovalCanBeBypassedByExplicitHighRiskAutoApprove" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="externalCliRunnerTypeGuardStaysInSyncWithRegistry" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="implicitMutatingOrDangerousCategoryToolsFailClosedForAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.001"/>
+  <testcase name="missingToolExplainsToolSearchRecovery" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <testcase name="subAgentCloudToolUsesUnattendedAutoApproval" classname="app.amber.feature.runtime.PermissionDecisionResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:49.632Z" hostname="duguangdeMBP.lan" time="0.217">
+  <properties/>
+  <testcase name="epub export is spec-shaped byte-stable and escaped" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.108"/>
+  <testcase name="markdown export renders headings and strips front matter" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.019"/>
+  <testcase name="epub mimetype local header is stored with no extra field and fixed dos time" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.035"/>
+  <testcase name="epub metadata and headings use the requested locale" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.022"/>
+  <testcase name="txt export renders title chapters and strips front matter" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.03"/>
+  <testcase name="suggest file name slugs the title per format" classname="app.amber.feature.novelworkspace.NovelWorkspaceBookExportTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

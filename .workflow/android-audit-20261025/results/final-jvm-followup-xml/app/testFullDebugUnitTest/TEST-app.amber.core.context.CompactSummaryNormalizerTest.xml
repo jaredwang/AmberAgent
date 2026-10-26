@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.context.CompactSummaryNormalizerTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.828Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="fallbackUsesSourceContentInsteadOfEnglishEmptySummary" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.004"/>
+  <testcase name="contextStatusActionUsesEffectiveTokens" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.001"/>
+  <testcase name="plainTextSummaryFallsBackToStructuredFacts" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="malformedV2FieldTypesDoNotCrashParsing" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.001"/>
+  <testcase name="fallbackCarriesCoveredCompactsWhenPreviousHandoffIsIncluded" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="blankSummaryReturnsNullInsteadOfCompletedSkeleton" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="fallbackDoesNotClaimCoveredCompactsUnlessItCarriesTheirHandoff" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="structuredSummaryPreservesPreambleAndNormalizesSchema" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="v2PayloadKeepsTimelineAndHandoffButUsesActualCoverage" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <testcase name="remapCoveredCompactIdsKeepsForkedCumulativeHandoffConsistent" classname="app.amber.core.context.CompactSummaryNormalizerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

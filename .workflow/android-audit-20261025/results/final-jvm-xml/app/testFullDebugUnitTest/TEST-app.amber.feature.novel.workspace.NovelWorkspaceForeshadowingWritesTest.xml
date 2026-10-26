@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceForeshadowingWritesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:42.186Z" hostname="duguangdeMBP.lan" time="0.083">
+  <properties/>
+  <testcase name="approved model creation becomes an open foreshadowing node with host identity" classname="app.amber.feature.novel.workspace.NovelWorkspaceForeshadowingWritesTest" time="0.026"/>
+  <testcase name="approved payoff changes only foreshadowing status while keeping host identity" classname="app.amber.feature.novel.workspace.NovelWorkspaceForeshadowingWritesTest" time="0.033"/>
+  <testcase name="editing an imported planned node keeps its existing state and identity" classname="app.amber.feature.novel.workspace.NovelWorkspaceForeshadowingWritesTest" time="0.024"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

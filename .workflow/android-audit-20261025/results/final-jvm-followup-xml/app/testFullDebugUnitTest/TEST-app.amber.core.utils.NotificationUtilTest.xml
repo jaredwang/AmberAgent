@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.utils.NotificationUtilTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:26.921Z" hostname="duguangdeMBP.lan" time="2.498">
+  <properties/>
+  <testcase name="missingForegroundChannelFailsClosedOnAndroid26AndNewer" classname="app.amber.core.utils.NotificationUtilTest" time="1.231"/>
+  <testcase name="android13RuntimePermissionIsRequiredEvenWhenChannelIsEnabled" classname="app.amber.core.utils.NotificationUtilTest" time="1.222"/>
+  <testcase name="preAndroid13DoesNotRequirePostNotificationsRuntimePermission" classname="app.amber.core.utils.NotificationUtilTest" time="0.029"/>
+  <testcase name="blockedForegroundChannelFailsVisibilityPreflight" classname="app.amber.core.utils.NotificationUtilTest" time="0.008"/>
+  <testcase name="appLevelNotificationBlockFailsVisibilityPreflightBeforeAndroid13" classname="app.amber.core.utils.NotificationUtilTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

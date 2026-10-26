@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.843Z" hostname="duguangdeMBP.lan" time="0.012">
+  <properties/>
+  <testcase name="doesNotPromotePlainArticleHtmlToDeck" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="wrapsMixedOrphanSlidesAndSocialCardsTogether" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="rewritesMotionAndLucideRuntimeUrls" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="rejectsOversizedHtmlAndUnknownRemoteScripts" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.006"/>
+  <testcase name="acceptsGuizangStyleBDeckShape" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="acceptsGuizangStyleADeckShape" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="repairsDeckWithPlainSectionsIntoRuntimeVisibleSlides" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="keepsSecurityBlocksAfterRepairingDeckShape" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="normalizesCommonDeckShapeMistakesBeforeRuntime" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="rejectsBlockedSchemesAndNativeBridgeWords" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="onlyRepairsDirectDeckChildrenAsSlides" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="repairsSocialCardSetWithoutRenamingItsCssAnchor" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.001"/>
+  <testcase name="servesBundledThreeAndRejectsCdnThree" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <testcase name="onlyRepairsDirectSocialCardChildrenAsSlides" classname="app.amber.core.ai.generative.GuizangHtmlDeckValidatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

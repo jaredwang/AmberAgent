@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.terminal.TerminalRuntimeInternalsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:19.654Z" hostname="duguangdeMBP.lan" time="0.023">
+  <properties/>
+  <testcase name="job log trims after growing to amortized threshold and keeps tail" classname="app.amber.feature.terminal.TerminalRuntimeInternalsTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

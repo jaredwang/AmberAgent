@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:50.712Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="reveal_is_noop_for_empty_text" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_dries_linearly_after_grace" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_is_full_during_dry_grace_period" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_keeps_minimum_at_zero_rate" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_always_reaches_zero_after_dry_completes" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="reveal_fades_newest_chars_most_and_dries_toward_the_tail" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="reveal_is_noop_when_window_is_zero" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="reveal_leaves_text_beyond_the_window_untouched" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_scales_with_release_rate_while_streaming" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <testcase name="window_clamps_to_max_at_high_rate" classname="app.amber.feature.ui.components.richtext.StreamingSingleTextRevealTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

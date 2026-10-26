@@ -1,0 +1,17 @@
+{
+  "exit_code": 0,
+  "started": "2026-10-25T16:16:06.810327+00:00",
+  "finished": "2026-10-25T16:21:19.685225+00:00",
+  "args": [
+    "./gradlew",
+    "--offline",
+    "--continue",
+    "--max-workers=3",
+    ":app:assembleFullDebug",
+    ":app:assembleNovelDebug",
+    ":app:assembleDeepreadDebug"
+  ],
+  "log": ".workflow/android-audit-20261025/logs/final-assemble-normal.log",
+  "fixture_props": false,
+  "jni_exclusions": false
+}

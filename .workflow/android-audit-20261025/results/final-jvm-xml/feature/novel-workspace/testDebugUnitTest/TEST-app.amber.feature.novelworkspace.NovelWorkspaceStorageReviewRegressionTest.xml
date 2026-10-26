@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.764Z" hostname="duguangdeMBP.lan" time="2.092">
+  <properties/>
+  <testcase name="changingOnlyFieldsPreservesOriginalBodySuffixIncludingCodeIndentation" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.002"/>
+  <testcase name="zipBudgetCountsAggregateDecompressedBytesAcrossEntries" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="1.367"/>
+  <testcase name="hiddenQueryPrefixesStayEmptyButRejectAbsolutePathsAndParentEscapes" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.003"/>
+  <testcase name="metadataFreeThematicFencesRetainEntireProse" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.001"/>
+  <testcase name="fieldReplacementRemovesWholeOldMultilineScalarAndPreservesOtherYaml" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.0"/>
+  <testcase name="directBookWritesRejectEveryHiddenSegment" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.002"/>
+  <testcase name="failedInstallationNeverPublishesCompletedProjectAndSameIdCanRetry" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.01"/>
+  <testcase name="renameAdvancesMirroredBranchAndKeepsRepeatedRenamesInItsAncestry" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.016"/>
+  <testcase name="fenceLookingScalarLineDoesNotTerminateHeaderOrLeaveOldFieldContinuation" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.0"/>
+  <testcase name="zipRejectsOversizedActualEntryBytesWithUnknownDeclaredSize" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.688"/>
+  <testcase name="rawMultilineScalarsAndAliasesParseWithoutLosingContinuationText" classname="app.amber.feature.novelworkspace.NovelWorkspaceStorageReviewRegressionTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

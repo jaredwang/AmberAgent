@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.733Z" hostname="duguangdeMBP.lan" time="0.046">
+  <properties/>
+  <testcase name="editMultipartUsesCustomSizeWhenProvided" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.03"/>
+  <testcase name="editWithUnsupportedFormatFails" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.001"/>
+  <testcase name="editMultipartCarriesSourceFilePromptModelSizeAndCount" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.002"/>
+  <testcase name="createBodyUsesCustomSizeWhenBothDimensionsProvided" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.002"/>
+  <testcase name="customSizeFallsBackToPresetMappingWhenOnlyOneDimensionProvided" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.0"/>
+  <testcase name="editWithDeletedSourceFails" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.001"/>
+  <testcase name="editWithOversizedSourceFails" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.007"/>
+  <testcase name="editWithoutSourceUrlFails" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.001"/>
+  <testcase name="createBodyIsUnchangedJsonWithoutModeOrSourceFields" classname="app.amber.ai.provider.providers.openai.OpenAIImageEditRequestTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

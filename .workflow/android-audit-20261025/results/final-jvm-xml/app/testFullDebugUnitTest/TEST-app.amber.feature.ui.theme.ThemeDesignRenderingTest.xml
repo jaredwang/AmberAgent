@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.theme.ThemeDesignRenderingTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:15.751Z" hostname="duguangdeMBP.lan" time="0.025">
+  <properties/>
+  <testcase name="portable marks keep iOS radius stroke and lattice semantics at device density" classname="app.amber.feature.ui.theme.ThemeDesignRenderingTest" time="0.013"/>
+  <testcase name="diagonal gradient uses the v1 normalized endpoints on a portrait canvas" classname="app.amber.feature.ui.theme.ThemeDesignRenderingTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

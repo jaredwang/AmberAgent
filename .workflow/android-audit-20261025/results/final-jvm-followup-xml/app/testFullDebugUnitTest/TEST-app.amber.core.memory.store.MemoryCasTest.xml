@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.store.MemoryCasTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.694Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="repeated export is a snapshot for import" classname="app.amber.core.memory.store.MemoryCasTest" time="0.01"/>
+  <testcase name="stale revision rejects the edit instead of overwriting" classname="app.amber.core.memory.store.MemoryCasTest" time="0.002"/>
+  <testcase name="single memory lookup returns the revision used by the settings editor" classname="app.amber.core.memory.store.MemoryCasTest" time="0.0"/>
+  <testcase name="manual and full-record writes bump revision before an old CAS can apply" classname="app.amber.core.memory.store.MemoryCasTest" time="0.001"/>
+  <testcase name="full add persists settings classification and pin in one record" classname="app.amber.core.memory.store.MemoryCasTest" time="0.0"/>
+  <testcase name="auto extraction writes are marked with the extraction trigger" classname="app.amber.core.memory.store.MemoryCasTest" time="0.0"/>
+  <testcase name="settings edit updates content scope and pinned in one CAS revision" classname="app.amber.core.memory.store.MemoryCasTest" time="0.001"/>
+  <testcase name="memory writer rejects a pre-restore epoch instead of replaying its payload" classname="app.amber.core.memory.store.MemoryCasTest" time="0.001"/>
+  <testcase name="memory records start at revision 1 and bump on each CAS edit" classname="app.amber.core.memory.store.MemoryCasTest" time="0.0"/>
+  <testcase name="delete is compare-and-set too" classname="app.amber.core.memory.store.MemoryCasTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

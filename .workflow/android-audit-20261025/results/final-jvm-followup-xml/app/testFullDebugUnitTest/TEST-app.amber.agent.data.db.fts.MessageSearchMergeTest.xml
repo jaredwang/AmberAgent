@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.db.fts.MessageSearchMergeTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:13.234Z" hostname="duguangdeMBP.lan" time="0.085">
+  <properties/>
+  <testcase name="jieba dictionary contains CJK entries so title tokenization supports chinese" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.034"/>
+  <testcase name="body hits keep their order and title hits are appended after" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.002"/>
+  <testcase name="dedupe only drops title entries of conversations already hit in body" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.0"/>
+  <testcase name="cancellation from an FTS projection is propagated unchanged" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.046"/>
+  <testcase name="only title hit keeps title entry with null node and message ids" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.0"/>
+  <testcase name="title and body both hit dedupes to single body entry" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.0"/>
+  <testcase name="failure in either FTS projection propagates instead of returning a partial merge" classname="app.amber.agent.data.db.fts.MessageSearchMergeTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

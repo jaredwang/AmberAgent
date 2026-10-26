@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.853Z" hostname="duguangdeMBP.lan" time="0.019">
+  <properties/>
+  <testcase name="stored zip keeps branches nested tool output and file references" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.017"/>
+  <testcase name="ios thread sidecar is canonicalized and allows an existing parent" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.001"/>
+  <testcase name="non enabled ios memory mode is rejected instead of silently changing semantics" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.001"/>
+  <testcase name="inline attachment data is rejected before writing an archive" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.0"/>
+  <testcase name="unsafe and mismatched entries are rejected" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.0"/>
+  <testcase name="thread sidecar rejects cycles" classname="app.amber.core.conversation.exchange.ConversationExchangeCodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

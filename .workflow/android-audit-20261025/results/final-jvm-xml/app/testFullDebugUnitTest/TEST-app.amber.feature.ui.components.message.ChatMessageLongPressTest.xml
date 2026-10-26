@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ChatMessageLongPressTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:56.369Z" hostname="duguangdeMBP.lan" time="0.398">
+  <properties/>
+  <testcase name="longPressSurfaceDoesNotConsumeRawTapForNestedClickable" classname="app.amber.feature.ui.components.message.ChatMessageLongPressTest" time="0.036"/>
+  <testcase name="completedReplyOpensActionsByLongPressWithoutFooterIcons" classname="app.amber.feature.ui.components.message.ChatMessageLongPressTest" time="0.283"/>
+  <testcase name="virtualizedParagraphOpensTheFullMessageActions" classname="app.amber.feature.ui.components.message.ChatMessageLongPressTest" time="0.078"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

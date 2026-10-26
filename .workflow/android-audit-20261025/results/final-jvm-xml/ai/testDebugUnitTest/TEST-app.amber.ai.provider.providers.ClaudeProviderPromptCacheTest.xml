@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:01.883Z" hostname="duguangdeMBP.lan" time="0.055">
+  <properties/>
+  <testcase name="promptCaching=true should honor explicit system cache marker" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.014"/>
+  <testcase name="promptCaching=true without system should add cache_control to last tool" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.016"/>
+  <testcase name="promptCaching=true should disable system cache when disabled marker exists" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.001"/>
+  <testcase name="multiple system messages preserve order and cache markers" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.002"/>
+  <testcase name="promptCaching=false should not add cache_control anywhere" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.002"/>
+  <testcase name="promptCaching=true with only one user message should not add cache_control to messages" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.0"/>
+  <testcase name="promptCaching=true should not cache unmarked system block but should cache last tool" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.001"/>
+  <testcase name="promptCaching=true should add cache_control to second-to-last real user message" classname="app.amber.ai.provider.providers.ClaudeProviderPromptCacheTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

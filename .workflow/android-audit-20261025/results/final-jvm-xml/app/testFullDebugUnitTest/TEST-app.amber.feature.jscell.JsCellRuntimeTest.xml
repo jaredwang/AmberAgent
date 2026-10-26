@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.jscell.JsCellRuntimeTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:34.952Z" hostname="duguangdeMBP.lan" time="0.748">
+  <properties/>
+  <testcase name="cold start marks running and waiting cells terminated and keeps store" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.019"/>
+  <testcase name="wait returns new output while cell is still running" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.155"/>
+  <testcase name="a truncated execution does not consume the next executions output budget" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.059"/>
+  <testcase name="run time limit terminates a long running cell" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.177"/>
+  <testcase name="create run wait terminate closed loop" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.155"/>
+  <testcase name="each execution receives its own console output budget" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.082"/>
+  <testcase name="console output is hard capped" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.028"/>
+  <testcase name="store load round trip and oversized store rejected" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.01"/>
+  <testcase name="nested tool calls only reach whitelisted read-only tools" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.03"/>
+  <testcase name="engine failure marks the cell failed" classname="app.amber.feature.jscell.JsCellRuntimeTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.icloud.ICloudDrivePathTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:34.938Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="normalizesVaultRelativePaths" classname="app.amber.feature.icloud.ICloudDrivePathTest" time="0.0"/>
+  <testcase name="rejectsAbsolutePaths" classname="app.amber.feature.icloud.ICloudDrivePathTest" time="0.0"/>
+  <testcase name="rejectsParentTraversal" classname="app.amber.feature.icloud.ICloudDrivePathTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

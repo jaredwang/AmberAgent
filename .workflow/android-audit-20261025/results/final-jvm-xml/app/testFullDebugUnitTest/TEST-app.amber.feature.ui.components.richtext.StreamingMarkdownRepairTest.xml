@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.700Z" hostname="duguangdeMBP.lan" time="0.009">
+  <properties/>
+  <testcase name="finalize complete falls back when no stable branch was active" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.001"/>
+  <testcase name="presentation gate drains pending motion before final semantic commit" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.001"/>
+  <testcase name="parse stabilizes completed top-level blocks structurally" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.002"/>
+  <testcase name="does not repair adjacent valid strong marker pairs" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="repairs unfinished strong marker with synthetic suffix" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="finalize complete keeps stable branch and empties active tail" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.004"/>
+  <testcase name="repairs unfinished inline math with synthetic suffix" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="presentation gate commits non streaming replacements immediately" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="code fence live suffix hides final fence terminator" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="does not repair valid strong marker pairs" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="does not repair valid double backtick code span" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="live suffix ignores synthetic repair suffix" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="live suffix stays empty when parsed text no longer matches source" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="live suffix exposes text newer than throttled parse" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="does not repair valid display math pairs" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.001"/>
+  <testcase name="presentation gate keeps new visible text out of semantic parse until motion delay" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="repairs unfinished fenced code without treating fence as source" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="repairs unfinished inline code with synthetic suffix" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="code fence appends live suffix while parse is throttled" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <testcase name="live suffix stays empty when active base offset is out of range" classname="app.amber.feature.ui.components.richtext.StreamingMarkdownRepairTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

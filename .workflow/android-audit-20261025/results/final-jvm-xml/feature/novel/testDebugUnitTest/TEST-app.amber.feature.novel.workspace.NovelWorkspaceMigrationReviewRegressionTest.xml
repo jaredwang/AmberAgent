@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:22.681Z" hostname="duguangdeMBP.lan" time="0.654">
+  <properties/>
+  <testcase name="sourceNeedsSyncRemainsStaleUntilRealPlotChangeIsCommitted" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.087"/>
+  <testcase name="synchronizedImportedBranchDoesNotRearmOldNeedsSyncOnExchangeRoundtrip" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.197"/>
+  <testcase name="mainBranchKeepsIdentityWhenEarlierSideBranchHasSameSlug" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.036"/>
+  <testcase name="nativeChapterEditRetainsPlotStalenessAcrossExchangeRoundtrip" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.178"/>
+  <testcase name="deletingLastSourceChapterStillRequiresPlotSynchronizationAfterImport" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.06"/>
+  <testcase name="explicitSameBodyPlotApprovalClearsImportedNeedsSyncBaseline" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.027"/>
+  <testcase name="dotLeadingSourceNamesRetainMaterialsBranchesAndDiscardedTextInExport" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationReviewRegressionTest" time="0.067"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

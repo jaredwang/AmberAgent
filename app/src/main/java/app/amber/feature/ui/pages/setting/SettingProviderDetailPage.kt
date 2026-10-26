@@ -1,23 +1,26 @@
 package app.amber.feature.ui.pages.setting
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,13 +36,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.EllipsisVertical
+import com.composables.icons.lucide.List
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.Share
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.launch
 import app.amber.ai.provider.ProviderSetting
@@ -48,14 +59,18 @@ import app.amber.feature.ui.components.nav.BackButton
 import app.amber.feature.ui.components.ui.ShareSheet
 import app.amber.feature.ui.components.ui.rememberShareSheetState
 import app.amber.feature.ui.components.ds.amberCanvas
-import app.amber.feature.ui.components.ds.pressable
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.context.LocalToaster
-import app.amber.feature.ui.pages.setting.components.ProviderGhostButton
-import app.amber.feature.ui.pages.setting.components.ProviderHairline
-import app.amber.feature.ui.pages.setting.components.ProviderLiveDot
-import app.amber.feature.ui.pages.setting.components.providerAuthLabel
-import app.amber.feature.ui.pages.setting.components.providerSlugLabel
+import app.amber.feature.ui.pages.setting.components.ProviderIconButton
+import app.amber.feature.ui.pages.setting.components.ProviderMonogram
+import app.amber.feature.ui.pages.setting.components.ProviderSegOption
+import app.amber.feature.ui.pages.setting.components.ProviderSegmented
+import app.amber.feature.ui.pages.setting.components.ProviderStatusChip
+import app.amber.feature.ui.pages.setting.components.providerDangerColor
+import app.amber.feature.ui.pages.setting.components.toProviderMonogram
+import app.amber.feature.ui.pages.setting.provider.ProviderDeleteDialog
+import app.amber.feature.ui.pages.setting.provider.isUsingDefaultBaseUrl
+import app.amber.feature.ui.pages.setting.provider.resetBaseUrlToDefault
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import org.koin.androidx.compose.koinViewModel
@@ -123,8 +138,17 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
     DisposableEffect(Unit) {
         onDispose { persistDirtyDraft() }
     }
+    // With no Save button, backgrounding must persist too (process death would drop the draft).
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { persistDirtyDraft() }
 
     ShareSheet(shareSheetState)
+
+    // Identity header collapses into the top bar's small title once the config list scrolls.
+    // The models tab does not report scroll, so switching tabs restores the expanded header.
+    var headerCollapsed by remember(provider.id) { mutableStateOf(false) }
+    LaunchedEffect(pager.currentPage) { headerCollapsed = false }
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.amberCanvas(),
@@ -137,103 +161,115 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(start = 4.dp, end = 10.dp),
+                        .height(52.dp)
+                        .padding(start = 4.dp, end = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     BackButton()
-                    Spacer(modifier = Modifier.weight(1f))
-                    ProviderGhostButton(
-                        text = stringResource(R.string.export_title),
+                    Box(modifier = Modifier.weight(1f).padding(horizontal = 4.dp)) {
+                        // Plain alpha fade: AnimatedVisibility here would resolve to the outer
+                        // ColumnScope overload across the layout-scope DSL marker.
+                        val titleAlpha by animateFloatAsState(if (headerCollapsed) 1f else 0f, label = "detailTitle")
+                        Text(
+                            text = provider.name,
+                            modifier = Modifier.graphicsLayer { alpha = titleAlpha },
+                            style = type.body.copy(fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold),
+                            color = t.ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    ProviderIconButton(
+                        imageVector = Lucide.Share,
+                        contentDescription = stringResource(R.string.export_title),
                         onClick = { shareSheetState.show(provider) },
                     )
+                    Box {
+                        ProviderIconButton(
+                            imageVector = Lucide.EllipsisVertical,
+                            contentDescription = stringResource(R.string.more_options),
+                            onClick = { showMenu = true },
+                        )
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.setting_model_page_reset_to_default)) },
+                                enabled = !internalProvider.isUsingDefaultBaseUrl(),
+                                onClick = {
+                                    showMenu = false
+                                    internalProvider = internalProvider.resetBaseUrlToDefault()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(R.string.provider_delete_provider),
+                                        color = providerDangerColor(),
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    showDeleteDialog = true
+                                },
+                            )
+                        }
+                    }
                 }
-                Column(
+                AnimatedVisibility(
+                    visible = !headerCollapsed,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, end = 20.dp, bottom = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        ProviderMonogram(
+                            text = provider.name.toProviderMonogram(),
+                            size = 52.dp,
+                            enabled = provider.enabled,
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                text = provider.name,
+                                style = type.body.copy(fontSize = 24.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold),
+                                color = t.ink,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            val (statusLabel, statusTone) = provider.statusChip(rememberOAuthSignedIn(provider))
+                            ProviderStatusChip(text = stringResource(statusLabel), tone = statusTone)
+                        }
+                    }
+                }
+                ProviderSegmented(
+                    options = listOf(
+                        ProviderSegOption(
+                            value = 0,
+                            label = stringResource(R.string.setting_provider_page_configuration),
+                            icon = Lucide.Settings,
+                        ),
+                        ProviderSegOption(
+                            value = 1,
+                            label = stringResource(R.string.setting_provider_page_models),
+                            icon = Lucide.List,
+                            badge = provider.models.size.toString(),
+                        ),
+                    ),
+                    selected = pager.currentPage,
+                    onSelected = { page -> scope.launch { pager.animateScrollToPage(page) } },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    ) {
-                        Text("//", style = type.eyebrow, color = t.accent)
-                        Text(
-                            stringResource(R.string.setting_page_providers),
-                            style = type.eyebrow,
-                            color = t.ink2,
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(9.dp),
-                    ) {
-                        Text(
-                            text = provider.providerSlugLabel(),
-                            style = type.meta.copy(
-                                fontSize = 24.sp,
-                                lineHeight = 29.sp,
-                                fontWeight = FontWeight.Bold,
-                            ),
-                            color = t.ink,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (provider.enabled) {
-                            ProviderLiveDot(size = 8.dp)
-                        }
-                    }
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        itemVerticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = provider.name,
-                            style = type.secondary,
-                            color = t.ink,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        ) {
-                            Text("·", style = type.meta, color = t.ink4)
-                            Text(
-                                text = provider.providerAuthLabel(),
-                                style = type.meta.copy(fontSize = 10.5.sp),
-                                color = t.ink2,
-                                maxLines = 1,
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        ) {
-                            Text("·", style = type.meta, color = t.ink4)
-                            Text(
-                                text = stringResource(
-                                    R.string.setting_provider_page_model_count,
-                                    provider.models.size,
-                                ),
-                                style = type.meta.copy(fontSize = 10.5.sp),
-                                color = t.ink2,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                    ProviderDetailTabs(
-                        tabs = listOf(
-                            stringResource(id = R.string.setting_provider_page_configuration),
-                            stringResource(id = R.string.setting_provider_page_models),
-                        ),
-                        selected = pager.currentPage,
-                        onSelect = { page -> scope.launch { pager.animateScrollToPage(page) } },
-                    )
-                }
+                )
             }
         },
         containerColor = Color.Transparent,
@@ -263,7 +299,10 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
                         },
                         onDelete = {
                             onDelete()
-                        }
+                        },
+                        onScrolledChange = { scrolled ->
+                            if (pager.currentPage == 0) headerCollapsed = scrolled
+                        },
                     )
                 }
 
@@ -274,6 +313,25 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
                         fetchedCandidates = fetchedCandidates,
                         modelListRefreshKey = modelListRefreshKey,
                         currentModelId = settings.chatModelId,
+                        // Undo re-inserts into the stored provider atomically, so it cannot
+                        // roll back config edits committed after the delete.
+                        onRestoreModel = { model, index ->
+                            vm.updateSettings { currentSettings ->
+                                currentSettings.copy(
+                                    providers = currentSettings.providers.map { stored ->
+                                        if (stored.id != provider.id || stored.models.any { it.id == model.id }) {
+                                            stored
+                                        } else {
+                                            stored.copyProvider(
+                                                models = stored.models.toMutableList().apply {
+                                                    add(index.coerceIn(0, size), model)
+                                                },
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        },
                         onSetCurrent = { model ->
                             vm.updateSettings { currentSettings ->
                                 currentSettings.copy(chatModelId = model.id)
@@ -284,56 +342,14 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
             }
         }
     }
-}
 
-@Composable
-private fun ProviderDetailTabs(
-    tabs: List<String>,
-    selected: Int,
-    onSelect: (Int) -> Unit,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(44.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.Bottom,
-        ) {
-            tabs.forEachIndexed { index, label ->
-                val isSelected = index == selected
-                Column(
-                    modifier = Modifier
-                        .width(IntrinsicSize.Max)
-                        .height(44.dp)
-                        .pressable(onClick = { onSelect(index) }),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = label,
-                            style = type.secondary.copy(
-                                fontSize = 14.5.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            color = if (isSelected) t.ink else t.ink3,
-                            maxLines = 1,
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(2.dp)
-                            .background(if (isSelected) t.accent else Color.Transparent),
-                    )
-                }
-            }
-        }
-        ProviderHairline()
+    if (showDeleteDialog) {
+        ProviderDeleteDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                onDelete()
+            },
+        )
     }
 }

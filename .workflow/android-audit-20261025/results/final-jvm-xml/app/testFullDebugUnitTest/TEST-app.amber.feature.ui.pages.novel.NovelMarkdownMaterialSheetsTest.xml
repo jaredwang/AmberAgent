@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.novel.NovelMarkdownMaterialSheetsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:10.110Z" hostname="duguangdeMBP.lan" time="0.197">
+  <properties/>
+  <testcase name="deleteRequiresSpecificConfirmationAndKeepsEditorCancelableWhenSourceChanged" classname="app.amber.feature.ui.pages.novel.NovelMarkdownMaterialSheetsTest" time="0.197"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

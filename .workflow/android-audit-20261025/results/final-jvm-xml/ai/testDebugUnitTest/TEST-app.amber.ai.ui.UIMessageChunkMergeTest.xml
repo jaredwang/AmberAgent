@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.ui.UIMessageChunkMergeTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:03.210Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="parallel tool deltas merge by stream index without cross wiring" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="late tool call id merges into stream-indexed tool and adopts the real id" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="blank replace delta keeps accumulated args" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="text deltas merge in order" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.001"/>
+  <testcase name="blank tool delta with unmatched index creates new part instead of cross wiring" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="replace tool delta overrides accumulated args instead of appending" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="adjacent streamed images merge by stable call id" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="blank delta without index does not fall back onto executed tool" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="withStreamToolIndex preserves existing metadata" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="executed tool is sealed and never a merge target" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="annotations append and dedupe instead of replacing" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <testcase name="replace delta creating new part strips control metadata" classname="app.amber.ai.ui.UIMessageChunkMergeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

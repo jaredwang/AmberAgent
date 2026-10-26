@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.review.TerminalSessionLifecycleTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:05.006Z" hostname="duguangdeMBP.lan" time="0.023">
+  <properties/>
+  <testcase name="exitedReaderReleasesItsLeaseAndLaterStopCannotReleaseANewerLease" classname="app.amber.review.TerminalSessionLifecycleTest" time="0.014"/>
+  <testcase name="readerExitAndStopReleaseOneLeaseAndDrainTheOriginalOutput" classname="app.amber.review.TerminalSessionLifecycleTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,174 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:compileDebugKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :ai:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:preDebugUnitTestBuild UP-TO-DATE
+> Task :ai:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :ai:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :ai:compileDebugUnitTestKotlin
+> Task :ai:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :ai:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :ai:testDebugUnitTest
+
+ProviderBodyCancellationTest > googleCompletionCancelsWhileReadingResponseBody FAILED
+    java.net.ProtocolException at ProviderBodyCancellationTest.kt:94
+        Caused by: java.net.ProtocolException at Http1ExchangeCodec.kt:422
+
+ProviderBodyCancellationTest > claudeCompletionCancelsWhileReadingResponseBody FAILED
+    java.net.ProtocolException at ProviderBodyCancellationTest.kt:94
+        Caused by: java.net.ProtocolException at Http1ExchangeCodec.kt:422
+
+ProviderBodyCancellationTest > googleImageGenerationCancelsWhileReadingResponseBody FAILED
+    java.net.ProtocolException at ProviderBodyCancellationTest.kt:94
+        Caused by: java.net.ProtocolException at Http1ExchangeCodec.kt:422
+
+ProviderBodyCancellationTest > chatCompletionCancelsWhileReadingResponseBody FAILED
+    java.net.ProtocolException at ProviderBodyCancellationTest.kt:94
+        Caused by: java.net.ProtocolException at Http1ExchangeCodec.kt:422
+
+ProviderBodyCancellationTest > openAiImageGenerationCancelsWhileReadingResponseBody FAILED
+    java.net.ProtocolException at ProviderBodyCancellationTest.kt:94
+        Caused by: java.net.ProtocolException at Http1ExchangeCodec.kt:422
+
+ProviderContentReplayTest > mistralCompletionRetainsAllThinkingAndAnswerChunksInOrder FAILED
+    org.junit.ComparisonFailure at ProviderContentReplayTest.kt:28
+
+ProviderContentReplayTest > geminiStreamKeepsEmptySignedTextAfterVisibleAnswer FAILED
+    java.lang.AssertionError at ProviderContentReplayTest.kt:65
+
+ProviderContentReplayTest > geminiCompletionReplaysSignedTextAndImageTogether FAILED
+    java.lang.AssertionError at ProviderContentReplayTest.kt:54
+
+ProviderContentReplayTest > mistralStreamRetainsTextArrayDeltas FAILED
+    org.junit.ComparisonFailure at ProviderContentReplayTest.kt:40
+
+ProviderContentReplayTest > geminiStreamDoesNotMergeDistinctSignedTextParts FAILED
+    java.lang.AssertionError at ProviderContentReplayTest.kt:77
+
+ResponseAPIStoredProtocolRegressionTest > createdIdentityIsDurableBeforeAnyVisibleOutput FAILED
+    java.lang.AssertionError at ResponseAPIStoredProtocolRegressionTest.kt:185
+
+ResponseAPIStoredProtocolRegressionTest > disconnectAfterCreatedBeforeTextCanReconnectAndKeepResponseIdentity FAILED
+    java.lang.AssertionError at ResponseAPIStoredProtocolRegressionTest.kt:206
+
+ResponseAPIStoredProtocolRegressionTest > suffixReplayUsesServerCursorAndCheckpointsWithoutACreatedEvent FAILED
+    java.lang.AssertionError at ResponseAPIStoredProtocolRegressionTest.kt:159
+
+ResponseAPIStoredProtocolRegressionTest > onlyOptedInOfficialStreamingCreationUsesBackgroundMode FAILED
+    java.lang.AssertionError at ResponseAPIStoredProtocolRegressionTest.kt:98
+
+ResponseAPIStoredProtocolRegressionTest > fullRebuildRequestsSseWithoutSkippingTheDurablyMissingPrefix FAILED
+    java.lang.AssertionError at ResponseAPIStoredProtocolRegressionTest.kt:135
+
+KeyRouletteTest > firstNewWriteRemovesLegacyPlaintextForAllProviders FAILED
+    java.lang.AssertionError at KeyRouletteTest.kt:45
+
+KeyRouletteTest > lruRotatesKeysWithoutPersistingTheirPlaintext FAILED
+    java.lang.AssertionError at KeyRouletteTest.kt:28
+
+18 tests completed, 17 failed
+
+> Task :ai:testDebugUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':ai:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 14s
+27 actionable tasks: 2 executed, 25 up-to-date

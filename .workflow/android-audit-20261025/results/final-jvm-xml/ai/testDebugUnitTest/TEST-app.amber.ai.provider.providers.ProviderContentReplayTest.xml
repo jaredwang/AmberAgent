@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ProviderContentReplayTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.376Z" hostname="duguangdeMBP.lan" time="0.05">
+  <properties/>
+  <testcase name="mistralCompletionRetainsAllThinkingAndAnswerChunksInOrder" classname="app.amber.ai.provider.providers.ProviderContentReplayTest" time="0.005"/>
+  <testcase name="geminiStreamKeepsEmptySignedTextAfterVisibleAnswer" classname="app.amber.ai.provider.providers.ProviderContentReplayTest" time="0.028"/>
+  <testcase name="geminiCompletionReplaysSignedTextAndImageTogether" classname="app.amber.ai.provider.providers.ProviderContentReplayTest" time="0.003"/>
+  <testcase name="mistralStreamRetainsTextArrayDeltas" classname="app.amber.ai.provider.providers.ProviderContentReplayTest" time="0.01"/>
+  <testcase name="geminiStreamDoesNotMergeDistinctSignedTextParts" classname="app.amber.ai.provider.providers.ProviderContentReplayTest" time="0.004"/>
+  <system-out><![CDATA[[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:13.135Z" hostname="duguangdeMBP.lan" time="0.027">
+  <properties/>
+  <testcase name="catalog contains exactly 80 component kinds across 8 categories and resolves aliases" classname="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" time="0.004"/>
+  <testcase name="numeric binding via value_field_id updates metric progress and charts live and validates inputs" classname="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" time="0.016"/>
+  <testcase name="parses decision task-ui and builds submission prompt" classname="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" time="0.001"/>
+  <testcase name="GenerativeWidgetParser splits task-ui finished and streaming segments" classname="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" time="0.004"/>
+  <testcase name="study task supports flashcards mastery and quiz instant grading plus retry wrong only" classname="app.amber.agent.data.ai.generative.IntelligentUiProtocolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

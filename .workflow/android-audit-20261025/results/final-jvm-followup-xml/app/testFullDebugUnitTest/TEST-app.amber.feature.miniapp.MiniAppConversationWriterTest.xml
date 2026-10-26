@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppConversationWriterTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.655Z" hostname="duguangdeMBP.lan" time="0.124">
+  <properties/>
+  <testcase name="writeDraftReturnsReceiptAndPersistsComposerDraft" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.018"/>
+  <testcase name="oversizedAttachmentIsRejectedWithoutTruncatingItsPayload" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.009"/>
+  <testcase name="writeAndSendRejectedKeepsDraft" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.016"/>
+  <testcase name="attachmentsOnlyAllowSandboxBoundaryUrls" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.006"/>
+  <testcase name="writeDraftToMissingConversationFailsStructured" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.016"/>
+  <testcase name="writeAndSendAcceptedClearsDraft" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.013"/>
+  <testcase name="rejectedSendIsDistinguishableFromPlainDraft" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.022"/>
+  <testcase name="acceptedAttachmentKeepsEveryByte" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.007"/>
+  <testcase name="sendConsumesOnlyTheDraftThatWasSent" classname="app.amber.feature.miniapp.MiniAppConversationWriterTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[System.logW: A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+java.lang.Throwable: Explicit termination method 'close' not called
+	at dalvik.system.CloseGuard.$$robo$$dalvik_system_CloseGuard$openWithCallSite(CloseGuard.java:288)
+	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java)
+	at dalvik.system.CloseGuard.$$robo$$dalvik_system_CloseGuard$open(CloseGuard.java:257)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.robolectric.shadows.ShadowCloseGuard$CloseGuardReflector$$Reflector15.open(Unknown Source)
+	at org.robolectric.shadows.ShadowCloseGuard.open(ShadowCloseGuard.java:38)
+	at dalvik.system.CloseGuard.open(CloseGuard.java)
+	at android.database.sqlite.SQLiteDatabase.$$robo$$android_database_sqlite_SQLiteDatabase$openInner(SQLiteDatabase.java:1088)
+	at android.database.sqlite.SQLiteDatabase.openInner(SQLiteDatabase.java)
+	at android.database.sqlite.SQLiteDatabase.$$robo$$android_database_sqlite_SQLiteDatabase$open(SQLiteDatabase.java:1067)
+	at android.database.sqlite.SQLiteDatabase.open(SQLiteDatabase.java)
+	at android.database.sqlite.SQLiteDatabase.$$robo$$android_database_sqlite_SQLiteDatabase$openDatabase(SQLiteDatabase.java:931)
+	at android.database.sqlite.SQLiteDatabase.openDatabase(SQLiteDatabase.java)
+	at android.database.sqlite.SQLiteDatabase.$$robo$$android_database_sqlite_SQLiteDatabase$createInMemory(SQLiteDatabase.java:1127)
+	at android.database.sqlite.SQLiteDatabase.createInMemory(SQLiteDatabase.java)
+	at android.database.sqlite.SQLiteOpenHelper.$$robo$$android_database_sqlite_SQLiteOpenHelper$getDatabaseLocked(SQLiteOpenHelper.java:368)
+	at android.database.sqlite.SQLiteOpenHelper.getDatabaseLocked(SQLiteOpenHelper.java)
+	at android.database.sqlite.SQLiteOpenHelper.$$robo$$android_database_sqlite_SQLiteOpenHelper$getWritableDatabase(SQLiteOpenHelper.java:316)
+	at android.database.sqlite.SQLiteOpenHelper.getWritableDatabase(SQLiteOpenHelper.java)
+	at androidx.sqlite.db.framework.FrameworkSQLiteOpenHelper$OpenHelper.getWritableOrReadableDatabase(FrameworkSQLiteOpenHelper.android.kt:224)
+	at androidx.sqlite.db.framework.FrameworkSQLiteOpenHelper$OpenHelper.innerGetDatabase(FrameworkSQLiteOpenHelper.android.kt:167)
+	at androidx.sqlite.db.framework.FrameworkSQLiteOpenHelper$OpenHelper.getSupportDatabase(FrameworkSQLiteOpenHelper.android.kt:141)
+	at androidx.sqlite.db.framework.FrameworkSQLiteOpenHelper.getWritableDatabase(FrameworkSQLiteOpenHelper.android.kt:96)
+	at androidx.sqlite.driver.SupportSQLiteDriver.open(SupportSQLiteDriver.android.kt:57)
+	at androidx.sqlite.driver.SupportSQLiteDriver.open(SupportSQLiteDriver.android.kt:33)
+	at androidx.room.coroutines.PassthroughConnectionPool.connection$lambda$0(PassthroughConnectionPool.kt:47)
+	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:86)
+	at androidx.room.coroutines.PassthroughConnectionPool.useConnection(PassthroughConnectionPool.kt:58)
+	at androidx.room.RoomConnectionManager.useConnection(RoomConnectionManager.android.kt:138)
+	at androidx.room.RoomDatabase.useConnection(RoomDatabase.android.kt:619)
+	at androidx.room.util.DBUtil__DBUtil_androidKt$performSuspending$$inlined$compatCoroutineExecute$DBUtil__DBUtil_androidKt$1.invokeSuspend(DBUtil.android.kt:261)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at androidx.room.TransactionExecutor.execute$lambda$1$lambda$0(TransactionExecutor.android.kt:38)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+]]></system-err>
+</testsuite>

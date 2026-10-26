@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.chat.impl.ChatEventProjectorCheckpointSelectionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.965Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="picks the checkpoint with the highest seq" classname="app.amber.feature.chat.impl.ChatEventProjectorCheckpointSelectionTest" time="0.001"/>
+  <testcase name="returns null when run has no checkpoints" classname="app.amber.feature.chat.impl.ChatEventProjectorCheckpointSelectionTest" time="0.0"/>
+  <testcase name="corrupt checkpoint payload degrades to null instead of throwing" classname="app.amber.feature.chat.impl.ChatEventProjectorCheckpointSelectionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

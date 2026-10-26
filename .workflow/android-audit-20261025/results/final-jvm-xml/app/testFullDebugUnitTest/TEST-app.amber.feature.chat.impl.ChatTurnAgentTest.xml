@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.chat.impl.ChatTurnAgentTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.967Z" hostname="duguangdeMBP.lan" time="0.025">
+  <properties/>
+  <testcase name="streaming hook observes the conversation after generated messages are merged" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.011"/>
+  <testcase name="ranged generation updates the selected assistant variant in place" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.002"/>
+  <testcase name="hookless session runs the bare non-durable loop" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.001"/>
+  <testcase name="responses resume request is resolved per runId" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.004"/>
+  <testcase name="finish hook failure is suppressed when generation already failed" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.002"/>
+  <testcase name="finish hook failure propagates after a successful generation" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.001"/>
+  <testcase name="onRunStarted failure still settles the run via onRunFinished" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.001"/>
+  <testcase name="hooks are wired through to the generation call" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.001"/>
+  <testcase name="generator failure reaches onRunFinished and propagates" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.002"/>
+  <testcase name="non-durable hooks keep the loop bare but still receive lifecycle callbacks" classname="app.amber.feature.chat.impl.ChatTurnAgentTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

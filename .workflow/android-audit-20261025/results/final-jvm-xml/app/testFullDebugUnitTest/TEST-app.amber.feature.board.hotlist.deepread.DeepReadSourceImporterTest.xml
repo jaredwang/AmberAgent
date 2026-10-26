@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.649Z" hostname="duguangdeMBP.lan" time="0.249">
+  <properties/>
+  <testcase name="openingSourceFailureDoesNotLeaveAnImportTemporaryFile" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.015"/>
+  <testcase name="plainTextKeepsTheFortyThousandCharacterTruncationBoundary" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.017"/>
+  <testcase name="unknownReportedSizeStillEnforcesActualFileByteLimit" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.124"/>
+  <testcase name="cancelledReadPropagatesAndCleansItsStreamAndTemporaryFile" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.011"/>
+  <testcase name="readableDocxKeepsItsExtractedBody" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.014"/>
+  <testcase name="epubWithNoReadableContentIsNotImportedAsBody" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.013"/>
+  <testcase name="damagedDocxIsNotImportedAsParserDiagnosticText" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.008"/>
+  <testcase name="interruptedSourceReadDoesNotLeaveAPartialImportTemporaryFile" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.008"/>
+  <testcase name="plainTextCanContainParserDiagnosticExamples" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.009"/>
+  <testcase name="pptxWithNoReadableSlidesIsNotImportedAsBody" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.012"/>
+  <testcase name="damagedPdfIsNotImportedAsParserDiagnosticText" classname="app.amber.feature.board.hotlist.deepread.DeepReadSourceImporterTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

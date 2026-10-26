@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.328Z" hostname="duguangdeMBP.lan" time="0.104">
+  <properties/>
+  <testcase name="htmlRendererPreservesLatexInTildeCodeFence" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.064"/>
+  <testcase name="recognizedTldsAndPathsKeepPunctuationOutsideTheirLinks" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.009"/>
+  <testcase name="inlineFormulaBeforeCodeDoesNotRewriteTheCodeFormula" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.005"/>
+  <testcase name="longerTldsDoNotLinkToTheirRecognizedPrefix" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.005"/>
+  <testcase name="htmlRendererAlsoPreservesCodeAfterAnInlineFormula" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.013"/>
+  <testcase name="tildeFencePreservesDomainsAndBothFormulaDelimiters" classname="app.amber.feature.ui.components.richtext.MarkdownContentPreservationTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

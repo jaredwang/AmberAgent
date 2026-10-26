@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryDreamApplierTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.563Z" hostname="duguangdeMBP.lan" time="0.034">
+  <properties/>
+  <testcase name="topicSuggestionCreatesTopicRecordAndUpdatesExistingByTitle" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.016"/>
+  <testcase name="topicMembersArchivedInSamePassAreDroppedFromMembership" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.003"/>
+  <testcase name="supersedeCreatesNewRecordArchivesOldAndLogsEvents" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.003"/>
+  <testcase name="supersedeRejectsCorePinnedSensitiveNoteLowConfidenceAndShortContent" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.001"/>
+  <testcase name="oneRacedWriteDoesNotAbortTheRestOfThePlan" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.001"/>
+  <testcase name="userProfileSuggestionIsPersistedWithDurableSourceIds" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.007"/>
+  <testcase name="mergeThenPromoteUsesTheRevisionReturnedByTheMerge" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.001"/>
+  <testcase name="promotedRecordIsNotAlsoArchivedInTheSamePass" classname="app.amber.core.memory.MemoryDreamApplierTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

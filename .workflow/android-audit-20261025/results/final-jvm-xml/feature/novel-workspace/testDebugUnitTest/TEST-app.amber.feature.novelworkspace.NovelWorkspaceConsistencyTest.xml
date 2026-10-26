@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:50.631Z" hostname="duguangdeMBP.lan" time="0.159">
+  <properties/>
+  <testcase name="assembler without plan still injects plot and foreshadowing" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.007"/>
+  <testcase name="neighborhood pulls relation targets not named in the plan" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.009"/>
+  <testcase name="plot stale follows commit order and clears when plot catches up" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.006"/>
+  <testcase name="neighborhood matches plan entities and expands one relation hop" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.018"/>
+  <testcase name="parseFile lifts relations into maps and keeps plain lists" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.004"/>
+  <testcase name="a title edit after a dangling polish does not hide the chapter needing its pointer" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.003"/>
+  <testcase name="assembler on an empty tree produces an empty brief" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.004"/>
+  <testcase name="nodes collect characters decisions and foreshadowing with status" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.012"/>
+  <testcase name="assembler brief carries plot, open foreshadowing, decisions, and subgraph" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.016"/>
+  <testcase name="unresolved store set read clear" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.005"/>
+  <testcase name="assembler injects the mandatory freshness warning when stale" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.012"/>
+  <testcase name="deleted chapter participates in changed paths freshness and middle edit gate" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.007"/>
+  <testcase name="assembler injects the unresolved gate warning when set" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.023"/>
+  <testcase name="parseInlineMap handles typed relations and rejects non-maps" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.001"/>
+  <testcase name="chapter title changes remain in the diff but do not invalidate story state" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.005"/>
+  <testcase name="middle chapter edit is detected, last chapter edit is not" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.02"/>
+  <testcase name="oversized plot is truncated so the brief stays bounded" classname="app.amber.feature.novelworkspace.NovelWorkspaceConsistencyTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

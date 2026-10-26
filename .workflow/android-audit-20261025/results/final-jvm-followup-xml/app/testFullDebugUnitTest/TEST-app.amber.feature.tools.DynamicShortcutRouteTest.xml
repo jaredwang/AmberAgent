@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.DynamicShortcutRouteTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:45.335Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="quick message model keeps stable identity for shortcuts" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <testcase name="conversation shortcut resolves exact conversation id" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <testcase name="blank prompt or unknown kind never resolves" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <testcase name="malformed or missing conversation id never resolves" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <testcase name="new chat shortcut resolves to NewChat route" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <testcase name="quick message shortcut carries prompt verbatim" classname="app.amber.feature.tools.DynamicShortcutRouteTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

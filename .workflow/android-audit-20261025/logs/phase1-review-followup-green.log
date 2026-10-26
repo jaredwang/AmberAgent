@@ -1,0 +1,1471 @@
+Starting a Gradle Daemon, 1 busy and 11 stopped Daemons could not be reused, use --status for details
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :core:agent-utils:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-utils:compileKotlin UP-TO-DATE
+> Task :core:agent-utils:compileJava NO-SOURCE
+> Task :core:agent-utils:processResources NO-SOURCE
+> Task :core:agent-utils:classes UP-TO-DATE
+> Task :core:agent-utils:jar UP-TO-DATE
+> Task :core:event:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:event:compileKotlin UP-TO-DATE
+> Task :core:event:compileJava NO-SOURCE
+> Task :core:event:processResources NO-SOURCE
+> Task :core:event:classes UP-TO-DATE
+> Task :core:event:jar UP-TO-DATE
+> Task :core:agent-runtime:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-runtime:compileKotlin UP-TO-DATE
+> Task :core:agent-runtime:compileJava NO-SOURCE
+> Task :core:agent-runtime:processResources NO-SOURCE
+> Task :core:agent-runtime:classes UP-TO-DATE
+> Task :core:agent-runtime:jar UP-TO-DATE
+> Task :feature:live:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:live:api:compileKotlin UP-TO-DATE
+> Task :feature:live:api:compileJava NO-SOURCE
+> Task :feature:live:api:processResources NO-SOURCE
+> Task :feature:live:api:classes UP-TO-DATE
+> Task :feature:live:api:jar UP-TO-DATE
+> Task :core:ai-prompts:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:ai-prompts:compileKotlin UP-TO-DATE
+> Task :core:ai-prompts:compileJava NO-SOURCE
+> Task :core:ai-prompts:processResources NO-SOURCE
+> Task :core:ai-prompts:classes UP-TO-DATE
+> Task :core:ai-prompts:jar UP-TO-DATE
+> Task :feature:history:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:history:compileKotlin UP-TO-DATE
+> Task :feature:history:compileJava NO-SOURCE
+> Task :feature:history:processResources NO-SOURCE
+> Task :feature:history:classes UP-TO-DATE
+> Task :feature:history:jar UP-TO-DATE
+> Task :feature:webview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:webview:compileKotlin UP-TO-DATE
+> Task :feature:webview:compileJava NO-SOURCE
+> Task :feature:webview:processResources NO-SOURCE
+> Task :feature:webview:classes UP-TO-DATE
+> Task :feature:webview:jar UP-TO-DATE
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:compileDebugKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :ai:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:prepareEmbeddedTerminalRuntime UP-TO-DATE
+> Task :app:preBuild
+> Task :app:preFullDebugBuild
+> Task :app:generateFullDebugBuildConfig UP-TO-DATE
+> Task :ai:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdFullDebug UP-TO-DATE
+> Task :app:injectCrashlyticsVersionControlInfoFullDebug UP-TO-DATE
+> Task :app:processFullDebugGoogleServices SKIPPED
+> Task :app:extractFullDebugSupportedLocales UP-TO-DATE
+> Task :app:mapFullDebugSourceSetPaths UP-TO-DATE
+> Task :common:extractDebugSupportedLocales UP-TO-DATE
+> Task :document:preBuild
+> Task :document:preDebugBuild
+> Task :document:extractDebugSupportedLocales UP-TO-DATE
+> Task :highlight:preBuild
+> Task :highlight:preDebugBuild
+> Task :highlight:extractDebugSupportedLocales UP-TO-DATE
+> Task :search:preBuild UP-TO-DATE
+> Task :search:preDebugBuild UP-TO-DATE
+> Task :search:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-runtime-impl:preBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:preDebugBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-store-room:preBuild UP-TO-DATE
+> Task :core:agent-store-room:preDebugBuild UP-TO-DATE
+> Task :core:agent-store-room:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:app-infra:preBuild UP-TO-DATE
+> Task :core:app-infra:preDebugBuild UP-TO-DATE
+> Task :core:app-infra:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:jev:preBuild UP-TO-DATE
+> Task :core:jev:preDebugBuild UP-TO-DATE
+> Task :core:jev:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:model:preBuild UP-TO-DATE
+> Task :core:model:preDebugBuild UP-TO-DATE
+> Task :core:model:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:settings:preBuild UP-TO-DATE
+> Task :core:settings:preDebugBuild UP-TO-DATE
+> Task :core:settings:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:usage:preBuild UP-TO-DATE
+> Task :core:usage:preDebugBuild UP-TO-DATE
+> Task :core:usage:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:icloud:preBuild UP-TO-DATE
+> Task :feature:icloud:preDebugBuild UP-TO-DATE
+> Task :feature:icloud:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:modelcouncil:preBuild UP-TO-DATE
+> Task :feature:modelcouncil:preDebugBuild UP-TO-DATE
+> Task :feature:modelcouncil:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel:preBuild UP-TO-DATE
+> Task :feature:novel:preDebugBuild UP-TO-DATE
+> Task :feature:novel:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel-workspace:preBuild UP-TO-DATE
+> Task :feature:novel-workspace:preDebugBuild UP-TO-DATE
+> Task :feature:novel-workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:subagent:preBuild UP-TO-DATE
+> Task :feature:subagent:preDebugBuild UP-TO-DATE
+> Task :feature:subagent:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:system:preBuild UP-TO-DATE
+> Task :feature:system:preDebugBuild UP-TO-DATE
+> Task :feature:system:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:task:preBuild UP-TO-DATE
+> Task :feature:task:preDebugBuild UP-TO-DATE
+> Task :feature:task:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:terminal:preBuild UP-TO-DATE
+> Task :feature:terminal:preDebugBuild UP-TO-DATE
+> Task :feature:terminal:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:workspace:preBuild UP-TO-DATE
+> Task :feature:workspace:preDebugBuild UP-TO-DATE
+> Task :feature:workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:board:impl:preBuild UP-TO-DATE
+> Task :feature:board:impl:preDebugBuild UP-TO-DATE
+> Task :feature:board:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:runtime:api:preBuild UP-TO-DATE
+> Task :feature:runtime:api:preDebugBuild UP-TO-DATE
+> Task :feature:runtime:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:access:preBuild UP-TO-DATE
+> Task :feature:tools:access:preDebugBuild UP-TO-DATE
+> Task :feature:tools:access:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:api:preBuild UP-TO-DATE
+> Task :feature:tools:api:preDebugBuild UP-TO-DATE
+> Task :feature:tools:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:impl:preBuild UP-TO-DATE
+> Task :feature:tools:impl:preDebugBuild UP-TO-DATE
+> Task :feature:tools:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:generateFullDebugLocaleConfig UP-TO-DATE
+> Task :app:generateFullDebugResources UP-TO-DATE
+> Task :app:packageFullDebugResources UP-TO-DATE
+> Task :document:processDebugNavigationResources UP-TO-DATE
+> Task :highlight:processDebugNavigationResources UP-TO-DATE
+> Task :search:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-store-room:processDebugNavigationResources UP-TO-DATE
+> Task :core:app-infra:processDebugNavigationResources UP-TO-DATE
+> Task :core:jev:processDebugNavigationResources UP-TO-DATE
+> Task :core:model:processDebugNavigationResources UP-TO-DATE
+> Task :core:settings:processDebugNavigationResources UP-TO-DATE
+> Task :core:usage:processDebugNavigationResources UP-TO-DATE
+> Task :feature:icloud:processDebugNavigationResources UP-TO-DATE
+> Task :feature:modelcouncil:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel-workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:subagent:processDebugNavigationResources UP-TO-DATE
+> Task :feature:system:processDebugNavigationResources UP-TO-DATE
+> Task :feature:task:processDebugNavigationResources UP-TO-DATE
+> Task :feature:terminal:processDebugNavigationResources UP-TO-DATE
+> Task :feature:workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:board:impl:processDebugNavigationResources UP-TO-DATE
+> Task :feature:runtime:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:access:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:impl:processDebugNavigationResources UP-TO-DATE
+> Task :app:processFullDebugNavigationResources UP-TO-DATE
+> Task :app:parseFullDebugLocalResources UP-TO-DATE
+> Task :app:generateFullDebugRFile UP-TO-DATE
+> Task :document:generateDebugResources UP-TO-DATE
+> Task :document:packageDebugResources UP-TO-DATE
+> Task :document:parseDebugLocalResources UP-TO-DATE
+> Task :document:generateDebugRFile UP-TO-DATE
+> Task :document:compileDebugKotlin UP-TO-DATE
+> Task :document:javaPreCompileDebug UP-TO-DATE
+> Task :document:compileDebugJavaWithJavac UP-TO-DATE
+> Task :document:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :highlight:generateDebugResources UP-TO-DATE
+> Task :highlight:packageDebugResources UP-TO-DATE
+> Task :highlight:parseDebugLocalResources UP-TO-DATE
+> Task :highlight:generateDebugRFile UP-TO-DATE
+> Task :highlight:compileDebugKotlin UP-TO-DATE
+> Task :highlight:javaPreCompileDebug UP-TO-DATE
+> Task :highlight:compileDebugJavaWithJavac NO-SOURCE
+> Task :highlight:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :search:generateDebugResources UP-TO-DATE
+> Task :search:packageDebugResources UP-TO-DATE
+> Task :search:parseDebugLocalResources UP-TO-DATE
+> Task :search:generateDebugRFile UP-TO-DATE
+> Task :search:compileDebugKotlin UP-TO-DATE
+> Task :search:javaPreCompileDebug UP-TO-DATE
+> Task :search:compileDebugJavaWithJavac NO-SOURCE
+> Task :search:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:packageDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugRFile UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugKotlin UP-TO-DATE
+> Task :core:agent-runtime-impl:javaPreCompileDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:agent-runtime-impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-store-room:generateDebugResources UP-TO-DATE
+> Task :core:agent-store-room:packageDebugResources UP-TO-DATE
+> Task :core:agent-store-room:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-store-room:generateDebugRFile UP-TO-DATE
+> Task :core:agent-store-room:kspDebugKotlin UP-TO-DATE
+> Task :core:agent-store-room:compileDebugKotlin UP-TO-DATE
+> Task :core:agent-store-room:javaPreCompileDebug UP-TO-DATE
+> Task :core:agent-store-room:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:agent-store-room:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:app-infra:generateDebugResources UP-TO-DATE
+> Task :core:app-infra:packageDebugResources UP-TO-DATE
+> Task :core:app-infra:parseDebugLocalResources UP-TO-DATE
+> Task :core:app-infra:generateDebugRFile UP-TO-DATE
+> Task :core:app-infra:compileDebugKotlin UP-TO-DATE
+> Task :core:app-infra:javaPreCompileDebug UP-TO-DATE
+> Task :core:app-infra:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:app-infra:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:jev:generateDebugResources UP-TO-DATE
+> Task :core:jev:packageDebugResources UP-TO-DATE
+> Task :core:jev:parseDebugLocalResources UP-TO-DATE
+> Task :core:jev:generateDebugRFile UP-TO-DATE
+> Task :core:jev:compileDebugKotlin UP-TO-DATE
+> Task :core:jev:javaPreCompileDebug UP-TO-DATE
+> Task :core:jev:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:jev:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:model:generateDebugResources UP-TO-DATE
+> Task :core:model:packageDebugResources UP-TO-DATE
+> Task :core:model:parseDebugLocalResources UP-TO-DATE
+> Task :core:model:generateDebugRFile UP-TO-DATE
+> Task :core:model:compileDebugKotlin UP-TO-DATE
+> Task :core:model:javaPreCompileDebug UP-TO-DATE
+> Task :core:model:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:model:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:settings:generateDebugResources UP-TO-DATE
+> Task :core:settings:packageDebugResources UP-TO-DATE
+> Task :core:settings:parseDebugLocalResources UP-TO-DATE
+> Task :core:settings:generateDebugRFile UP-TO-DATE
+> Task :core:settings:javaPreCompileDebug UP-TO-DATE
+> Task :core:usage:generateDebugResources UP-TO-DATE
+> Task :core:usage:packageDebugResources UP-TO-DATE
+> Task :core:usage:parseDebugLocalResources UP-TO-DATE
+> Task :core:usage:generateDebugRFile UP-TO-DATE
+> Task :core:usage:compileDebugKotlin UP-TO-DATE
+> Task :core:usage:javaPreCompileDebug UP-TO-DATE
+> Task :core:usage:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:usage:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:icloud:generateDebugResources UP-TO-DATE
+> Task :feature:icloud:packageDebugResources UP-TO-DATE
+> Task :feature:icloud:parseDebugLocalResources UP-TO-DATE
+> Task :feature:icloud:generateDebugRFile UP-TO-DATE
+> Task :feature:icloud:compileDebugKotlin UP-TO-DATE
+> Task :feature:icloud:javaPreCompileDebug UP-TO-DATE
+> Task :feature:icloud:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:icloud:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:packageDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:parseDebugLocalResources UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugRFile UP-TO-DATE
+> Task :feature:task:generateDebugResources UP-TO-DATE
+> Task :feature:task:packageDebugResources UP-TO-DATE
+> Task :feature:task:parseDebugLocalResources UP-TO-DATE
+> Task :feature:task:generateDebugRFile UP-TO-DATE
+> Task :feature:task:compileDebugKotlin UP-TO-DATE
+> Task :feature:task:javaPreCompileDebug UP-TO-DATE
+> Task :feature:task:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:task:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:terminal:generateDebugResources UP-TO-DATE
+> Task :feature:terminal:packageDebugResources UP-TO-DATE
+> Task :feature:terminal:parseDebugLocalResources UP-TO-DATE
+> Task :feature:terminal:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:generateDebugResources UP-TO-DATE
+> Task :feature:workspace:packageDebugResources UP-TO-DATE
+> Task :feature:workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:runtime:api:generateDebugResources UP-TO-DATE
+> Task :feature:runtime:api:packageDebugResources UP-TO-DATE
+> Task :feature:runtime:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:runtime:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:generateDebugResources UP-TO-DATE
+> Task :feature:tools:api:packageDebugResources UP-TO-DATE
+> Task :feature:tools:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:compileDebugKotlin UP-TO-DATE
+> Task :feature:tools:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:api:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:api:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:terminal:javaPreCompileDebug UP-TO-DATE
+> Task :feature:modelcouncil:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel:generateDebugResources UP-TO-DATE
+> Task :feature:novel:packageDebugResources UP-TO-DATE
+> Task :feature:novel:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:packageDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugKotlin UP-TO-DATE
+> Task :feature:novel-workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel-workspace:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:novel:javaPreCompileDebug UP-TO-DATE
+> Task :feature:subagent:generateDebugResources UP-TO-DATE
+> Task :feature:subagent:packageDebugResources UP-TO-DATE
+> Task :feature:subagent:parseDebugLocalResources UP-TO-DATE
+> Task :feature:subagent:generateDebugRFile UP-TO-DATE
+> Task :feature:subagent:javaPreCompileDebug UP-TO-DATE
+> Task :feature:system:generateDebugResources UP-TO-DATE
+> Task :feature:system:packageDebugResources UP-TO-DATE
+> Task :feature:system:parseDebugLocalResources UP-TO-DATE
+> Task :feature:system:generateDebugRFile UP-TO-DATE
+> Task :feature:system:compileDebugKotlin UP-TO-DATE
+> Task :feature:system:javaPreCompileDebug UP-TO-DATE
+> Task :feature:system:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:system:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:board:impl:generateDebugResources UP-TO-DATE
+> Task :feature:board:impl:packageDebugResources UP-TO-DATE
+> Task :feature:board:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:board:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:board:impl:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:access:generateDebugResources UP-TO-DATE
+> Task :feature:tools:access:packageDebugResources UP-TO-DATE
+> Task :feature:tools:access:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:access:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:access:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:impl:generateDebugResources UP-TO-DATE
+> Task :feature:tools:impl:packageDebugResources UP-TO-DATE
+> Task :feature:tools:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:impl:javaPreCompileDebug UP-TO-DATE
+> Task :app:javaPreCompileFullDebug UP-TO-DATE
+> Task :ai:mapDebugSourceSetPaths UP-TO-DATE
+> Task :ai:compileDebugLibraryResources UP-TO-DATE
+> Task :ai:writeDebugAarMetadata UP-TO-DATE
+> Task :common:writeDebugAarMetadata UP-TO-DATE
+> Task :document:writeDebugAarMetadata UP-TO-DATE
+> Task :highlight:writeDebugAarMetadata UP-TO-DATE
+> Task :search:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-runtime-impl:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-store-room:writeDebugAarMetadata UP-TO-DATE
+> Task :core:app-infra:writeDebugAarMetadata UP-TO-DATE
+> Task :core:jev:writeDebugAarMetadata UP-TO-DATE
+> Task :core:model:writeDebugAarMetadata UP-TO-DATE
+> Task :core:settings:writeDebugAarMetadata UP-TO-DATE
+> Task :core:usage:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:icloud:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:modelcouncil:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel-workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:subagent:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:system:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:task:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:terminal:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:board:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:runtime:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:access:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkFullDebugAarMetadata UP-TO-DATE
+> Task :app:compileFullDebugNavigationResources UP-TO-DATE
+> Task :core:settings:compileDebugKotlin
+> Task :app:mergeFullDebugResources UP-TO-DATE
+> Task :core:settings:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:settings:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:createFullDebugCompatibleScreenManifests UP-TO-DATE
+> Task :ai:extractDeepLinksDebug UP-TO-DATE
+> Task :ai:processDebugManifest UP-TO-DATE
+> Task :app:extractDeepLinksFullDebug UP-TO-DATE
+> Task :common:extractDeepLinksDebug UP-TO-DATE
+> Task :common:processDebugManifest UP-TO-DATE
+> Task :document:extractDeepLinksDebug UP-TO-DATE
+> Task :document:processDebugManifest UP-TO-DATE
+> Task :highlight:extractDeepLinksDebug UP-TO-DATE
+> Task :highlight:processDebugManifest UP-TO-DATE
+> Task :search:extractDeepLinksDebug UP-TO-DATE
+> Task :search:processDebugManifest UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugManifest UP-TO-DATE
+> Task :core:agent-store-room:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-store-room:processDebugManifest UP-TO-DATE
+> Task :core:app-infra:extractDeepLinksDebug UP-TO-DATE
+> Task :core:app-infra:processDebugManifest UP-TO-DATE
+> Task :core:jev:extractDeepLinksDebug UP-TO-DATE
+> Task :core:jev:processDebugManifest UP-TO-DATE
+> Task :core:model:extractDeepLinksDebug UP-TO-DATE
+> Task :core:model:processDebugManifest UP-TO-DATE
+> Task :core:settings:extractDeepLinksDebug UP-TO-DATE
+> Task :core:settings:processDebugManifest UP-TO-DATE
+> Task :core:usage:extractDeepLinksDebug UP-TO-DATE
+> Task :core:usage:processDebugManifest UP-TO-DATE
+> Task :feature:icloud:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:icloud:processDebugManifest UP-TO-DATE
+> Task :feature:modelcouncil:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:modelcouncil:processDebugManifest UP-TO-DATE
+> Task :feature:novel:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel:processDebugManifest UP-TO-DATE
+> Task :feature:novel-workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugManifest UP-TO-DATE
+> Task :feature:subagent:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:subagent:processDebugManifest UP-TO-DATE
+> Task :feature:system:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:system:processDebugManifest UP-TO-DATE
+> Task :feature:task:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:task:processDebugManifest UP-TO-DATE
+> Task :feature:terminal:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:terminal:processDebugManifest UP-TO-DATE
+> Task :feature:workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:workspace:processDebugManifest UP-TO-DATE
+> Task :feature:board:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:board:impl:processDebugManifest UP-TO-DATE
+> Task :feature:runtime:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:runtime:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:access:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:access:processDebugManifest UP-TO-DATE
+> Task :feature:tools:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:impl:processDebugManifest UP-TO-DATE
+> Task :feature:novel:compileDebugKotlin
+> Task :app:processFullDebugMainManifest UP-TO-DATE
+> Task :feature:novel:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:processFullDebugManifest UP-TO-DATE
+> Task :app:processFullDebugManifestForPackage UP-TO-DATE
+> Task :common:mapDebugSourceSetPaths UP-TO-DATE
+> Task :common:compileDebugLibraryResources UP-TO-DATE
+> Task :document:mapDebugSourceSetPaths UP-TO-DATE
+> Task :document:compileDebugLibraryResources UP-TO-DATE
+> Task :highlight:mapDebugSourceSetPaths UP-TO-DATE
+> Task :highlight:compileDebugLibraryResources UP-TO-DATE
+> Task :search:mapDebugSourceSetPaths UP-TO-DATE
+> Task :search:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-runtime-impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-store-room:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-store-room:compileDebugLibraryResources UP-TO-DATE
+> Task :core:app-infra:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:app-infra:compileDebugLibraryResources UP-TO-DATE
+> Task :core:jev:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:jev:compileDebugLibraryResources UP-TO-DATE
+> Task :core:model:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:model:compileDebugLibraryResources UP-TO-DATE
+> Task :core:settings:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:settings:compileDebugLibraryResources UP-TO-DATE
+> Task :core:usage:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:usage:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:icloud:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:icloud:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:modelcouncil:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel-workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:subagent:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:subagent:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:system:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:system:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:task:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:task:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:terminal:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:terminal:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:board:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:board:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:runtime:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:runtime:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:access:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:access:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :app:processFullDebugResources UP-TO-DATE
+> Task :app:preFullDebugUnitTestBuild
+> Task :app:javaPreCompileFullDebugUnitTest UP-TO-DATE
+> Task :ai:generateDebugAssets UP-TO-DATE
+> Task :ai:mergeDebugAssets UP-TO-DATE
+> Task :app:generateFullDebugAssets UP-TO-DATE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :common:mergeDebugAssets UP-TO-DATE
+> Task :document:generateDebugAssets UP-TO-DATE
+> Task :document:mergeDebugAssets UP-TO-DATE
+> Task :highlight:generateDebugAssets UP-TO-DATE
+> Task :highlight:mergeDebugAssets UP-TO-DATE
+> Task :search:generateDebugAssets UP-TO-DATE
+> Task :search:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:generateDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:mergeDebugAssets UP-TO-DATE
+> Task :core:app-infra:generateDebugAssets UP-TO-DATE
+> Task :core:app-infra:mergeDebugAssets UP-TO-DATE
+> Task :core:jev:generateDebugAssets UP-TO-DATE
+> Task :core:jev:mergeDebugAssets UP-TO-DATE
+> Task :core:model:generateDebugAssets UP-TO-DATE
+> Task :core:model:mergeDebugAssets UP-TO-DATE
+> Task :core:settings:generateDebugAssets UP-TO-DATE
+> Task :core:settings:mergeDebugAssets UP-TO-DATE
+> Task :core:usage:generateDebugAssets UP-TO-DATE
+> Task :core:usage:mergeDebugAssets UP-TO-DATE
+> Task :feature:icloud:generateDebugAssets UP-TO-DATE
+> Task :feature:icloud:mergeDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel:generateDebugAssets UP-TO-DATE
+> Task :feature:novel:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:subagent:generateDebugAssets UP-TO-DATE
+> Task :feature:subagent:mergeDebugAssets UP-TO-DATE
+> Task :feature:system:generateDebugAssets UP-TO-DATE
+> Task :feature:system:mergeDebugAssets UP-TO-DATE
+> Task :feature:task:generateDebugAssets UP-TO-DATE
+> Task :feature:task:mergeDebugAssets UP-TO-DATE
+> Task :feature:terminal:generateDebugAssets UP-TO-DATE
+> Task :feature:terminal:mergeDebugAssets UP-TO-DATE
+> Task :feature:workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:board:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:board:impl:mergeDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:generateDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:access:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:access:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:api:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeFullDebugAssets UP-TO-DATE
+> Task :app:packageFullDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processFullDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateFullDebugUnitTestConfig UP-TO-DATE
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :document:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :document:processDebugJavaRes UP-TO-DATE
+> Task :highlight:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :highlight:processDebugJavaRes UP-TO-DATE
+> Task :search:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :search:processDebugJavaRes UP-TO-DATE
+> Task :core:agent-runtime-impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugJavaRes UP-TO-DATE
+> Task :core:agent-store-room:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:agent-store-room:processDebugJavaRes UP-TO-DATE
+> Task :core:app-infra:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:app-infra:processDebugJavaRes UP-TO-DATE
+> Task :core:jev:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:jev:processDebugJavaRes UP-TO-DATE
+> Task :core:model:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:model:processDebugJavaRes UP-TO-DATE
+> Task :core:settings:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:settings:processDebugJavaRes UP-TO-DATE
+> Task :core:usage:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:usage:processDebugJavaRes UP-TO-DATE
+> Task :feature:icloud:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:icloud:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel-workspace:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugJavaRes UP-TO-DATE
+> Task :feature:system:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:system:processDebugJavaRes UP-TO-DATE
+> Task :feature:task:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:task:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:api:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugJavaRes UP-TO-DATE
+
+> Task :feature:workspace:compileDebugKotlin
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/feature/workspace/src/main/kotlin/app/amber/feature/workspace/WorkspaceManager.kt:242:22 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+
+> Task :feature:workspace:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:workspace:processDebugJavaRes UP-TO-DATE
+> Task :feature:workspace:bundleLibRuntimeToJarDebug
+> Task :feature:workspace:bundleLibCompileToJarDebug
+> Task :feature:runtime:api:compileDebugKotlin
+> Task :feature:runtime:api:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:runtime:api:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:terminal:compileDebugKotlin
+> Task :feature:subagent:compileDebugKotlin
+> Task :feature:terminal:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:terminal:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:board:impl:compileDebugKotlin
+> Task :feature:subagent:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:subagent:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:board:impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:board:impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugKotlin
+> Task :feature:modelcouncil:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:modelcouncil:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:processDebugJavaRes UP-TO-DATE
+> Task :feature:subagent:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:subagent:processDebugJavaRes UP-TO-DATE
+> Task :feature:terminal:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:terminal:processDebugJavaRes UP-TO-DATE
+> Task :feature:board:impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:board:impl:processDebugJavaRes UP-TO-DATE
+> Task :feature:runtime:api:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:access:compileDebugKotlin
+> Task :feature:tools:access:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:access:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:tools:access:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:access:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:impl:compileDebugKotlin
+> Task :feature:tools:impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:tools:impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:impl:processDebugJavaRes UP-TO-DATE
+> Task :app:kspFullDebugKotlin
+> Task :app:compileFullDebugKotlin
+> Task :app:compileFullDebugJavaWithJavac UP-TO-DATE
+> Task :app:processFullDebugJavaRes UP-TO-DATE
+> Task :app:bundleFullDebugClassesToCompileJar
+> Task :app:bundleFullDebugClassesToRuntimeJar
+> Task :app:kspFullDebugUnitTestKotlin
+
+> Task :app:compileFullDebugUnitTestKotlin
+e: org.jetbrains.kotlin.util.FileAnalysisException: While analysing /Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/service/ChatTitleRenameRaceTest.kt:81:24: java.io.FileNotFoundException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class (No such file or directory)
+	at org.jetbrains.kotlin.util.AnalysisExceptionsKt.wrapIntoFileAnalysisExceptionIfNeeded(AnalysisExceptions.kt:57)
+	at org.jetbrains.kotlin.fir.FirCliExceptionHandler.handleExceptionOnFileAnalysis(Utils.kt:270)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFile(FirDeclarationsResolveTransformer.kt:1940)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFile(FirAbstractBodyResolveTransformerDispatcher.kt:60)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFile(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.declarations.FirFile.transform(FirFile.kt:47)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitTypeBodyResolveTransformerAdapter.transformFile(FirImplicitBodyResolve.kt:72)
+	at org.jetbrains.kotlin.fir.declarations.FirFile.transform(FirFile.kt:47)
+	at org.jetbrains.kotlin.fir.resolve.transformers.FirTransformerBasedResolveProcessor.processFile(FirResolveProcessor.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveProcessor.process(FirTotalResolveProcessor.kt:39)
+	at org.jetbrains.kotlin.fir.pipeline.AnalyseKt.runResolution(analyse.kt:24)
+	at org.jetbrains.kotlin.fir.pipeline.FirUtilsKt.resolveAndCheckFir(firUtils.kt:78)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFrontendPipelinePhase.executePhase(JvmFrontendPipelinePhase.kt:173)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFrontendPipelinePhase.executePhase(JvmFrontendPipelinePhase.kt:55)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:68)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:58)
+	at org.jetbrains.kotlin.config.phaser.NamedCompilerPhase.invoke(CompilerPhase.kt:102)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:22)
+	at org.jetbrains.kotlin.config.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:53)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.runPhasedPipeline(AbstractCliPipeline.kt:109)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.execute(AbstractCliPipeline.kt:68)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:51)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:42)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:91)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:363)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:210)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:52)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:510)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:422)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$0$compile(IncrementalCompilerRunner.kt:252)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:270)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:122)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:764)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:107)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2026)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.io.FileNotFoundException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class (No such file or directory)
+	at java.base/java.io.IoOverNioFileSystem.convertNioToIoExceptionInStreams(IoOverNioFileSystem.java:123)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:377)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamUsingNio(IoOverNioFileSystem.java:344)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:181)
+	at org.jetbrains.kotlin.com.intellij.openapi.util.io.FileUtil.loadFileBytes(FileUtil.java:188)
+	at org.jetbrains.kotlin.cli.common.localfs.KotlinLocalVirtualFile.contentsToByteArray(KotlinLocalVirtualFile.kt:108)
+	at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCliJavaFileManagerImpl.findClass(KotlinCliJavaFileManagerImpl.kt:149)
+	at org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade$CliFinder.findClass(KotlinJavaPsiFacade.java:538)
+	at org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade.findClass(KotlinJavaPsiFacade.java:181)
+	at org.jetbrains.kotlin.load.java.JavaClassFinderImpl.findClass(JavaClassFinderImpl.kt:49)
+	at org.jetbrains.kotlin.fir.java.FirJavaFacade.findClass(FirJavaFacade.kt:74)
+	at org.jetbrains.kotlin.fir.java.deserialization.JvmClassFileBasedSymbolProvider.extractClassMetadata(JvmClassFileBasedSymbolProvider.kt:179)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.findAndDeserializeClass(AbstractFirDeserializedSymbolProvider.kt:255)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.classCache$lambda$0(AbstractFirDeserializedSymbolProvider.kt:162)
+	at org.jetbrains.kotlin.fir.caches.FirThreadUnsafeCacheWithPostCompute.getValue(FirThreadUnsafeCachesFactory.kt:74)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClass(AbstractFirDeserializedSymbolProvider.kt:342)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClass$default(AbstractFirDeserializedSymbolProvider.kt:325)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClassLikeSymbolByClassId(AbstractFirDeserializedSymbolProvider.kt:419)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.computeClass(FirCachingCompositeSymbolProvider.kt:147)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.access$computeClass(FirCachingCompositeSymbolProvider.kt:27)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider$special$$inlined$createCache$1.invoke(FirCachesFactory.kt:157)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider$special$$inlined$createCache$1.invoke(FirCachesFactory.kt:141)
+	at org.jetbrains.kotlin.fir.caches.FirThreadUnsafeCache.getValue(FirThreadUnsafeCachesFactory.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.getClassLikeSymbolByClassId(FirCachingCompositeSymbolProvider.kt:174)
+	at org.jetbrains.kotlin.fir.scopes.impl.FirAbstractImportingScope.processClassifiersFromImportsByName(FirAbstractImportingScope.kt:54)
+	at org.jetbrains.kotlin.fir.scopes.impl.FirAbstractSimpleImportingScope.processClassifiersByNameWithSubstitution(FirAbstractSimpleImportingScope.kt:32)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.ScopeBasedTowerLevel.processObjectsByName(TowerLevels.kt:514)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerLevelHandler.handleLevel(TowerLevelHandler.kt:57)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirBaseTowerResolveTask.processLevel(FirTowerResolveTask.kt:165)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirBaseTowerResolveTask.access$processLevel(FirTowerResolveTask.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolveTask.runResolverForNoReceiver(FirTowerResolveTask.kt:528)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolveTask.runResolverForNoReceiver$default(FirTowerResolveTask.kt:291)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver$enqueueResolutionTasks$2.invokeSuspend(FirTowerResolver.kt:80)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerResolveManager.resumeTask(TowerResolveManager.kt:77)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerResolveManager.runTasks(TowerResolveManager.kt:83)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver.runResolver(FirTowerResolver.kt:54)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver.runResolver(FirTowerResolver.kt:40)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.collectCandidates(FirCallResolver.kt:260)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.collectCandidates$default(FirCallResolver.kt:218)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl$lambda$0(FirCallResolver.kt:334)
+	at kotlin.UnsafeLazyImpl.getValue(Lazy.kt:100)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl$lambda$1(FirCallResolver.kt:333)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl(FirCallResolver.kt:366)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidate(FirCallResolver.kt:310)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.resolveQualifiedAccessAndSelectCandidate(FirExpressionsResolveTransformer.kt:337)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformQualifiedAccessExpression(FirExpressionsResolveTransformer.kt:199)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformAsExplicitReceiver(FirExpressionsResolveTransformer.kt:310)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformExplicitReceiverOf(FirExpressionsResolveTransformer.kt:298)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCallInternal$resolve(FirExpressionsResolveTransformer.kt:577)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCall(FirExpressionsResolveTransformer.kt:521)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:209)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirFunctionCall.transform(FirFunctionCall.kt:45)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirPropertyImpl.transformInitializer(FirPropertyImpl.kt:124)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirPropertyImpl.transformInitializer(FirPropertyImpl.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformLocalVariable(FirDeclarationsResolveTransformer.kt:681)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformProperty(FirDeclarationsResolveTransformer.kt:169)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformProperty(FirAbstractBodyResolveTransformerDispatcher.kt:512)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty$lambda$0(FirImplicitBodyResolve.kt:160)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.executeTransformation(FirImplicitBodyResolve.kt:418)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.compute$resolve(FirImplicitBodyResolve.kt:423)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.computeCachedTransformationResult(FirImplicitBodyResolve.kt:187)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty(FirImplicitBodyResolve.kt:159)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty(FirImplicitBodyResolve.kt:116)
+	at org.jetbrains.kotlin.fir.declarations.FirProperty.transform(FirProperty.kt:62)
+	at org.jetbrains.kotlin.fir.expressions.FirExpressionUtilKt.transformStatementsIndexed(FirExpressionUtil.kt:231)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlockInCurrentScope$resolve(FirExpressionsResolveTransformer.kt:755)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlock(FirExpressionsResolveTransformer.kt:746)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:236)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:36)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:13)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformer.transformBlock(FirTransformer.kt:183)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirAnonymousFunctionImpl.transformBody(FirAnonymousFunctionImpl.kt:134)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirAnonymousFunctionImpl.transformBody(FirAnonymousFunctionImpl.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionContent(FirDeclarationsResolveTransformer.kt:1110)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformAnonymousFunctionBody$lambda$0(FirDeclarationsResolveTransformer.kt:1533)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withAnonymousFunction(BodyResolveContext.kt:905)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformAnonymousFunctionBody(FirDeclarationsResolveTransformer.kt:1523)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformAnonymousFunctionBodyFromCallCompletion$resolve(FirDeclarationsResolveTransformer.kt:1513)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter$LambdaAnalyzerImpl.analyzeAndGetLambdaReturnArguments$lambda$5$2(FirCallCompleter.kt:485)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirInferenceSession.runLambdaCompletion(FirInferenceSession.kt:38)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter$LambdaAnalyzerImpl.analyzeAndGetLambdaReturnArguments(FirCallCompleter.kt:484)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyzeLambda(PostponedArgumentsAnalyzer.kt:322)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyzeLambda$default(PostponedArgumentsAnalyzer.kt:268)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyze(PostponedArgumentsAnalyzer.kt:80)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.runCompletionForCall$lambda$0(FirCallCompleter.kt:311)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.runCompletion$lambda$0(ConstraintSystemCompleter.kt:79)
+	at org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintSystemCompletionContext.analyzeArgumentWithFixedParameterTypes(ConstraintSystemCompletionContext.kt:50)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.runCompletion(ConstraintSystemCompleter.kt:78)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.complete(ConstraintSystemCompleter.kt:54)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.runCompletionForCall(FirCallCompleter.kt:304)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.completeCall(FirCallCompleter.kt:121)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCallInternal$resolve(FirExpressionsResolveTransformer.kt:598)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCall(FirExpressionsResolveTransformer.kt:521)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:209)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirFunctionCall.transform(FirFunctionCall.kt:45)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformResult(FirReturnExpressionImpl.kt:55)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformChildren(FirReturnExpressionImpl.kt:44)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformChildren(FirReturnExpressionImpl.kt:29)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformExpression(FirExpressionsResolveTransformer.kt:99)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformExpression(FirAbstractBodyResolveTransformerDispatcher.kt:155)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirControlFlowStatementsResolveTransformer.transformJump(FirControlFlowStatementsResolveTransformer.kt:177)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirControlFlowStatementsResolveTransformer.transformReturnExpression(FirControlFlowStatementsResolveTransformer.kt:198)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformReturnExpression(FirAbstractBodyResolveTransformerDispatcher.kt:751)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformReturnExpression(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirReturnExpression.transform(FirReturnExpression.kt:35)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformSingle(FirTransformerUtil.kt:13)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock.transformStatements(FirSingleExpressionBlock.kt:52)
+	at org.jetbrains.kotlin.fir.expressions.FirExpressionUtilKt.transformStatementsIndexed(FirExpressionUtil.kt:102)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlockInCurrentScope$resolve(FirExpressionsResolveTransformer.kt:755)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlock(FirExpressionsResolveTransformer.kt:746)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:236)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:36)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:13)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformer.transformBlock(FirTransformer.kt:183)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirNamedFunctionImpl.transformBody(FirNamedFunctionImpl.kt:117)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirNamedFunctionImpl.transformBody(FirNamedFunctionImpl.kt:32)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionContent(FirDeclarationsResolveTransformer.kt:1110)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionWithGivenSignature(FirDeclarationsResolveTransformer.kt:1031)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.access$transformFunctionWithGivenSignature(FirDeclarationsResolveTransformer.kt:70)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformNamedFunction$lambda$0$0$0(FirDeclarationsResolveTransformer.kt:1023)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withParameters(BodyResolveContext.kt:1526)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forFunctionBody(BodyResolveContext.kt:849)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformNamedFunction(FirDeclarationsResolveTransformer.kt:1021)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformNamedFunction(FirAbstractBodyResolveTransformerDispatcher.kt:588)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction$lambda$0(FirImplicitBodyResolve.kt:154)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.executeTransformation(FirImplicitBodyResolve.kt:418)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.compute$resolve(FirImplicitBodyResolve.kt:423)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.computeCachedTransformationResult(FirImplicitBodyResolve.kt:187)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction(FirImplicitBodyResolve.kt:153)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction(FirImplicitBodyResolve.kt:116)
+	at org.jetbrains.kotlin.fir.declarations.FirNamedFunction.transform(FirNamedFunction.kt:75)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformInplace(FirTransformerUtil.kt:20)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl.transformDeclarations(FirRegularClassImpl.kt:97)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl.transformDeclarations(FirRegularClassImpl.kt:31)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformDeclarationContent(FirImplicitBodyResolve.kt:144)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformDeclarationContent(FirDeclarationsResolveTransformer.kt:95)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformRegularClassContent$lambda$0(FirDeclarationsResolveTransformer.kt:950)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.forRegularClassBody$lambda$0(FirDeclarationsResolveTransformer.kt:959)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forRegularClassBody$lambda$0$0(BodyResolveContext.kt:1950)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withScopesForClass(BodyResolveContext.kt:674)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forRegularClassBody(BodyResolveContext.kt:499)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.forRegularClassBody(FirDeclarationsResolveTransformer.kt:958)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformRegularClassContent(FirDeclarationsResolveTransformer.kt:949)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformRegularClass(FirDeclarationsResolveTransformer.kt:853)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformRegularClass(FirAbstractBodyResolveTransformerDispatcher.kt:561)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformRegularClass(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.declarations.FirRegularClass.transform(FirRegularClass.kt:70)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformInplace(FirTransformerUtil.kt:20)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformDeclarations(FirFileImpl.kt:83)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformChildren(FirFileImpl.kt:68)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformChildren(FirFileImpl.kt:29)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformElement(FirAbstractBodyResolveTransformerDispatcher.kt:101)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformDeclarationContent(FirAbstractBodyResolveTransformerDispatcher.kt:476)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformDeclarationContent(FirImplicitBodyResolve.kt:146)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformDeclarationContent(FirDeclarationsResolveTransformer.kt:95)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformFile$lambda$0(FirDeclarationsResolveTransformer.kt:922)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.withFile(FirDeclarationsResolveTransformer.kt:935)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformFile(FirDeclarationsResolveTransformer.kt:921)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFile(FirDeclarationsResolveTransformer.kt:831)
+	... 47 more
+Caused by: java.nio.file.NoSuchFileException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:94)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:108)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:114)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:224)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:359)
+	... 213 more
+
+java.lang.RuntimeException: org.jetbrains.kotlin.util.FileAnalysisException: While analysing /Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/service/ChatTitleRenameRaceTest.kt:81:24: java.io.FileNotFoundException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class (No such file or directory)
+	at org.jetbrains.kotlin.util.AnalysisExceptionsKt.wrapIntoFileAnalysisExceptionIfNeeded(AnalysisExceptions.kt:57)
+	at org.jetbrains.kotlin.fir.FirCliExceptionHandler.handleExceptionOnFileAnalysis(Utils.kt:270)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFile(FirDeclarationsResolveTransformer.kt:1940)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFile(FirAbstractBodyResolveTransformerDispatcher.kt:60)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFile(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.declarations.FirFile.transform(FirFile.kt:47)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitTypeBodyResolveTransformerAdapter.transformFile(FirImplicitBodyResolve.kt:72)
+	at org.jetbrains.kotlin.fir.declarations.FirFile.transform(FirFile.kt:47)
+	at org.jetbrains.kotlin.fir.resolve.transformers.FirTransformerBasedResolveProcessor.processFile(FirResolveProcessor.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveProcessor.process(FirTotalResolveProcessor.kt:39)
+	at org.jetbrains.kotlin.fir.pipeline.AnalyseKt.runResolution(analyse.kt:24)
+	at org.jetbrains.kotlin.fir.pipeline.FirUtilsKt.resolveAndCheckFir(firUtils.kt:78)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFrontendPipelinePhase.executePhase(JvmFrontendPipelinePhase.kt:173)
+	at org.jetbrains.kotlin.cli.pipeline.jvm.JvmFrontendPipelinePhase.executePhase(JvmFrontendPipelinePhase.kt:55)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:68)
+	at org.jetbrains.kotlin.cli.pipeline.PipelinePhase.phaseBody(PipelinePhase.kt:58)
+	at org.jetbrains.kotlin.config.phaser.NamedCompilerPhase.invoke(CompilerPhase.kt:102)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:22)
+	at org.jetbrains.kotlin.config.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:53)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.runPhasedPipeline(AbstractCliPipeline.kt:109)
+	at org.jetbrains.kotlin.cli.pipeline.AbstractCliPipeline.execute(AbstractCliPipeline.kt:68)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:51)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecutePhased(K2JVMCompiler.kt:42)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:91)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.exec(CLICompiler.kt:363)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:210)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerBase.runCompiler(IncrementalJvmCompilerRunnerBase.kt:52)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:510)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:422)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$0$compile(IncrementalCompilerRunner.kt:252)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:270)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:122)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:764)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:107)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2026)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.io.FileNotFoundException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class (No such file or directory)
+	at java.base/java.io.IoOverNioFileSystem.convertNioToIoExceptionInStreams(IoOverNioFileSystem.java:123)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:377)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamUsingNio(IoOverNioFileSystem.java:344)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:181)
+	at org.jetbrains.kotlin.com.intellij.openapi.util.io.FileUtil.loadFileBytes(FileUtil.java:188)
+	at org.jetbrains.kotlin.cli.common.localfs.KotlinLocalVirtualFile.contentsToByteArray(KotlinLocalVirtualFile.kt:108)
+	at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCliJavaFileManagerImpl.findClass(KotlinCliJavaFileManagerImpl.kt:149)
+	at org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade$CliFinder.findClass(KotlinJavaPsiFacade.java:538)
+	at org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade.findClass(KotlinJavaPsiFacade.java:181)
+	at org.jetbrains.kotlin.load.java.JavaClassFinderImpl.findClass(JavaClassFinderImpl.kt:49)
+	at org.jetbrains.kotlin.fir.java.FirJavaFacade.findClass(FirJavaFacade.kt:74)
+	at org.jetbrains.kotlin.fir.java.deserialization.JvmClassFileBasedSymbolProvider.extractClassMetadata(JvmClassFileBasedSymbolProvider.kt:179)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.findAndDeserializeClass(AbstractFirDeserializedSymbolProvider.kt:255)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.classCache$lambda$0(AbstractFirDeserializedSymbolProvider.kt:162)
+	at org.jetbrains.kotlin.fir.caches.FirThreadUnsafeCacheWithPostCompute.getValue(FirThreadUnsafeCachesFactory.kt:74)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClass(AbstractFirDeserializedSymbolProvider.kt:342)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClass$default(AbstractFirDeserializedSymbolProvider.kt:325)
+	at org.jetbrains.kotlin.fir.deserialization.AbstractFirDeserializedSymbolProvider.getClassLikeSymbolByClassId(AbstractFirDeserializedSymbolProvider.kt:419)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.computeClass(FirCachingCompositeSymbolProvider.kt:147)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.access$computeClass(FirCachingCompositeSymbolProvider.kt:27)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider$special$$inlined$createCache$1.invoke(FirCachesFactory.kt:157)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider$special$$inlined$createCache$1.invoke(FirCachesFactory.kt:141)
+	at org.jetbrains.kotlin.fir.caches.FirThreadUnsafeCache.getValue(FirThreadUnsafeCachesFactory.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.providers.impl.FirCachingCompositeSymbolProvider.getClassLikeSymbolByClassId(FirCachingCompositeSymbolProvider.kt:174)
+	at org.jetbrains.kotlin.fir.scopes.impl.FirAbstractImportingScope.processClassifiersFromImportsByName(FirAbstractImportingScope.kt:54)
+	at org.jetbrains.kotlin.fir.scopes.impl.FirAbstractSimpleImportingScope.processClassifiersByNameWithSubstitution(FirAbstractSimpleImportingScope.kt:32)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.ScopeBasedTowerLevel.processObjectsByName(TowerLevels.kt:514)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerLevelHandler.handleLevel(TowerLevelHandler.kt:57)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirBaseTowerResolveTask.processLevel(FirTowerResolveTask.kt:165)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirBaseTowerResolveTask.access$processLevel(FirTowerResolveTask.kt:53)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolveTask.runResolverForNoReceiver(FirTowerResolveTask.kt:528)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolveTask.runResolverForNoReceiver$default(FirTowerResolveTask.kt:291)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver$enqueueResolutionTasks$2.invokeSuspend(FirTowerResolver.kt:80)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerResolveManager.resumeTask(TowerResolveManager.kt:77)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.TowerResolveManager.runTasks(TowerResolveManager.kt:83)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver.runResolver(FirTowerResolver.kt:54)
+	at org.jetbrains.kotlin.fir.resolve.calls.tower.FirTowerResolver.runResolver(FirTowerResolver.kt:40)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.collectCandidates(FirCallResolver.kt:260)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.collectCandidates$default(FirCallResolver.kt:218)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl$lambda$0(FirCallResolver.kt:334)
+	at kotlin.UnsafeLazyImpl.getValue(Lazy.kt:100)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl$lambda$1(FirCallResolver.kt:333)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidateImpl(FirCallResolver.kt:366)
+	at org.jetbrains.kotlin.fir.resolve.calls.FirCallResolver.resolveVariableAccessAndSelectCandidate(FirCallResolver.kt:310)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.resolveQualifiedAccessAndSelectCandidate(FirExpressionsResolveTransformer.kt:337)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformQualifiedAccessExpression(FirExpressionsResolveTransformer.kt:199)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformAsExplicitReceiver(FirExpressionsResolveTransformer.kt:310)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformExplicitReceiverOf(FirExpressionsResolveTransformer.kt:298)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCallInternal$resolve(FirExpressionsResolveTransformer.kt:577)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCall(FirExpressionsResolveTransformer.kt:521)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:209)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirFunctionCall.transform(FirFunctionCall.kt:45)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirPropertyImpl.transformInitializer(FirPropertyImpl.kt:124)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirPropertyImpl.transformInitializer(FirPropertyImpl.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformLocalVariable(FirDeclarationsResolveTransformer.kt:681)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformProperty(FirDeclarationsResolveTransformer.kt:169)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformProperty(FirAbstractBodyResolveTransformerDispatcher.kt:512)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty$lambda$0(FirImplicitBodyResolve.kt:160)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.executeTransformation(FirImplicitBodyResolve.kt:418)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.compute$resolve(FirImplicitBodyResolve.kt:423)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.computeCachedTransformationResult(FirImplicitBodyResolve.kt:187)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty(FirImplicitBodyResolve.kt:159)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformProperty(FirImplicitBodyResolve.kt:116)
+	at org.jetbrains.kotlin.fir.declarations.FirProperty.transform(FirProperty.kt:62)
+	at org.jetbrains.kotlin.fir.expressions.FirExpressionUtilKt.transformStatementsIndexed(FirExpressionUtil.kt:231)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlockInCurrentScope$resolve(FirExpressionsResolveTransformer.kt:755)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlock(FirExpressionsResolveTransformer.kt:746)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:236)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:36)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:13)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformer.transformBlock(FirTransformer.kt:183)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirAnonymousFunctionImpl.transformBody(FirAnonymousFunctionImpl.kt:134)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirAnonymousFunctionImpl.transformBody(FirAnonymousFunctionImpl.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionContent(FirDeclarationsResolveTransformer.kt:1110)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformAnonymousFunctionBody$lambda$0(FirDeclarationsResolveTransformer.kt:1533)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withAnonymousFunction(BodyResolveContext.kt:905)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformAnonymousFunctionBody(FirDeclarationsResolveTransformer.kt:1523)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformAnonymousFunctionBodyFromCallCompletion$resolve(FirDeclarationsResolveTransformer.kt:1513)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter$LambdaAnalyzerImpl.analyzeAndGetLambdaReturnArguments$lambda$5$2(FirCallCompleter.kt:485)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirInferenceSession.runLambdaCompletion(FirInferenceSession.kt:38)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter$LambdaAnalyzerImpl.analyzeAndGetLambdaReturnArguments(FirCallCompleter.kt:484)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyzeLambda(PostponedArgumentsAnalyzer.kt:322)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyzeLambda$default(PostponedArgumentsAnalyzer.kt:268)
+	at org.jetbrains.kotlin.fir.resolve.inference.PostponedArgumentsAnalyzer.analyze(PostponedArgumentsAnalyzer.kt:80)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.runCompletionForCall$lambda$0(FirCallCompleter.kt:311)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.runCompletion$lambda$0(ConstraintSystemCompleter.kt:79)
+	at org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintSystemCompletionContext.analyzeArgumentWithFixedParameterTypes(ConstraintSystemCompletionContext.kt:50)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.runCompletion(ConstraintSystemCompleter.kt:78)
+	at org.jetbrains.kotlin.fir.resolve.inference.ConstraintSystemCompleter.complete(ConstraintSystemCompleter.kt:54)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.runCompletionForCall(FirCallCompleter.kt:304)
+	at org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter.completeCall(FirCallCompleter.kt:121)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCallInternal$resolve(FirExpressionsResolveTransformer.kt:598)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformFunctionCall(FirExpressionsResolveTransformer.kt:521)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:209)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformFunctionCall(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirFunctionCall.transform(FirFunctionCall.kt:45)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformResult(FirReturnExpressionImpl.kt:55)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformChildren(FirReturnExpressionImpl.kt:44)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirReturnExpressionImpl.transformChildren(FirReturnExpressionImpl.kt:29)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformExpression(FirExpressionsResolveTransformer.kt:99)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformExpression(FirAbstractBodyResolveTransformerDispatcher.kt:155)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirControlFlowStatementsResolveTransformer.transformJump(FirControlFlowStatementsResolveTransformer.kt:177)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirControlFlowStatementsResolveTransformer.transformReturnExpression(FirControlFlowStatementsResolveTransformer.kt:198)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformReturnExpression(FirAbstractBodyResolveTransformerDispatcher.kt:751)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformReturnExpression(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirReturnExpression.transform(FirReturnExpression.kt:35)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformSingle(FirTransformerUtil.kt:13)
+	at org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock.transformStatements(FirSingleExpressionBlock.kt:52)
+	at org.jetbrains.kotlin.fir.expressions.FirExpressionUtilKt.transformStatementsIndexed(FirExpressionUtil.kt:102)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlockInCurrentScope$resolve(FirExpressionsResolveTransformer.kt:755)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer.transformBlock(FirExpressionsResolveTransformer.kt:746)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:236)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformBlock(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:36)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirPartialBodyResolveTransformer.transformElement(FirPartialBodyResolveTransformer.kt:13)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformer.transformBlock(FirTransformer.kt:183)
+	at org.jetbrains.kotlin.fir.expressions.FirBlock.transform(FirBlock.kt:33)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirNamedFunctionImpl.transformBody(FirNamedFunctionImpl.kt:117)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirNamedFunctionImpl.transformBody(FirNamedFunctionImpl.kt:32)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionContent(FirDeclarationsResolveTransformer.kt:1110)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFunctionWithGivenSignature(FirDeclarationsResolveTransformer.kt:1031)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.access$transformFunctionWithGivenSignature(FirDeclarationsResolveTransformer.kt:70)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformNamedFunction$lambda$0$0$0(FirDeclarationsResolveTransformer.kt:1023)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withParameters(BodyResolveContext.kt:1526)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forFunctionBody(BodyResolveContext.kt:849)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformNamedFunction(FirDeclarationsResolveTransformer.kt:1021)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformNamedFunction(FirAbstractBodyResolveTransformerDispatcher.kt:588)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction$lambda$0(FirImplicitBodyResolve.kt:154)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.executeTransformation(FirImplicitBodyResolve.kt:418)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession.compute$resolve(FirImplicitBodyResolve.kt:423)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.computeCachedTransformationResult(FirImplicitBodyResolve.kt:187)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction(FirImplicitBodyResolve.kt:153)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformNamedFunction(FirImplicitBodyResolve.kt:116)
+	at org.jetbrains.kotlin.fir.declarations.FirNamedFunction.transform(FirNamedFunction.kt:75)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformInplace(FirTransformerUtil.kt:20)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl.transformDeclarations(FirRegularClassImpl.kt:97)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl.transformDeclarations(FirRegularClassImpl.kt:31)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformDeclarationContent(FirImplicitBodyResolve.kt:144)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformDeclarationContent(FirDeclarationsResolveTransformer.kt:95)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformRegularClassContent$lambda$0(FirDeclarationsResolveTransformer.kt:950)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.forRegularClassBody$lambda$0(FirDeclarationsResolveTransformer.kt:959)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forRegularClassBody$lambda$0$0(BodyResolveContext.kt:1950)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.withScopesForClass(BodyResolveContext.kt:674)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.BodyResolveContext.forRegularClassBody(BodyResolveContext.kt:499)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.forRegularClassBody(FirDeclarationsResolveTransformer.kt:958)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformRegularClassContent(FirDeclarationsResolveTransformer.kt:949)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformRegularClass(FirDeclarationsResolveTransformer.kt:853)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformRegularClass(FirAbstractBodyResolveTransformerDispatcher.kt:561)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformRegularClass(FirAbstractBodyResolveTransformerDispatcher.kt:27)
+	at org.jetbrains.kotlin.fir.declarations.FirRegularClass.transform(FirRegularClass.kt:70)
+	at org.jetbrains.kotlin.fir.visitors.FirTransformerUtilKt.transformInplace(FirTransformerUtil.kt:20)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformDeclarations(FirFileImpl.kt:83)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformChildren(FirFileImpl.kt:68)
+	at org.jetbrains.kotlin.fir.declarations.impl.FirFileImpl.transformChildren(FirFileImpl.kt:29)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformElement(FirAbstractBodyResolveTransformerDispatcher.kt:101)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformerDispatcher.transformDeclarationContent(FirAbstractBodyResolveTransformerDispatcher.kt:476)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirImplicitAwareBodyResolveTransformer.transformDeclarationContent(FirImplicitBodyResolve.kt:146)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformDeclarationContent(FirDeclarationsResolveTransformer.kt:95)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformFile$lambda$0(FirDeclarationsResolveTransformer.kt:922)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.withFile(FirDeclarationsResolveTransformer.kt:935)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.doTransformFile(FirDeclarationsResolveTransformer.kt:921)
+	at org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirDeclarationsResolveTransformer.transformFile(FirDeclarationsResolveTransformer.kt:831)
+	... 47 more
+Caused by: java.nio.file.NoSuchFileException: /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/review/ReflectionFixture.class
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:94)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:108)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:114)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:224)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:359)
+	... 213 more
+
+	at org.jetbrains.kotlin.buildtools.internal.KotlinLoggerMessageCollectorAdapter.report(KotlinLoggerMessageCollectorAdapter.kt:19)
+	at org.jetbrains.kotlin.cli.common.messages.MessageCollector.report$default(MessageCollector.kt:12)
+	at org.jetbrains.kotlin.daemon.client.BasicCompilerServicesWithResultsFacadeServerKt.reportFromDaemon(BasicCompilerServicesWithResultsFacadeServer.kt:58)
+	at org.jetbrains.kotlin.daemon.client.BasicCompilerServicesWithResultsFacadeServer.report(BasicCompilerServicesWithResultsFacadeServer.kt:37)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.BtaCompilerServicesWithResultsFacade.report(JvmCompilationOperationImpl.kt:532)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+e: Daemon compilation failed
+java.lang.Exception
+	at org.jetbrains.kotlin.daemon.common.CompileService$CallResult$Error.get(CompileService.kt:69)
+	at org.jetbrains.kotlin.daemon.common.CompileService$CallResult$Error.get(CompileService.kt:65)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.compileWithDaemon(JvmCompilationOperationImpl.kt:303)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.executeCancellableImpl(JvmCompilationOperationImpl.kt:152)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.executeCancellableImpl(JvmCompilationOperationImpl.kt:69)
+	at org.jetbrains.kotlin.buildtools.internal.CancellableBuildOperationImpl.executeImpl(CancellableBuildOperationImpl.kt:58)
+	at org.jetbrains.kotlin.buildtools.internal.BuildOperationImpl.execute(BuildOperationImpl.kt:34)
+	at org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl$BuildSessionImpl.executeOperation$lambda$1(KotlinToolchainsImpl.kt:70)
+	at org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl$BuildSessionImpl.executeOperation(KotlinToolchainsImpl.kt:74)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.performCompilation(BuildToolsApiCompilationWork.kt:172)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.compileInDaemon(BuildToolsApiCompilationWork.kt:244)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.execute(BuildToolsApiCompilationWork.kt:285)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.nio.file.NoSuchFileException: /var/folders/2c/0pbv0ybx6h1crqbxq9zft5780000gn/T/kotlin-backups13988814472313314597/87.backup -> /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/core/jev/JevWebGoalRunnerTest$stepsExhaustedAfterBound$1.class
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:94)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:108)
+	at java.base/sun.nio.fs.UnixFileSystem.move(UnixFileSystem.java:939)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.move(UnixFileSystemProvider.java:309)
+	at java.base/java.nio.file.Files.move(Files.java:1431)
+	at org.jetbrains.kotlin.incremental.RecoverableCompilationTransaction.revertChanges(CompilationTransaction.kt:230)
+	at org.jetbrains.kotlin.incremental.RecoverableCompilationTransaction.close(CompilationTransaction.kt:255)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:727)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:122)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:764)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:107)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2026)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	... 3 more
+w: Failed to compile with Kotlin daemon: java.lang.Exception
+	at org.jetbrains.kotlin.daemon.common.CompileService$CallResult$Error.get(CompileService.kt:69)
+	at org.jetbrains.kotlin.daemon.common.CompileService$CallResult$Error.get(CompileService.kt:65)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.compileWithDaemon(JvmCompilationOperationImpl.kt:303)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.executeCancellableImpl(JvmCompilationOperationImpl.kt:152)
+	at org.jetbrains.kotlin.buildtools.internal.jvm.operations.JvmCompilationOperationImpl.executeCancellableImpl(JvmCompilationOperationImpl.kt:69)
+	at org.jetbrains.kotlin.buildtools.internal.CancellableBuildOperationImpl.executeImpl(CancellableBuildOperationImpl.kt:58)
+	at org.jetbrains.kotlin.buildtools.internal.BuildOperationImpl.execute(BuildOperationImpl.kt:34)
+	at org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl$BuildSessionImpl.executeOperation$lambda$1(KotlinToolchainsImpl.kt:70)
+	at org.jetbrains.kotlin.buildtools.internal.KotlinToolchainsImpl$BuildSessionImpl.executeOperation(KotlinToolchainsImpl.kt:74)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.performCompilation(BuildToolsApiCompilationWork.kt:172)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.compileInDaemon(BuildToolsApiCompilationWork.kt:244)
+	at org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork.execute(BuildToolsApiCompilationWork.kt:285)
+	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:68)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:64)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:61)
+	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:102)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:61)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
+	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:210)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:205)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:67)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:167)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:60)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:54)
+	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
+	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:58)
+	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$0(DefaultWorkerExecutor.java:176)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:194)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:127)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:169)
+	at org.gradle.internal.Factories$1.create(Factories.java:30)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.lambda$withLocksAcquired$0(DefaultWorkerLeaseService.java:275)
+	at org.gradle.internal.work.ResourceLockStatistics$1.measure(ResourceLockStatistics.java:43)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocksAcquired(DefaultWorkerLeaseService.java:273)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:265)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:128)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:133)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:164)
+	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:133)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.nio.file.NoSuchFileException: /var/folders/2c/0pbv0ybx6h1crqbxq9zft5780000gn/T/kotlin-backups13988814472313314597/87.backup -> /Users/arquiel/Downloads/AI/amberagent-Android/app/build/intermediates/built_in_kotlinc/fullDebugUnitTest/compileFullDebugUnitTestKotlin/classes/app/amber/core/jev/JevWebGoalRunnerTest$stepsExhaustedAfterBound$1.class
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:94)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:108)
+	at java.base/sun.nio.fs.UnixFileSystem.move(UnixFileSystem.java:939)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.move(UnixFileSystemProvider.java:309)
+	at java.base/java.nio.file.Files.move(Files.java:1431)
+	at org.jetbrains.kotlin.incremental.RecoverableCompilationTransaction.revertChanges(CompilationTransaction.kt:230)
+	at org.jetbrains.kotlin.incremental.RecoverableCompilationTransaction.close(CompilationTransaction.kt:255)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:727)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:122)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:764)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:107)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:2026)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(UnicastServerRef.java:360)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:200)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Transport.java:197)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:714)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Transport.java:196)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(TCPTransport.java:598)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(TCPTransport.java:844)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(TCPTransport.java:721)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(TCPTransport.java:720)
+	... 3 more
+Using fallback strategy: Compile without Kotlin daemon
+Try ./gradlew --stop if this issue persists
+If it does not look related to your configuration, please file an issue with logs to https://kotl.in/issue
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/RouteNavigationMotionTest.kt:41:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:64:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:75:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:86:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:101:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:112:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceDocumentsWriteTest.kt:176:31 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceManagerMirrorIsolationTest.kt:297:36 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/sync/BackupArtifactTreeProvider.kt:39:29 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:79:30 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:80:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:82:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:86:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:89:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:94:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:99:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:104:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:110:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:115:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:121:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:127:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:132:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:136:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:140:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:144:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:146:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:150:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:152:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:156:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:182:19 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:182:42 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/replay/ReplayGoldenTest.kt:1167:13 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/replay/ReplayGoldenTest.kt:1171:24 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:70:22 Unnecessary safe call on a non-null receiver of type 'MarkdownTableData'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:93:61 Unnecessary safe call on a non-null receiver of type 'MarkdownTableData'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:99:19 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:99:58 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingMarkdownMotionTest.kt:111:13 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingMarkdownMotionTest.kt:111:52 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingPlainTextComposeTest.kt:51:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/ChatGenerationRoundEngineTest.kt:304:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Conversation'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:107:62 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:108:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:109:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:110:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:111:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:119:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:120:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:258:65 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/conversation/exchange/ConversationExchangeServiceTest.kt:101:22 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/conversation/exchange/ConversationExchangeServiceTest.kt:127:29 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevMemoryCorpusBaselineTest.kt:112:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevScreenCorpusBaselineTest.kt:65:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevToolCorpusBaselineTest.kt:104:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/service/ConversationEditorTest.kt:202:77 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:285:51 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:299:47 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:312:47 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/home/NovelWorkspaceContinueSourceTest.kt:46:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:78:22 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:79:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:84:74 'static fun obtain(): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/miniapp/MiniAppSourceEditorVersionTest.kt:75:30 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MiniAppEntity'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/miniapp/MiniAppSystemCapabilityBridgeTest.kt:282:16 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:11:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:18:65 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:19:65 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:24:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:33:60 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:40:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:48:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:52:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:61:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:64:60 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/reminder/ReminderOwnerTest.kt:28:25 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/subagent/SubAgentThreadGraphIntegrationTest.kt:1272:24 Unnecessary non-null assertion (!!) on a non-null receiver of type 'suspend (GenerationTerminal) -> Unit'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/tools/ScreenAutomationAcceptanceTest.kt:226:42 'static fun obtain(): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/tools/ScreenAutomationAcceptanceTest.kt:247:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/ComposerInteractionTest.kt:50:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/ModelMenuInteractionTest.kt:64:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/SubAgentDockInteractionTest.kt:40:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ds/GraphiteComposePipelineTest.kt:23:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatDocumentOpenTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatMessageLongPressTest.kt:42:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatMessageTouchTargetTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatToolApprovalCardNoticeTest.kt:33:19 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/SubAgentCitationInteractionTest.kt:39:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/WidgetDialogLifecycleTest.kt:32:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/JvmMdTreeTest.kt:31:26 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/JvmMdTreeTest.kt:39:26 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownEdgeShapeRenderTest.kt:65:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownRendererSnapshotTest.kt:105:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownTreeParityTest.kt:289:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ui/CardGroupDynamicContentTest.kt:24:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/webmount/WebMountTaskCardTest.kt:51:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/hooks/ColorModeStateTest.kt:26:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/backup/BackupVMRestoreCleanupTest.kt:112:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/board/TodayBoardSettingsPaneTest.kt:43:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatConfigurationHintTest.kt:29:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatEmptyContentTest.kt:41:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatEmptyContentTest.kt:116:13 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatListNormalAnchorTest.kt:52:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatTailGrowthHoldTest.kt:27:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatTimelineEffectsTest.kt:40:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/councilroom/CouncilTimelineInteractionTest.kt:43:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/extensions/SkillsLayoutTest.kt:31:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/miniapp/MiniAppSourceEditorLayoutTest.kt:36:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/miniapp/MiniAppThemeProviderTest.kt:31:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownChapterReaderTest.kt:48:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownMaterialSheetsTest.kt:28:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownReviewCardsTest.kt:42:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownReviewSheetsTest.kt:37:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspaceMotionTest.kt:45:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspacePageTest.kt:27:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelWorkspaceContinuityReportUiTest.kt:30:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelWorkspacePaneInteractionTest.kt:46:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/sessionhome/HomeCompactLayoutTest.kt:66:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ExperimentActionButtonTest.kt:26:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ModelContextWindowInputTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ModelPickerSheetTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ProviderFileImportPreviewTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ProviderModelRowTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/SettingAgentMemoryLayoutTest.kt:36:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/SettingModelPagePromptTest.kt:42:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/webmount/WebMountSessionHeaderTest.kt:36:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/review/TerminalUtf8OutputTest.kt:21:86 This class is not recommended for use in Kotlin. Use 'kotlin.Function0' instead.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/review/TerminalUtf8OutputTest.kt:21:130 This class is not recommended for use in Kotlin. Use 'kotlin.Function1' instead.
+
+> Task :app:compileFullDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processFullDebugUnitTestJavaRes
+> Task :app:testFullDebugUnitTest
+
+BUILD SUCCESSFUL in 2m 42s
+497 actionable tasks: 20 executed, 477 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

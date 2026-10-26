@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.ComposerLogicTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:52.265Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="plus_opensCapsule_thenCollapses" classname="app.amber.feature.ui.components.ai.ComposerLogicTest" time="0.002"/>
+  <testcase name="send_dimWhenEmpty" classname="app.amber.feature.ui.components.ai.ComposerLogicTest" time="0.0"/>
+  <testcase name="send_enabledWhileStreamingForStop" classname="app.amber.feature.ui.components.ai.ComposerLogicTest" time="0.0"/>
+  <testcase name="send_litOnDraft" classname="app.amber.feature.ui.components.ai.ComposerLogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

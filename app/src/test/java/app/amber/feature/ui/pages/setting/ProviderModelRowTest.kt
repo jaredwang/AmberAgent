@@ -38,10 +38,10 @@ class ProviderModelRowTest {
     val compose = createComposeRule()
 
     @Test
-    fun swipeActionsStayHiddenUntilRevealedAndDoNotInterceptForegroundActions() {
+    fun swipeZoneHiddenAtRestMenuActionsWorkAndSwipeDeletes() {
         val context = ApplicationProvider.getApplicationContext<Application>()
-        val cancel = context.getString(R.string.cancel)
-        val delete = context.getString(R.string.chat_page_delete)
+        val delete = context.getString(R.string.delete)
+        val moreOptions = context.getString(R.string.more_options)
         val setCurrent = context.getString(R.string.setting_provider_page_model_set_current)
         var currentChanges = 0
         var editorOpens = 0
@@ -64,25 +64,22 @@ class ProviderModelRowTest {
             }
         }
 
-        compose.onNodeWithContentDescription(cancel).assertDoesNotExist()
-        compose.onNodeWithContentDescription(delete).assertDoesNotExist()
-        compose.onNodeWithText(setCurrent).performClick()
+        // 2026-09-13 fix: the delete zone is not composed while the row is at rest.
+        compose.onNodeWithText(delete).assertDoesNotExist()
+
         compose.onNodeWithText("qwen3.8-flash").performClick()
+        assertEquals(1, editorOpens)
+
+        compose.onNodeWithContentDescription(moreOptions).performClick()
+        compose.onNodeWithText(setCurrent).assertIsDisplayed().performClick()
         assertEquals(1, currentChanges)
         assertEquals(1, editorOpens)
         assertEquals(0, deletions)
 
         compose.onNodeWithTag("model-row").performTouchInput { swipeLeft() }
-        compose.onNodeWithContentDescription(delete).assertIsDisplayed()
-        assertEquals(0, deletions)
-        compose.onNodeWithContentDescription(cancel).performClick()
-        compose.onNodeWithContentDescription(delete).assertDoesNotExist()
-        compose.onNodeWithText(setCurrent).assertIsDisplayed()
-
-        compose.onNodeWithTag("model-row").performTouchInput { swipeLeft() }
-        compose.onNodeWithContentDescription(delete).performClick()
+        compose.waitForIdle()
         assertEquals(1, deletions)
-        compose.onNodeWithContentDescription(cancel).assertDoesNotExist()
-        compose.onNodeWithContentDescription(delete).assertDoesNotExist()
+        assertEquals(1, editorOpens)
+        compose.onNodeWithText(delete).assertDoesNotExist()
     }
 }

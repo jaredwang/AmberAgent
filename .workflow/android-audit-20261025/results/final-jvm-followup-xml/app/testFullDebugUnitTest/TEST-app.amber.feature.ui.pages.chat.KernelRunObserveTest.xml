@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.KernelRunObserveTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:58.158Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="null runId yields null status" classname="app.amber.feature.ui.pages.chat.KernelRunObserveTest" time="0.005"/>
+  <testcase name="runId change switches observation to new run via flatMapLatest" classname="app.amber.feature.ui.pages.chat.KernelRunObserveTest" time="0.005"/>
+  <testcase name="runId set propagates runner status" classname="app.amber.feature.ui.pages.chat.KernelRunObserveTest" time="0.003"/>
+  <testcase name="runId cleared yields null again" classname="app.amber.feature.ui.pages.chat.KernelRunObserveTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

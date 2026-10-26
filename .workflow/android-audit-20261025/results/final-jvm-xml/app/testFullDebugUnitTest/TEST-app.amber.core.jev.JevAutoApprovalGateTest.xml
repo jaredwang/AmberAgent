@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevAutoApprovalGateTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.965Z" hostname="duguangdeMBP.lan" time="0.046">
+  <properties/>
+  <testcase name="offNeverCallsNetwork" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.007"/>
+  <testcase name="riskAboveThresholdEscalates" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.014"/>
+  <testcase name="shadowObservesInBackgroundAndNeverEscalates" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.003"/>
+  <testcase name="activeNeverSendsArgumentBodiesOrEarlierUserMessages" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.008"/>
+  <testcase name="exfiltrationEscalatesEvenWhenRequested" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.003"/>
+  <testcase name="shadowNeverSendsArgumentBodiesOrEarlierUserMessages" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.004"/>
+  <testcase name="parameterSummaryOnlyAllowsTypedMetadata" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.0"/>
+  <testcase name="explicitlyRequestedOperationIsNotEscalated" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.004"/>
+  <testcase name="subagentTaskTextCannotAuthorizeItself" classname="app.amber.core.jev.JevAutoApprovalGateTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

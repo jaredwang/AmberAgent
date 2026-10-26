@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.ThemeDesignTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:08.004Z" hostname="duguangdeMBP.lan" time="0.02">
+  <properties/>
+  <testcase name="invalid text contrast and missing paired gradient palettes are reported" classname="app.amber.core.settings.ThemeDesignTest" time="0.012"/>
+  <testcase name="portable design round trips all render and preserved brand fields" classname="app.amber.core.settings.ThemeDesignTest" time="0.007"/>
+  <testcase name="rgb parser accepts portable forms and rejects alpha" classname="app.amber.core.settings.ThemeDesignTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

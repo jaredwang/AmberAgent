@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.reminder.ReminderToolsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:45.411Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="crud tools use durable store and reschedule changes" classname="app.amber.feature.reminder.ReminderToolsTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

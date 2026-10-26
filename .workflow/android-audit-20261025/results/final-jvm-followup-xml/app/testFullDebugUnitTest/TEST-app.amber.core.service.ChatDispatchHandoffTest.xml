@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatDispatchHandoffTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.134Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="same dispatch job transfers to a successor without waiting for its model work" classname="app.amber.core.service.ChatDispatchHandoffTest" time="0.006"/>
+  <testcase name="old pause completion cannot clear a newer approval dispatch with the same run id" classname="app.amber.core.service.ChatDispatchHandoffTest" time="0.003"/>
+  <testcase name="ordinary pause releases the owner when its dispatch completes" classname="app.amber.core.service.ChatDispatchHandoffTest" time="0.001"/>
+  <testcase name="stopped dispatch retains ownership until its real session job finishes cleanup" classname="app.amber.core.service.ChatDispatchHandoffTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

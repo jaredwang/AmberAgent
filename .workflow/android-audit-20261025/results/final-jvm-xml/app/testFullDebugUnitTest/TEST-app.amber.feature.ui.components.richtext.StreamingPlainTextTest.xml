@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:59.895Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="strip_preserves_nested_list_indentation" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="open_code_fence_does_not_gain_stray_backtick" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.001"/>
+  <testcase name="strip_removes_setext_underline" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="unit_count_is_pinned_for_mixed_content" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="strip_keeps_hashtag_without_space" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="from_at_length_returns_length" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="newline_then_word_is_one_unit" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="hangul_syllables_are_single_units" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="ideographic_space_separates_cjk_units" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="strip_removes_document_markers_but_keeps_text" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="unpaired_inline_marker_gets_closer" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="closed_markers_are_left_alone" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="strip_keeps_code_fence_content" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="strip_collapses_extra_blank_lines" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <testcase name="zwj_emoji_cluster_stays_one_unit" classname="app.amber.feature.ui.components.richtext.StreamingPlainTextTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

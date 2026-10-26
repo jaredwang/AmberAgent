@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.reminder.ReminderOwnerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:45.393Z" hostname="duguangdeMBP.lan" time="0.017">
+  <properties/>
+  <testcase name="store commit fire advances durable snapshot and rejects duplicate" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.004"/>
+  <testcase name="receiver decision only accepts current fire key and requests notify plus reschedule" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.0"/>
+  <testcase name="delayed schedule after deletion cannot recreate an alarm" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.003"/>
+  <testcase name="remove rejects path traversal id" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <testcase name="next fire uses epoch duration across daylight saving boundaries" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <testcase name="scheduler fire key and reschedule all are idempotent" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.002"/>
+  <testcase name="delayed disabled snapshot cannot cancel a newly enabled reminder" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <testcase name="scheduler chooses inexact and labels denial" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <testcase name="corrupt record remains visible and disabled" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <testcase name="store round trip and atomic update keep durable snapshot" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.002"/>
+  <testcase name="delayed older snapshot cannot replace the current durable alarm" classname="app.amber.feature.reminder.ReminderOwnerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

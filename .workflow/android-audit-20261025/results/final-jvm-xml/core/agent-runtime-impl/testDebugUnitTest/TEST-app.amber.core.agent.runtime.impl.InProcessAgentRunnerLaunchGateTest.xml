@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:25.575Z" hostname="duguangdeMacBook-Pro.local" time="0.257">
+  <properties/>
+  <testcase name="settlement captures current activations without following a later same run resume" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.144"/>
+  <testcase name="settlement waits for handler finally and durable cancellation after the fast cancelled snapshot" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.013"/>
+  <testcase name="second launch against a live RUNNING run never disturbs the live activation" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.03"/>
+  <testcase name="cancel reaches the live activation after a rejected duplicate launch" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.004"/>
+  <testcase name="appendRun conflict with a terminal row never runs the handler" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.003"/>
+  <testcase name="cancel arriving inside the resume-CAS gate window is not swallowed" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.004"/>
+  <testcase name="settlement follows the current approval resume under the same run id" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.006"/>
+  <testcase name="settling one run does not wait for an unrelated running agent" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.007"/>
+  <testcase name="appendRun failure fails the snapshot and never runs the handler" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.002"/>
+  <testcase name="paused row runs the handler only through an Applied resume CAS" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.003"/>
+  <testcase name="cold-start recovery blocks durable append and handler until ready" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.003"/>
+  <testcase name="cancel arriving inside the fresh-launch gate window is not swallowed" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.001"/>
+  <testcase name="gate window without a cancel runs the handler normally" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.001"/>
+  <testcase name="cold-start recovery failure never appends a row or invokes the handler" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.003"/>
+  <testcase name="handler artifact survives a domain completion before generic CAS" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.002"/>
+  <testcase name="launch captures context before a queued handler executes" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.005"/>
+  <testcase name="settlement includes a cancelled activation before its launch gate starts" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerLaunchGateTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

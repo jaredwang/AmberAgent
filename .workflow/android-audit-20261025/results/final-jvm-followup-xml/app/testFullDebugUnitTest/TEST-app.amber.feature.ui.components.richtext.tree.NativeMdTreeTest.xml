@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" tests="59" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:54.495Z" hostname="duguangdeMBP.lan" time="0.023">
+  <properties/>
+  <testcase name="sample09_indentedBlocks_isFencedCode_false_via_kindByte" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.003"/>
+  <testcase name="taskCheckedUppercaseX" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="codeFenceEndOffsetNullForTruncatedFence" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="isFencedCodeFalseForNonCodeBlock" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="fencedCodeLangKotlin" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="codeFenceContentRangeNullForIndented" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="isAutolinkFalseForInlineLink" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="findChildOfTypeRecursiveIsPreOrderDfs" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="childrenAndNextSiblingMatchSourceOrder" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="taskCheckedStates" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="cjkHeadingTextInIsExactChineseSubstring" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="translatorIsNullForPureAscii" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="headingLevelsH1ToH6" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="translatorMapsCjkBytesToChars" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="orderedListStartIsSeven" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="codeFenceContentRangeSlicesBodyWithoutFences" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="blockquoteTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="textInRoundTripMatchesSourceSubstring" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="paragraphTypeSpotCheck" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="sample31_fencedBlocks_isFencedCode_true" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.006"/>
+  <testcase name="inlineLinkChildrenAndLabelReconstruction" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="codeFenceEndOffsetNullForIndented" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="findChildOfTypeRecursiveNullWhenAbsent" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="imageTypeMappingAndSrc" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="headingLevelNullForNonHeading" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="rootMapsToRootType" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="linkLabelAndInnerTextForImage" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="indentedCodeLangNull" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="tableAlignmentsAlwaysNull" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="fencedCodeNoLangIsNull" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="cjkParagraphTextInRoundTripsAgainstUtf8Source" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="inlineCodeTextInRoundTrip" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="sample07_fencedBlocks_isFencedCode_true_via_kindByte" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="mathBlockAndInlineTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="tableTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="linkLabelNullForNonLink" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="isAutolinkTrueForAngleBracketForm" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="inlineCodeTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="headingContentChildrenAreFlatInline" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="codeFenceEndOffsetSetForClosedFence" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="unorderedListStartNull" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="strikethroughTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="emphasisAndStrongTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="horizontalRuleTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="linkInnerTextDigsInnermostTextForNestedEmphasis" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="translatorHandlesSurrogatePairEmoji" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="htmlBlockTypeMapping" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="translatorHandlesMixedCjkAsciiAndClampsOutOfRange" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="emphasisContentChildrenReconstructInnerText" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="isBlockquoteMarkerAlwaysFalse" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="isFencedCodeTrueForFencedFalseForIndented" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="lastChildNextSiblingIsNull" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="findChildOfTypeRecursiveReturnsSelfWhenMatching" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="isAutolinkFalseForNonLink" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="cjkCodeFenceContentRangeSlicesTranslatedCharOffsets" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="linkTitleNotReadByRenderer" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="asciiFastPathOffsetsIdenticalToByteOffsets" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <testcase name="contentChildrenEqualsChildren" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.001"/>
+  <testcase name="inlineLinkHrefExtraction" classname="app.amber.feature.ui.components.richtext.tree.NativeMdTreeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

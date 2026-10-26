@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSourceVersionConcurrencyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.859Z" hostname="duguangdeMBP.lan" time="0.037">
+  <properties/>
+  <testcase name="savingSourcePreservesMetadataChangedAfterEditorOpened" classname="app.amber.feature.miniapp.MiniAppSourceVersionConcurrencyTest" time="0.014"/>
+  <testcase name="staleSourceEditCannotOverwriteANewerHtmlVersion" classname="app.amber.feature.miniapp.MiniAppSourceVersionConcurrencyTest" time="0.011"/>
+  <testcase name="savingCapturedSourceCannotResurrectDeletedApp" classname="app.amber.feature.miniapp.MiniAppSourceVersionConcurrencyTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

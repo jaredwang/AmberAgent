@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.GoogleProviderMessageTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:01.943Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="image encoding failure should fail instead of dropping image part" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.003"/>
+  <testcase name="request keeps function tools when model also enables built in tools" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.003"/>
+  <testcase name="parallel tool calls should be in same model message" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.001"/>
+  <testcase name="functionResponse should contain correct result structure" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.0"/>
+  <testcase name="user message parts should be correctly formatted" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.0"/>
+  <testcase name="complex multi-round scenario with interleaved content" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.001"/>
+  <testcase name="multi-round tool calls should produce functionCall followed by functionResponse" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.0"/>
+  <testcase name="reasoning parts should have thought flag set to true" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.0"/>
+  <testcase name="non streaming inline image includes its data URI prefix" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.004"/>
+  <testcase name="multiple system messages preserve order in system instruction" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.001"/>
+  <testcase name="functionCall in model should be followed by user message with functionResponse" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.0"/>
+  <testcase name="multi-round reasoning and tools should maintain correct order" classname="app.amber.ai.provider.providers.GoogleProviderMessageTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

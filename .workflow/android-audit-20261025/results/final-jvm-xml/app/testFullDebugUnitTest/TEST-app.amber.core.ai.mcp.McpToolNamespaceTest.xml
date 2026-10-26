@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.mcp.McpToolNamespaceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.647Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="legacyMultiMatchIsRejectedAsAmbiguous" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="twoServersSameToolNameGetDistinctNamespacedNames" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="specialCharactersAreSanitizedAndStillResolve" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="namespacedNameWinsOverLegacyLookup" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="overlongNamesAreTruncatedDeterministicallyAndStayResolvable" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="legacyUniqueAliasRoutesToTheOnlyServer" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="unknownNameIsNotFound" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="displayNameIsDecoupledFromProtocolName" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <testcase name="sanitizationCollisionGetsStableHashSuffixNotOrderNumbering" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.001"/>
+  <testcase name="caseOnlyDifferencesKeepDistinctNames" classname="app.amber.core.ai.mcp.McpToolNamespaceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

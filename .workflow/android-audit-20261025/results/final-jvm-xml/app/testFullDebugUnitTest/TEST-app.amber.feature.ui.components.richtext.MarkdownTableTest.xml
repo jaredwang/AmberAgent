@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.MarkdownTableTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.588Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="streaming table data includes live suffix row" classname="app.amber.feature.ui.components.richtext.MarkdownTableTest" time="0.005"/>
+  <testcase name="gfm table keeps empty first header cell" classname="app.amber.feature.ui.components.richtext.MarkdownTableTest" time="0.001"/>
+  <testcase name="streaming table data ignores suffix that does not start at table end" classname="app.amber.feature.ui.components.richtext.MarkdownTableTest" time="0.0"/>
+  <testcase name="gfm table keeps markdown links intact" classname="app.amber.feature.ui.components.richtext.MarkdownTableTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

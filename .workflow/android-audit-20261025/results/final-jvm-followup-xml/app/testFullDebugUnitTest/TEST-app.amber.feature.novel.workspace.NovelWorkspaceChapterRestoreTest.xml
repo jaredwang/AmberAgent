@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceChapterRestoreTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:34.203Z" hostname="duguangdeMBP.lan" time="0.056">
+  <properties/>
+  <testcase name="restore preserves identity and opens normal continuity gates for middle chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceChapterRestoreTest" time="0.021"/>
+  <testcase name="restore rejects active owner and stale head or current text without changing chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceChapterRestoreTest" time="0.035"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

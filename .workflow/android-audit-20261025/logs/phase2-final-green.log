@@ -1,0 +1,67 @@
+Starting a Gradle Daemon, 2 busy and 12 stopped Daemons could not be reused, use --status for details
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}

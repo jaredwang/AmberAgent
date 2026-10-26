@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:25.833Z" hostname="duguangdeMacBook-Pro.local" time="0.019">
+  <properties/>
+  <testcase name="completed run leaves no stale job and relaunches cleanly" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" time="0.004"/>
+  <testcase name="superseded mid-CAS terminal cannot publish stale state" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" time="0.01"/>
+  <testcase name="stale completion CAS cannot corrupt a resumed run" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" time="0.002"/>
+  <testcase name="cancel after completion keeps the published terminal" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" time="0.002"/>
+  <testcase name="superseded finally does not unregister the live job" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerSupersededActivationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

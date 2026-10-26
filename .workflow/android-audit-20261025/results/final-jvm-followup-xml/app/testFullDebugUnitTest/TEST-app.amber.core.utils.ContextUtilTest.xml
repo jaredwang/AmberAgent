@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.utils.ContextUtilTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:26.919Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="normalize external url decodes html escaped table href" classname="app.amber.core.utils.ContextUtilTest" time="0.001"/>
+  <testcase name="normalize external url keeps balanced parentheses" classname="app.amber.core.utils.ContextUtilTest" time="0.0"/>
+  <testcase name="normalize external url trims markdown punctuation" classname="app.amber.core.utils.ContextUtilTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

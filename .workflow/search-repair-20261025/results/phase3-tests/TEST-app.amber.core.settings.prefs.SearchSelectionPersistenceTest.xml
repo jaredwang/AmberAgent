@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:14:02.524Z" hostname="duguangdeMBP.lan" time="2.499">
+  <properties/>
+  <testcase name="a retired selected provider requires reconfiguration with or without an enabled key" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="2.235"/>
+  <testcase name="legacy missing enabled key migrates the same selected service after retired entries are removed" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="0.188"/>
+  <testcase name="enabled selection drops stale and retired ids while retaining a configured provider" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="0.009"/>
+  <testcase name="retired selection without an enabled key stays disabled after migration and a fresh settings reader" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="0.021"/>
+  <testcase name="disabling the last configured provider survives saving and a fresh settings reader" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="0.034"/>
+  <testcase name="a present enabled key never migrates to the selected provider" classname="app.amber.core.settings.prefs.SearchSelectionPersistenceTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.review.ChatRuntimeOwnershipTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.839Z" hostname="duguangdeMBP.lan" time="0.042">
+  <properties/>
+  <testcase name="terminalSnapshotDoesNotReleaseDispatchBeforeRunnerFinalization" classname="app.amber.review.ChatRuntimeOwnershipTest" time="0.009"/>
+  <testcase name="staleNotificationStopDoesNotCancelTheSuccessorDispatch" classname="app.amber.review.ChatRuntimeOwnershipTest" time="0.008"/>
+  <testcase name="matchingNotificationStopCancelsItsDispatchAndPreservesPendingInput" classname="app.amber.review.ChatRuntimeOwnershipTest" time="0.009"/>
+  <testcase name="settledApprovalPauseReleasesDispatchWithoutCancellingTheRun" classname="app.amber.review.ChatRuntimeOwnershipTest" time="0.008"/>
+  <testcase name="cancelledDispatchWaitsForItsRunnerFinalizationBeforeReleasingTheSession" classname="app.amber.review.ChatRuntimeOwnershipTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

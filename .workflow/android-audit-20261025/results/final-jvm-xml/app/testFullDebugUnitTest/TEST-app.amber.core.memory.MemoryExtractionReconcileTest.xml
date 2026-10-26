@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryExtractionReconcileTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.906Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="extraction update supersedes with bound revision" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.004"/>
+  <testcase name="missing action stays a plain add" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.002"/>
+  <testcase name="extraction supersede returns false on stale revision" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.002"/>
+  <testcase name="rewrite with ungrounded latin token is filtered" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.001"/>
+  <testcase name="verbatim evidence passes and is required" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.0"/>
+  <testcase name="extraction supersede falls back to review on non-stale failures" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.001"/>
+  <testcase name="update without a target id falls back to add" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.0"/>
+  <testcase name="evidence rides into the candidate reason for review" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.0"/>
+  <testcase name="update action parses update memory id" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.0"/>
+  <testcase name="a forged intent prefix in model reason is stripped" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.0"/>
+  <testcase name="invalidate and confirm actions parse with their target id" classname="app.amber.core.memory.MemoryExtractionReconcileTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

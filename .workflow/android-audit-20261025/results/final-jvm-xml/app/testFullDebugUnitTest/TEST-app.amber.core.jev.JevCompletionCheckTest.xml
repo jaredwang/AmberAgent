@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevCompletionCheckTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.013Z" hostname="duguangdeMBP.lan" time="0.019">
+  <properties/>
+  <testcase name="writeAfterCheckIsUnverifiedAgain" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.003"/>
+  <testcase name="writeWithoutLaterCheckIsUnverified" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="shadowObservesInBackgroundAndNeverNudges" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.004"/>
+  <testcase name="commonCheckRunnersAreRecognizedInExecutionPosition" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="activeClaimOfCompletionReturnsNudge" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.002"/>
+  <testcase name="completedSimpleChecksWithQuotedArgumentsAreRecognized" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.001"/>
+  <testcase name="factsNotMetNeverCallsNetwork" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.001"/>
+  <testcase name="failedWritesAndEarlierTurnsDoNotCount" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="noClaimMeansNoNudge" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.003"/>
+  <testcase name="conditionalOrUncertainChecksDoNotSuppressCompletionCheck" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.002"/>
+  <testcase name="checkWordsInArgumentsDoNotCountAsRunningChecks" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="mergedAgentTurnUsesTextAfterLastToolAsFinalReply" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.001"/>
+  <testcase name="quotedOrEscapedSuggestedChecksAreNotExecutedChecks" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="fileMoveReportsTargetPath" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <testcase name="deniedRunningAndUnknownCommandOutcomesAreNotExecutionEvidence" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.001"/>
+  <testcase name="checkAfterLastWriteCountsAsVerifiedEvenIfItFailed" classname="app.amber.core.jev.JevCompletionCheckTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

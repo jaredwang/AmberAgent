@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ds.GraphiteComposePipelineTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:54.706Z" hostname="duguangdeMBP.lan" time="1.42">
+  <properties/>
+  <testcase name="composePipelineRendersOnJvm" classname="app.amber.feature.ui.components.ds.GraphiteComposePipelineTest" time="1.42"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[java.lang.IllegalAccessException: Can not set static final int field io.requery.android.database.CursorWindow.sDefaultCursorWindowSize to java.lang.Integer
+	at java.base/jdk.internal.reflect.FieldAccessorImpl.throwFinalFieldIllegalAccessException(FieldAccessorImpl.java:137)
+	at java.base/jdk.internal.reflect.FieldAccessorImpl.throwFinalFieldIllegalAccessException(FieldAccessorImpl.java:141)
+	at java.base/jdk.internal.reflect.MethodHandleIntegerFieldAccessorImpl.set(MethodHandleIntegerFieldAccessorImpl.java:107)
+	at java.base/java.lang.reflect.Field.set(Field.java:836)
+	at app.amber.core.utils.DatabaseUtil.setCursorWindowSize(DatabaseUtil.kt:24)
+	at app.amber.agent.AmberAgentApp.onCreate(AmberAgentApp.kt:99)
+	at android.app.Instrumentation.$$robo$$android_app_Instrumentation$callApplicationOnCreate(Instrumentation.java:1316)
+	at android.app.Instrumentation.callApplicationOnCreate(Instrumentation.java)
+	at org.robolectric.android.internal.RoboMonitoringInstrumentation.callApplicationOnCreate(RoboMonitoringInstrumentation.java:153)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$installAndCreateApplication$2(AndroidTestEnvironment.java:385)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:82)
+	at org.robolectric.android.internal.AndroidTestEnvironment.installAndCreateApplication(AndroidTestEnvironment.java:383)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$0(AndroidTestEnvironment.java:262)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.android.internal.AndroidTestEnvironment.lambda$createApplicationSupplier$1(AndroidTestEnvironment.java:259)
+	at com.google.common.base.Suppliers$NonSerializableMemoizingSupplier.get(Suppliers.java:200)
+	at org.robolectric.RuntimeEnvironment.lambda$getApplication$0(RuntimeEnvironment.java:71)
+	at org.robolectric.shadows.ShadowInstrumentation.runOnMainSyncNoIdle(ShadowInstrumentation.java:1190)
+	at org.robolectric.RuntimeEnvironment.getApplication(RuntimeEnvironment.java:71)
+	at org.robolectric.android.internal.AndroidTestEnvironment.setUpApplicationState(AndroidTestEnvironment.java:230)
+	at org.robolectric.RobolectricTestRunner.beforeTest(RobolectricTestRunner.java:284)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:279)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+]]></system-err>
+</testsuite>

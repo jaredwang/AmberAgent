@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:53.857Z" hostname="duguangdeMBP.lan" time="0.027">
+  <properties/>
+  <testcase name="list returns only md and yaml, skips hidden trees, sorted" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.003"/>
+  <testcase name="file tree excludes manifest and hashes content" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.003"/>
+  <testcase name="verify detects tampered and missing files" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.002"/>
+  <testcase name="exists reflects manifest presence" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.002"/>
+  <testcase name="path validation rejects escapes, absolutes, and hidden trees" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.002"/>
+  <testcase name="list prefix keeps exact file and hidden path semantics" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.006"/>
+  <testcase name="materialize checkout mirrors the book under the ledger" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.004"/>
+  <testcase name="write read delete round-trip with nested directories" classname="app.amber.feature.novelworkspace.NovelWorkspaceStoreTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

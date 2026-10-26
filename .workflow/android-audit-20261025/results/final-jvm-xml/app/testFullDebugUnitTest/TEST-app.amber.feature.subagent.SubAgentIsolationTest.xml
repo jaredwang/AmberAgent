@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.subagent.SubAgentIsolationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:47.765Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="isolatedSettingsDoNotInheritParentContextSurfaces" classname="app.amber.feature.subagent.SubAgentIsolationTest" time="0.001"/>
+  <testcase name="isolatedSettingsDisableGlobalRuntimePromptSurfaces" classname="app.amber.feature.subagent.SubAgentIsolationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

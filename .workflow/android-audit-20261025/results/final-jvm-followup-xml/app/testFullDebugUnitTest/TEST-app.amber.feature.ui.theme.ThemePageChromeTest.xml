@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.theme.ThemePageChromeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.297Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="entry metadata classifies home shell and content entries" classname="app.amber.feature.ui.theme.ThemePageChromeTest" time="0.006"/>
+  <testcase name="canvas scope defaults to home only while no pack keeps legacy canvas everywhere" classname="app.amber.feature.ui.theme.ThemePageChromeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

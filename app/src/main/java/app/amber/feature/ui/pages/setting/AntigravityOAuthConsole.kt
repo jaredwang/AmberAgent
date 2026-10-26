@@ -1,19 +1,8 @@
 package app.amber.feature.ui.pages.setting
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,8 +14,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,13 +31,11 @@ import app.amber.ai.provider.providers.google.defaultAntigravityModels
 import app.amber.ai.provider.fixedBaseUrl
 import app.amber.agent.R
 import app.amber.feature.ui.context.LocalToaster
-import app.amber.feature.ui.pages.setting.components.ProviderCard
 import app.amber.feature.ui.pages.setting.components.ProviderCommandButton
-import app.amber.feature.ui.pages.setting.components.ProviderMonogram
-import app.amber.feature.ui.pages.setting.components.ProviderSectionLabel
+import app.amber.feature.ui.pages.setting.components.ProviderStatusChip
 import app.amber.feature.ui.pages.setting.components.ProviderTextField
-import app.amber.feature.ui.components.ds.pressable
-import app.amber.feature.ui.pages.setting.components.toProviderMonogram
+import app.amber.feature.ui.pages.setting.components.ProviderTone
+import app.amber.feature.ui.pages.setting.provider.ProviderLabeledField
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import com.dokar.sonner.ToastType
@@ -148,91 +133,67 @@ internal fun AntigravityOAuthConsole(
         }
     }
 
-    ProviderSectionLabel(stringResource(R.string.setting_provider_page_antigravity_oauth_session))
-    ProviderCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ProviderMonogram(
-                text = provider.name.toProviderMonogram(),
-                size = 32.dp,
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                val t = LocalAmberTokens.current
-                val type = LocalAmberType.current
-                Text(
-                    text = "Antigravity OAuth",
-                    style = type.meta.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-                    color = t.ink,
-                    maxLines = 1,
-                )
-                AntigravityStatusPill(
-                    status = status,
-                    email = tokens?.email,
-                )
-            }
-        }
+    // Rendered inside the config page's 账号 card (parent supplies padding / spacing).
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        val t = LocalAmberTokens.current
+        val type = LocalAmberType.current
+        Text(
+            text = "Antigravity OAuth",
+            modifier = Modifier.weight(1f, fill = false),
+            style = type.body.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+            color = t.ink,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        AntigravityStatusChip(
+            status = status,
+            email = tokens?.email,
+        )
     }
-
-    ProviderSectionLabel(stringResource(R.string.setting_provider_page_endpoint))
-    ProviderCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            AntigravityLabeledField("API Base URL") {
-                ProviderTextField(
-                    value = checkNotNull(GoogleAuthMode.ANTIGRAVITY_OAUTH.fixedBaseUrl()),
-                    onValueChange = {},
-                    mono = true,
-                    readOnly = true,
-                )
-            }
-            ProviderCommandButton(
-                text = if (busy) stringResource(R.string.setting_provider_page_antigravity_oauth_signing_in)
-                else if (signedIn) stringResource(R.string.setting_provider_page_antigravity_oauth_relogin)
-                else stringResource(R.string.setting_provider_page_antigravity_oauth_login),
-                accent = !signedIn,
-                onClick = { scope.launch { login() } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-            )
-            AntigravityDangerButton(
-                text = stringResource(R.string.setting_provider_page_antigravity_oauth_logout),
-                enabled = signedIn && !busy,
-                onClick = {
-                    client.logout(provider.id)
-                    tokens = null
-                    toaster.show(context.getString(R.string.setting_provider_page_antigravity_oauth_signed_out), type = ToastType.Success)
-                },
-            )
-            Text(
-                text = stringResource(R.string.setting_provider_page_antigravity_oauth_login_hint),
-                style = LocalAmberType.current.secondary,
-                color = LocalAmberTokens.current.ink2,
-                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
-            )
-        }
+    ProviderLabeledField(stringResource(R.string.provider_field_base_url_fixed)) {
+        ProviderTextField(
+            value = checkNotNull(GoogleAuthMode.ANTIGRAVITY_OAUTH.fixedBaseUrl()),
+            onValueChange = {},
+            mono = true,
+            readOnly = true,
+        )
     }
+    ProviderCommandButton(
+        text = if (busy) stringResource(R.string.setting_provider_page_antigravity_oauth_signing_in)
+        else if (signedIn) stringResource(R.string.setting_provider_page_antigravity_oauth_relogin)
+        else stringResource(R.string.setting_provider_page_antigravity_oauth_login),
+        accent = !signedIn,
+        onClick = { scope.launch { login() } },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    ProviderCommandButton(
+        text = stringResource(R.string.setting_provider_page_antigravity_oauth_logout),
+        danger = true,
+        enabled = signedIn && !busy,
+        onClick = {
+            client.logout(provider.id)
+            tokens = null
+            toaster.show(context.getString(R.string.setting_provider_page_antigravity_oauth_signed_out), type = ToastType.Success)
+        },
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+        text = stringResource(R.string.setting_provider_page_antigravity_oauth_login_hint),
+        style = LocalAmberType.current.secondary,
+        color = LocalAmberTokens.current.ink3,
+    )
 }
 
 @Composable
-private fun AntigravityStatusPill(
+private fun AntigravityStatusChip(
     status: AntigravityAuthStatus,
     email: String?,
 ) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
     val connected = status.usable
-    val statusColor = if (connected) t.signal else t.ink3
     val copy = when {
         connected && !email.isNullOrBlank() -> stringResource(R.string.setting_provider_page_antigravity_oauth_signed_in_as, email)
         connected -> stringResource(R.string.setting_provider_page_antigravity_oauth_signed_in)
@@ -240,74 +201,11 @@ private fun AntigravityStatusPill(
         status.code == AntigravityAuthStatusCode.CLIENT_UNAVAILABLE -> stringResource(R.string.setting_provider_page_antigravity_oauth_unavailable)
         else -> stringResource(R.string.setting_provider_page_antigravity_oauth_reauth_required)
     }
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(if (connected) t.signal.copy(alpha = 0.14f) else t.surface2)
-            .border(1.dp, if (connected) t.signal.copy(alpha = 0.32f) else t.line, CircleShape)
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .background(statusColor, CircleShape),
-            )
-            Text(
-                text = copy,
-                style = type.meta.copy(fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold),
-                color = statusColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+    val tone = when {
+        connected -> ProviderTone.Ok
+        status.code == AntigravityAuthStatusCode.NOT_SIGNED_IN ||
+            status.code == AntigravityAuthStatusCode.CLIENT_UNAVAILABLE -> ProviderTone.Neutral
+        else -> ProviderTone.Warn
     }
-}
-
-@Composable
-private fun AntigravityLabeledField(
-    label: String,
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    Column(modifier = modifier.padding(top = 12.dp)) {
-        Text(
-            text = label,
-            style = type.body.copy(fontWeight = FontWeight.SemiBold),
-            color = t.ink,
-            modifier = Modifier.padding(start = 2.dp, bottom = 7.dp),
-            maxLines = 1,
-        )
-        Box(Modifier.fillMaxWidth(), content = content)
-    }
-}
-
-@Composable
-private fun AntigravityDangerButton(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(15.dp))
-            .then(if (enabled) Modifier.pressable(onClick = onClick) else Modifier),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = type.body.copy(fontWeight = FontWeight.SemiBold),
-            color = if (enabled) MaterialTheme.colorScheme.error else t.ink4,
-            maxLines = 1,
-        )
-    }
+    ProviderStatusChip(text = copy, tone = tone)
 }

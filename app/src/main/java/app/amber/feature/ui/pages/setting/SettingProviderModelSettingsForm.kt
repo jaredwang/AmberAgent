@@ -6,44 +6,36 @@ import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.X
 import com.composables.icons.lucide.Trash2
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import app.amber.ai.provider.BuiltInTools
 import app.amber.ai.provider.CustomBody
 import app.amber.ai.provider.CustomHeader
@@ -54,21 +46,25 @@ import app.amber.ai.provider.ModelType
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.registry.ModelRegistry
 import app.amber.agent.R
-import app.amber.feature.ui.pages.setting.components.ProviderCommandButton
+import app.amber.feature.ui.pages.setting.components.LocalProviderFieldInCard
 import app.amber.feature.ui.pages.setting.components.ProviderCard
+import app.amber.feature.ui.pages.setting.components.ProviderExpandableRow
+import app.amber.feature.ui.pages.setting.components.ProviderFilterChip
 import app.amber.feature.ui.pages.setting.components.ProviderGhostButton
-import app.amber.feature.ui.pages.setting.components.ProviderHairline
-import app.amber.feature.ui.pages.setting.components.ProviderLedgerRow
+import app.amber.feature.ui.pages.setting.components.ProviderListRow
 import app.amber.feature.ui.pages.setting.components.ProviderMonogram
+import app.amber.feature.ui.pages.setting.components.ProviderRowDivider
+import app.amber.feature.ui.pages.setting.components.ProviderRowSubtitle
+import app.amber.feature.ui.pages.setting.components.ProviderSectionLabel
+import app.amber.feature.ui.pages.setting.components.ProviderSegOption
+import app.amber.feature.ui.pages.setting.components.ProviderSegmented
 import app.amber.feature.ui.pages.setting.components.ProviderSheetGrabber
+import app.amber.feature.ui.pages.setting.components.ProviderSheetHeader
 import app.amber.feature.ui.pages.setting.components.ProviderSmallIconButton
 import app.amber.feature.ui.pages.setting.components.ProviderSplitBar
-import app.amber.feature.ui.pages.setting.components.ProviderSquareTag
 import app.amber.feature.ui.pages.setting.components.ProviderTextField
 import app.amber.feature.ui.pages.setting.components.ProviderToggle
-import app.amber.feature.ui.pages.setting.components.providerSlugLabel
-import app.amber.feature.ui.components.ds.pressable
-import app.amber.feature.ui.pages.setting.components.ProviderUnderlineTabs
+import app.amber.feature.ui.pages.setting.components.providerDangerColor
 import app.amber.feature.ui.pages.setting.components.toProviderMonogram
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
@@ -119,19 +115,18 @@ private fun Int.formatContextWindowInput(): String = when {
     else -> toString()
 }
 
-/* v5 ledger: model editor bottom sheet — header (mono id + eyebrow) + form + split bar */
+/* Model editor bottom sheet — title header + single scrolling form + pinned split bar. */
 @Composable
 internal fun ModelEditorSheet(
     model: Model,
     onModelChange: (Model) -> Unit,
     isEdit: Boolean,
     parentProvider: ProviderSetting?,
-    slug: String,
+    @Suppress("UNUSED_PARAMETER") slug: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var contextWindowInvalid by remember { mutableStateOf(false) }
     val baseCanConfirm = if (isEdit) {
@@ -153,53 +148,23 @@ internal fun ModelEditorSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.92f),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 18.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    ) {
-                        Text("//", style = type.eyebrow, color = t.accent)
-                        Text(
-                            text = "$slug / ${if (isEdit) stringResource(R.string.edit) else stringResource(R.string.setting_provider_page_new)}",
-                            style = type.eyebrow,
-                            color = t.ink3,
-                            maxLines = 1,
-                        )
-                    }
-                    Text(
-                        text = model.modelId.ifBlank { "new-model" },
-                        style = type.meta.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                        color = t.ink,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
+            ProviderSheetHeader(
+                title = stringResource(
+                    if (isEdit) R.string.provider_model_edit_title else R.string.provider_model_new_title
+                ),
+            )
 
-            Column(
+            ModelSettingsForm(
+                model = model,
+                onModelChange = onModelChange,
+                isEdit = isEdit,
+                parentProvider = parentProvider,
+                onContextWindowInvalidChange = { contextWindowInvalid = it },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp),
-            ) {
-                ModelSettingsForm(
-                    model = model,
-                    onModelChange = onModelChange,
-                    isEdit = isEdit,
-                    parentProvider = parentProvider,
-                    onContextWindowInvalidChange = { contextWindowInvalid = it },
-                )
-            }
+                    .padding(horizontal = 16.dp),
+            )
 
             ProviderSplitBar(
                 cancelText = stringResource(R.string.cancel),
@@ -221,9 +186,9 @@ internal fun ModelSettingsForm(
     isEdit: Boolean,
     parentProvider: ProviderSetting? = null,
     onContextWindowInvalidChange: (Boolean) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
-    val pagerState = rememberPagerState { 3 }
-    val scope = rememberCoroutineScope()
+    val type = LocalAmberType.current
     var contextWindowInput by remember(model.id, model.modelId) {
         mutableStateOf(model.contextWindowTokens?.formatContextWindowInput().orEmpty())
     }
@@ -253,385 +218,279 @@ internal fun ModelSettingsForm(
         )
     }
 
-    Column {
-        ProviderUnderlineTabs(
-            tabs = listOf(
-                stringResource(R.string.setting_provider_page_basic_settings),
-                stringResource(R.string.setting_provider_page_advanced_settings),
-                stringResource(R.string.setting_page_built_in_tools),
-            ),
-            selected = pagerState.currentPage,
-            onSelect = { page ->
-                scope.launch {
-                    pagerState.animateScrollToPage(page)
-                }
-            },
-        )
+    var toolsExpanded by remember { mutableStateOf(false) }
+    var customExpanded by remember { mutableStateOf(false) }
+    var overrideExpanded by remember { mutableStateOf(false) }
 
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxWidth()
-        ) { page ->
-            when (page) {
-                0 -> {
-                    // 基本设置：身份、能力、上下文与模型类型/模态仍全部可编辑。
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(top = 8.dp, bottom = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        ModelEditorIdentityCard(
-                            model = model,
-                            isEdit = isEdit,
-                            parentProvider = parentProvider,
-                            onModelIdChange = { setModelId(it.trim()) },
-                            onDisplayNameChange = { onModelChange(model.copy(displayName = it)) },
-                        )
-
-                        ModelEditorSection(stringResource(R.string.setting_provider_page_capabilities)) {
-                            ProviderCard(modifier = Modifier.fillMaxWidth()) {
-                                ModelCapabilitySwitchRow(
-                                    title = stringResource(R.string.setting_provider_page_vision),
-                                    machineLabel = "vision",
-                                    checked = Modality.IMAGE in model.inputModalities,
-                                    onCheckedChange = { enabled ->
-                                        onModelChange(
-                                            model.copy(
-                                                inputModalities = model.inputModalities.withModality(
-                                                    Modality.IMAGE,
-                                                    enabled,
-                                                )
-                                            )
-                                        )
-                                    },
-                                )
-                                ProviderHairline(Modifier.padding(horizontal = 14.dp))
-                                ModelCapabilitySwitchRow(
-                                    title = stringResource(R.string.setting_provider_page_tool),
-                                    machineLabel = "tools",
-                                    checked = ModelAbility.TOOL in model.abilities,
-                                    onCheckedChange = { enabled ->
-                                        onModelChange(
-                                            model.copy(
-                                                abilities = model.abilities.withAbility(
-                                                    ModelAbility.TOOL,
-                                                    enabled,
-                                                )
-                                            )
-                                        )
-                                    },
-                                )
-                                ProviderHairline(Modifier.padding(horizontal = 14.dp))
-                                ModelCapabilitySwitchRow(
-                                    title = stringResource(R.string.setting_provider_page_reasoning),
-                                    machineLabel = "reasoning",
-                                    checked = ModelAbility.REASONING in model.abilities,
-                                    onCheckedChange = { enabled ->
-                                        onModelChange(
-                                            model.copy(
-                                                abilities = model.abilities.withAbility(
-                                                    ModelAbility.REASONING,
-                                                    enabled,
-                                                )
-                                            )
-                                        )
-                                    },
-                                )
-                                ProviderHairline(Modifier.padding(horizontal = 14.dp))
-                                ModelCapabilitySwitchRow(
-                                    title = stringResource(R.string.setting_provider_page_image),
-                                    machineLabel = "image",
-                                    checked = Modality.IMAGE in model.outputModalities,
-                                    onCheckedChange = { enabled ->
-                                        onModelChange(
-                                            model.copy(
-                                                outputModalities = model.outputModalities.withModality(
-                                                    Modality.IMAGE,
-                                                    enabled,
-                                                )
-                                            )
-                                        )
-                                    },
-                                )
-                            }
-                        }
-
-                        if (model.type == ModelType.CHAT) {
-                            ModelEditorSection(stringResource(R.string.setting_provider_page_model_context_window)) {
-                                ProviderCard(modifier = Modifier.fillMaxWidth()) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 14.dp, vertical = 8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.setting_provider_page_model_context_window),
-                                            style = LocalAmberType.current.body,
-                                            color = LocalAmberTokens.current.ink,
-                                            modifier = Modifier.weight(1f),
-                                        )
-                                        Box(Modifier.width(132.dp)) {
-                                            ProviderTextField(
-                                                value = contextWindowInput,
-                                                onValueChange = {
-                                                    contextWindowInput = it
-                                                    val parsed = parseContextWindowInput(it)
-                                                    if (it.isBlank() || parsed != null) {
-                                                        onModelChange(model.copy(contextWindowTokens = parsed))
-                                                    }
-                                                },
-                                                placeholder = stringResource(R.string.setting_provider_page_model_context_window_placeholder),
-                                                mono = true,
-                                            )
-                                        }
-                                    }
-                                    if (contextWindowInvalid) {
-                                        Text(
-                                            text = stringResource(R.string.setting_provider_page_model_context_window_invalid),
-                                            style = LocalAmberType.current.meta.copy(fontSize = 11.sp),
-                                            color = LocalAmberTokens.current.accent,
-                                            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 8.dp),
-                                        )
-                                    }
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
+    ) {
+        // 基本
+        ProviderSectionLabel(stringResource(R.string.provider_section_basic))
+        ProviderCard(modifier = Modifier.fillMaxWidth()) {
+            EditorFieldRow(label = "Model ID") {
+                ProviderTextField(
+                    value = model.modelId,
+                    onValueChange = { if (!isEdit) setModelId(it.trim()) },
+                    placeholder = stringResource(R.string.setting_provider_page_model_id_placeholder),
+                    mono = true,
+                    readOnly = isEdit,
+                )
+            }
+            ProviderRowDivider()
+            EditorFieldRow(label = stringResource(R.string.setting_provider_page_display_name)) {
+                ProviderTextField(
+                    value = model.displayName,
+                    onValueChange = { onModelChange(model.copy(displayName = it)) },
+                    placeholder = stringResource(R.string.setting_provider_page_model_display_name_placeholder),
+                )
+            }
+            ProviderRowDivider()
+            EditorFieldRow(label = stringResource(R.string.setting_provider_page_model_type)) {
+                ProviderSegmented(
+                    options = ModelType.entries.map { modelType ->
+                        ProviderSegOption(
+                            value = modelType,
+                            label = stringResource(
+                                when (modelType) {
+                                    ModelType.CHAT -> R.string.setting_provider_page_chat_model
+                                    ModelType.IMAGE -> R.string.setting_provider_page_image_model
+                                    ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
                                 }
-                            }
-                        }
-
-                        ModelEditorSection(stringResource(R.string.setting_provider_page_basic_settings)) {
-                            ProviderCard(modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.padding(14.dp)) {
-                                    ProviderLedgerRow(stringResource(R.string.setting_provider_page_model_type)) {
-                                        FlowRow(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                                        ) {
-                                            ModelType.entries.forEach { type ->
-                                                ProviderSquareTag(
-                                                    text = stringResource(when (type) {
-                                                        ModelType.CHAT -> R.string.setting_provider_page_chat_model
-                                                        ModelType.IMAGE -> R.string.setting_provider_page_image_model
-                                                        ModelType.EMBEDDING -> R.string.setting_provider_page_embedding_model
-                                                    }),
-                                                    selected = model.type == type,
-                                                    onClick = { onModelChange(model.copy(type = type)) },
-                                                )
-                                            }
-                                        }
-                                    }
-                                    if (model.type == ModelType.CHAT) {
-                                        ProviderLedgerRow(stringResource(R.string.setting_provider_page_input_modality)) {
-                                            ModalityTagRow(
-                                                selected = model.inputModalities,
-                                                onToggle = { modality ->
-                                                    onModelChange(model.copy(inputModalities = model.inputModalities.withModality(modality, modality !in model.inputModalities)))
-                                                },
-                                            )
-                                        }
-                                        ProviderLedgerRow(stringResource(R.string.setting_provider_page_output_modality)) {
-                                            ModalityTagRow(
-                                                selected = model.outputModalities,
-                                                onToggle = { modality ->
-                                                    onModelChange(model.copy(outputModalities = model.outputModalities.withModality(modality, modality !in model.outputModalities)))
-                                                },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                1 -> {
-                    // 高级设置页面
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(top = 8.dp, bottom = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        ProviderOverrideSettings(
-                            providerOverride = model.providerOverwrite,
-                            onUpdateProviderOverride = { providerOverride ->
-                                onModelChange(model.copy(providerOverwrite = providerOverride))
-                            },
-                            parentProvider = parentProvider
+                            ),
                         )
-
-                        ModelCustomHeaders(
-                            headers = model.customHeaders,
-                            onUpdate = { headers ->
-                                onModelChange(model.copy(customHeaders = headers))
-                            }
-                        )
-
-                        ModelCustomBodies(
-                            customBodies = model.customBodies,
-                            onUpdate = { bodies ->
-                                onModelChange(model.copy(customBodies = bodies))
-                            }
-                        )
-                    }
-                }
-
-                2 -> {
-                    // 内置工具页面
-                    BuiltInToolsSettings(
-                        tools = model.tools,
-                        onUpdateTools = { tools ->
-                            onModelChange(model.copy(tools = tools))
-                        }
-                    )
-                }
+                    },
+                    selected = model.type,
+                    onSelected = { onModelChange(model.copy(type = it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    height = 36.dp,
+                )
             }
         }
-    }
-}
 
-@Composable
-private fun ModelEditorIdentityCard(
-    model: Model,
-    isEdit: Boolean,
-    parentProvider: ProviderSetting? = null,
-    onModelIdChange: (String) -> Unit,
-    onDisplayNameChange: (String) -> Unit,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    ProviderCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = model.modelId.ifBlank { "new-model" },
-                style = type.meta.copy(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold),
-                color = t.ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
+        if (model.type == ModelType.CHAT) {
+            // 能力：输入/输出模态 + 工具/推理，每个字段只出现一次。
+            ProviderSectionLabel(stringResource(R.string.setting_provider_page_capabilities))
+            ProviderCard(modifier = Modifier.fillMaxWidth()) {
+                ModalityChipRow(
+                    title = stringResource(R.string.provider_model_input),
+                    options = listOf(Modality.TEXT, Modality.IMAGE, Modality.AUDIO),
+                    selected = model.inputModalities,
+                    onToggle = { modality ->
+                        onModelChange(
+                            model.copy(
+                                inputModalities = model.inputModalities.withModality(
+                                    modality,
+                                    modality !in model.inputModalities,
+                                )
+                            )
+                        )
+                    },
+                )
+                ProviderRowDivider()
+                ModalityChipRow(
+                    title = stringResource(R.string.provider_model_output),
+                    // AUDIO only when already set, so a legacy value stays removable.
+                    options = listOfNotNull(
+                        Modality.TEXT,
+                        Modality.IMAGE,
+                        Modality.AUDIO.takeIf { it in model.outputModalities },
+                    ),
+                    selected = model.outputModalities,
+                    onToggle = { modality ->
+                        onModelChange(
+                            model.copy(
+                                outputModalities = model.outputModalities.withModality(
+                                    modality,
+                                    modality !in model.outputModalities,
+                                )
+                            )
+                        )
+                    },
+                )
+                ProviderRowDivider()
+                AbilityToggleRow(
+                    title = stringResource(R.string.setting_provider_page_tool),
+                    checked = ModelAbility.TOOL in model.abilities,
+                    onCheckedChange = { enabled ->
+                        onModelChange(model.copy(abilities = model.abilities.withAbility(ModelAbility.TOOL, enabled)))
+                    },
+                )
+                ProviderRowDivider()
+                AbilityToggleRow(
+                    title = stringResource(R.string.setting_provider_page_reasoning),
+                    checked = ModelAbility.REASONING in model.abilities,
+                    onCheckedChange = { enabled ->
+                        onModelChange(model.copy(abilities = model.abilities.withAbility(ModelAbility.REASONING, enabled)))
+                    },
+                )
+            }
+
+            ProviderCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
             ) {
-                parentProvider?.let { provider ->
-                    Text(
-                        text = provider.providerSlugLabel(),
-                        style = type.meta.copy(fontSize = 12.sp),
-                        color = t.ink2,
-                        maxLines = 1,
+                EditorFieldRow(label = stringResource(R.string.setting_provider_page_model_context_window)) {
+                    ProviderTextField(
+                        value = contextWindowInput,
+                        onValueChange = {
+                            contextWindowInput = it
+                            val parsed = parseContextWindowInput(it)
+                            if (it.isBlank() || parsed != null) {
+                                onModelChange(model.copy(contextWindowTokens = parsed))
+                            }
+                        },
+                        placeholder = stringResource(R.string.provider_model_context_auto),
+                        mono = true,
+                        isError = contextWindowInvalid,
                     )
-                    Text("·", style = type.meta, color = t.ink4)
-                }
-                parentProvider?.let { provider ->
-                    Text(
-                        text = if (provider.enabled) stringResource(R.string.setting_provider_page_enabled) else stringResource(R.string.setting_provider_page_disabled),
-                        style = type.meta.copy(fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold),
-                        color = if (provider.enabled) t.signal else t.ink3,
-                    )
+                    if (contextWindowInvalid) {
+                        Text(
+                            text = stringResource(R.string.setting_provider_page_model_context_window_invalid),
+                            style = type.secondary.copy(fontSize = 12.sp),
+                            color = providerDangerColor(),
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
                 }
             }
-            ModelEditorFieldLabel("model_id")
-            ProviderTextField(
-                value = model.modelId,
-                onValueChange = { if (!isEdit) onModelIdChange(it) },
-                placeholder = stringResource(R.string.setting_provider_page_model_id_placeholder),
-                mono = true,
-                readOnly = isEdit,
-            )
-            ModelEditorFieldLabel("display_name")
-            ProviderTextField(
-                value = model.displayName,
-                onValueChange = onDisplayNameChange,
-                placeholder = stringResource(R.string.setting_provider_page_model_display_name_placeholder),
-            )
+        }
+
+        // 高级
+        ProviderSectionLabel(stringResource(R.string.provider_section_advanced))
+        ProviderCard(modifier = Modifier.fillMaxWidth()) {
+            val enabledToolNames = builtInToolEntries()
+                .filter { it.tool in model.tools }
+                .map { stringResource(it.titleRes) }
+            ProviderExpandableRow(
+                title = stringResource(R.string.setting_page_built_in_tools),
+                summary = enabledToolNames.joinToString(" · ")
+                    .ifBlank { stringResource(R.string.provider_model_tools_none) },
+                expanded = toolsExpanded,
+                onToggle = { toolsExpanded = !toolsExpanded },
+            ) {
+                BuiltInToolsSettings(
+                    tools = model.tools,
+                    onUpdateTools = { tools -> onModelChange(model.copy(tools = tools)) },
+                )
+            }
+            ProviderRowDivider()
+            ProviderExpandableRow(
+                title = "${stringResource(R.string.provider_custom_headers)} / ${stringResource(R.string.provider_custom_bodies)}",
+                summary = stringResource(R.string.provider_model_count_headers, model.customHeaders.size) +
+                    " · " + stringResource(R.string.provider_model_count_bodies, model.customBodies.size),
+                expanded = customExpanded,
+                onToggle = { customExpanded = !customExpanded },
+            ) {
+                ModelCustomHeaders(
+                    headers = model.customHeaders,
+                    onUpdate = { headers -> onModelChange(model.copy(customHeaders = headers)) },
+                )
+                Spacer(Modifier.height(12.dp))
+                ModelCustomBodies(
+                    customBodies = model.customBodies,
+                    onUpdate = { bodies -> onModelChange(model.copy(customBodies = bodies)) },
+                )
+            }
+            ProviderRowDivider()
+            ProviderExpandableRow(
+                title = stringResource(R.string.setting_provider_page_provider_override),
+                summary = model.providerOverwrite?.name ?: stringResource(R.string.provider_model_follow_provider),
+                expanded = overrideExpanded,
+                onToggle = { overrideExpanded = !overrideExpanded },
+            ) {
+                ProviderOverrideSettings(
+                    providerOverride = model.providerOverwrite,
+                    onUpdateProviderOverride = { providerOverride ->
+                        onModelChange(model.copy(providerOverwrite = providerOverride))
+                    },
+                    parentProvider = parentProvider,
+                )
+            }
         }
     }
 }
 
+/** Label-above-value card row; the label turns accent while anything inside has focus. */
 @Composable
-private fun ModelEditorFieldLabel(text: String) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    Text(
-        text = text.uppercase(),
-        style = type.meta.copy(fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold),
-        color = t.ink3,
-    )
-}
-
-@Composable
-private fun ModelEditorSection(
-    title: String,
+private fun EditorFieldRow(
+    label: String,
     content: @Composable () -> Unit,
 ) {
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text("//", style = type.eyebrow, color = t.accent)
-            Text(
-                text = title.uppercase(),
-                style = type.eyebrow,
-                color = t.ink2,
-                maxLines = 1,
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(1.dp)
-                    .background(t.line),
-            )
+    var focused by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { focused = it.hasFocus }
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = label,
+            style = type.secondary.copy(fontSize = 12.sp),
+            color = if (focused) t.accent else t.ink3,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        CompositionLocalProvider(LocalProviderFieldInCard provides true) {
+            content()
         }
-        content()
     }
 }
 
 @Composable
-private fun ModelCapabilitySwitchRow(
+private fun ModalityChipRow(
     title: String,
-    machineLabel: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    options: List<Modality>,
+    selected: List<Modality>,
+    onToggle: (Modality) -> Unit,
 ) {
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 52.dp)
-            .pressable(onClick = { onCheckedChange(!checked) })
-            .padding(horizontal = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 4.dp),
     ) {
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = title,
-                style = type.body,
-                color = t.ink,
-                maxLines = 1,
-            )
-            Text(
-                text = machineLabel,
-                style = type.meta.copy(fontSize = 12.sp),
-                color = t.ink3,
-                maxLines = 1,
-            )
+        Text(
+            text = title,
+            style = type.body.copy(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium),
+            color = t.ink,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { modality ->
+                ProviderFilterChip(
+                    text = stringResource(
+                        when (modality) {
+                            Modality.TEXT -> R.string.setting_provider_page_text
+                            Modality.IMAGE -> R.string.setting_provider_page_image
+                            Modality.AUDIO -> R.string.setting_provider_page_audio
+                        }
+                    ),
+                    selected = modality in selected,
+                    onClick = { onToggle(modality) },
+                )
+            }
         }
-        ProviderToggle(checked = checked, onCheckedChange = onCheckedChange)
     }
+}
+
+@Composable
+private fun AbilityToggleRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    ProviderListRow(
+        title = title,
+        onClick = { onCheckedChange(!checked) },
+        trailing = { ProviderToggle(checked = checked, onCheckedChange = onCheckedChange) },
+    )
 }
 
 private fun List<Modality>.withModality(modality: Modality, enabled: Boolean): List<Modality> =
@@ -648,29 +507,7 @@ private fun List<ModelAbility>.withAbility(ability: ModelAbility, enabled: Boole
         filterNot { it == ability }
     }
 
-@Composable
-private fun ModalityTagRow(
-    selected: List<Modality>,
-    onToggle: (Modality) -> Unit,
-) {
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Modality.entries.forEach { modality ->
-            ProviderSquareTag(
-                text = stringResource(when (modality) {
-                    Modality.TEXT -> R.string.setting_provider_page_text
-                    Modality.IMAGE -> R.string.setting_provider_page_image
-                    Modality.AUDIO -> R.string.setting_provider_page_audio
-                }),
-                selected = modality in selected,
-                onClick = { onToggle(modality) },
-            )
-        }
-    }
-}
-
+/** Sans sub-group label inside an expanded advanced row: "Custom headers  2". */
 @Composable
 private fun ModelAdvancedSectionLabel(
     text: String,
@@ -682,18 +519,48 @@ private fun ModelAdvancedSectionLabel(
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text("//", style = type.eyebrow, color = t.accent)
         Text(
-            text = text.uppercase(),
-            style = type.eyebrow,
-            color = t.ink3,
+            text = text,
+            modifier = Modifier.weight(1f, fill = false),
+            style = type.body.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+            color = t.ink2,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Text("· $count", style = type.meta.copy(fontSize = 11.sp), color = t.ink4)
-        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+        Text(
+            text = count.toString(),
+            style = type.secondary.copy(fontWeight = FontWeight.Medium),
+            color = t.ink4,
+        )
+    }
+}
+
+/** Per-item caption + delete button above a header/body pair. */
+@Composable
+private fun ModelAdvancedItemHeader(
+    text: String,
+    deleteDescription: String,
+    onDelete: () -> Unit,
+) {
+    val t = LocalAmberTokens.current
+    val type = LocalAmberType.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = text,
+            style = type.secondary.copy(fontSize = 12.sp),
+            color = t.ink3,
+        )
+        ProviderSmallIconButton(
+            imageVector = Lucide.Trash2,
+            contentDescription = deleteDescription,
+            onClick = onDelete,
+        )
     }
 }
 
@@ -712,16 +579,13 @@ private fun ModelCustomHeaders(
 
         Text(
             text = stringResource(R.string.provider_user_agent_presets),
-            style = type.meta,
+            style = type.secondary,
             color = t.ink3,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             modelUserAgentPresets.forEach { (label, value) ->
-                ProviderSquareTag(
+                ProviderFilterChip(
                     text = label,
                     selected = headers.any {
                         it.name.equals("User-Agent", ignoreCase = true) && it.value == value
@@ -732,7 +596,6 @@ private fun ModelCustomHeaders(
                                 CustomHeader("User-Agent", value)
                         )
                     },
-                    modifier = Modifier.padding(vertical = 4.dp),
                 )
             }
         }
@@ -742,28 +605,15 @@ private fun ModelCustomHeaders(
             var headerValue by remember(header.value) { mutableStateOf(header.value) }
 
             Column(Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "HEADER ${index + 1}",
-                        style = type.meta.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold),
-                        color = t.ink3,
-                    )
-                    ProviderSmallIconButton(
-                        imageVector = Lucide.Trash2,
-                        contentDescription = stringResource(R.string.provider_delete_header),
-                        onClick = {
-                            val updatedHeaders = headers.toMutableList()
-                            updatedHeaders.removeAt(index)
-                            onUpdate(updatedHeaders)
-                        },
-                    )
-                }
+                ModelAdvancedItemHeader(
+                    text = "Header ${index + 1}",
+                    deleteDescription = stringResource(R.string.provider_delete_header),
+                    onDelete = {
+                        val updatedHeaders = headers.toMutableList()
+                        updatedHeaders.removeAt(index)
+                        onUpdate(updatedHeaders)
+                    },
+                )
                 ProviderTextField(
                     value = headerName,
                     onValueChange = {
@@ -787,7 +637,6 @@ private fun ModelCustomHeaders(
                     mono = true,
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                ProviderHairline(Modifier.padding(top = 12.dp))
             }
         }
 
@@ -799,7 +648,6 @@ private fun ModelCustomHeaders(
                 updatedHeaders.add(CustomHeader("", ""))
                 onUpdate(updatedHeaders)
             },
-            modifier = Modifier.padding(top = 8.dp),
         )
     }
 }
@@ -810,7 +658,6 @@ private fun ModelCustomBodies(
     onUpdate: (List<CustomBody>) -> Unit,
 ) {
     val context = LocalContext.current
-    val t = LocalAmberTokens.current
     val type = LocalAmberType.current
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         ModelAdvancedSectionLabel(
@@ -826,28 +673,15 @@ private fun ModelCustomBodies(
             var jsonParseError by remember { mutableStateOf<String?>(null) }
 
             Column(Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "BODY ${index + 1}",
-                        style = type.meta.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold),
-                        color = t.ink3,
-                    )
-                    ProviderSmallIconButton(
-                        imageVector = Lucide.Trash2,
-                        contentDescription = stringResource(R.string.provider_delete_body),
-                        onClick = {
-                            val updatedBodies = customBodies.toMutableList()
-                            updatedBodies.removeAt(index)
-                            onUpdate(updatedBodies)
-                        },
-                    )
-                }
+                ModelAdvancedItemHeader(
+                    text = "Body ${index + 1}",
+                    deleteDescription = stringResource(R.string.provider_delete_body),
+                    onDelete = {
+                        val updatedBodies = customBodies.toMutableList()
+                        updatedBodies.removeAt(index)
+                        onUpdate(updatedBodies)
+                    },
+                )
                 ProviderTextField(
                     value = bodyKey,
                     onValueChange = {
@@ -880,16 +714,17 @@ private fun ModelCustomBodies(
                     mono = true,
                     singleLine = false,
                     minHeight = 98.dp,
+                    isError = jsonParseError != null,
                     modifier = Modifier.padding(top = 8.dp),
                 )
                 if (jsonParseError != null) {
                     Text(
                         text = jsonParseError!!,
-                        style = type.meta.copy(fontSize = 11.sp),
-                        color = t.accent,
+                        style = type.secondary.copy(fontSize = 12.sp),
+                        color = providerDangerColor(),
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
-                ProviderHairline(Modifier.padding(top = 12.dp))
             }
         }
 
@@ -901,11 +736,35 @@ private fun ModelCustomBodies(
                 updatedBodies.add(CustomBody("", JsonPrimitive("")))
                 onUpdate(updatedBodies)
             },
-            modifier = Modifier.padding(top = 8.dp),
         )
     }
 }
 
+private data class BuiltInToolEntry(
+    val tool: BuiltInTools,
+    val titleRes: Int,
+    val descRes: Int,
+)
+
+private fun builtInToolEntries(): List<BuiltInToolEntry> = listOf(
+    BuiltInToolEntry(
+        BuiltInTools.Search,
+        R.string.setting_page_built_in_tools_search,
+        R.string.setting_page_built_in_tools_search_desc,
+    ),
+    BuiltInToolEntry(
+        BuiltInTools.UrlContext,
+        R.string.setting_page_built_in_tools_url_context,
+        R.string.setting_page_built_in_tools_url_context_desc,
+    ),
+    BuiltInToolEntry(
+        BuiltInTools.ImageGeneration,
+        R.string.setting_page_built_in_tools_image_generation,
+        R.string.setting_page_built_in_tools_image_generation_desc,
+    ),
+)
+
+// Lives inside the form's scroll: no own verticalScroll / fillMaxSize (nested scroll would crash).
 @Composable
 private fun BuiltInToolsSettings(
     tools: Set<BuiltInTools>,
@@ -913,78 +772,46 @@ private fun BuiltInToolsSettings(
 ) {
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(top = 8.dp, bottom = 16.dp),
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.setting_page_built_in_tools_desc),
             style = type.secondary,
             color = t.ink3,
-            modifier = Modifier.padding(bottom = 8.dp),
+            modifier = Modifier.padding(bottom = 4.dp),
         )
 
-        val availableTools = listOf(
-            BuiltInTools.Search to Pair(
-                "search",
-                stringResource(R.string.setting_page_built_in_tools_search_desc)
-            ),
-            BuiltInTools.UrlContext to Pair(
-                "url_context",
-                stringResource(R.string.setting_page_built_in_tools_url_context_desc)
-            ),
-            BuiltInTools.ImageGeneration to Pair(
-                "image_generation",
-                stringResource(R.string.setting_page_built_in_tools_image_generation_desc)
-            )
-        )
-
-        availableTools.forEachIndexed { index, (tool, info) ->
-            val (flag, description) = info
-            if (index > 0) ProviderHairline()
+        builtInToolEntries().forEach { entry ->
+            val checked = entry.tool in tools
+            val toggle: (Boolean) -> Unit = { enabled ->
+                onUpdateTools(if (enabled) tools + entry.tool else tools - entry.tool)
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     Text(
-                        text = stringResource(
-                            when (tool) {
-                                BuiltInTools.Search -> R.string.setting_page_built_in_tools_search
-                                BuiltInTools.UrlContext -> R.string.setting_page_built_in_tools_url_context
-                                BuiltInTools.ImageGeneration -> R.string.setting_page_built_in_tools_image_generation
-                            }
-                        ),
+                        text = stringResource(entry.titleRes),
                         style = type.body.copy(fontWeight = FontWeight.SemiBold),
                         color = t.ink,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = description,
-                        style = type.secondary.copy(fontSize = 12.sp),
+                        text = stringResource(entry.descRes),
+                        style = type.secondary,
                         color = t.ink3,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                ProviderSquareTag(
-                    text = flag,
-                    selected = tool in tools,
-                    onClick = {
-                        onUpdateTools(
-                            if (tool in tools) tools - tool else tools + tool
-                        )
-                    },
-                )
+                ProviderToggle(checked = checked, onCheckedChange = toggle)
             }
         }
     }
@@ -1001,53 +828,27 @@ private fun ProviderOverrideSettings(
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = stringResource(R.string.setting_provider_page_provider_override),
-                style = type.body.copy(fontWeight = FontWeight.SemiBold),
-                color = t.ink,
-            )
-            Text(
-                text = stringResource(R.string.setting_provider_page_provider_override_desc),
-                style = type.secondary,
-                color = t.ink3,
-            )
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(R.string.setting_provider_page_provider_override_desc),
+            style = type.secondary,
+            color = t.ink3,
+        )
 
         if (providerOverride != null) {
-            Column(Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+            ProviderListRow(
+                title = providerOverride.name,
+                subtitle = { ProviderRowSubtitle(stringResource(R.string.setting_provider_page_provider_override)) },
+                leading = {
                     ProviderMonogram(
                         text = providerOverride.name.toProviderMonogram(),
                         size = 34.dp,
                     )
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Text(
-                            text = providerOverride.name,
-                            style = type.body.copy(fontWeight = FontWeight.SemiBold),
-                            color = t.ink,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = "override",
-                            style = type.meta.copy(fontSize = 11.sp),
-                            color = t.ink4,
-                        )
-                    }
+                },
+                trailing = {
                     ProviderSmallIconButton(
                         imageVector = Lucide.Pencil,
-                        contentDescription = "Edit override",
+                        contentDescription = stringResource(R.string.edit),
                         onClick = {
                             editingProvider = providerOverride
                             showProviderConfig = true
@@ -1055,17 +856,15 @@ private fun ProviderOverrideSettings(
                     )
                     ProviderSmallIconButton(
                         imageVector = Lucide.X,
-                        contentDescription = "Remove override",
+                        contentDescription = stringResource(R.string.provider_model_override_remove),
                         onClick = { onUpdateProviderOverride(null) },
                     )
-                }
-                ProviderHairline()
-            }
+                },
+            )
         } else {
             ProviderGhostButton(
                 text = stringResource(R.string.setting_provider_page_add_provider_override),
                 imageVector = Lucide.Plus,
-                accent = false,
                 onClick = {
                     editingProvider = parentProvider?.copyProvider(
                         id = Uuid.random(),
@@ -1076,20 +875,6 @@ private fun ProviderOverrideSettings(
                     showProviderConfig = true
                 },
             )
-            ProviderLedgerRow("base_url") {
-                Text(
-                    text = "› — (${stringResource(R.string.setting_subagent_value_inherit)})",
-                    style = type.meta.copy(fontSize = 12.sp),
-                    color = t.ink3,
-                )
-            }
-            ProviderLedgerRow("api_key") {
-                Text(
-                    text = "› — (${stringResource(R.string.setting_subagent_value_inherit)})",
-                    style = type.meta.copy(fontSize = 12.sp),
-                    color = t.ink3,
-                )
-            }
         }
 
         if (showProviderConfig && editingProvider != null) {
@@ -1099,27 +884,27 @@ private fun ProviderOverrideSettings(
                     editingProvider = null
                 },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                containerColor = t.bg,
+                containerColor = t.raised,
+                dragHandle = { ProviderSheetGrabber() },
             ) {
                 var internalProvider by remember(editingProvider) { mutableStateOf(editingProvider!!) }
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.92f)
-                        .padding(horizontal = 18.dp),
+                        .fillMaxHeight(0.92f),
                 ) {
-                    Text(
-                        text = stringResource(R.string.setting_provider_page_configure_provider_override),
-                        style = type.screenTitle,
-                        color = t.ink,
+                    ProviderSheetHeader(
+                        title = stringResource(R.string.setting_provider_page_configure_provider_override),
                     )
 
                     ProviderConsole(
                         provider = internalProvider,
                         onEdit = { internalProvider = it },
                         onCommit = { internalProvider = it },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp),
                         contentPadding = PaddingValues(vertical = 12.dp),
                     ) { currentProvider ->
                         ProviderSplitBar(

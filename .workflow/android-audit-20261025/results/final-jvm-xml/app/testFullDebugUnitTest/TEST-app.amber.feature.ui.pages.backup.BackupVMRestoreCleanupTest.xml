@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:05.624Z" hostname="duguangdeMBP.lan" time="1.824">
+  <properties/>
+  <testcase name="provider A cancel then local B apply owns only B source and completion metadata" classname="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" time="0.819"/>
+  <testcase name="partial commit retains encrypted source for fresh verification after selected URI disappears" classname="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" time="0.336"/>
+  <testcase name="verify then dismiss deletes provider download copy" classname="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" time="0.14"/>
+  <testcase name="verify then dismiss deletes local temp copy but keeps user file" classname="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" time="0.164"/>
+  <testcase name="successful apply shows restart even when no frame observes transient Loading" classname="app.amber.feature.ui.pages.backup.BackupVMRestoreCleanupTest" time="0.365"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

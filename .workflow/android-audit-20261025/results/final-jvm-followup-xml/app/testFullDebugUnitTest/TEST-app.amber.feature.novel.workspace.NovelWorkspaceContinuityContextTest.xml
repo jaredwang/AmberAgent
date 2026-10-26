@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceContinuityContextTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:34.412Z" hostname="duguangdeMBP.lan" time="0.052">
+  <properties/>
+  <testcase name="ordinary settings still apply the one message limit" classname="app.amber.feature.novel.workspace.NovelWorkspaceContinuityContextTest" time="0.018"/>
+  <testcase name="workspace runtime preserves full chapter and earlier facts at provider across tool rounds" classname="app.amber.feature.novel.workspace.NovelWorkspaceContinuityContextTest" time="0.034"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-17T17:44:50.723Z" hostname="duguangdeMacBook-Pro.local" time="0.003">
+  <properties/>
+  <testcase name="同签名重复上报不重置稳定计时" classname="app.amber.feature.live.LiveEngineTest" time="0.001"/>
+  <testcase name="force 绕过冷却与去重但不绕过退避" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <testcase name="冷却期内不分析" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <testcase name="没有屏幕签名时不分析" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <testcase name="已分析过的签名跳过" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <testcase name="成功清除退避" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <testcase name="新签名要等稳定延迟" classname="app.amber.feature.live.LiveEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

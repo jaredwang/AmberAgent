@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.task.DisabledCronRecoveryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:42.420Z" hostname="duguangdeMBP.lan" time="4.919">
+  <properties/>
+  <testcase name="disabled cron remains cancelled in memory and disk after restart" classname="app.amber.feature.task.DisabledCronRecoveryTest" time="4.881"/>
+  <testcase name="enabled running recurring cron still recovers as scheduled" classname="app.amber.feature.task.DisabledCronRecoveryTest" time="0.032"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

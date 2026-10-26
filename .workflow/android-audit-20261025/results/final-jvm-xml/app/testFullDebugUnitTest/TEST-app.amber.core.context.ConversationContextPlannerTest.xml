@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.context.ConversationContextPlannerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.403Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="staleCompletedCompactDoesNotBlockFreshCompactionPlan" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.002"/>
+  <testcase name="forceCompactionDepthUsesEffectiveCompactAwarePressure" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.003"/>
+  <testcase name="extraTokenEstimateContributesToCompactionPressure" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.001"/>
+  <testcase name="prepareMessagesSkipsSummaryWhenSourceMessageIsMissing" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.001"/>
+  <testcase name="forceCompactionSkipsShallowPlanThatWouldNotReleaseEnoughTokens" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="softFitKeepsCurrentUserAndToolContinuationEvenWhenTheyExceedTarget" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="forceThresholdPlansOlderMessagesAndKeepsRecentTurns" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="zeroSoftBudgetStillKeepsCurrentUserAndItsContinuation" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="prepareMessagesInjectsLatestCumulativeHandoffOnly" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="belowThresholdDoesNotCompact" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <testcase name="prepareMessagesInjectsSummaryAndDropsCoveredOriginals" classname="app.amber.core.context.ConversationContextPlannerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:38.805Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="batch polish requests read only prose candidate and hash bound factual review" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="ghostwrite prompt carries ordinal and plan" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="regenerate chapter tolerates blank plan and preference" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.001"/>
+  <testcase name="quickstart embeds the seed" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="character proposal embeds name, sketch, existing cards and discipline" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="prose draft granularity changes the goal" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="discipline preamble names the five primitives and the gate" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="polish chapter prompt tolerates blank preference and empty body" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="polish chapter prompt embeds body, ordinal, path, preference and fact-freeze rules" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <testcase name="regenerate chapter embeds body, plan, writing preference and discipline" classname="app.amber.feature.novel.workspace.NovelWorkspacePromptsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,294 @@
+[
+  {
+    "path": "app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceManagerMirrorIsolationTest.kt",
+    "sha256": "091124b9c5f08c7a35f4f40fa69387f67a497e92705492da1f85bfa958fa8689"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/context/ConversationContextPlannerTest.kt",
+    "sha256": "97970545f7a073b46036d7e7643ea934028acc79287bfa75ffebd3d7c1501ee2"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/memory/MemoryCandidateFilterTest.kt",
+    "sha256": "5826ee0c3a65d95885f185281d7e37e0493618957ed6e1c2b7f66609604e9231"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/memory/MemoryDreamPlannerTest.kt",
+    "sha256": "9924e9ae4113e5f40c751b6ecd9b21154b4b751c1b1e9ddc4d989d069494a5e8"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/memory/MemoryImportExportTest.kt",
+    "sha256": "e535761413697ceffbc735d5c0776d86231a3b07ec7054387b540f46eee2045d"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/sync/SecretBackupExportTest.kt",
+    "sha256": "784ed1ba463507e9749d7df39c49a4a5c53a6127b15d7c5a5d8a26a4413f8d1f"
+  },
+  {
+    "path": "app/src/test/java/app/amber/core/service/NotificationApprovalDispatchTest.kt",
+    "sha256": "6538531bf00bcca569100215c07b8924064ad98db276000ffed1ef948fd86c2f"
+  },
+  {
+    "path": "app/src/test/java/app/amber/core/sync/provider/WebDavSyncProviderTest.kt",
+    "sha256": "0fccce9b519d0a3ce582762407883995b2d418b9f58bdd60eda8dcbd43daa560"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/subagent/SubAgentThreadGraphIntegrationTest.kt",
+    "sha256": "7231d5b71c99b4845d589199377b63a437b03ad01db9083d3a2a85d4a253355b"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/terminal/TerminalAdmissionTest.kt",
+    "sha256": "59cb59d91c2e81e92b06083df7fe767d25d872fba475e974032313038b3bf973"
+  },
+  {
+    "path": "core/settings/src/test/kotlin/app/amber/core/settings/prefs/SettingsAggregatorHelpersTest.kt",
+    "sha256": "2c0d8af29fac2592807a3c4344e4cec0e01439b4dc531b7ff7745d1c49292f56"
+  },
+  {
+    "path": "core/settings/src/test/kotlin/app/amber/core/settings/secret/SecretPrefsChainRoundTripTest.kt",
+    "sha256": "a8b6136268053130ab215c949fb211f12155d36dd8ba29c3f612a5e6a9197595"
+  },
+  {
+    "path": "core/settings/src/test/kotlin/app/amber/core/settings/secret/SettingsSecretMigrationTest.kt",
+    "sha256": "64537ba0ad964eb71c3f517ff71657c8aaca216f3ac731a27da5f67034ae27c0"
+  },
+  {
+    "path": "feature/tools/api/src/test/kotlin/app/amber/feature/tools/ExternalActionEffectPolicyTest.kt",
+    "sha256": "e71fbb64f9a55712d7aaf74f68eb9e037bb529ee6198611b6fad86f0f751b33f"
+  },
+  {
+    "path": "feature/workspace/src/main/kotlin/app/amber/feature/workspace/WorkspaceManager.kt",
+    "sha256": "27b7d9117dabdf8f602b5a5402f583cca5062249de2e6ac8c1da7973affac574"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/findings.md",
+    "sha256": "27e2045faab84fa8616c40688ae2c0f49734075bf3082d143628e185df96b824"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/logs/baseline-jvm.log",
+    "sha256": "4b35bcc3b784074f864fcca68fea8fc635eaa1db90d664017fc8638ca4a305de"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/logs/baseline-online.log",
+    "sha256": "3074ca9661813688b27741d85bab118e2492a5b95bb00f9f877770bd12b3b917"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/logs/native.log",
+    "sha256": "c50346d30063979c0caf7cfd893b576d9be56c18ee3190b9ba20e147ccfc1f07"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/logs/parser-offset-probe.rs",
+    "sha256": "c88ff911505f837d39f2d2550e97903d702407b0173e7553bd6c04e00ee04472"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/logs/phase1-red.log",
+    "sha256": "4236e7e8ce0c68c4f3e8b6c4502abb75470e1c3aa4e86d880496ef3000bc43c2"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/plan.md",
+    "sha256": "7ee4c21a911a71958cad84cd07fc60c17cd8fe984f185e97cef60dc82ffe149a"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-background.md",
+    "sha256": "39acd070060a8eb735717decae1f06b41073a295f4bd04a5baf11897896576b8"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-council.md",
+    "sha256": "d562e6742fc6f39ded72d6f6be687e84788d6ea65972c60f3731d6ae8837e326"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-data.md",
+    "sha256": "5e959a914743a262b1c3de11f33fada1e0b373cc3546de15cf4a8036b20bd70d"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-jev.md",
+    "sha256": "91a82d5d985a1a32819c48eed28e472fad08f814f0d2234a6a87929011ca42d4"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-memory-context.md",
+    "sha256": "53c403603a870461843b51f3aaca6df3357a35cd9597406e8d8035d05938a53d"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-novel-domain.md",
+    "sha256": "cac23c1d5456fffeb720deb9df9e6c6fb77c3c5e26c3a2acf2aa9896f766cdc7"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-novel-storage.md",
+    "sha256": "e794aa7822d74c792d82f2f2d5e7efa00c14cf421a60fc27af5d2ff82bb2fea8"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-providers.md",
+    "sha256": "0cb4cb2bbafda4b0caa72f6fc4eb66e769bdb505e386f83f88f56e58c50c95c8"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-response-api.md",
+    "sha256": "535f72c7e4ac27d801af3e1962b679c40f3e83b683b66f6f4b3d1efc0a526f72"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-runtime.md",
+    "sha256": "02a8bc8181d7d743528e6ee87bea9ade3165f372b3b867a57cd865f88c94626f"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-sync.md",
+    "sha256": "ecb9357726e6bea13b1f738662c21de165216d67525e0dc4a800191245f5e1a3"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-terminal.md",
+    "sha256": "68f0e557cbd1d4fc075e1b6d73146e03325b33a402e68ec01438084b3e49fc10"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-tools.md",
+    "sha256": "0133e1b94e3174664345c65dbf37232b175db45f75c2617cccfcb16a8976d4b7"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-ui.md",
+    "sha256": "3b6347169c6d480c6a00c9cda3db24858f2c2b8fab74a63cd0f68291fb05a41f"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/audit-web-jev.md",
+    "sha256": "7f15f6e67645c8a1648a202c50cbcf7852f9b6af50d91f2a255bf259be799077"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/baseline-verification.md",
+    "sha256": "289e5b69bb283f6ac6ab49d83fa61a9e23124b260da3684e155030b2977db716"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-data.md",
+    "sha256": "e9526b7dab4d867e86c26100b7fb7c0a058298929e6928f4155e173c1a361acd"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-memory.md",
+    "sha256": "ebd404b551807e9904b625220a347afdb0638657f58d09c98f13c2a366be107a"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-runtime.md",
+    "sha256": "3652c0494c3aef40d6300c485d36ca2d636e49b2dd39dc2648f27afef837c661"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-sync.md",
+    "sha256": "16b253bbcc9f4ac89b8723f11cde418287e94680274a1f1efcdfa54f109a8b93"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-terminal-mirror.md",
+    "sha256": "69e9634e6681d5d2e8c7a98b4cd3a8ecb88cbcd3261ea64a44a8e882d534f6ae"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase1-tools.md",
+    "sha256": "5710686225f7ffca9fc92961c6e4898398ff60497815a91442dd016368850df0"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase2-provider.md",
+    "sha256": "53a3f138d68144170aebc6c6ade2ace80c3f8c4a20abd6fa759b2472ef4b8024"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase2-responses.md",
+    "sha256": "c21b23d2a1d68e30854d1a3fa76a9bffe75f9ee9ade8e88a785c4a5f772c8bb2"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/phase2-search-app.md",
+    "sha256": "d3a5e17e19a069912f9acbb4225b829d44b52adab483fea6887b50495ad897ec"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-background.md",
+    "sha256": "9b016d0976a5840e74ade79d3e4824dbe3ffe61a51550293524354f7adfe4b05"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-data.md",
+    "sha256": "34f17f68edf89da2f69037526cc02413dcfc4c90e3421ab2583bf1b4bf5b2823"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-memory-storage.md",
+    "sha256": "074ed008bcae4bc5663fb49433eb15d5dc1246da5b1a2f394e8ae66e730dcc12"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-novel-ui.md",
+    "sha256": "586faa5e65069433e5eb9e1263f31bf295e2d6cbfdefa8ffb133a0e33f5e2c10"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-parsers.md",
+    "sha256": "973d750214d03f504035c8c54c4aa22ab18c7de39406965e41cf9b8bc367ec5b"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-providers.md",
+    "sha256": "7d2353c031d7740b4ee764ac4e99f0ef52df82dba8b9ddcb5130355b3077c5ce"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-runtime.md",
+    "sha256": "485a09b4240e284cea787eb00cd4d3d62749284417ab79342dc1acd72e4f0579"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-search.md",
+    "sha256": "c982856c1525479141ea0e20cc1b445c6072f11b4c69ce7d2e4dab6844352c6e"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-tools.md",
+    "sha256": "2d280e192eef3f9c83e69edc5c9e6303056a490e8db5fdaa686fe8307c783db2"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/results/verify-web.md",
+    "sha256": "fc741671b8b13766482d2d0445adcf6225dabc4b9c6b6dcfbad5edbde0b3a014"
+  },
+  {
+    "path": ".workflow/android-audit-20261025/state.json",
+    "sha256": "df280b034911724950db4b892901c1df23de8f345795cb76ab8225c5a28d680e"
+  },
+  {
+    "path": ".workflow/search-repair-20261025/plan.md",
+    "sha256": "d717921e3532940f3668d00138f02206fbac6426d765d04c29720aefb35a7d5e"
+  },
+  {
+    "path": ".workflow/search-repair-20261025/state.json",
+    "sha256": "e6f8ad685e4ea0f04e2c62606c0adfc3de1b9ac3b484ca1665ea3e62a3fe9e49"
+  },
+  {
+    "path": "ai/src/test/java/app/amber/ai/provider/providers/ProviderBodyCancellationTest.kt",
+    "sha256": "961fa55d47ce2251b2f74c5debaa4fa5863ee278015de331abb13df7631694f6"
+  },
+  {
+    "path": "ai/src/test/java/app/amber/ai/provider/providers/ProviderContentReplayTest.kt",
+    "sha256": "cc9d6c25f3ae40b8371eaf7fa3d1f44e3434efe03991aa28b6b01aebcce7e84e"
+  },
+  {
+    "path": "ai/src/test/java/app/amber/ai/provider/providers/openai/ResponseAPIStoredProtocolRegressionTest.kt",
+    "sha256": "4e6a942e3d88a9d69fed8d6095fab708b66094ffd859c1a626d2199ecc3b25b7"
+  },
+  {
+    "path": "ai/src/test/java/app/amber/ai/util/KeyRouletteTest.kt",
+    "sha256": "886565dafbd5ab595816bc4308597dccfe131b4ebebbdf17f45ad24f2863b0d2"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceDocumentsWriteTest.kt",
+    "sha256": "4aebcd8f4d8e1dab8020c6e6db3d18379b24f19a93a363231561b9f7f5fa56e6"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/ai/tools/SearchAuditRegressionTest.kt",
+    "sha256": "a118c0aa698f5bb43eb076022db742df13537581b2e618f9f0ca2e9029fc755f"
+  },
+  {
+    "path": "app/src/test/java/app/amber/agent/data/memory/MemoryDreamPlannerVisibleInputsTest.kt",
+    "sha256": "70c616b9a24c1f2285a4ccf7ea89364101ef81d93deb43fadc17e82166ee4c6f"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/board/hotlist/deepread/DeepReadSearchFallbackTest.kt",
+    "sha256": "00e8b396ca80bc917949315505d1fe905192b0a8462cdf57b5fefe3d03b5b8d4"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/runtime/ToolInvocationRecoveryRegressionTest.kt",
+    "sha256": "c7d0a1a83bef40d4f77d6cef73de884366c0303e260d48574f4bd8b4efb62588"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/tools/WorkspaceArtifactHttpRequestTest.kt",
+    "sha256": "d01691ebb8452a1a8f52badd34b7082ff591d79aca19d930b8c08a5b9fab6a14"
+  },
+  {
+    "path": "app/src/test/java/app/amber/feature/ui/components/message/SubAgentCitationInteractionTest.kt",
+    "sha256": "cb266caf30ffed46af05c67e3962d9556425da0765c69bec04bb393dc4bce342"
+  },
+  {
+    "path": "search/src/test/java/app/amber/search/SearchBodyCancellationTest.kt",
+    "sha256": "e04db089db982ed0c43122e94aebe4103ca459da301606d402d2619f065bbd04"
+  },
+  {
+    "path": "search/src/test/java/app/amber/search/SearchProviderProtocolRegressionTest.kt",
+    "sha256": "bbc526204b4735a84066b948add5aa3b97a5d7e15e1528b142e731e09a6de51b"
+  }
+]

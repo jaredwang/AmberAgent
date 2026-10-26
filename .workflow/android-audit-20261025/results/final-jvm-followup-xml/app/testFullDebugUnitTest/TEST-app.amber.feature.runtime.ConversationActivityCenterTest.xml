@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.ConversationActivityCenterTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.747Z" hostname="duguangdeMBP.lan" time="0.01">
+  <properties/>
+  <testcase name="noticesSkipTheCurrentConversation" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.001"/>
+  <testcase name="missingOrBlankTitleFallsBackToIdPrefix" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.001"/>
+  <testcase name="throwingTitleProviderDoesNotBreakTheNotice" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.001"/>
+  <testcase name="refusedRegistrationDoesNotPublishAnotherOwner" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.0"/>
+  <testcase name="registryProjectionTracksRegisterAndUnregister" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.0"/>
+  <testcase name="oneNoticePerConversationKeepsTheEarliestRun" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.006"/>
+  <testcase name="mismatchedCancelLeavesTheProjectionUntouched" classname="app.amber.feature.runtime.ConversationActivityCenterTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

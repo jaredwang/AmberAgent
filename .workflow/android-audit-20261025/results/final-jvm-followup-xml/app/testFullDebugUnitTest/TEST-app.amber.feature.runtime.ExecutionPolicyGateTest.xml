@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.ExecutionPolicyGateTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.781Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="every url-carrying tool family member is gated on the domain dimension" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.002"/>
+  <testcase name="artifact write targets are gated including their schema defaults" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="narrowed system dimension also covers the device permission tools" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="missing or blank required path is denied fail-closed while optional path defaults to the root" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="url without a parseable host is denied fail-closed" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="nested root allows only paths contained under it" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="file_move checks both source and target" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="download_file write target is gated while its url stays under the domain dimension" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="permissive policy passes every family" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="denial output is the structured policy_denied payload with the permission trace" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="traversal with dot-dot escapes is denied" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="absent optional path arguments check their schema defaults or touch nothing" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="subdomain matches the parent domain but a lookalike does not" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="capability not in the allowlist is denied while allowed ones and unmapped tools pass" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="unmodeled root domains are denied while the path dimension is active" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="family tools with workspace path arguments are gated" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="absolute non-workspace path is allowed under a matching external root" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="optional url tools skip absent and non-web arguments but gate http urls" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="null dimensions each stay unrestricted" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <testcase name="allowShell false denies terminal tools and never executes the body" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.001"/>
+  <testcase name="workspace path under an allowed root executes" classname="app.amber.feature.runtime.ExecutionPolicyGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

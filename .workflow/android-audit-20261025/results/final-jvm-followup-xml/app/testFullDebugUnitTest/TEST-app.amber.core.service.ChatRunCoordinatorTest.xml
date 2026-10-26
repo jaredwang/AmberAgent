@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatRunCoordinatorTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:03.905Z" hostname="duguangdeMBP.lan" time="4.502">
+  <properties/>
+  <testcase name="matching old Stop preserves input accepted while the cancelled handler settles" classname="app.amber.core.service.ChatRunCoordinatorTest" time="3.231"/>
+  <testcase name="server cancellation returning late cannot stop a successor dispatch" classname="app.amber.core.service.ChatRunCoordinatorTest" time="0.071"/>
+  <testcase name="same drain cannot launch queued input before the first handler settles" classname="app.amber.core.service.ChatRunCoordinatorTest" time="0.042"/>
+  <testcase name="unconfirmed server Stop of a persisted approval retains waiting external and cursor" classname="app.amber.core.service.ChatRunCoordinatorTest" time="0.042"/>
+  <testcase name="same run activation claimed before Stop event CAS keeps both owners running" classname="app.amber.core.service.ChatRunCoordinatorTest" time="0.036"/>
+  <testcase name="sending during cancelled handler cleanup waits before its next wire and still executes" classname="app.amber.core.service.ChatRunCoordinatorTest" time="1.04"/>
+  <testcase name="registered generation task cancels only the run captured by its hook" classname="app.amber.core.service.ChatRunCoordinatorTest" time="0.039"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

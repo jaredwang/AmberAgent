@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.490Z" hostname="duguangdeMBP.lan" time="0.197">
+  <properties/>
+  <testcase name="userDenialRecordsApprovalDeniedAndStructuredRejection" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.013"/>
+  <testcase name="reconciledEffectExecutesAfterUserConfirmsRetry" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.012"/>
+  <testcase name="kernelWriteAheadEffectDoesNotGetADuplicatePrepared" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.011"/>
+  <testcase name="cancellationEmitsNothingAfterStarted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.011"/>
+  <testcase name="readOnlyToolIsClassifiedReadOnlyAndIdempotentToolGetsIdempotencyKey" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.013"/>
+  <testcase name="userDenialEmitsFinishedDeniedWithoutStarted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.01"/>
+  <testcase name="approvedCallWithChangedArgsIsBlockedOnTheDurablePath" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.014"/>
+  <testcase name="failedExecutionEmitsFinishedFailedWithTheLedgerCategory" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.013"/>
+  <testcase name="failureIsRecordedWithErrorCategory" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.011"/>
+  <testcase name="answeredApprovalEmitsFinishedWithoutStarted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.01"/>
+  <testcase name="successfulExecutionWritesPreparedStartedFinished" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.01"/>
+  <testcase name="outcomeUnknownEffectIsNotReExecuted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.012"/>
+  <testcase name="generateImageIsNonIdempotentButKeepsExistingApprovalContract" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.01"/>
+  <testcase name="cancellationLeavesEffectStarted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.01"/>
+  <testcase name="successfulExecutionEmitsTheFullLifecycleAlignedWithTheLedger" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.011"/>
+  <testcase name="abandonedEffectIsBlockedEvenIfResubmitted" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.011"/>
+  <testcase name="interruptedWebMountWritesRequireReconciliationButSignedReadsStayRetryable" classname="app.amber.feature.runtime.AgentToolDispatcherLedgerTest" time="0.015"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

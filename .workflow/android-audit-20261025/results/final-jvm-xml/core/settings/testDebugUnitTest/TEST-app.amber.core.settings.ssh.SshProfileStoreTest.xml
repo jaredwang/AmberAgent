@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.ssh.SshProfileStoreTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:15.153Z" hostname="duguangdeMBP.lan" time="0.145">
+  <properties/>
+  <testcase name="empty passphrase clears it and credentials string is redacted" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.029"/>
+  <testcase name="failed credential write leaves the old profile generation usable" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.009"/>
+  <testcase name="invalid endpoint and credential input is rejected" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.005"/>
+  <testcase name="deleting default selects stable first remaining profile and only owned secrets" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.014"/>
+  <testcase name="endpoint change clears trust and stale CAS is rejected" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.019"/>
+  <testcase name="lost publication acknowledgement never deletes the committed credentials" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.012"/>
+  <testcase name="empty revision reads legacy credential keys and upgrades on save" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.009"/>
+  <testcase name="editing with an unreadable retained secret preserves its stored reference" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.007"/>
+  <testcase name="credentialsFor rejects a stale profile snapshot" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.01"/>
+  <testcase name="save cannot override accepted fingerprint and auth switch removes old secret" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.015"/>
+  <testcase name="multiple profiles round trip with independent credentials and first default" classname="app.amber.core.settings.ssh.SshProfileStoreTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

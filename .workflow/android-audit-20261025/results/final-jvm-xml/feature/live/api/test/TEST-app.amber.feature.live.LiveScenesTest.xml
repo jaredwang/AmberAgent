@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveScenesTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-17T17:44:50.738Z" hostname="duguangdeMacBook-Pro.local" time="0.009">
+  <properties/>
+  <testcase name="用户覆盖优先于内置表" classname="app.amber.feature.live.LiveScenesTest" time="0.008"/>
+  <testcase name="场景默认动作映射" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <testcase name="未知包名可被覆盖为 CHAT" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <testcase name="非法 wire 名回退内置表" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <testcase name="未知包名归为 OTHER" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <testcase name="阅读类支持前缀匹配" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <testcase name="聊天类包名归为 CHAT" classname="app.amber.feature.live.LiveScenesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.conversation.exchange.ConversationExchangeServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.881Z" hostname="duguangdeMBP.lan" time="0.049">
+  <properties/>
+  <testcase name="preview and import replace messages while preserving council checkpoint" classname="app.amber.core.conversation.exchange.ConversationExchangeServiceTest" time="0.023"/>
+  <testcase name="thread sidecar is rejected before repository write" classname="app.amber.core.conversation.exchange.ConversationExchangeServiceTest" time="0.012"/>
+  <testcase name="import rejects a row created after preview before gate check" classname="app.amber.core.conversation.exchange.ConversationExchangeServiceTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

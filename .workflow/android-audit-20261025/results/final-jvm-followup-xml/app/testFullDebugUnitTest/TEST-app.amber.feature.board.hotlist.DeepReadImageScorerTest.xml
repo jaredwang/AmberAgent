@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadImageScorerTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.685Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="fallbackSourceImageDoesNotTreatTitleAsImageContext" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.002"/>
+  <testcase name="searchResultImageWithoutDirectContextNeverBecomesHero" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="ogImageWithSingleSceneTokenUrlStillNeedsMoreImageEvidence" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="ogImageUrlSceneEvidenceCanBecomeHero" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.001"/>
+  <testcase name="noSpaceChineseSceneImageCanBecomeHeroWhenDirectContextMatches" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="logoAndIconAssetsAreAlwaysRejected" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="ogImageWithoutImageLevelContextNeverBecomesHero" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="genericAltTextDoesNotUnlockArticleImageHero" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <testcase name="hotlistImageWithoutImageLevelContextNeverBecomesHero" classname="app.amber.feature.board.hotlist.DeepReadImageScorerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

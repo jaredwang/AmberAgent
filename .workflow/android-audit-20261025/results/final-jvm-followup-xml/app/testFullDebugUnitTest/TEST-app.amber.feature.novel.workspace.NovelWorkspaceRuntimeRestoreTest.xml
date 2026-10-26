@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeRestoreTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:38.820Z" hostname="duguangdeMBP.lan" time="0.031">
+  <properties/>
+  <testcase name="tool instances and direct request created before restore cannot mutate the recovered workspace" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeRestoreTest" time="0.008"/>
+  <testcase name="old free write rollback cannot overwrite a file recovered by restore" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeRestoreTest" time="0.009"/>
+  <testcase name="a restore after the last streamed chunk prevents old proposal registration" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeRestoreTest" time="0.008"/>
+  <testcase name="direct manual writes are blocked for the whole active restore" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeRestoreTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

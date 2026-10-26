@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.MemoryDocumentProjectionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:14.250Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="topicDocumentsResolveOnlyLiveMembersAndKeepLooseRecordsSeparate" classname="app.amber.feature.ui.pages.setting.MemoryDocumentProjectionTest" time="0.001"/>
+  <testcase name="matchingTopicSlugsRemainDistinctAndTopicsKeepNewestFirst" classname="app.amber.feature.ui.pages.setting.MemoryDocumentProjectionTest" time="0.0"/>
+  <testcase name="documentMetadataIncludesTopicAndNewestMemberWithoutReorderingTheInput" classname="app.amber.feature.ui.pages.setting.MemoryDocumentProjectionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

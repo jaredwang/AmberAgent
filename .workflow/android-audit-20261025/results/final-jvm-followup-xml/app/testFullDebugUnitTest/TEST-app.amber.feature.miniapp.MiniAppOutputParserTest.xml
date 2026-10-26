@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppOutputParserTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.795Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="parsesMiniAppJsonSurroundedByAssistantText" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.001"/>
+  <testcase name="rejectsUnknownPermissions" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.0"/>
+  <testcase name="normalizesCommonPermissionAliases" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.0"/>
+  <testcase name="parsesFencedMiniAppJson" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.001"/>
+  <testcase name="acceptsV2Permissions" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.0"/>
+  <testcase name="acceptsV3Permissions" classname="app.amber.feature.miniapp.MiniAppOutputParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

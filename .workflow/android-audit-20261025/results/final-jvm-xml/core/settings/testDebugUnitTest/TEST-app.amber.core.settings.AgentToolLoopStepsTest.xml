@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.AgentToolLoopStepsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:07.265Z" hostname="duguangdeMBP.lan" time="0.061">
+  <properties/>
+  <testcase name="aSettingsOptionEqualsTheCap" classname="app.amber.core.settings.AgentToolLoopStepsTest" time="0.011"/>
+  <testcase name="rangeCoversLongRunsAndKeepsDefaultInside" classname="app.amber.core.settings.AgentToolLoopStepsTest" time="0.0"/>
+  <testcase name="kernelReceivesConfiguredCap" classname="app.amber.core.settings.AgentToolLoopStepsTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

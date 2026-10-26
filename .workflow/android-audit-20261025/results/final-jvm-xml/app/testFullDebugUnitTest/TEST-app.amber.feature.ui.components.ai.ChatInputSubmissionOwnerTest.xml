@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.848Z" hostname="duguangdeMBP.lan" time="0.114">
+  <properties/>
+  <testcase name="removingTheCapturedAttachmentDuringValidationPreventsSubmissionOfItsDeletedFile" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.01"/>
+  <testcase name="rejectedSubmissionPreservesInputAndAllowsRetry" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.008"/>
+  <testcase name="nextDraftTypedDuringValidationIsPreservedWhileTheClickedSnapshotIsSent" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.009"/>
+  <testcase name="editConfirmationSharesTheSubmissionAlreadyWaitingForValidation" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.01"/>
+  <testcase name="secondSendDuringValidationDoesNotValidateOrSubmitAgain" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.008"/>
+  <testcase name="rejectedValidationPreservesInputAndAllowsTheNextSend" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.008"/>
+  <testcase name="changingTheEditTargetDuringValidationNeverWritesTheNewTargetOrClearsItsDraft" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.007"/>
+  <testcase name="attachmentChosenDuringValidationIsNotDiscardedByThePreviousSubmission" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.007"/>
+  <testcase name="cancellingSuspendedValidationDoesNotSubmitOrLeaveTheOwnerInFlight" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.01"/>
+  <testcase name="widgetActionSendsAnIndependentInstructionAndPreservesTheHistoricalEditOwner" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.007"/>
+  <testcase name="changingConversationDuringValidationPreventsSubmission" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.008"/>
+  <testcase name="editConfirmationNeverAcceptsOrClearsAnUnresolvedAttachment" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.007"/>
+  <testcase name="acceptedSnapshotConsumesItsAttachmentsWhilePreservingLaterTextAndNewAttachments" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.007"/>
+  <testcase name="removingAnUntrackedLocalAttachmentDuringValidationPreventsSendingItsDeletedFile" classname="app.amber.feature.ui.components.ai.ChatInputSubmissionOwnerTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

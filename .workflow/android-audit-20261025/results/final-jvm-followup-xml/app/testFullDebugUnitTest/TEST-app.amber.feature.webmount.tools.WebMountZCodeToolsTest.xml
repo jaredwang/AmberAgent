@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.webmount.tools.WebMountZCodeToolsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.759Z" hostname="duguangdeMBP.lan" time="0.036">
+  <properties/>
+  <testcase name="connectionOptInAndSelectedSessionAreCheckedBeforeAllocatingBrowser" classname="app.amber.feature.webmount.tools.WebMountZCodeToolsTest" time="0.023"/>
+  <testcase name="originCheckRejectsAChangedHostSchemePortOrUserInfo" classname="app.amber.feature.webmount.tools.WebMountZCodeToolsTest" time="0.006"/>
+  <testcase name="openCannotAcquireAnUnscopedConversation" classname="app.amber.feature.webmount.tools.WebMountZCodeToolsTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

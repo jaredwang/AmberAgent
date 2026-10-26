@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.runtime.impl.PersistingEventWriterTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:25.855Z" hostname="duguangdeMacBook-Pro.local" time="0.018">
+  <properties/>
+  <testcase name="unregisteredFinalIsDroppedSilently" classname="app.amber.core.agent.runtime.impl.PersistingEventWriterTest" time="0.007"/>
+  <testcase name="storeFailureNeverEscapesIntoTheRun" classname="app.amber.core.agent.runtime.impl.PersistingEventWriterTest" time="0.009"/>
+  <testcase name="registeredFinalPersistsWithCodecTypeAndAllocatedSeq" classname="app.amber.core.agent.runtime.impl.PersistingEventWriterTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

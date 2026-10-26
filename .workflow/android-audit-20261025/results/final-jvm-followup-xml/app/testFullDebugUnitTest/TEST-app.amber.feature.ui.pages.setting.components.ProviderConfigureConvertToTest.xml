@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:03.692Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="convertTo should keep original base url when source url is invalid" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.001"/>
+  <testcase name="convertTo should preserve third-party host and replace version suffix" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <testcase name="convertTo should keep common fields and switch official endpoint to target default" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <testcase name="reset after protocol conversion should use the new protocol default" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <testcase name="convertTo should preserve third-party host and append target path when needed" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <testcase name="convertTo should preserve third-party host when switching to claude" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.001"/>
+  <testcase name="reset should restore built-in endpoint and keep credentials and models" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <testcase name="convertTo should return same instance for same type" classname="app.amber.feature.ui.pages.setting.components.ProviderConfigureConvertToTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

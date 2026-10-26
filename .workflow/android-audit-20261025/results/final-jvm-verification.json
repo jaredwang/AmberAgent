@@ -1,0 +1,521 @@
+{
+  "started": "2026-10-25T16:04:48.164704+00:00",
+  "finished": "2026-10-25T16:07:21.330675+00:00",
+  "exit_code": 1,
+  "log": ".workflow/android-audit-20261025/logs/final-jvm.log",
+  "command": [
+    "./gradlew",
+    "--offline",
+    "--continue",
+    "--max-workers=3",
+    "-PantigravityClientId=amber-audit-fixture",
+    "-PantigravityClientSecret=amber-audit-fixture",
+    ":ai:testDebugUnitTest",
+    ":app:testFullDebugUnitTest",
+    ":common:testDebugUnitTest",
+    ":core:agent-runtime-impl:testDebugUnitTest",
+    ":core:agent-runtime:test",
+    ":core:agent-store-room:testDebugUnitTest",
+    ":core:agent-utils:test",
+    ":core:jev:testDebugUnitTest",
+    ":core:model:testDebugUnitTest",
+    ":core:settings:testDebugUnitTest",
+    ":document:testDebugUnitTest",
+    ":feature:live:api:test",
+    ":feature:modelcouncil:testDebugUnitTest",
+    ":feature:novel-workspace:testDebugUnitTest",
+    ":feature:novel:testDebugUnitTest",
+    ":feature:task:testDebugUnitTest",
+    ":feature:terminal:testDebugUnitTest",
+    ":feature:tools:access:testDebugUnitTest",
+    ":feature:tools:api:testDebugUnitTest",
+    ":feature:workspace:testDebugUnitTest",
+    ":search:testDebugUnitTest",
+    "-x",
+    ":app:cargoBuildMarkdownParser",
+    "-x",
+    ":app:cargoBuildRegexTransformer",
+    "-x",
+    ":app:cargoBuildReaderExtractor",
+    "-x",
+    ":app:cargoBuildSyncCrypto",
+    "-x",
+    ":app:cargoBuildMarkdownPreprocess",
+    "-x",
+    ":app:cargoBuildHtmlDiffNormalizer",
+    "-x",
+    ":document:cargoBuildOfficeParsers",
+    "-x",
+    ":highlight:cargoBuildHighlightParser"
+  ],
+  "source_hash_before": "7da480424e4c641c4485906fcfb018c183dc5c946dafd6317abdc42f6ba1f726",
+  "source_hash_after": "7da480424e4c641c4485906fcfb018c183dc5c946dafd6317abdc42f6ba1f726",
+  "source_changed_paths": [],
+  "counts": {
+    "tests": 4098,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 23
+  },
+  "passed": 4073,
+  "modules": [
+    {
+      "task": ":ai:testDebugUnitTest",
+      "status": "> Task :ai:testDebugUnitTest",
+      "counts": {
+        "tests": 257,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 257,
+      "xml_files": 37,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/ai/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":app:testFullDebugUnitTest",
+      "status": "> Task :app:testFullDebugUnitTest FAILED",
+      "counts": {
+        "tests": 3207,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 14
+      },
+      "passed": 3191,
+      "xml_files": 495,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/app/testFullDebugUnitTest",
+      "failures": [
+        {
+          "class": "app.amber.core.service.ChatRunCoordinatorTest",
+          "case": "matching old Stop preserves input accepted while the cancelled handler settles",
+          "message": "java.lang.AssertionError: expected:<[PendingUserMessage(id=36d4568c-8904-4f31-8c25-34fdab3c7d3b, parts=[Text(text=Second, metadata=null)], answer=true, mode=FOLLOWUP, createdAtMs=1792944384065)]> but was:<[PendingUserMessage(id=36d4568c-8904-4f31-8c25-34fdab3c7d3b, parts=[Text(text=Second, metadata=null)], answer=true, mode=FOLLOWUP, createdAtMs=1792944384089)]>"
+        },
+        {
+          "class": "app.amber.feature.ui.components.message.SubAgentCitationInteractionTest",
+          "case": "legacyCitationInsideTheActualSubAgentSheetOpensItsSearchResult",
+          "message": "org.koin.core.error.KoinApplicationAlreadyStartedException: A Koin Application has already been started"
+        }
+      ],
+      "skips": [
+        {
+          "class": "app.amber.core.conversation.exchange.ConversationExchangeInteropTest",
+          "case": "ios production fixture is edited and exported by android codec",
+          "message": "org.junit.AssumptionViolatedException: got: <false>, expected: is <true>"
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[04-links-inline]",
+          "message": "org.junit.AssumptionViolatedException: 04-links-inline diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[05-links-with-titles]",
+          "message": "org.junit.AssumptionViolatedException: 05-links-with-titles diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[06-images]",
+          "message": "org.junit.AssumptionViolatedException: 06-images diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[16-blockquotes-nested]",
+          "message": "org.junit.AssumptionViolatedException: 16-blockquotes-nested diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[19-katex-block]",
+          "message": "org.junit.AssumptionViolatedException: 19-katex-block diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[22-footnotes]",
+          "message": "org.junit.AssumptionViolatedException: 22-footnotes diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[23-strikethrough]",
+          "message": "org.junit.AssumptionViolatedException: 23-strikethrough diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[24-cjk-mixed]",
+          "message": "org.junit.AssumptionViolatedException: 24-cjk-mixed diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[27-hard-soft-breaks]",
+          "message": "org.junit.AssumptionViolatedException: 27-hard-soft-breaks diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[28-link-edge-cases]",
+          "message": "org.junit.AssumptionViolatedException: 28-link-edge-cases diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[29-mixed-everything]",
+          "message": "org.junit.AssumptionViolatedException: 29-mixed-everything diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.ui.components.richtext.tree.MarkdownTreeParityTest",
+          "case": "nativeTreeRendersEquivalentlyToJvmTree[32-special-chars-escapes]",
+          "message": "org.junit.AssumptionViolatedException: 32-special-chars-escapes diverges due to a documented residual tree-/parser-level class ([D] link-footnote text / [E] soft-break continuation leading-space / [C-para] paragraph inline-run grouping around a MathBlock / [B-tilde] single-tilde strike / [B-CJK] CJK-flanked strong \u2014 see class KDoc + parity report). BUG #1 (heading-drop), BUG #2 (inline-code-backtick), class [A] (heading trim-space), class [B] (backslash-escape resolution), class [C] (list-item inline-run grouping), class [F] (ordered-list start number) and class [G] (task-list `[x]` marker text) are FIXED; these residuals must be resolved before markdownAst can flip on."
+        },
+        {
+          "class": "app.amber.feature.webmount.primitives.SessionHandleLifecycleTest",
+          "case": "cross-origin page callback reports page-finished coverage",
+          "message": "org.junit.AssumptionViolatedException: got: <false>, expected: is <true>"
+        }
+      ]
+    },
+    {
+      "task": ":common:testDebugUnitTest",
+      "status": "> Task :common:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 11,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/common/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:agent-runtime-impl:testDebugUnitTest",
+      "status": "> Task :core:agent-runtime-impl:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 25,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 25,
+      "xml_files": 3,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/agent-runtime-impl/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:agent-runtime:test",
+      "status": "> Task :core:agent-runtime:test UP-TO-DATE",
+      "counts": {
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 13,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/agent-runtime/test",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:agent-store-room:testDebugUnitTest",
+      "status": "> Task :core:agent-store-room:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 11,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/agent-store-room/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:agent-utils:test",
+      "status": "> Task :core:agent-utils:test UP-TO-DATE",
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 1,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/agent-utils/test",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:jev:testDebugUnitTest",
+      "status": null,
+      "counts": {
+        "tests": 58,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 58,
+      "xml_files": 5,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/jev/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:model:testDebugUnitTest",
+      "status": "> Task :core:model:testDebugUnitTest",
+      "counts": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 11,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/model/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":core:settings:testDebugUnitTest",
+      "status": "> Task :core:settings:testDebugUnitTest",
+      "counts": {
+        "tests": 116,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 116,
+      "xml_files": 15,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/core/settings/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":document:testDebugUnitTest",
+      "status": "> Task :document:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 19,
+      "xml_files": 2,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/document/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:live:api:test",
+      "status": "> Task :feature:live:api:test UP-TO-DATE",
+      "counts": {
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 24,
+      "xml_files": 5,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/live/api/test",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:modelcouncil:testDebugUnitTest",
+      "status": "> Task :feature:modelcouncil:testDebugUnitTest",
+      "counts": {
+        "tests": 36,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 36,
+      "xml_files": 3,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/modelcouncil/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:novel-workspace:testDebugUnitTest",
+      "status": "> Task :feature:novel-workspace:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 155,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 155,
+      "xml_files": 22,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/novel-workspace/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:novel:testDebugUnitTest",
+      "status": "> Task :feature:novel:testDebugUnitTest",
+      "counts": {
+        "tests": 49,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "passed": 48,
+      "xml_files": 11,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/novel/testDebugUnitTest",
+      "failures": [],
+      "skips": [
+        {
+          "class": "app.amber.feature.novel.workspace.NovelWorkspaceLargePackageImportTest",
+          "case": "actualLargePackageImportsIntoAReadableBookWithDiscussions",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_NOVEL_IMPORT_REPRO_PATH to replay the device package"
+        }
+      ]
+    },
+    {
+      "task": ":feature:task:testDebugUnitTest",
+      "status": "> Task :feature:task:testDebugUnitTest UP-TO-DATE",
+      "counts": {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 15,
+      "xml_files": 2,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/task/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:terminal:testDebugUnitTest",
+      "status": "> Task :feature:terminal:testDebugUnitTest",
+      "counts": {
+        "tests": 19,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 8
+      },
+      "passed": 11,
+      "xml_files": 4,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/terminal/testDebugUnitTest",
+      "failures": [],
+      "skips": [
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "wrong private key fails authentication after a trusted probe",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "timeout returns unknown remote status",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "parallel profiles keep valid and wrong identities isolated",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "probe then explicit trust executes stdout stderr and exit seven",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "host key mismatch blocks command",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "closing a running command reports interruption with unknown status",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "encrypted private key accepts passphrase and redacts it from output",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        },
+        {
+          "class": "app.amber.feature.terminal.SshClientLoopbackTest",
+          "case": "invalid private key is reported without exposing its contents",
+          "message": "org.junit.AssumptionViolatedException: Set AMBER_SSH_LOOPBACK_FIXTURE or -Damber.ssh.loopback.fixture to run the sshd loopback integration test"
+        }
+      ]
+    },
+    {
+      "task": ":feature:tools:access:testDebugUnitTest",
+      "status": "> Task :feature:tools:access:testDebugUnitTest",
+      "counts": {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 10,
+      "xml_files": 2,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/tools/access/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:tools:api:testDebugUnitTest",
+      "status": "> Task :feature:tools:api:testDebugUnitTest",
+      "counts": {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 15,
+      "xml_files": 4,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/tools/api/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":feature:workspace:testDebugUnitTest",
+      "status": "> Task :feature:workspace:testDebugUnitTest",
+      "counts": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 2,
+      "xml_files": 1,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/feature/workspace/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    },
+    {
+      "task": ":search:testDebugUnitTest",
+      "status": "> Task :search:testDebugUnitTest",
+      "counts": {
+        "tests": 44,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "passed": 44,
+      "xml_files": 5,
+      "snapshot": ".workflow/android-audit-20261025/results/final-jvm-xml/search/testDebugUnitTest",
+      "failures": [],
+      "skips": []
+    }
+  ],
+  "validated_counts": {
+    "tests": 4040,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 23
+  },
+  "validated_passed": 4015,
+  "blocked_tasks": [
+    {
+      "task": ":core:jev:testDebugUnitTest",
+      "retained_xml_cases": 58,
+      "reason": "task did not run; dependency task failed, XML may be stale"
+    }
+  ]
+}

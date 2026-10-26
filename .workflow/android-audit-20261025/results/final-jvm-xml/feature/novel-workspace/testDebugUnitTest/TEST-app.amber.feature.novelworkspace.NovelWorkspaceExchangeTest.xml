@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:50.792Z" hostname="duguangdeMBP.lan" time="0.089">
+  <properties/>
+  <testcase name="import rejects unknown formats" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.003"/>
+  <testcase name="import rejects a missing manifest" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.002"/>
+  <testcase name="zip reader rejects non-utf8 payloads" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.001"/>
+  <testcase name="export then import preserves node extensions (status, relations, foreshadowing)" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.021"/>
+  <testcase name="installer refuses a target that already holds an installed book" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.015"/>
+  <testcase name="installer rebuilds an incomplete leftover target" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.015"/>
+  <testcase name="zip export and import round-trips the book" classname="app.amber.feature.novelworkspace.NovelWorkspaceExchangeTest" time="0.032"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

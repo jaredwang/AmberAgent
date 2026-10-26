@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.runtime.RunStatusTransitionsTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T14:39:45.567Z" hostname="duguangdeMBP.lan" time="0.182">
+  <properties/>
+  <testcase name="every terminal state is write-once" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.019"/>
+  <testcase name="STEP_LIMIT can never become COMPLETED" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.007"/>
+  <testcase name="running reaches every pause and terminal state" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.001"/>
+  <testcase name="pauses never reach OUTPUT_LIMIT or GUARD_STOPPED directly" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.001"/>
+  <testcase name="pauses resume to running" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.002"/>
+  <testcase name="pauses can be cancelled but never completed directly" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.002"/>
+  <testcase name="created only starts or dies" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.002"/>
+  <testcase name="self transition is an allowed no-op for every state" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.001"/>
+  <testcase name="outcome unknown settles by retry, abandon or cancel only" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.0"/>
+  <testcase name="live states are exactly the non-terminal states" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.003"/>
+  <testcase name="wire names round-trip through parse" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.002"/>
+  <testcase name="parse accepts the pre-protocol kernel alias" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.001"/>
+  <testcase name="parse is fail-closed on unknown wire names" classname="app.amber.core.agent.runtime.RunStatusTransitionsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

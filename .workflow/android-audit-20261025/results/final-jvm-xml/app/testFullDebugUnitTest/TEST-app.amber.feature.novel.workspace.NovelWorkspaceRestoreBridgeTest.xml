@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridgeTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:43.442Z" hostname="duguangdeMBP.lan" time="0.012">
+  <properties/>
+  <testcase name="rolling back a native journal preserves the previous automatic migration policy" classname="app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridgeTest" time="0.002"/>
+  <testcase name="failed restore still invalidates the cancelled execution" classname="app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridgeTest" time="0.002"/>
+  <testcase name="configuration restore preserves novel execution and private bytes" classname="app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridgeTest" time="0.002"/>
+  <testcase name="restored jobs stay paused and prior callbacks cannot write the restored tree" classname="app.amber.feature.novel.workspace.NovelWorkspaceRestoreBridgeTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

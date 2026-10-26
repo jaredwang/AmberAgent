@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.ui.MessageStreamAccumulatorTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:03.091Z" hostname="duguangdeMBP.lan" time="0.113">
+  <properties/>
+  <testcase name="parallel tool deltas merge by stream index without cross wiring" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="chinese text deltas merge in order" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="late tool call id merges into stream-indexed tool and adopts the real id" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="final full message replaces streamed deltas instead of appending again" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="adjacent streamed images merge by stable call id" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="explicit empty reasoning marker does not split streamed text" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="annotations accumulate across chunks and dedupe repeats" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="empty reasoning marker in text chunk does not keep reasoning timer open" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="blank tool delta without index falls back to last tool" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.0"/>
+  <testcase name="20k tiny text and reasoning chunks merge without repeated full string copies" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.111"/>
+  <testcase name="reasoning finishes when streamed text starts" classname="app.amber.ai.ui.MessageStreamAccumulatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

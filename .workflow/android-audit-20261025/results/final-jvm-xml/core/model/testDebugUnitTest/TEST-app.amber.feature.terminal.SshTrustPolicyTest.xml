@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.terminal.SshTrustPolicyTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:04.839Z" hostname="duguangdeMBP.lan" time="0.153">
+  <properties/>
+  <testcase name="no accepted fingerprint is untrusted even when a probe exists" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.101"/>
+  <testcase name="fingerprint comparison ignores case and separators" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.04"/>
+  <testcase name="accepted fingerprint without probe is untrusted" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="empty or illegal accepted fingerprint is never trusted" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="normalize rejects non sha256 hex fingerprints" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="display fingerprint uses OpenSSH SHA256 base64 form" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="normalize strips separators and lowercases" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.001"/>
+  <testcase name="matching probe is trusted" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="illegal probed fingerprint is untrusted even with valid accepted value" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <testcase name="different probe is a mismatch that blocks authentication" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.001"/>
+  <testcase name="profile validates host username and port" classname="app.amber.feature.terminal.SshTrustPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

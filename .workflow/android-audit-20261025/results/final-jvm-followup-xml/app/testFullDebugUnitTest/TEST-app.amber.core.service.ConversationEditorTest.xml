@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ConversationEditorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.964Z" hostname="duguangdeMBP.lan" time="0.143">
+  <properties/>
+  <testcase name="forked attachments receive their own durable conversation and physical file ownership" classname="app.amber.core.service.ConversationEditorTest" time="0.017"/>
+  <testcase name="selecting a user variant commits the selected branch and drops downstream reply" classname="app.amber.core.service.ConversationEditorTest" time="0.016"/>
+  <testcase name="stale edit after restore is rejected before it can overwrite the restored conversation" classname="app.amber.core.service.ConversationEditorTest" time="0.016"/>
+  <testcase name="edit and variant selection reject an active generation without cancelling it or writing" classname="app.amber.core.service.ConversationEditorTest" time="0.014"/>
+  <testcase name="editing a paged conversation commits a new selected variant without losing earlier history" classname="app.amber.core.service.ConversationEditorTest" time="0.026"/>
+  <testcase name="message deletion commits references before deleting its generated image" classname="app.amber.core.service.ConversationEditorTest" time="0.017"/>
+  <testcase name="deleting a variant retains other variants and deleting its last variant removes the node" classname="app.amber.core.service.ConversationEditorTest" time="0.019"/>
+  <testcase name="failed fork reclaims only new copies and never deletes the source attachment" classname="app.amber.core.service.ConversationEditorTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[java.io.FileNotFoundException: /var/folders/2c/0pbv0ybx6h1crqbxq9zft5780000gn/T/junit17481350610068777659/junit1743827391070560599/missing.txt (No such file or directory)
+	at java.base/java.io.IoOverNioFileSystem.convertNioToIoExceptionInStreams(IoOverNioFileSystem.java:123)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:377)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamUsingNio(IoOverNioFileSystem.java:344)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:181)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:131)
+	at android.content.ContentResolver.openInputStream(ContentResolver.java:1526)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at org.robolectric.shadows.ShadowContentResolver$ContentResolverReflector$$Reflector109.openInputStream(Unknown Source)
+	at org.robolectric.shadows.ShadowContentResolver.openInputStream(ShadowContentResolver.java:197)
+	at android.content.ContentResolver.openInputStream(ContentResolver.java)
+	at app.amber.core.files.FilesManager.createChatFilesByContentsBlocking(FilesManager.kt:200)
+	at app.amber.core.files.FilesManager.access$createChatFilesByContentsBlocking(FilesManager.kt:44)
+	at app.amber.core.files.FilesManager$createChatFilesByContents$2.invokeSuspend(FilesManager.kt:175)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: java.nio.file.NoSuchFileException: /var/folders/2c/0pbv0ybx6h1crqbxq9zft5780000gn/T/junit17481350610068777659/junit1743827391070560599/missing.txt
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:94)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:108)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:114)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:224)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamsUsingNio0(IoOverNioFileSystem.java:359)
+	at java.base/java.io.IoOverNioFileSystem.initializeStreamUsingNio(IoOverNioFileSystem.java:344)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:181)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:131)
+	at android.content.ContentResolver.$$robo$$android_content_ContentResolver$openInputStream(ContentResolver.java:1526)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	... 14 more
+]]></system-err>
+</testsuite>

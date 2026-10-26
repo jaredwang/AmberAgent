@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.repository.ImageGenerationRepositoryTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.238Z" hostname="duguangdeMBP.lan" time="0.293">
+  <properties/>
+  <testcase name="editWithUnsupportedProviderFailsHonestly" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.025"/>
+  <testcase name="toolEditArgsResolveSourceFromResolver" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.036"/>
+  <testcase name="editWithUnsupportedFormatFails" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.02"/>
+  <testcase name="toolCreateArgsStayCreate" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.017"/>
+  <testcase name="editWithSourceOutsideConversationFails" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.015"/>
+  <testcase name="editPassesEditParamsWithSourceReference" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.012"/>
+  <testcase name="createPassesCreateParamsAndWritesFiles" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.024"/>
+  <testcase name="editWithDeletedSourceFails" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.025"/>
+  <testcase name="editWithOversizedSourceFails" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.037"/>
+  <testcase name="editWithoutSourceUrlFails" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.017"/>
+  <testcase name="emptyProviderResultFailsInsteadOfReportingSuccess" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.02"/>
+  <testcase name="toolSchemaExposesEditParamsOnlyWhenCapable" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.016"/>
+  <testcase name="partialWriteFailureRemovesFilesCreatedByThisInvocation" classname="app.amber.core.repository.ImageGenerationRepositoryTest" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

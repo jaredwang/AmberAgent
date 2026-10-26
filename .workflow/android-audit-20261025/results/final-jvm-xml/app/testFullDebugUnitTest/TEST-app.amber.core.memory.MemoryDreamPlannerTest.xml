@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryDreamPlannerTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.744Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="staleShortTermArchivesWhileRecentUsedAndPinnedSurvive" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.007"/>
+  <testcase name="modelPlanParsesSupersedeSuggestions" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="modelPlanParsesTopicsAndFiltersMembersToManagedRecords" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="localPlanBuildsReviewableDiffWithoutDeletingFormalMemories" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="oldPendingPlanJsonCanDecodeWithoutSupersedeField" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.001"/>
+  <testcase name="maintenanceIgnoresExpiredAndAgedOutCandidates" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="promotionRequiresRepeatedUseNotMereTouch" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="maintenanceOverflowAccountsForAlreadyFlaggedCandidates" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="nearDuplicatePairsFlagSimilarRecordsAcrossScripts" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.001"/>
+  <testcase name="dreamGateUsesSplitTogglesAfterLegacyMigration" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.001"/>
+  <testcase name="hasChangesAndMergeIncludeSupersedeSuggestions" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="maintenanceOverflowDropsLowestConfidencePendingCandidates" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.001"/>
+  <testcase name="reinforcedButStaleRecordPromotesInsteadOfArchiving" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="pairsSuggestedByRecentPlansAreNotReFlagged" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="expiredRecordsArchiveInAnyScopeButPinnedAndTopicsSurvive" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="deterministicMaintenanceDoesNotMergeLongPrefixMatchesOrIgnoreTheirCandidates" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <testcase name="modelPlanParsesUserProfileSuggestion" classname="app.amber.core.memory.MemoryDreamPlannerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

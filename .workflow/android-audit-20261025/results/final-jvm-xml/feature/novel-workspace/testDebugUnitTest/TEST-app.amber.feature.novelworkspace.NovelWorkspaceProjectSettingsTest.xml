@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceProjectSettingsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.525Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="old settings default to co-create while changing mode preserves model and injection choices" classname="app.amber.feature.novelworkspace.NovelWorkspaceProjectSettingsTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

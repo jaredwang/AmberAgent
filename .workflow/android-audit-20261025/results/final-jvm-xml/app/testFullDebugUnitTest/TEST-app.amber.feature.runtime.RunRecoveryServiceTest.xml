@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.RunRecoveryServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:46.534Z" hostname="duguangdeMBP.lan" time="0.232">
+  <properties/>
+  <testcase name="interruptedScreenAndCommandActionsUseTheirRealClassificationDuringRecovery" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.024"/>
+  <testcase name="waitingUserRunSurvivesRecoveryForApprovalResume" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.021"/>
+  <testcase name="recoveryStartedBeforeRestoreDropsOldTerminalAndLedgerWrites" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.029"/>
+  <testcase name="outcomeUnknownPromptListsEscalatedEffects" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.019"/>
+  <testcase name="waitingUserWithStartedEffectStaysPausedAndKeepsRunIdForReconcile" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.016"/>
+  <testcase name="nonIdempotentStartedEffectEscalatesToOutcomeUnknown" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.014"/>
+  <testcase name="recoverPrunesTerminalEffectsOlderThanRetentionWindow" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.028"/>
+  <testcase name="readOnlyAndIdempotentStartedEffectsStayRetryable" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.03"/>
+  <testcase name="finishedEffectOlderThanRetentionIsReplayedIntoConversationWithoutReExecution" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.029"/>
+  <testcase name="preparedEffectIsLeftForApprovalReentry" classname="app.amber.feature.runtime.RunRecoveryServiceTest" time="0.021"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

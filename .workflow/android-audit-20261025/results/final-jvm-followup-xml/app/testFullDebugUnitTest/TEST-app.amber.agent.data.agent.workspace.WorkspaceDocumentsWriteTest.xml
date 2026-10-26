@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:12.798Z" hostname="duguangdeMBP.lan" time="0.151">
+  <properties/>
+  <testcase name="crossDirectoryMoveRetainsSourceWhenProviderRefusesTheRequestedName" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.04"/>
+  <testcase name="crossDirectoryMoveUsesTheExactRequestedNameWhenProviderAddsAnExtension" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.024"/>
+  <testcase name="sameDirectoryMoveReturnsTheExactRequestedPathWhenRenameIsSupported" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.016"/>
+  <testcase name="replacingBinaryContentTruncatesThePreviousPayloadAndAppendStillAppends" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.024"/>
+  <testcase name="sameDirectoryMoveRejectsNormalizedRenameAndRestoresTheSource" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.02"/>
+  <testcase name="sameDirectoryMovePreservesDirectoryContents" classname="app.amber.agent.data.agent.workspace.WorkspaceDocumentsWriteTest" time="0.025"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

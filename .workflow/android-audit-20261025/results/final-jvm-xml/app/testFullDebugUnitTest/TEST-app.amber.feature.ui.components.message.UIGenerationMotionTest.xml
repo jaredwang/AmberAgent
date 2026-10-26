@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.UIGenerationMotionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:57.536Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="streamed card triggers reveal exactly once upon completion and blocks remount replay" classname="app.amber.feature.ui.components.message.UIGenerationMotionTest" time="0.0"/>
+  <testcase name="historical completed card never triggers generation reveal" classname="app.amber.feature.ui.components.message.UIGenerationMotionTest" time="0.0"/>
+  <testcase name="bundled UI generation assets and amber-ui-design skill are present and valid" classname="app.amber.feature.ui.components.message.UIGenerationMotionTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

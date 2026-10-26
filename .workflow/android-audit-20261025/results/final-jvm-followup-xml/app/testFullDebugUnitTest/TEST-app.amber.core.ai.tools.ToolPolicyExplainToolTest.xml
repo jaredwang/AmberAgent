@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.ToolPolicyExplainToolTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.740Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="tool advertises the documented name and required parameter" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.003"/>
+  <testcase name="tool_policy_explain looks up itself — utility, normal, no approval, auto" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.001"/>
+  <testcase name="output payload has exactly one Text part wrapping the JSON" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.001"/>
+  <testcase name="http_request with method=GET is safe — normal risk, no approval, concurrency-safe" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.001"/>
+  <testcase name="missing tool returns status=not_found and only the tool_name field, no policy keys" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.0"/>
+  <testcase name="missing tool_name input still returns a structured response, not_found" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.0"/>
+  <testcase name="http_request with method=POST is unsafe — high risk, needs approval, not concurrency-safe" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.001"/>
+  <testcase name="blank input field for the wrapped tool falls back to empty-object parse" classname="app.amber.core.ai.tools.ToolPolicyExplainToolTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

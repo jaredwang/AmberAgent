@@ -1,0 +1,143 @@
+   Compiling jni-sys v0.3.1
+   Compiling tree-sitter v0.26.9
+   Compiling jni-common v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/jni-common)
+   Compiling readability v0.3.0
+   Compiling jni v0.21.1
+   Compiling tree-sitter-highlight v0.26.9
+   Compiling markdown-parser v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/markdown-parser)
+   Compiling office-parsers v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/office-parsers)
+   Compiling sync-crypto v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/sync-crypto)
+   Compiling html-diff-normalizer v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/html-diff-normalizer)
+   Compiling markdown-preprocess v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/markdown-preprocess)
+   Compiling regex-transformer v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/regex-transformer)
+   Compiling highlight-parser v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/highlight-parser)
+   Compiling reader-extractor v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/reader-extractor)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.62s
+     Running unittests src/lib.rs (target/debug/deps/highlight_parser-219013196e4e74b7)
+
+running 6 tests
+test grammars::tests::unknown_language_returns_none ... ok
+test packed_tokens::tests::plain_only_empty_string ... ok
+test packed_tokens::tests::plain_only_layout ... ok
+test tests::unknown_language_returns_plain_blob ... ok
+test grammars::tests::known_languages_resolve ... ok
+test tests::rust_highlight_emits_more_than_plain ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running unittests src/lib.rs (target/debug/deps/html_diff_normalizer-926d21d252e062da)
+
+running 7 tests
+test tests::empty_input ... ok
+test tests::long_input_passes_through_unchanged ... ok
+test tests::void_element_self_closes ... ok
+test tests::collapses_whitespace_inside_text ... ok
+test tests::sorts_attributes ... ok
+test tests::strips_space_before_close_tag ... ok
+test tests::strips_space_between_adjacent_tags ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/jni_common-1affb2a066021d4e)
+
+running 6 tests
+test tests::panic_to_string_handles_other_with_type_name ... ok
+test tests::panic_to_string_handles_static_str ... ok
+test tests::panic_to_string_handles_string ... ok
+test tests::varint_large ... ok
+test tests::varint_single_byte_under_128 ... ok
+test tests::varint_two_bytes_at_128 ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/markdown_parser-ded6e29964f5abe4)
+
+running 26 tests
+test packed_ast::tests::html_flag_set ... ok
+test packed_ast::tests::header_layout ... ok
+test tests::html_renders_empty_input ... ok
+test tests::html_autolinks_bare_url ... ok
+test tests::html_preserves_bare_url_in_tilde_fence ... FAILED
+test tests::html_preserves_bare_url_in_indented_code ... FAILED
+test tests::html_preserves_bare_url_in_code_span_with_inner_backtick ... FAILED
+test tests::html_passes_through_safe_https ... ok
+test tests::html_preserves_cjk ... ok
+test tests::html_preserves_bare_url_in_unclosed_fence ... FAILED
+test tests::html_preserves_dangerous_scheme_literal_in_text ... FAILED
+test tests::html_renders_paragraph ... ok
+test tests::html_preserves_dangerous_scheme_literal_in_code ... FAILED
+test tree_builder::tests::empty_input_builds_empty_root ... ok
+test tests::html_strips_data_uri_href ... ok
+test tests::html_sanitizes_raw_html_href_and_src ... ok
+test tests::parses_paragraph ... ok
+test tests::sanity_empty_input ... ok
+test tree_builder::tests::fenced_code_block_extras_end_with_kind_byte_1 ... ok
+test tree_builder::tests::fenced_code_no_lang_extras_end_with_kind_byte_1 ... ok
+test tree_builder::tests::heading_extras_carry_level ... ok
+test tree_builder::tests::html_block_sets_meta_flag ... ok
+test tree_builder::tests::indented_code_block_extras_end_with_kind_byte_0 ... ok
+test tree_builder::tests::single_paragraph_one_child ... ok
+test tests::html_sanitizes_markdown_link_and_image_destinations ... ok
+test tests::html_strips_javascript_href ... ok
+
+failures:
+
+---- tests::html_preserves_bare_url_in_tilde_fence stdout ----
+
+thread 'tests::html_preserves_bare_url_in_tilde_fence' (155347844) panicked at markdown-parser/src/lib.rs:356:9:
+got: <div>raw block</div>
+<pre><code class="language-text">&lt;https://example.com/path&gt;
+</code></pre>
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- tests::html_preserves_bare_url_in_indented_code stdout ----
+
+thread 'tests::html_preserves_bare_url_in_indented_code' (155347843) panicked at markdown-parser/src/lib.rs:365:9:
+got: <div>raw block</div>
+<pre><code>&lt;https://example.com/path&gt;
+</code></pre>
+
+
+---- tests::html_preserves_bare_url_in_code_span_with_inner_backtick stdout ----
+
+thread 'tests::html_preserves_bare_url_in_code_span_with_inner_backtick' (155347842) panicked at markdown-parser/src/lib.rs:385:9:
+got: <div>raw block</div>
+<p><code>code ` &lt;https://example.com/path</code>&gt;</p>
+
+
+---- tests::html_preserves_bare_url_in_unclosed_fence stdout ----
+
+thread 'tests::html_preserves_bare_url_in_unclosed_fence' (155347845) panicked at markdown-parser/src/lib.rs:374:9:
+got: <div>raw block</div>
+<pre><code class="language-text">&lt;https://example.com/path&gt;
+</code></pre>
+
+
+---- tests::html_preserves_dangerous_scheme_literal_in_text stdout ----
+
+thread 'tests::html_preserves_dangerous_scheme_literal_in_text' (155347848) panicked at markdown-parser/src/lib.rs:405:9:
+got: <div>raw block</div>
+<p>href="#"</p>
+
+
+---- tests::html_preserves_dangerous_scheme_literal_in_code stdout ----
+
+thread 'tests::html_preserves_dangerous_scheme_literal_in_code' (155347847) panicked at markdown-parser/src/lib.rs:396:9:
+got: <div>raw block</div>
+<pre><code class="language-text">href="#"
+</code></pre>
+
+
+
+failures:
+    tests::html_preserves_bare_url_in_code_span_with_inner_backtick
+    tests::html_preserves_bare_url_in_indented_code
+    tests::html_preserves_bare_url_in_tilde_fence
+    tests::html_preserves_bare_url_in_unclosed_fence
+    tests::html_preserves_dangerous_scheme_literal_in_code
+    tests::html_preserves_dangerous_scheme_literal_in_text
+
+test result: FAILED. 20 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p markdown-parser --lib`

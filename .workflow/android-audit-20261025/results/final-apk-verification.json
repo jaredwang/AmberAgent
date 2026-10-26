@@ -1,0 +1,593 @@
+{
+  "complete": true,
+  "normal_configuration": true,
+  "fixture_properties": false,
+  "jni_exclusions": false,
+  "apk_count": 6,
+  "required_rust_library_count_per_apk": 8,
+  "apks": [
+    {
+      "flavor": "full",
+      "variant": "fullDebug",
+      "apk": "app/build/outputs/apk/full/debug/app-full-universal-debug.apk",
+      "bytes": 114427926,
+      "mtime_utc": "2026-10-25T16:18:33.266518+00:00",
+      "sha256": "579587686e094a25a1fcd4b62e8fac25806da06988a541708547d0173ee09f4d",
+      "application_id": "app.amber.agent.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.agent.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-full-universal-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    },
+    {
+      "flavor": "full",
+      "variant": "fullDebug",
+      "apk": "app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk",
+      "bytes": 114427926,
+      "mtime_utc": "2026-10-25T16:18:33.264852+00:00",
+      "sha256": "579587686e094a25a1fcd4b62e8fac25806da06988a541708547d0173ee09f4d",
+      "application_id": "app.amber.agent.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.agent.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-full-arm64-v8a-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    },
+    {
+      "flavor": "novel",
+      "variant": "novelDebug",
+      "apk": "app/build/outputs/apk/novel/debug/app-novel-universal-debug.apk",
+      "bytes": 112149714,
+      "mtime_utc": "2026-10-25T16:21:16.992394+00:00",
+      "sha256": "8bb48dee18f1cc0ffd914d01d8ae8be61eafe1787b26c0cba9312577af7f81f1",
+      "application_id": "app.amber.novel.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.novel.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-novel-universal-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    },
+    {
+      "flavor": "novel",
+      "variant": "novelDebug",
+      "apk": "app/build/outputs/apk/novel/debug/app-novel-arm64-v8a-debug.apk",
+      "bytes": 112149714,
+      "mtime_utc": "2026-10-25T16:21:16.832113+00:00",
+      "sha256": "8bb48dee18f1cc0ffd914d01d8ae8be61eafe1787b26c0cba9312577af7f81f1",
+      "application_id": "app.amber.novel.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.novel.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-novel-arm64-v8a-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    },
+    {
+      "flavor": "deepread",
+      "variant": "deepreadDebug",
+      "apk": "app/build/outputs/apk/deepread/debug/app-deepread-universal-debug.apk",
+      "bytes": 111764753,
+      "mtime_utc": "2026-10-25T16:21:19.006729+00:00",
+      "sha256": "015b6f0e49171d6514e7b694e198c69895e34a2105042ab90c2448c4103d6694",
+      "application_id": "app.amber.deepread.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.deepread.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-deepread-universal-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    },
+    {
+      "flavor": "deepread",
+      "variant": "deepreadDebug",
+      "apk": "app/build/outputs/apk/deepread/debug/app-deepread-arm64-v8a-debug.apk",
+      "bytes": 111764753,
+      "mtime_utc": "2026-10-25T16:21:19.033304+00:00",
+      "sha256": "015b6f0e49171d6514e7b694e198c69895e34a2105042ab90c2448c4103d6694",
+      "application_id": "app.amber.deepread.graphite",
+      "version_code": "396",
+      "version_name": "2.6.8",
+      "metadata_application_id": "app.amber.deepread.graphite",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "signature_verified": true,
+      "signer_sha256": [
+        "d5176c287a477ceacab3808a1113cb35c248aca5ce0bfad40b7d122b275a5285"
+      ],
+      "signature_log": ".workflow/android-audit-20261025/results/apk-signatures/app-deepread-arm64-v8a-debug.txt",
+      "rust_libraries": [
+        {
+          "name": "lib/arm64-v8a/libhighlight_parser.so",
+          "bytes": 12062464,
+          "sha256": "c6c2d51e378de469f2ac3acdfa014e898afe2bf24ae4ffd0e5d46637a3d2cd0c",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libhtml_diff_normalizer.so",
+          "bytes": 2522880,
+          "sha256": "43c6df303cf9cd839855ad53d4d39580dac683e8ba402d6f6cd1f4a4ee65cffb",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_parser.so",
+          "bytes": 2040144,
+          "sha256": "da348230752f0351e37bcf621716556bd5dab3744eebb07bac9d5381231d0261",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libmarkdown_preprocess.so",
+          "bytes": 1634848,
+          "sha256": "dadbc3234b8b464a4b380d175efffa1d4181c3b36652498a7cbbf59048dd2fcf",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/liboffice_parsers.so",
+          "bytes": 1082144,
+          "sha256": "032d6c78ea30aa599d53faeff5eeec53cd7bda9f73aa0c9ddb6441eed47833e2",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libreader_extractor.so",
+          "bytes": 2814800,
+          "sha256": "738e6196c8fdfeba8576d3c652f559dbed3c4e36ea6ba642980af249977787f0",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libregex_transformer.so",
+          "bytes": 1636904,
+          "sha256": "c3603801359b69710eb3890a34b6b97586f676388bc1d61ffe7cae8f5c275269",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        },
+        {
+          "name": "lib/arm64-v8a/libsync_crypto.so",
+          "bytes": 436664,
+          "sha256": "6d0ffe9ba089868b00fb9ee973886961fc930938fc48a1eefa51ecd90f724440",
+          "elf64_aarch64_shared": true,
+          "elf_machine": 183,
+          "elf_type": 3
+        }
+      ],
+      "dex_fixture_marker_hits": [],
+      "dex_count": 38
+    }
+  ],
+  "generated_build_configs": [
+    {
+      "path": "app/build/generated/source/buildConfig/full/debug/app/amber/agent/BuildConfig.java",
+      "sha256": "8a9aa9a11e5f40fe3ae43d719d7096197c69172ba8e0d105a0f26ff68df9daab",
+      "fixture_marker_present": false
+    },
+    {
+      "path": "app/build/generated/source/buildConfig/deepread/debug/app/amber/agent/BuildConfig.java",
+      "sha256": "ddf637c107ed5489b144d0a71d0636c20a73048d990ae8d06d28d22e1c7fca1a",
+      "fixture_marker_present": false
+    },
+    {
+      "path": "app/build/generated/source/buildConfig/novel/debug/app/amber/agent/BuildConfig.java",
+      "sha256": "c243d3c9e43cff6b7a4fd18cf9d1a3310f1be607d03171960a1e162ab9c2e546",
+      "fixture_marker_present": false
+    },
+    {
+      "path": "ai/build/generated/source/buildConfig/debug/app/amber/ai/BuildConfig.java",
+      "sha256": "d25adb0bfd84bc560cf3a2ac7a652944f6625cb731781933c0ad13cf01a58b30",
+      "fixture_marker_present": false
+    }
+  ],
+  "source_hash": "7a99d306761f2a0e10642c2b8ec842884c9a077e99fae4fd460fd1cee5947661",
+  "source_unchanged_since_final_jvm": true,
+  "source_changed_paths": [],
+  "head": "0971aa41ca7a2526e9ee17eb9497b7edc1db07be",
+  "branch": "main",
+  "head_unchanged_from_baseline": true,
+  "tools": {
+    "apksigner": "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/apksigner",
+    "aapt2": "/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/aapt2"
+  },
+  "errors": [],
+  "not_performed": [
+    "device install",
+    "device launch",
+    "real provider acceptance"
+  ],
+  "build_result": {
+    "exit_code": 0,
+    "started": "2026-10-25T16:16:06.810327+00:00",
+    "finished": "2026-10-25T16:21:19.685225+00:00",
+    "args": [
+      "./gradlew",
+      "--offline",
+      "--continue",
+      "--max-workers=3",
+      ":app:assembleFullDebug",
+      ":app:assembleNovelDebug",
+      ":app:assembleDeepreadDebug"
+    ],
+    "log": ".workflow/android-audit-20261025/logs/final-assemble-normal.log",
+    "fixture_props": false,
+    "jni_exclusions": false
+  }
+}

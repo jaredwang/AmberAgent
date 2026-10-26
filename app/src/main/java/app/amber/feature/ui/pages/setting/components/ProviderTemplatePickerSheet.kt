@@ -1,20 +1,15 @@
 package app.amber.feature.ui.pages.setting.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -29,11 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.amber.ai.provider.GoogleAuthMode
@@ -43,10 +35,10 @@ import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.provider.fixedBaseUrl
 import app.amber.agent.R
 import app.amber.core.settings.DEFAULT_PROVIDERS
-import app.amber.feature.ui.components.ds.pressable
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.SlidersHorizontal
 import kotlin.uuid.Uuid
@@ -58,7 +50,6 @@ fun ProviderTemplatePickerSheet(
     onPick: (initial: ProviderSetting, autoStartOAuth: Boolean) -> Unit,
 ) {
     val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val bundledTemplates = remember(existingProviderIds) {
@@ -85,78 +76,84 @@ fun ProviderTemplatePickerSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.92f)
-                .padding(horizontal = 16.dp),
+                .fillMaxHeight(0.92f),
         ) {
-            Text(
-                text = stringResource(R.string.setting_provider_page_add_provider),
-                style = type.screenTitle,
-                color = t.ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            ProviderSheetHeader(stringResource(R.string.setting_provider_page_add_provider))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
             ) {
                 item("section-oauth") {
                     ProviderSectionLabel(stringResource(R.string.setting_provider_page_template_section_oauth))
                 }
-                item("oauth-codex") {
-                    ProviderTemplateRow(
-                        name = stringResource(R.string.setting_provider_page_template_oauth_codex_title),
-                        subtitle = stringResource(R.string.setting_provider_page_template_oauth_codex_subtitle),
-                        monogram = "OC",
-                        tagText = "oauth",
-                        onClick = { closeAndPick(buildCodexOAuthInitial(), true) },
-                    )
-                }
-                item("oauth-gemini") {
-                    ProviderTemplateRow(
-                        name = stringResource(R.string.setting_provider_page_template_oauth_gemini_title),
-                        subtitle = stringResource(R.string.setting_provider_page_template_oauth_gemini_subtitle),
-                        monogram = "Gemi",
-                        tagText = "oauth",
-                        onClick = { closeAndPick(buildGeminiOAuthInitial(), true) },
-                    )
+                item("oauth-card") {
+                    ProviderCard(modifier = Modifier.fillMaxWidth()) {
+                        ProviderTemplateRow(
+                            name = stringResource(R.string.setting_provider_page_template_oauth_codex_title),
+                            subtitle = stringResource(R.string.setting_provider_page_template_oauth_codex_subtitle),
+                            monogram = "OC",
+                            tagText = "oauth",
+                            onClick = { closeAndPick(buildCodexOAuthInitial(), true) },
+                        )
+                        ProviderRowDivider(inset = TemplateRowDividerInset)
+                        ProviderTemplateRow(
+                            name = stringResource(R.string.setting_provider_page_template_oauth_gemini_title),
+                            subtitle = stringResource(R.string.setting_provider_page_template_oauth_gemini_subtitle),
+                            monogram = "Gemi",
+                            tagText = "oauth",
+                            onClick = { closeAndPick(buildGeminiOAuthInitial(), true) },
+                        )
+                    }
                 }
 
                 if (bundledTemplates.isNotEmpty()) {
                     item("section-bundled") {
                         ProviderSectionLabel(stringResource(R.string.setting_provider_page_template_section_bundled))
                     }
-                    items(bundledTemplates, key = { "bundled-${it.id}" }) { template ->
-                        ProviderTemplateRow(
-                            name = template.name,
-                            subtitle = template.providerSlugLabel(),
-                            monogram = template.name.toProviderMonogram(),
-                            tagText = template.brandTagText(),
-                            onClick = { closeAndPick(template.copyProvider(), false) },
-                        )
+                    itemsIndexed(bundledTemplates, key = { _, template -> "bundled-${template.id}" }) { index, template ->
+                        ProviderGroupSegment(
+                            first = index == 0,
+                            last = index == bundledTemplates.lastIndex,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            if (index > 0) ProviderRowDivider(inset = TemplateRowDividerInset)
+                            ProviderTemplateRow(
+                                name = template.name,
+                                subtitle = template.providerHostLabel(),
+                                subtitleMono = true,
+                                monogram = template.name.toProviderMonogram(),
+                                tagText = template.brandTagText(),
+                                onClick = { closeAndPick(template.copyProvider(), false) },
+                            )
+                        }
                     }
                 }
 
                 item("section-custom") {
                     ProviderSectionLabel(stringResource(R.string.setting_provider_page_template_section_custom))
                 }
-                item("custom-blank") {
-                    ProviderTemplateRow(
-                        name = stringResource(R.string.setting_provider_page_template_custom_blank_title),
-                        subtitle = stringResource(R.string.setting_provider_page_template_custom_blank_subtitle),
-                        leadingIcon = Lucide.SlidersHorizontal,
-                        tagText = "custom",
-                        onClick = { closeAndPick(ProviderSetting.OpenAI(), false) },
-                    )
+                item("custom-card") {
+                    ProviderCard(modifier = Modifier.fillMaxWidth()) {
+                        ProviderTemplateRow(
+                            name = stringResource(R.string.setting_provider_page_template_custom_blank_title),
+                            subtitle = stringResource(R.string.setting_provider_page_template_custom_blank_subtitle),
+                            leadingIcon = Lucide.SlidersHorizontal,
+                            tagText = "custom",
+                            onClick = { closeAndPick(ProviderSetting.OpenAI(), false) },
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-private fun buildCodexOAuthInitial(): ProviderSetting.OpenAI = ProviderSetting.OpenAI(
+/** 14dp row inset + 36dp tile + 12dp gap. */
+private val TemplateRowDividerInset = 62.dp
+
+internal fun buildCodexOAuthInitial(): ProviderSetting.OpenAI = ProviderSetting.OpenAI(
     id = Uuid.random(),
     name = "OpenAI Codex OAuth",
     baseUrl = OpenAIAuthMode.CODEX_OAUTH.fixedBaseUrl()!!,
@@ -181,68 +178,30 @@ private fun ProviderTemplateRow(
     name: String,
     onClick: () -> Unit,
     subtitle: String? = null,
+    subtitleMono: Boolean = false,
     monogram: String = name.toProviderMonogram(),
     tagText: String? = null,
     leadingIcon: ImageVector? = null,
 ) {
     val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    ProviderCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pressable(onClick = onClick),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 13.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (leadingIcon == null) {
-                ProviderMonogram(text = monogram, size = 38.dp)
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(11.dp))
-                        .background(t.surface2),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = leadingIcon,
-                        contentDescription = null,
-                        tint = t.ink3,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-            ) {
-                Text(
-                    text = name,
-                    style = type.body.copy(fontWeight = FontWeight.SemiBold),
-                    color = t.ink,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = type.meta.copy(fontSize = 11.sp),
-                        color = t.ink4,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
+    ProviderListRow(
+        title = name,
+        subtitle = subtitle?.let { { ProviderRowSubtitle(it, mono = subtitleMono) } },
+        leading = { ProviderTile(text = monogram, icon = leadingIcon) },
+        trailing = {
             if (tagText != null) {
                 ProviderTemplateTag(tagText)
+            } else {
+                Icon(
+                    imageVector = Lucide.ChevronRight,
+                    contentDescription = null,
+                    tint = t.ink4,
+                    modifier = Modifier.size(16.dp),
+                )
             }
-        }
-    }
+        },
+        onClick = onClick,
+    )
 }
 
 @Composable
@@ -251,16 +210,15 @@ private fun ProviderTemplateTag(text: String) {
     val type = LocalAmberType.current
     Box(
         modifier = Modifier
-            .height(28.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(6.dp))
             .background(t.surface2)
-            .padding(horizontal = 9.dp),
+            .padding(horizontal = 7.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            style = type.meta.copy(fontSize = 10.5.sp, fontWeight = FontWeight.Bold),
-            color = t.ink3,
+            style = type.meta.copy(fontSize = 11.sp),
+            color = t.ink2,
             maxLines = 1,
         )
     }

@@ -4,19 +4,29 @@ import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -25,36 +35,50 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.composables.icons.lucide.CircleAlert
+import com.composables.icons.lucide.CircleCheck
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Zap
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.distinctUntilChanged
 import app.amber.ai.provider.GoogleAuthMode
 import app.amber.ai.provider.OpenAIAuthMode
+import app.amber.ai.provider.ProviderCatalog
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.provider.availableAuthModes
 import app.amber.ai.provider.fixedBaseUrl
 import app.amber.ai.provider.providers.grok.GROK_CLI_PROXY_BASE_URL
 import app.amber.ai.provider.providers.grok.GrokAuthStore
-import app.amber.ai.provider.providers.grok.GrokAuthStatus
 import app.amber.ai.provider.providers.grok.GrokOAuthClient
 import app.amber.ai.provider.providers.grok.GrokOAuthTokens
 import app.amber.agent.R
+import app.amber.feature.ui.components.ds.pressable
 import app.amber.feature.ui.components.ui.SiliconFlowPowerByIcon
 import app.amber.feature.ui.context.LocalToaster
+import app.amber.feature.ui.pages.setting.components.LocalProviderFieldInCard
+import app.amber.feature.ui.pages.setting.components.LocalProviderRowInset
 import app.amber.feature.ui.pages.setting.components.ProviderCard
+import app.amber.feature.ui.pages.setting.components.ProviderCardRows
 import app.amber.feature.ui.pages.setting.components.ProviderCommandButton
-import app.amber.feature.ui.pages.setting.components.ProviderSecretField
+import app.amber.feature.ui.pages.setting.components.ProviderFootnote
 import app.amber.feature.ui.pages.setting.components.ProviderSectionLabel
 import app.amber.feature.ui.pages.setting.components.ProviderSegOption
 import app.amber.feature.ui.pages.setting.components.ProviderTextField
-
+import app.amber.feature.ui.pages.setting.components.providerDangerColor
 import app.amber.feature.ui.pages.setting.provider.resetBaseUrlToDefault
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
@@ -68,15 +92,13 @@ import okhttp3.OkHttpClient
 import org.koin.compose.koinInject
 
 import app.amber.feature.ui.pages.setting.provider.ProviderDeleteDialog
-import app.amber.feature.ui.pages.setting.provider.ProviderConsoleIdentity
 import app.amber.feature.ui.pages.setting.provider.ProviderLabeledField
 import app.amber.feature.ui.pages.setting.provider.ProviderConfigCapsule
-import app.amber.feature.ui.pages.setting.provider.ProviderConsoleActions
 import app.amber.feature.ui.pages.setting.provider.ProviderSwitchRow
-import app.amber.feature.ui.pages.setting.provider.ProviderProtocolSection
-import app.amber.feature.ui.pages.setting.provider.ClaudeAuthConsole
-import app.amber.feature.ui.pages.setting.provider.ProviderEndpointSection
-import app.amber.feature.ui.pages.setting.provider.ProviderAccountSection
+import app.amber.feature.ui.pages.setting.provider.addApiKeyRow
+import app.amber.feature.ui.pages.setting.provider.addBalanceRows
+import app.amber.feature.ui.pages.setting.provider.addBasicRows
+import app.amber.feature.ui.pages.setting.provider.addEndpointRows
 import app.amber.feature.ui.pages.setting.provider.isCodingPlan
 
 @Composable
@@ -87,6 +109,7 @@ internal fun SettingProviderConfigPage(
     onDelete: () -> Unit,
     onModelsFetched: (ProviderModelCandidates) -> Unit = {},
     onModelCandidatesInvalidated: () -> Unit = {},
+    onScrolledChange: (Boolean) -> Unit = {},
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -102,13 +125,12 @@ internal fun SettingProviderConfigPage(
         },
         onModelsFetched = onModelsFetched,
         onModelCandidatesInvalidated = onModelCandidatesInvalidated,
-    ) { currentProvider ->
-        ProviderConsoleActions(
-            provider = currentProvider,
-            onDelete = { showDeleteDialog = true },
-            onReset = { onInternalChange(internalProvider.resetBaseUrlToDefault()) },
-            onSave = { onEdit(internalProvider) },
-        )
+        showConnectionTest = true,
+        onScrolledChange = onScrolledChange,
+    ) {
+        // Saving is automatic (the detail page persists the draft on leave), so the
+        // page ends with the destructive action and the autosave note only.
+        ProviderDeleteFooter(onDelete = { showDeleteDialog = true })
     }
 
     if (showDeleteDialog) {
@@ -123,6 +145,38 @@ internal fun SettingProviderConfigPage(
 }
 
 @Composable
+private fun ProviderDeleteFooter(onDelete: () -> Unit) {
+    val type = LocalAmberType.current
+    val danger = providerDangerColor()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .pressable(onClick = onDelete),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Icon(Lucide.Trash2, contentDescription = null, tint = danger, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(7.dp))
+            Text(
+                text = stringResource(R.string.provider_delete_provider),
+                style = type.body.copy(fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold),
+                color = danger,
+                maxLines = 1,
+            )
+        }
+        ProviderFootnote(stringResource(R.string.provider_autosave_hint))
+    }
+}
+
+@Composable
 internal fun ProviderConsole(
     provider: ProviderSetting,
     onEdit: (ProviderSetting) -> Unit,
@@ -133,66 +187,106 @@ internal fun ProviderConsole(
     onCommit: (ProviderSetting) -> Unit = onEdit,
     onModelsFetched: (ProviderModelCandidates) -> Unit = {},
     onModelCandidatesInvalidated: () -> Unit = {},
+    showConnectionTest: Boolean = false,
+    onScrolledChange: ((Boolean) -> Unit)? = null,
     actionContent: (@Composable (ProviderSetting) -> Unit)? = null,
 ) {
     val grokTokens = if (provider is ProviderSetting.OpenAI && provider.authMode == OpenAIAuthMode.GROK_OAUTH) {
         rememberGrokOAuthTokens(provider)
     } else null
+    val googleServiceAccountImport = if (provider is ProviderSetting.Google) {
+        rememberGoogleServiceAccountImport(provider, onEdit)
+    } else null
+    val importGoogleServiceAccount: () -> Unit = {
+        googleServiceAccountImport?.launch(arrayOf("application/json", "*/*"))
+    }
+    if (provider is ProviderSetting.OpenAI) {
+        OpenAIAuthModeGuard(provider, onEdit)
+    }
+    val oauth = provider.isOAuthMode()
+
+    val listState = rememberLazyListState()
+    if (onScrolledChange != null) {
+        val latestOnScrolledChange by rememberUpdatedState(onScrolledChange)
+        LaunchedEffect(listState) {
+            snapshotFlow {
+                listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 24
+            }
+                .distinctUntilChanged()
+                .collect { latestOnScrolledChange(it) }
+        }
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .imePadding()
             .background(Color.Transparent),
+        state = listState,
         contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item("identity") {
-            ProviderCard(modifier = Modifier.fillMaxWidth()) {
-                ProviderConsoleIdentity(
-                    provider = provider,
-                    onEdit = onEdit,
-                    oauthUsable = grokTokens?.let {
-                        GrokAuthStatus.from(it.value, System.currentTimeMillis()).usable
-                    },
+        if (oauth) {
+            item("account") {
+                Column(Modifier.fillMaxWidth()) {
+                    ProviderSectionLabel(stringResource(R.string.setting_provider_page_account))
+                    ProviderCard(modifier = Modifier.fillMaxWidth()) {
+                        CompositionLocalProvider(
+                            LocalProviderFieldInCard provides true,
+                            LocalProviderRowInset provides 0.dp,
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                ProviderOAuthAccountConsole(
+                                    provider = provider,
+                                    onEdit = onEdit,
+                                    onCommit = onCommit,
+                                    onModelsFetched = onModelsFetched,
+                                    onModelCandidatesInvalidated = onModelCandidatesInvalidated,
+                                    autoStartOAuth = autoStartOAuth,
+                                    onAutoStartConsumed = onAutoStartConsumed,
+                                    grokTokens = grokTokens,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item("basic") {
+            Column(Modifier.fillMaxWidth()) {
+                ProviderSectionLabel(stringResource(R.string.provider_section_basic))
+                ProviderCardRows(
+                    rows = buildList<@Composable () -> Unit> { addBasicRows(provider, onEdit, showProtocol = !oauth) },
                 )
             }
         }
-        item("protocol") {
-            ProviderProtocolSection(
-                provider = provider,
-                onEdit = onEdit,
-            )
-        }
-        item("auth") {
-            ProviderAuthSection(
-                provider = provider,
-                onEdit = onEdit,
-                onCommit = onCommit,
-                onModelsFetched = onModelsFetched,
-                onModelCandidatesInvalidated = onModelCandidatesInvalidated,
-                autoStartOAuth = autoStartOAuth,
-                onAutoStartConsumed = onAutoStartConsumed,
-                grokTokens = grokTokens,
-            )
-        }
-        item("endpoint") {
-            val googleServiceAccountImport = if (provider is ProviderSetting.Google) {
-                rememberGoogleServiceAccountImport(provider, onEdit)
-            } else null
-            ProviderEndpointSection(
-                provider = provider,
-                onEdit = onEdit,
-                onImportGoogleServiceAccount = {
-                    googleServiceAccountImport?.launch(arrayOf("application/json", "*/*"))
-                },
-            )
+        if (!oauth) {
+            item("connection") {
+                Column(Modifier.fillMaxWidth()) {
+                    ProviderSectionLabel(stringResource(R.string.provider_section_connection))
+                    ProviderCardRows(
+                        rows = buildList<@Composable () -> Unit> {
+                            addAuthRows(provider, onEdit)
+                            addEndpointRows(provider, onEdit, importGoogleServiceAccount)
+                        },
+                    )
+                    ProviderFootnote(stringResource(R.string.provider_key_local_hint))
+                }
+            }
         }
         if (provider is ProviderSetting.OpenAI) {
-            item("account") {
-                ProviderAccountSection(
-                    provider = provider,
-                    onEdit = onEdit,
-                )
+            item("advanced") {
+                Column(Modifier.fillMaxWidth()) {
+                    ProviderSectionLabel(stringResource(R.string.provider_section_advanced))
+                    ProviderCardRows(rows = buildList<@Composable () -> Unit> { addBalanceRows(provider, onEdit) })
+                }
+            }
+        }
+        if (showConnectionTest) {
+            item("test") {
+                ProviderConnectionTest(provider = provider)
             }
         }
         if (actionContent != null) {
@@ -216,127 +310,100 @@ internal fun ProviderConsole(
     }
 }
 
-@Composable
-private fun ProviderAuthSection(
+/** Connection-card auth rows for API-key style modes (mode picker, key, Vertex switches). */
+private fun MutableList<@Composable () -> Unit>.addAuthRows(
     provider: ProviderSetting,
     onEdit: (ProviderSetting) -> Unit,
-    onCommit: (ProviderSetting) -> Unit,
-    onModelsFetched: (ProviderModelCandidates) -> Unit,
-    onModelCandidatesInvalidated: () -> Unit,
-    autoStartOAuth: Boolean,
-    onAutoStartConsumed: () -> Unit,
-    grokTokens: MutableState<GrokOAuthTokens?>?,
 ) {
-    ProviderSectionLabel(stringResource(R.string.setting_provider_page_authentication))
-    ProviderCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            when (provider) {
-                is ProviderSetting.OpenAI -> OpenAIAuthConsole(
-                    provider = provider,
-                    onEdit = onEdit,
-                    onCommit = onCommit,
-                    onModelsFetched = onModelsFetched,
-                    onModelCandidatesInvalidated = onModelCandidatesInvalidated,
-                    autoStartOAuth = autoStartOAuth,
-                    onAutoStartConsumed = onAutoStartConsumed,
-                    grokTokens = grokTokens,
-                )
-                is ProviderSetting.Google -> GoogleAuthConsole(
-                    provider = provider,
-                    onEdit = onEdit,
-                    onCommit = onCommit,
-                    autoStartOAuth = autoStartOAuth,
-                    onAutoStartConsumed = onAutoStartConsumed,
-                )
-                is ProviderSetting.Claude -> ClaudeAuthConsole(
-                    provider = provider,
-                    onEdit = onEdit,
-                )
+    when (provider) {
+        is ProviderSetting.OpenAI -> {
+            val availableModes = openAIAvailableAuthModes(provider)
+            if (availableModes.size > 1) {
+                add {
+                    ProviderLabeledField(stringResource(R.string.provider_field_auth_mode)) {
+                        OpenAIAuthModeCapsule(provider, onEdit, availableModes)
+                    }
+                }
             }
+            if (provider.authMode == OpenAIAuthMode.API_KEY || provider.authMode.isCodingPlan()) {
+                addApiKeyRow(provider.apiKey, "sk-...") { onEdit(provider.copy(apiKey = it)) }
+            }
+        }
+        is ProviderSetting.Google -> {
+            add { GoogleAuthModeRow(provider, onEdit) }
+            if (provider.authMode == GoogleAuthMode.API_KEY) {
+                if (!(provider.vertexAI && provider.useServiceAccount)) {
+                    addApiKeyRow(provider.apiKey, "AIza...") { onEdit(provider.copy(apiKey = it)) }
+                }
+                add {
+                    ProviderSwitchRow(
+                        title = stringResource(R.string.setting_provider_page_vertex_ai),
+                        checked = provider.vertexAI,
+                        onCheckedChange = { onEdit(provider.copy(vertexAI = it)) },
+                    )
+                }
+                if (provider.vertexAI) {
+                    add {
+                        ProviderSwitchRow(
+                            title = stringResource(R.string.setting_provider_page_use_service_account),
+                            checked = provider.useServiceAccount,
+                            onCheckedChange = { onEdit(provider.copy(useServiceAccount = it)) },
+                        )
+                    }
+                }
+            }
+        }
+        is ProviderSetting.Claude -> {
+            addApiKeyRow(provider.apiKey, "sk-ant-...") { onEdit(provider.copy(apiKey = it)) }
         }
     }
 }
 
-@Composable
-private fun OpenAIAuthConsole(
-    provider: ProviderSetting.OpenAI,
-    onEdit: (ProviderSetting.OpenAI) -> Unit,
-    onCommit: (ProviderSetting.OpenAI) -> Unit,
-    onModelsFetched: (ProviderModelCandidates) -> Unit,
-    onModelCandidatesInvalidated: () -> Unit,
-    autoStartOAuth: Boolean,
-    onAutoStartConsumed: () -> Unit,
-    grokTokens: MutableState<GrokOAuthTokens?>?,
-) {
-    val isGrok = provider.isGrokProvider()
-    val grokStore = if (isGrok) koinInject<GrokAuthStore>() else null
-    val availableModes = if (isGrok) {
+private fun openAIAvailableAuthModes(provider: ProviderSetting.OpenAI): List<OpenAIAuthMode> =
+    if (provider.isGrokProvider()) {
         listOf(OpenAIAuthMode.API_KEY, OpenAIAuthMode.GROK_OAUTH)
     } else provider.brand.availableAuthModes()
-    if (availableModes.size > 1) {
-        ProviderConfigCapsule(
-            options = availableModes.map { ProviderSegOption(it, it.openAIAuthLabel()) },
-            selected = provider.authMode,
-            onSelected = { mode ->
-                if (provider.authMode != mode) {
-                    if (mode == OpenAIAuthMode.GROK_OAUTH) {
-                        grokStore?.clearBackup(provider.id)
-                        grokStore?.saveBackup(provider.id, provider.baseUrl)
-                    }
-                    onEdit(provider.switchOpenAIAuthMode(mode, grokStore?.getBackup(provider.id)))
-                }
-            },
-        )
-    }
+
+/** Falls back to API key when the brand no longer offers the stored auth mode. */
+@Composable
+private fun OpenAIAuthModeGuard(
+    provider: ProviderSetting.OpenAI,
+    onEdit: (ProviderSetting.OpenAI) -> Unit,
+) {
+    val availableModes = openAIAvailableAuthModes(provider)
     if (provider.authMode !in availableModes) {
         LaunchedEffect(provider.id, provider.brand) {
             onEdit(provider.copy(authMode = OpenAIAuthMode.API_KEY))
         }
     }
-
-    val isCodingPlan = provider.authMode.isCodingPlan()
-    when {
-        provider.authMode == OpenAIAuthMode.CODEX_OAUTH -> {
-            CodexOAuthConsole(
-                provider = provider,
-                onCommit = onCommit,
-                onModelsFetched = onModelsFetched,
-                onModelCandidatesInvalidated = onModelCandidatesInvalidated,
-                autoStartOAuth = autoStartOAuth,
-                onAutoStartConsumed = onAutoStartConsumed,
-            )
-        }
-        provider.authMode == OpenAIAuthMode.GROK_OAUTH -> {
-            GrokOAuthConsole(
-                provider = provider,
-                tokenState = checkNotNull(grokTokens),
-                onCommit = onCommit,
-                autoStartOAuth = autoStartOAuth,
-                onAutoStartConsumed = onAutoStartConsumed,
-            )
-        }
-        provider.authMode == OpenAIAuthMode.API_KEY || isCodingPlan -> {
-            ProviderLabeledField("API Key") {
-                ProviderSecretField(
-                    value = provider.apiKey,
-                    onValueChange = { onEdit(provider.copy(apiKey = it.trim())) },
-                    placeholder = "sk-...",
-                )
-            }
-        }
-    }
 }
 
 @Composable
-private fun GoogleAuthConsole(
+private fun OpenAIAuthModeCapsule(
+    provider: ProviderSetting.OpenAI,
+    onEdit: (ProviderSetting.OpenAI) -> Unit,
+    availableModes: List<OpenAIAuthMode>,
+) {
+    val grokStore = if (provider.isGrokProvider()) koinInject<GrokAuthStore>() else null
+    ProviderConfigCapsule(
+        options = availableModes.map { ProviderSegOption(it, it.openAIAuthLabel()) },
+        selected = provider.authMode,
+        onSelected = { mode ->
+            if (provider.authMode != mode) {
+                if (mode == OpenAIAuthMode.GROK_OAUTH) {
+                    grokStore?.clearBackup(provider.id)
+                    grokStore?.saveBackup(provider.id, provider.baseUrl)
+                }
+                onEdit(provider.switchOpenAIAuthMode(mode, grokStore?.getBackup(provider.id)))
+            }
+        },
+    )
+}
+
+@Composable
+private fun GoogleAuthModeCapsule(
     provider: ProviderSetting.Google,
     onEdit: (ProviderSetting.Google) -> Unit,
-    onCommit: (ProviderSetting.Google) -> Unit,
-    autoStartOAuth: Boolean,
-    onAutoStartConsumed: () -> Unit,
 ) {
     ProviderConfigCapsule(
         options = listOf(
@@ -347,45 +414,177 @@ private fun GoogleAuthConsole(
         selected = provider.authMode,
         onSelected = { mode -> onEdit(provider.switchGoogleAuthMode(mode)) },
     )
+}
 
-    when (provider.authMode) {
-        GoogleAuthMode.API_KEY -> {
-            if (!(provider.vertexAI && provider.useServiceAccount)) {
-                ProviderLabeledField("API Key") {
-                    ProviderSecretField(
-                        value = provider.apiKey,
-                        onValueChange = { onEdit(provider.copy(apiKey = it.trim())) },
-                        placeholder = "AIza...",
-                    )
-                }
+@Composable
+private fun GoogleAuthModeRow(
+    provider: ProviderSetting.Google,
+    onEdit: (ProviderSetting.Google) -> Unit,
+) {
+    ProviderLabeledField(stringResource(R.string.provider_field_auth_mode)) {
+        GoogleAuthModeCapsule(provider, onEdit)
+    }
+}
+
+/** 账号 card body for OAuth modes: mode picker (to leave OAuth) + the provider's login console. */
+@Composable
+private fun ProviderOAuthAccountConsole(
+    provider: ProviderSetting,
+    onEdit: (ProviderSetting) -> Unit,
+    onCommit: (ProviderSetting) -> Unit,
+    onModelsFetched: (ProviderModelCandidates) -> Unit,
+    onModelCandidatesInvalidated: () -> Unit,
+    autoStartOAuth: Boolean,
+    onAutoStartConsumed: () -> Unit,
+    grokTokens: MutableState<GrokOAuthTokens?>?,
+) {
+    when (provider) {
+        is ProviderSetting.OpenAI -> {
+            val availableModes = openAIAvailableAuthModes(provider)
+            if (availableModes.size > 1) {
+                OpenAIAuthModeCapsule(provider, onEdit, availableModes)
             }
-            ProviderSwitchRow(
-                title = stringResource(R.string.setting_provider_page_vertex_ai),
-                checked = provider.vertexAI,
-                onCheckedChange = { onEdit(provider.copy(vertexAI = it)) },
-            )
-            if (provider.vertexAI) {
-                ProviderSwitchRow(
-                    title = stringResource(R.string.setting_provider_page_use_service_account),
-                    checked = provider.useServiceAccount,
-                    onCheckedChange = { onEdit(provider.copy(useServiceAccount = it)) },
+            when (provider.authMode) {
+                OpenAIAuthMode.CODEX_OAUTH -> CodexOAuthConsole(
+                    provider = provider,
+                    onCommit = onCommit,
+                    onModelsFetched = onModelsFetched,
+                    onModelCandidatesInvalidated = onModelCandidatesInvalidated,
+                    autoStartOAuth = autoStartOAuth,
+                    onAutoStartConsumed = onAutoStartConsumed,
                 )
+                OpenAIAuthMode.GROK_OAUTH -> GrokOAuthConsole(
+                    provider = provider,
+                    tokenState = checkNotNull(grokTokens),
+                    onCommit = onCommit,
+                    autoStartOAuth = autoStartOAuth,
+                    onAutoStartConsumed = onAutoStartConsumed,
+                )
+                else -> Unit
             }
         }
-        GoogleAuthMode.GEMINI_CODE_ASSIST_OAUTH -> {
-            GeminiOAuthConsole(
-                provider = provider,
-                onCommit = onCommit,
-                autoStartOAuth = autoStartOAuth,
-                onAutoStartConsumed = onAutoStartConsumed,
-            )
+        is ProviderSetting.Google -> {
+            GoogleAuthModeCapsule(provider, onEdit)
+            when (provider.authMode) {
+                GoogleAuthMode.GEMINI_CODE_ASSIST_OAUTH -> GeminiOAuthConsole(
+                    provider = provider,
+                    onCommit = onCommit,
+                    autoStartOAuth = autoStartOAuth,
+                    onAutoStartConsumed = onAutoStartConsumed,
+                )
+                GoogleAuthMode.ANTIGRAVITY_OAUTH -> AntigravityOAuthConsole(
+                    provider = provider,
+                    onCommit = onCommit,
+                    autoStartOAuth = autoStartOAuth,
+                    onAutoStartConsumed = onAutoStartConsumed,
+                )
+                GoogleAuthMode.API_KEY -> Unit
+            }
         }
-        GoogleAuthMode.ANTIGRAVITY_OAUTH -> {
-            AntigravityOAuthConsole(
-                provider = provider,
-                onCommit = onCommit,
-                autoStartOAuth = autoStartOAuth,
-                onAutoStartConsumed = onAutoStartConsumed,
+        is ProviderSetting.Claude -> Unit
+    }
+}
+
+private sealed interface ConnectionTestResult {
+    data class Ok(val millis: Long, val count: Int) : ConnectionTestResult
+    data class Failed(val message: String) : ConnectionTestResult
+}
+
+/** "测试连接": lists models with the current draft, the same call the models tab makes. */
+@Composable
+private fun ProviderConnectionTest(provider: ProviderSetting) {
+    val providerCatalog = koinInject<ProviderCatalog>()
+    val scope = rememberCoroutineScope()
+    val latestProvider by rememberUpdatedState(provider)
+    var busy by remember(provider.id) { mutableStateOf(false) }
+    var result by remember(provider.id) { mutableStateOf<ConnectionTestResult?>(null) }
+    // A result describes the draft it was run against; any edit makes it stale.
+    LaunchedEffect(provider) { result = null }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ProviderCommandButton(
+            text = stringResource(if (busy) R.string.provider_test_running else R.string.provider_test_connection),
+            onClick = {
+                if (!busy) {
+                    busy = true
+                    scope.launch {
+                        val target = latestProvider
+                        val started = System.nanoTime()
+                        result = try {
+                            val models = if (target is ProviderSetting.OpenAI) {
+                                providerCatalog.listModels(target)
+                            } else {
+                                providerCatalog.text(target).listModels(target)
+                            }
+                            ConnectionTestResult.Ok(
+                                millis = (System.nanoTime() - started) / 1_000_000,
+                                count = models.size,
+                            )
+                        } catch (error: CancellationException) {
+                            throw error
+                        } catch (error: Exception) {
+                            ConnectionTestResult.Failed(error.message?.takeIf { it.isNotBlank() } ?: error.toString())
+                        } finally {
+                            busy = false
+                        }
+                    }
+                }
+            },
+            warn = true,
+            imageVector = Lucide.Zap,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        AnimatedVisibility(visible = result != null && !busy) {
+            result?.let { ConnectionTestResultCard(it) }
+        }
+    }
+}
+
+@Composable
+private fun ConnectionTestResultCard(result: ConnectionTestResult) {
+    val t = LocalAmberTokens.current
+    val type = LocalAmberType.current
+    val ok = result is ConnectionTestResult.Ok
+    val tint = if (ok) Color(0xFF3DA35D) else providerDangerColor()
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(tint.copy(alpha = 0.10f))
+            .border(0.5.dp, tint.copy(alpha = 0.30f), shape)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(
+            imageVector = if (ok) Lucide.CircleCheck else Lucide.CircleAlert,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .padding(top = 1.dp)
+                .size(18.dp),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(if (ok) R.string.provider_test_ok else R.string.provider_test_failed),
+                style = type.body.copy(fontWeight = FontWeight.SemiBold),
+                color = t.ink,
+            )
+            Text(
+                text = when (result) {
+                    is ConnectionTestResult.Ok ->
+                        stringResource(R.string.provider_test_ok_detail, result.millis.toInt(), result.count)
+                    is ConnectionTestResult.Failed -> result.message
+                },
+                style = type.meta,
+                color = t.ink3,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

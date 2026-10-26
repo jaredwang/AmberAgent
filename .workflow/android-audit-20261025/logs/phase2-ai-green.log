@@ -1,0 +1,140 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:preDebugUnitTestBuild UP-TO-DATE
+> Task :ai:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :ai:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+
+> Task :ai:compileDebugKotlin
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/ClaudeProvider.kt:112:94 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/ClaudeProvider.kt:114:30 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/GoogleProvider.kt:190:41 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/GoogleProvider.kt:219:46 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/GoogleProvider.kt:270:94 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/GoogleProvider.kt:272:30 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:116:78 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:119:40 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:158:75 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:461:86 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:463:30 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:492:82 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:494:30 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:593:87 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/OpenAIProvider.kt:722:36 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/openai/ChatCompletionsAPI.kt:145:82 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/openai/ChatCompletionsAPI.kt:147:24 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/openai/ResponseEventTransport.kt:91:24 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/src/main/java/app/amber/ai/provider/providers/openai/ResponseEventTransport.kt:458:33 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug
+> Task :ai:bundleLibCompileToJarDebug
+> Task :ai:compileDebugUnitTestKotlin
+> Task :ai:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :ai:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :ai:testDebugUnitTest FAILED
+
+ProviderContentReplayTest > mistralStreamRetainsTextArrayDeltas FAILED
+    org.junit.ComparisonFailure at ProviderContentReplayTest.kt:41
+
+257 tests completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':ai:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///Users/arquiel/Downloads/AI/amberagent-Android/ai/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 11s
+27 actionable tasks: 5 executed, 22 up-to-date

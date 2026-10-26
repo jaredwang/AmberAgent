@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.ChatGenerationRoundEngineTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:16.608Z" hostname="duguangdeMBP.lan" time="0.775">
+  <properties/>
+  <testcase name="complete vision fallback replaces image through actual OCR transformer" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.075"/>
+  <testcase name="a truncation from a failed attempt does not leak into the adopted fallback attempt" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.034"/>
+  <testcase name="complete snapshot cancellation prevents wire and retry" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.037"/>
+  <testcase name="a truncation in the adopted attempt still reports outputLimitReached" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.04"/>
+  <testcase name="a normal stop after a truncation within one attempt wins" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.042"/>
+  <testcase name="conversation keeps one session across rounds and isolates another conversation" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.101"/>
+  <testcase name="complete repair network failure resets outer retry and isolates accepted usage" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.15"/>
+  <testcase name="complete ordinary snapshot failure remains best effort" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.061"/>
+  <testcase name="complete length on the adopted repair still reports output limit" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.068"/>
+  <testcase name="complete repair adopts its own finish and usage with audited tool-free request" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.054"/>
+  <testcase name="complete plain length without repair reports output limit" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.06"/>
+  <testcase name="model group defaults and explicit overrides reach actual wire params" classname="app.amber.core.ai.ChatGenerationRoundEngineTest" time="0.052"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

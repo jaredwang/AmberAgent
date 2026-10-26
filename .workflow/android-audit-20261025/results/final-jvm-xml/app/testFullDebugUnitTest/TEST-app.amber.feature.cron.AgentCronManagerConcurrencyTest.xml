@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.cron.AgentCronManagerConcurrencyTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:34.010Z" hostname="duguangdeMBP.lan" time="0.25">
+  <properties/>
+  <testcase name="cancelled worker finally cannot replace the manual request" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.146"/>
+  <testcase name="startup reschedule keeps a manual run for a disabled task" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.031"/>
+  <testcase name="unrelated tasks may execute while another task is running" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.016"/>
+  <testcase name="cancelled replacement waiting for its task never prepares a run" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.013"/>
+  <testcase name="startup reprojects completed manual run from the disabled cron owner" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.035"/>
+  <testcase name="replacement execution waits for the stopped task cleanup before preparing" classname="app.amber.feature.cron.AgentCronManagerConcurrencyTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

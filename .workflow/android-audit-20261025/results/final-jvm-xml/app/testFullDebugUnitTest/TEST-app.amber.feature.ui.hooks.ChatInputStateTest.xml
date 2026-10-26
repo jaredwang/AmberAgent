@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.hooks.ChatInputStateTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:05.264Z" hostname="duguangdeMBP.lan" time="0.161">
+  <properties/>
+  <testcase name="isEmpty_falseWhenAttachmentOnly" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.018"/>
+  <testcase name="replacingContentsRejectsAnImportThatBelongedToThePreviousDraft" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.015"/>
+  <testcase name="editingMessageWithSeveralTextParts_updatesTheLastTextAndPreservesReadingOrder" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.01"/>
+  <testcase name="editingAttachmentOnlyMessage_keepsNewlyTypedTextAndOriginalAttachment" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.014"/>
+  <testcase name="replacingContentsRemovesReadyImportsFromThePreviousDraft" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.018"/>
+  <testcase name="failedImport_canRetryThenRemoveAndReuseSource" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.009"/>
+  <testcase name="drainAttachmentFilesForDiscard_keepsOriginalEditAttachment" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.009"/>
+  <testcase name="lateCompletion_afterConversationSwitch_isRejected" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.008"/>
+  <testcase name="attachmentImport_tracksReadyPartAndMetadata" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.012"/>
+  <testcase name="isEmpty_backToTrueAfterClear" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.015"/>
+  <testcase name="drainAttachmentFilesForDiscard_removesReadyImportedCopy" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.009"/>
+  <testcase name="isEmpty_falseWhenTextOnly" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.011"/>
+  <testcase name="isEmpty_trueWhenNoTextAndNoAttachments" classname="app.amber.feature.ui.hooks.ChatInputStateTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

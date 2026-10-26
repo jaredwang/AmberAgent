@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:23.339Z" hostname="duguangdeMBP.lan" time="0.47">
+  <properties/>
+  <testcase name="materialTitlesWithoutExtensionsBecomeVisibleSettingFiles" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.025"/>
+  <testcase name="missingSelectedChapterVersionIsRejectedBeforeInstallation" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.01"/>
+  <testcase name="workspaceZipStillImportsWithoutChangingBookFiles" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.147"/>
+  <testcase name="iosRuntimeHistoryDoesNotBlockBookImportAndNativeCodecRemainsStrict" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.028"/>
+  <testcase name="importingTheSamePackageTwiceCreatesIndependentProjects" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.091"/>
+  <testcase name="projectPackageImportsChaptersMaterialsBranchesAndDiscussions" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.079"/>
+  <testcase name="packageWithAdditionalIosFieldsCanStillBeImported" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.03"/>
+  <testcase name="unsupportedSchemaAndCorruptPayloadDoNotCreateProjects" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.002"/>
+  <testcase name="restoreEpochCapturedBeforeDispatchPreventsPackageAndZipInstallation" classname="app.amber.feature.novel.workspace.NovelWorkspaceProjectImportTest" time="0.058"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

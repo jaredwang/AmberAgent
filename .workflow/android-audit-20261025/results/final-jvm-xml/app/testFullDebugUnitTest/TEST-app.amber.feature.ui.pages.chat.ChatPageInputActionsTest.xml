@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatPageInputActionsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:08.149Z" hostname="duguangdeMBP.lan" time="0.04">
+  <properties/>
+  <testcase name="savingAnEditNeedsNoModelButRegeneratingRetainsTheRejectedDraft" classname="app.amber.feature.ui.pages.chat.ChatPageInputActionsTest" time="0.011"/>
+  <testcase name="deepReadModelBypassAppliesToNewMessagesAndNotEditRegeneration" classname="app.amber.feature.ui.pages.chat.ChatPageInputActionsTest" time="0.016"/>
+  <testcase name="unresolvedEditShowsImportFeedbackBeforeEmptyOrModelGateForBothActions" classname="app.amber.feature.ui.pages.chat.ChatPageInputActionsTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

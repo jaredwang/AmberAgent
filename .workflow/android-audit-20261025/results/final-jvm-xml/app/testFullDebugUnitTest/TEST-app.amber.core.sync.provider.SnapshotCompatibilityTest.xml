@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.provider.SnapshotCompatibilityTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:27.685Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="mismatched archive version is rejected" classname="app.amber.core.sync.provider.SnapshotCompatibilityTest" time="0.001"/>
+  <testcase name="current schema and archive version are compatible" classname="app.amber.core.sync.provider.SnapshotCompatibilityTest" time="0.0"/>
+  <testcase name="both mismatches report schema first" classname="app.amber.core.sync.provider.SnapshotCompatibilityTest" time="0.0"/>
+  <testcase name="newer schema version is rejected" classname="app.amber.core.sync.provider.SnapshotCompatibilityTest" time="0.0"/>
+  <testcase name="older schema version is compatible" classname="app.amber.core.sync.provider.SnapshotCompatibilityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

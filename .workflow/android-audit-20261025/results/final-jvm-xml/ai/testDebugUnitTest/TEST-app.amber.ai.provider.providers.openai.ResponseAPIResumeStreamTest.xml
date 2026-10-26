@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.860Z" hostname="duguangdeMBP.lan" time="0.058">
+  <properties/>
+  <testcase name="storedCursorWithoutExplicitContinuationStartsANewModelRound" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.005"/>
+  <testcase name="secondDisconnectFailsWithoutAThirdRequestAndCancelsBothSources" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.014"/>
+  <testcase name="collectingCancellationCancelsTheActiveEventSourceWithoutReconnectOrCursorDeletion" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.006"/>
+  <testcase name="resumeDisabledKeepsTodayBehaviorNoCursorAndStoreFalse" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.004"/>
+  <testcase name="disconnectReconnectsToStoredResponseAndDedupsEvents" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.005"/>
+  <testcase name="explicitResumeUsesGetAndReplacesPartialForStreamingAndNonStreaming" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.009"/>
+  <testcase name="replayAfterCursorSkipsAlreadyDeliveredEvents" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.004"/>
+  <testcase name="cursorSaveCompletesBeforeAnyDownstreamEventIsVisible" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.005"/>
+  <testcase name="userToggleOffNeverSendsStoreTrueEvenWithResumeRequest" classname="app.amber.ai.provider.providers.openai.ResponseAPIResumeStreamTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

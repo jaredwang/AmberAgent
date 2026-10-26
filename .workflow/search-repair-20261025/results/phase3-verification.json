@@ -1,0 +1,105 @@
+{
+  "reports": [
+    {
+      "name": "app.amber.search.FreeSearchAggregatorTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:13:59.266Z"
+    },
+    {
+      "name": "app.amber.search.SearchBodyCancellationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:13:59.741Z"
+    },
+    {
+      "name": "app.amber.search.SearchProviderProtocolRegressionTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:13:59.874Z"
+    },
+    {
+      "name": "app.amber.search.SearchAdapterMappingTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:13:59.689Z"
+    },
+    {
+      "name": "app.amber.search.SearchResultIdentityTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:13:59.938Z"
+    },
+    {
+      "name": "app.amber.core.settings.prefs.SettingsAggregatorHelpersTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:14:05.041Z"
+    },
+    {
+      "name": "app.amber.core.settings.prefs.SearchSelectionPersistenceTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:14:02.524Z"
+    },
+    {
+      "name": "app.amber.feature.ui.components.message.SubAgentCitationInteractionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:43.331Z"
+    },
+    {
+      "name": "app.amber.core.ai.HttpHeaderRedactionTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:40.289Z"
+    },
+    {
+      "name": "app.amber.core.ai.tools.SearchOrchestratorTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:42.115Z"
+    },
+    {
+      "name": "app.amber.core.ai.tools.SearchAuditRegressionTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:42.033Z"
+    },
+    {
+      "name": "app.amber.core.ai.tools.SearchAggregatorTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:41.180Z"
+    },
+    {
+      "name": "app.amber.feature.miniapp.MiniAppSearchBridgeContractTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:42.313Z"
+    },
+    {
+      "name": "app.amber.feature.board.hotlist.deepread.DeepReadSearchFallbackTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-25T15:17:42.296Z"
+    }
+  ],
+  "apk_gate": "offline missing guava33.3.1-android; requires online artifact download, no production packaging change",
+  "source_review": "phase3_review: all blocking findings closed; MiniApp projection and final-prefix DeepRead selection confirmed",
+  "apk_gate_resolution": "Resolved by online assemble in Phase4 without dependency or packaging edits; final build/signature/install evidence in phase4-artifact.json and phase4-ui-verification.json"
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.google.AntigravityOAuthTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.492Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="redirect keeps the dedicated callback path" classname="app.amber.ai.provider.providers.google.AntigravityOAuthTest" time="0.001"/>
+  <testcase name="expired token with refresh credential is refreshable" classname="app.amber.ai.provider.providers.google.AntigravityOAuthTest" time="0.002"/>
+  <testcase name="ready token is usable" classname="app.amber.ai.provider.providers.google.AntigravityOAuthTest" time="0.0"/>
+  <testcase name="missing and blank tokens are not usable" classname="app.amber.ai.provider.providers.google.AntigravityOAuthTest" time="0.0"/>
+  <testcase name="model envelope filters malformed and unsupported entries with fallback" classname="app.amber.ai.provider.providers.google.AntigravityOAuthTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
