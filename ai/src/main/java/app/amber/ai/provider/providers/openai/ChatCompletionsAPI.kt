@@ -38,6 +38,7 @@ import app.amber.ai.provider.providers.PartGroup
 import app.amber.ai.provider.providers.StreamProtocol
 import app.amber.ai.provider.providers.StreamTerminationGuard
 import app.amber.ai.provider.providers.groupPartsByToolBoundary
+import app.amber.ai.provider.providers.grok.grokHeaders
 import app.amber.ai.registry.ModelRegistry
 import app.amber.ai.ui.MessageChunk
 import app.amber.ai.ui.STREAM_TOOL_INDEX_METADATA_KEY
@@ -606,16 +607,9 @@ class ChatCompletionsAPI(
     ): Request.Builder {
         val host = providerSetting.baseUrl.toHttpUrl().host
         if (providerSetting.authMode == OpenAIAuthMode.GROK_OAUTH) {
-            // The Grok CLI proxy rejects requests without its client identity
-            // headers (iOS parity); these are only applied on the OAuth path.
+            // Use the same CLI proxy identity as model discovery.
             addHeader("Authorization", "Bearer $token")
-            header("User-Agent", "grok-shell/0.2.101 (android; arm64)")
-            header("x-grok-client-identifier", "grok-shell")
-            header("x-grok-client-version", "0.2.101")
-            header("x-grok-client-mode", "interactive")
-            header("X-XAI-Token-Auth", "xai-grok-cli")
-            header("x-authenticateresponse", "authenticate-response")
-            return this
+            return grokHeaders()
         }
         return if (providerSetting.authMode == OpenAIAuthMode.MIMO_CODING_PLAN ||
             host.startsWith("token-plan-") && host.endsWith("xiaomimimo.com")

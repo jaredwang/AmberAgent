@@ -301,19 +301,19 @@ internal class StreamingMarkdownParseCache {
                 stableRawPrefix to stableBlocks
             }
             reset()
-            // HTML consistency guard: if any promoted stable block carried an
-            // html block, the renderer must switch to MarkdownNew at finish —
-            // matching what streaming frames already did — instead of freezing
-            // a half-legacy tree that flips one frame later.
-            if (blocks.any { it.parseResult.hasHtmlBlocks }) {
+            // Settled content is complete. Streaming repair (odd `$` / `**`)
+            // is a live heuristic and must not invent trailing nodes after
+            // freeze. History that never streamed has empty stable blocks
+            // and is a plain cached parse — the same path `main` used.
+            if (blocks.isEmpty() || blocks.any { it.parseResult.hasHtmlBlocks }) {
                 if (BuildConfig.DEBUG) {
                     android.util.Log.d(
                         "AmberChatScroll",
-                        "[md.finalize] branch=stable_html prefix=${prefix.length} " +
+                        "[md.finalize] branch=settled_full prefix=${prefix.length} " +
                             "stableBlocks=${blocks.size} contentLen=${content.length}"
                     )
                 }
-                return@traceMarkdown parseMarkdownUncached(content)
+                return@traceMarkdown MarkdownParseCache.getOrParse(content)
             }
             val activeRaw = content.substring(prefix.length)
             val activePreprocessed = preprocessMarkdownContent(activeRaw)
@@ -328,10 +328,11 @@ internal class StreamingMarkdownParseCache {
                             "stableBlocks=${blocks.size} contentLen=${content.length}"
                     )
                 }
-                return@traceMarkdown parseMarkdownUncached(content)
+                return@traceMarkdown MarkdownParseCache.getOrParse(content)
             }
             // Existing stable blocks + full active tail, without promoting
             // any active child to stable → active-tail keys stay "active:…"
+            // and without appending synthetic closers.
             if (BuildConfig.DEBUG) {
                 android.util.Log.d(
                     "AmberChatScroll",
@@ -339,10 +340,10 @@ internal class StreamingMarkdownParseCache {
                         "stableBlocks=${blocks.size} contentLen=${content.length}"
                 )
             }
-            parseRepairedTail(
-                tail = activePreprocessed,
+            parsePreprocessedMarkdownUncached(activePreprocessed).copy(
+                stableTopLevelBlocks = blocks,
                 activeBaseOffset = prefix.length,
-                blocks = blocks,
+                syntheticSuffixStart = Int.MAX_VALUE,
             )
         }
 

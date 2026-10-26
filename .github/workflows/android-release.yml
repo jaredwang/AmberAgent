@@ -56,7 +56,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             native/target
-          key: ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-${{ hashFiles('native/**/Cargo.lock', 'native/**/Cargo.toml', 'native/**/*.rs') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-${{ hashFiles('native/**/Cargo.lock', 'native/**/Cargo.toml', 'native/**/*.rs', 'native/.cargo/config.toml') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-android-cargo-1.95.0-ndk27-
 
@@ -72,6 +72,10 @@ jobs:
           : "${GOOGLE_SERVICES_JSON:?Missing GOOGLE_SERVICES_JSON secret}"
           printf '%s' "$KEY_BASE64" | base64 --decode > app/app.key
           printf '%s\n' "$SIGNING_CONFIG" > local.properties
+          # CI owns the keystore location; an absolute path avoids Gradle's
+          # app-relative resolution and stale storeFile values in the secret.
+          printf '\nstoreFile=%s/app/app.key\n' "$GITHUB_WORKSPACE" >> local.properties
+          test -s "$GITHUB_WORKSPACE/app/app.key"
           printf '%s\n' "$GOOGLE_SERVICES_JSON" > app/google-services.json
 
       - name: Gradle release build

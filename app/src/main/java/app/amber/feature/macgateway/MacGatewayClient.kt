@@ -165,7 +165,9 @@ class MacGatewayClient(
     suspend fun pair(secret: String, deviceName: String): MacGatewayPairResponse =
         decode(send("POST", listOf("v1", "pair"), mapOf("secret" to secret, "platform" to "android", "deviceName" to deviceName)))
 
-    suspend fun status(): MacGatewayStatus = decode(send("GET", listOf("v1", "status")))
+    suspend fun status(): MacGatewayStatus = withContext(Dispatchers.Default) {
+        decode(send("GET", listOf("v1", "status")))
+    }
 
     suspend fun setMonitored(taskKey: String, monitored: Boolean) {
         send("POST", listOf("v1", "tasks", taskKey, "monitor"), mapOf("monitored" to monitored))

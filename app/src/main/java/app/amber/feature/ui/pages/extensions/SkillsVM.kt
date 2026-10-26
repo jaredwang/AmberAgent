@@ -30,10 +30,6 @@ class SkillsVM(
     val skillIssues = _skillIssues.asStateFlow()
     val settings = settingsStore.settingsFlow
 
-    init {
-        loadSkills()
-    }
-
     fun loadSkills() {
         viewModelScope.launch(Dispatchers.IO) {
             refreshSkills()

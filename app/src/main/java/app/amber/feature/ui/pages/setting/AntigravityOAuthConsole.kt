@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.amber.ai.provider.GoogleAuthMode
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.provider.providers.google.AntigravityAuthStatus
@@ -40,7 +43,11 @@ import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import app.amber.ai.provider.providers.google.ANTIGRAVITY_OAUTH_CLIENT_ID
+import app.amber.ai.provider.providers.google.ANTIGRAVITY_OAUTH_CLIENT_SECRET
 import org.koin.compose.koinInject
 
 /** Antigravity 登录面板与 Code Assist 分离，token/status 绑定 provider UUID。 */
@@ -56,18 +63,36 @@ internal fun AntigravityOAuthConsole(
     val scope = rememberCoroutineScope()
     val store = koinInject<AntigravityAuthStore>()
     val client = koinInject<AntigravityOAuthClient>()
-    var tokens by remember(provider.id) {
-        mutableStateOf<AntigravityOAuthTokens?>(store.get(provider.id))
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var tokens by remember(provider.id, store) { mutableStateOf<AntigravityOAuthTokens?>(null) }
+    var tokensLoaded by remember(provider.id, store) { mutableStateOf(false) }
+    val tokenReadGeneration = remember(provider.id, store) { mutableStateOf(0) }
+    LaunchedEffect(provider.id, store, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            val requestGeneration = tokenReadGeneration.value + 1
+            tokenReadGeneration.value = requestGeneration
+            val cached = withContext(Dispatchers.IO) { store.get(provider.id) }
+            if (tokenReadGeneration.value == requestGeneration) {
+                tokens = cached
+                tokensLoaded = true
+            }
+        }
     }
     var busy by remember(provider.id) { mutableStateOf(false) }
     val latestProvider by rememberUpdatedState(provider)
-    val status = remember(tokens, provider.id) {
-        client.authStatus(provider.id)
+    val status = remember(tokens, provider.id, tokensLoaded) {
+        when {
+            !tokensLoaded -> null
+            ANTIGRAVITY_OAUTH_CLIENT_ID.isBlank() || ANTIGRAVITY_OAUTH_CLIENT_SECRET.isBlank() ->
+                AntigravityAuthStatus.clientUnavailable()
+            else -> AntigravityAuthStatus.from(tokens, System.currentTimeMillis())
+        }
     }
     val signedIn = tokens != null
 
     suspend fun login() {
         if (busy) return
+        tokenReadGeneration.value += 1
         busy = true
         try {
             val result = client.authorize(context, provider.id)
@@ -85,7 +110,9 @@ internal fun AntigravityOAuthConsole(
             if (current.id != provider.id || client.sessionGeneration(provider.id) != loginGeneration) {
                 return
             }
-            val cached = client.cached(provider.id) ?: return
+            val cached = withContext(Dispatchers.IO) { client.cached(provider.id) } ?: return
+            if (current.id != provider.id || client.sessionGeneration(provider.id) != loginGeneration) return
+            tokenReadGeneration.value += 1
             tokens = cached
             onCommit(
                 current.copy(
@@ -121,10 +148,11 @@ internal fun AntigravityOAuthConsole(
 
     val latestAutoStart by rememberUpdatedState(autoStartOAuth)
     val latestAutoStartConsumed by rememberUpdatedState(onAutoStartConsumed)
-    LaunchedEffect(provider.id, provider.authMode) {
+    LaunchedEffect(provider.id, provider.authMode, tokensLoaded) {
         if (
             latestAutoStart &&
             provider.authMode == GoogleAuthMode.ANTIGRAVITY_OAUTH &&
+            tokensLoaded &&
             tokens == null &&
             !busy
         ) {
@@ -149,10 +177,12 @@ internal fun AntigravityOAuthConsole(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        AntigravityStatusChip(
-            status = status,
-            email = tokens?.email,
-        )
+        status?.let {
+            AntigravityStatusChip(
+                status = it,
+                email = tokens?.email,
+            )
+        }
     }
     ProviderLabeledField(stringResource(R.string.provider_field_base_url_fixed)) {
         ProviderTextField(
@@ -167,14 +197,16 @@ internal fun AntigravityOAuthConsole(
         else if (signedIn) stringResource(R.string.setting_provider_page_antigravity_oauth_relogin)
         else stringResource(R.string.setting_provider_page_antigravity_oauth_login),
         accent = !signedIn,
+        enabled = tokensLoaded && !busy,
         onClick = { scope.launch { login() } },
         modifier = Modifier.fillMaxWidth(),
     )
     ProviderCommandButton(
         text = stringResource(R.string.setting_provider_page_antigravity_oauth_logout),
         danger = true,
-        enabled = signedIn && !busy,
+        enabled = tokensLoaded && signedIn && !busy,
         onClick = {
+            tokenReadGeneration.value += 1
             client.logout(provider.id)
             tokens = null
             toaster.show(context.getString(R.string.setting_provider_page_antigravity_oauth_signed_out), type = ToastType.Success)

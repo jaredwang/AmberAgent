@@ -3890,4 +3890,5 @@
   <string name="deepread_accent_ink">墨黑</string>
 
   <string name="newsroom_seal_desc">印章：%1$s</string>
+  <string name="deep_read_sources_unavailable">未取得可閱讀的來源。請檢查網路和原文連結，或在設定中啟用搜尋服務後重試。</string>
 </resources>

@@ -20,6 +20,16 @@ class TimelineImagePrefetchTest {
     )
 
     @Test
+    fun collectsPlainTextBodiesForMarkdownWarmup() {
+        val bodies = node(
+            UIMessagePart.Text("第一段 **重点**"),
+            UIMessagePart.Image("https://example.com/a.png"),
+            UIMessagePart.Text("第二段"),
+        ).prefetchMarkdownBodies()
+        assertEquals(listOf("第一段 **重点**", "第二段"), bodies)
+    }
+
+    @Test
     fun collectsImagePartsAndMarkdownImagesInOrder() {
         val urls = node(
             UIMessagePart.Image("https://example.com/a.png"),

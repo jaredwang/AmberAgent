@@ -7,6 +7,7 @@ import java.util.Locale
 object DeepReadHiddenAssistantFactory {
     fun create(settings: Settings, locale: Locale = Locale.getDefault()): Settings = settings.copy(
         systemPrompt = systemPrompt(locale),
+        enableWebSearch = true,
         streamOutput = true,
         presetMessages = emptyList(),
         regexes = emptyList(),

@@ -79,6 +79,27 @@ class GrokOAuthTransportTest {
         assertNull("An initial Grok OAuth 401 with a refreshable token should recover; calls=" + requests.map { it.url }, outcome.exceptionOrNull())
         assertEquals(1, requests.count { it.url.toString() == GROK_OAUTH_TOKEN_ENDPOINT })
         assertEquals(listOf("Bearer old-access", "Bearer new-access"), requests.filter { it.url.toString() != GROK_OAUTH_TOKEN_ENDPOINT }.map { it.header("Authorization") })
+        requests.filter { it.url.toString() != GROK_OAUTH_TOKEN_ENDPOINT }.forEach(::assertSupportedGrokVersion)
+    }
+
+    @Test
+    fun `Grok model discovery sends a supported CLI version`() = runBlocking {
+        val context = TestContext()
+        val providerId = Uuid.random()
+        GrokAuthStore(context).save(providerId, GrokOAuthTokens("access", "refresh", System.currentTimeMillis() + 3_600_000L))
+        val requests = CopyOnWriteArrayList<Request>()
+        val client = OkHttpClient.Builder().addInterceptor { chain ->
+            requests += chain.request()
+            reply(chain.request(), 200, """{"data":[{"id":"grok-4.6"}]}""")
+        }.build()
+
+        val models = OpenAIProvider(client, context).listModels(
+            ProviderSetting.OpenAI(id = providerId, authMode = OpenAIAuthMode.GROK_OAUTH),
+        )
+
+        assertEquals("grok-4.6", models.single().modelId)
+        assertEquals("$GROK_CLI_PROXY_BASE_URL/models", requests.single().url.toString())
+        assertSupportedGrokVersion(requests.single())
     }
 
     @Test
@@ -180,6 +201,11 @@ class GrokOAuthTransportTest {
             assertTrue(deferred.isCancelled)
             assertEquals(1, requests.size)
         }
+    }
+
+    private fun assertSupportedGrokVersion(request: Request) {
+        assertEquals("1.0.62", request.header("x-grok-client-version"))
+        assertEquals("grok-shell/1.0.62 (android; arm64)", request.header("User-Agent"))
     }
 
     private fun reply(request: Request, code: Int, body: String, contentType: String = "application/json") =

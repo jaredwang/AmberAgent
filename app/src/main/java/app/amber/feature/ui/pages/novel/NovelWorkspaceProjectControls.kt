@@ -1,7 +1,6 @@
 package app.amber.feature.ui.pages.novel
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -54,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.amber.agent.R
+import app.amber.feature.ui.components.ds.AmberFeedback
 import app.amber.feature.ui.components.ui.workspaceColors
 import app.amber.feature.ui.theme.LocalAmberType
 import com.composables.icons.lucide.ChevronDown
@@ -256,14 +256,14 @@ internal fun NovelWorkspaceOptions(
     val type = LocalAmberType.current
     val visualHeight = maxOf(38.dp, with(LocalDensity.current) { 20.sp.toDp() } + 12.dp)
     val pillColor by animateColorAsState(if (enabled) workspace.paper else workspace.paper.copy(alpha = 0.7f),
-        tween(200), label = "novel-options-surface")
+        tween(AmberFeedback.PressMs), label = "novel-options-surface")
     BoxWithConstraints(
         modifier.fillMaxWidth().heightIn(min = maxOf(48.dp, visualHeight)),
         contentAlignment = Alignment.Center,
     ) {
         val cellWidth = maxWidth / labels.size
         val selectedOffset by animateDpAsState(cellWidth * selected,
-            tween(200, easing = FastOutSlowInEasing), label = "novel-options-position")
+            tween(AmberFeedback.OptionMs, easing = AmberFeedback.EaseOut), label = "novel-options-position")
         Box(Modifier.fillMaxWidth().height(visualHeight).clip(RoundedCornerShape(visualHeight / 2))
             .background(workspace.row.copy(alpha = 0.65f))) {
             Box(Modifier.align(Alignment.CenterStart).offset(x = selectedOffset)
@@ -276,9 +276,11 @@ internal fun NovelWorkspaceOptions(
                 val pressed by interaction.collectIsPressedAsState()
                 val textColor by animateColorAsState(if (!enabled) workspace.faint
                     else if (selected == index) workspace.ink else workspace.muted,
-                    tween(200), label = "novel-option-color")
+                    tween(AmberFeedback.PressMs), label = "novel-option-color")
                 val textAlpha by animateFloatAsState(
-                    if (pressed && enabled) 0.84f else 1f, tween(100), label = "novel-option-press",
+                    if (pressed && enabled) 0.84f else 1f,
+                    tween(AmberFeedback.PressMs, easing = AmberFeedback.EaseOut),
+                    label = "novel-option-press",
                 )
                 Box(
                     modifier = Modifier.weight(1f).heightIn(min = maxOf(48.dp, visualHeight))

@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ internal fun LazyListScope.memoryDocumentsSection(
     title: String,
     emptyText: String,
     docs: List<MemoryDoc>,
+    isLoading: Boolean = false,
     infoText: String,
     onInfoClick: (String, String) -> Unit,
     onAddMemory: () -> Unit,
@@ -67,14 +69,27 @@ internal fun LazyListScope.memoryDocumentsSection(
     }
     item("memory_docs_gap") { Spacer(Modifier.height(8.dp)) }
     if (docs.isEmpty()) {
-        item("memory_docs_empty") {
-            AmberCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = emptyText,
-                    style = LocalAmberType.current.secondary,
-                    color = workspaceColors().muted,
-                    modifier = Modifier.padding(16.dp),
-                )
+        if (isLoading) {
+            item("memory_docs_loading") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                }
+            }
+        } else {
+            item("memory_docs_empty") {
+                AmberCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = emptyText,
+                        style = LocalAmberType.current.secondary,
+                        color = workspaceColors().muted,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
             }
         }
         return

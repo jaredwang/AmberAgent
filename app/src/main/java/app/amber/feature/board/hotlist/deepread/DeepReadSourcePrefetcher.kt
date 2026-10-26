@@ -16,12 +16,17 @@ import app.amber.feature.board.hotlist.HotTopicSource
 import app.amber.feature.board.hotlist.presentationTitle
 import app.amber.core.settings.Settings
 import app.amber.core.settings.prefs.SettingsAggregator
+import app.amber.core.ai.tools.SearchOrchestrator
 import app.amber.feature.tools.isPrivateNetworkAddress
 import app.amber.feature.tools.resolvesToPrivateNetworkTarget
 import app.amber.search.SearchCommonOptions
 import app.amber.search.SearchResult
 import app.amber.search.SearchService
 import app.amber.search.SearchServiceOptions
+import app.amber.search.FreeSearchAggregator
+import app.amber.search.FreeSearchFetcher
+import app.amber.search.FreeSearchResponse
+import app.amber.common.http.await
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.URI
@@ -95,18 +100,30 @@ class DeepReadSourcePrefetcher(
         val collected = withTimeoutOrNull(SOURCE_COLLECTION_TIMEOUT_MS) {
             coroutineScope {
                 val enabled = settings.enabledDeepReadSearchServices()
-                if (enabled.isEmpty()) {
-                    Log.w(TAG, "deep read prefetch: no enabled search services; falling back to seeds only")
-                    return@coroutineScope seedFallback
+                val builtinSearchEnabled = SearchOrchestrator.freeAggregateEnabled(settings)
+                if (enabled.isEmpty() && !builtinSearchEnabled) {
+                    Log.i(TAG, "deep read prefetch: no enabled search services; reading supplied sources only")
+                    return@coroutineScope seedSources.map { source ->
+                        async {
+                            if (source.isUsableSeedSource()) source else enrichSeedSource(source, topicTitle)
+                        }
+                    }.awaitAll().filter { it.isUsableSeedSource() }
                 }
                 val queries = buildDeepReadQueries(topicTitle, locale)
                 Log.i(
                     TAG,
                     "deep read prefetch services=${enabled.joinToString { it.deepReadServiceLabel() }} " +
-                        "queries=${queries.size} seeds=${seedSources.size}",
+                        "builtin=$builtinSearchEnabled queries=${queries.size} seeds=${seedSources.size}",
                 )
 
-                val searchResults = settings.deepReadKeywordSearchServices(enabled).flatMap { service ->
+                // The free aggregator below already queries Bing/DuckDuckGo; drop the automatic
+                // Bing fallback so the same query isn't spent twice. Explicit profiles stay.
+                val keywordServices = settings.deepReadKeywordSearchServices(enabled).filterNot { service ->
+                    builtinSearchEnabled &&
+                        service is SearchServiceOptions.BingLocalOptions &&
+                        service.id !in settings.searchEnabledServiceIds
+                }
+                val searchTasks = keywordServices.flatMap { service ->
                     queries.map { query ->
                         async {
                             try {
@@ -128,7 +145,25 @@ class DeepReadSourcePrefetcher(
                             }
                         }
                     }
-                }.awaitAll()
+                }.toMutableList()
+                if (builtinSearchEnabled) {
+                    queries.forEach { query ->
+                        searchTasks += async {
+                            withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                                FreeSearchAggregator.search(
+                                    query = query,
+                                    resultSize = SEARCH_RESULTS_PER_QUERY,
+                                    fetcher = FreeSearchFetcher { request ->
+                                        client.newCall(request).await().use { response ->
+                                            FreeSearchResponse(response.code, response.body.string())
+                                        }
+                                    },
+                                ).getOrNull()?.let { SearchBucket(query, it.items) }
+                            }
+                        }
+                    }
+                }
+                val searchResults = searchTasks.awaitAll()
                     .filterNotNull()
                     .let(::interleaveSearchResults)
                 Log.i(TAG, "deep read prefetch search results=${searchResults.size}")

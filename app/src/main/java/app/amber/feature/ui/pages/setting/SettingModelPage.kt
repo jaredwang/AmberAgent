@@ -64,6 +64,8 @@ import app.amber.ai.core.ReasoningLevel
 import app.amber.ai.provider.Modality
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.ModelType
+import app.amber.ai.provider.GoogleAuthMode
+import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderCatalog
 import app.amber.ai.provider.ProviderSetting
 import app.amber.ai.registry.ModelRegistry
@@ -261,6 +263,19 @@ private fun DefaultImageGenerationModelSetting(
     // usable; the stores are synchronous Keystore reads.
     val grokAuthStore = koinInject<app.amber.ai.provider.providers.grok.GrokAuthStore>()
     val antigravityAuthStore = koinInject<app.amber.ai.provider.providers.google.AntigravityAuthStore>()
+    val oauthUsability by produceState(
+        initialValue = emptyMap<Uuid, Boolean>(),
+        settings.providers,
+        grokAuthStore,
+        antigravityAuthStore,
+    ) {
+        value = withContext(Dispatchers.IO) {
+            settings.providers.mapNotNull { provider ->
+                val usable = provider.managedOAuthUsable(grokAuthStore, antigravityAuthStore)
+                usable?.let { provider.id to it }
+            }.toMap()
+        }
+    }
     SettingModelRow(
         title = stringResource(R.string.setting_model_page_image_gen_model),
         description = stringResource(R.string.setting_model_page_image_gen_model_desc),
@@ -280,8 +295,17 @@ private fun DefaultImageGenerationModelSetting(
             // see "Nano Banana 2" / "gpt-image-2" as pickable options even
             // when the corresponding Gemini / OpenAI provider has no API
             // key wired up, which would 401 on every generation.
-            providers = settings.providers.filter {
-                it.hasUsableAuth(oauthUsable = it.managedOAuthUsable(grokAuthStore, antigravityAuthStore))
+            providers = settings.providers.filter { provider ->
+                val oauthUsable = when (provider) {
+                    is ProviderSetting.OpenAI -> if (provider.authMode == OpenAIAuthMode.GROK_OAUTH) {
+                        oauthUsability[provider.id] ?: false
+                    } else null
+                    is ProviderSetting.Google -> if (provider.authMode == GoogleAuthMode.ANTIGRAVITY_OAUTH) {
+                        oauthUsability[provider.id] ?: false
+                    } else null
+                    else -> null
+                }
+                provider.hasUsableAuth(oauthUsable = oauthUsable)
             },
             // Filter by IMAGE so the picker only shows gpt-image-2 / Nano
             // Banana / Codex Image — not chat models. Keep allowClear so the

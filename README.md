@@ -8,7 +8,7 @@ AmberAgent 的 Android 产品仓库。应用、Compose UI、Room、WorkManager�
 ./gradlew :app:assembleDebug
 ```
 
-需要完整 Native APK 时，先安装 Rust、`aarch64-linux-android` target、Android NDK `27.0.12077973` 与 `cargo-ndk` 3.5.4。缺少 `cargo-ndk` 时 debug 构建会明确跳过 Native task，只能证明 JVM/普通 APK 组装；发布 CI 会验证八个 required `.so`。细节见 `native/README.md`。
+需要完整 Native APK 时，先安装 Rust、`aarch64-linux-android` target、Android NDK `27.0.12077973` 与 `cargo-ndk` 3.5.4。缺少 `cargo-ndk` 时 debug 构建会明确跳过 Native task，只能证明 JVM/普通 APK 组装；发布 CI 会验证八个 required `.so`。Native 库压缩打包并由系统安装器提取（`useLegacyPackaging = true`），使 proot loader 位于可执行的 `nativeLibraryDir`；所有库仍须满足 16 KB ELF 对齐。细节见 `native/README.md`。
 
 Core 只接收两端已经共同消费且平台无关的稳定契约；当前 Android 代码不通过相对路径读取其他仓库。
 
@@ -23,7 +23,7 @@ Debug 自动构建无需配置 Secrets。Debug 包名为 `app.amber.agent.graphi
 `Android Release Build` 在推送到 `main` 时自动构建签名 Release APK；也可手动触发。它使用与 Debug 流程相同的 JDK/SDK/NDK 环境，检查每个 APK 的八个 required `.so` 和 APK 签名。需要在仓库的 **Settings → Secrets and variables → Actions** 配置：
 
 - `KEY_BASE64`：签名 keystore 的 Base64 内容，流程还原为 `app/app.key`。
-- `SIGNING_CONFIG`：包含 `storeFile=app.key`、`storePassword`、`keyAlias`、`keyPassword` 的多行 Java properties 内容。
+- `SIGNING_CONFIG`：包含 `storePassword`、`keyAlias`、`keyPassword` 的多行 Java properties 内容；CI 自动将 `storeFile` 指向还原后的 keystore 绝对路径。
 - `GOOGLE_SERVICES_JSON`：包含 `app.amber.agent` 客户端的完整 Firebase 配置。
 
 Release 产物会上传到运行详情页的 `android-release-apk`。在 `main` 构建成功后，还会自动发布到仓库的 [Releases](https://github.com/soul99soul-glitch/AmberAgent/releases)，标为预发布版，tag 为 `android-build-<运行编号>-<重跑次数>`，直接下载 APK 即可安装；其他分支手动构建只上传 Artifact。Release 包名为 `app.amber.agent`，持续使用上述 keystore 签名；Debug 的独立包名不变。

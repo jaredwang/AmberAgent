@@ -11,8 +11,10 @@ import app.amber.feature.terminal.SshAuthMethod
 import app.amber.feature.terminal.SshProfile
 import app.amber.feature.terminal.SshProfilesState
 import app.amber.feature.terminal.SshTrustPolicy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -51,7 +53,7 @@ class SshProfileStore(
     /** The DataStore-backed flow. It intentionally has no synthetic ready state. */
     val state: Flow<SshProfilesState> = dataStore.data.map { preferences ->
         decodeState(preferences[SSH_PROFILES_KEY])
-    }
+    }.flowOn(Dispatchers.Default)
 
     /** Read the latest persisted state. */
     suspend fun snapshot(): SshProfilesState = state.first()

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import app.amber.feature.ui.theme.AmberBase
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.buildAmberTokens
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -23,6 +24,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -58,5 +60,27 @@ class SkillsLayoutTest {
         compose.onNodeWithTag("skills-status-pills", useUnmergedTree = true).performTouchInput { swipeLeft() }
         assertTrue(compose.onNodeWithTag("skills-status-pills", useUnmergedTree = true)
             .fetchSemanticsNode().config[SemanticsProperties.HorizontalScrollAxisRange].value() > 0f)
+    }
+
+    @Test
+    fun fileTreeRowsOnlyIncludeExpandedDirectories() {
+        val tree = listOf(
+            SkillFileNode.DirNode(
+                name = "docs",
+                relativePath = "docs",
+                children = listOf(
+                    SkillFileNode.FileNode(
+                        SkillFile(File("docs/guide.md"), "docs/guide.md", sizeBytes = 12L),
+                    ),
+                ),
+            ),
+        )
+
+        val collapsedRows = flattenSkillFileTree(tree, emptySet())
+        val expandedRows = flattenSkillFileTree(tree, setOf("docs"))
+
+        assertEquals(listOf("dir:docs"), collapsedRows.map { it.key })
+        assertEquals(listOf("dir:docs", "file:docs/guide.md"), expandedRows.map { it.key })
+        assertEquals(listOf(0, 1), expandedRows.map { it.depth })
     }
 }

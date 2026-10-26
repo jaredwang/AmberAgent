@@ -62,19 +62,21 @@ class ICloudDriveManager(
         nodeCache.clear()
     }
 
-    fun loginSnapshot(): ICloudDriveLoginSnapshot {
+    suspend fun loginSnapshot(): ICloudDriveLoginSnapshot = withContext(Dispatchers.IO) {
         val cookies = cookieProvider.getCookies()
         val loginDetected = !cookies.isEmpty && cookies.value("X-APPLE-WEBAUTH-TOKEN") != null
         val endpoint = if (loginDetected) ICloudDriveWebEndpoints.preferredFor(cookies).firstOrNull() else null
-        return ICloudDriveLoginSnapshot(
+        ICloudDriveLoginSnapshot(
             loginDetected = loginDetected,
             endpointHint = endpoint,
             hasUploadToken = cookies.value("X-APPLE-WEBAUTH-VALIDATE") != null,
         )
     }
 
-    fun nextAction(state: ICloudDriveState = _state.value): String {
-        val login = loginSnapshot()
+    fun nextAction(
+        state: ICloudDriveState = _state.value,
+        login: ICloudDriveLoginSnapshot,
+    ): String {
         return when {
             !state.enabled -> "Enable iCloud WebMount"
             !login.loginDetected -> "Open iCloud login and finish 2FA"

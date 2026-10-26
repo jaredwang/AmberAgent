@@ -325,7 +325,7 @@ class DeepReadAgentRunManager(
         locale: Locale,
     ): Result<PreparedRun> {
         return try {
-            val settings = settingsStore.settingsFlow.filterNot { it.init }.first()
+            val settings = settingsStore.settingsFlow.filterNot { it.init }.first().copy(enableWebSearch = true)
             val resolvedModel = resolveModel(settings)
                 ?: return Result.failure(
                     IllegalStateException(appContext.getString(R.string.setting_model_page_follow_chat_model_unavailable))
@@ -391,7 +391,7 @@ class DeepReadAgentRunManager(
                 locale = locale,
             )
             if (prefetchedSources.isEmpty()) {
-                val message = appContext.getString(R.string.deep_read_generation_failed)
+                val message = appContext.getString(R.string.deep_read_sources_unavailable)
                 Log.w(TAG, "deep read prefetch returned no sources for topic=$topicId")
                 if (markCollecting) {
                     hotListRepository.saveDeepRead(

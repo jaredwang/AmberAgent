@@ -1,10 +1,8 @@
 package app.amber.feature.ui.pages.chat
 
 import androidx.compose.foundation.lazy.LazyListState
-import app.amber.ai.core.MessageRole
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.model.MessageNode
-import app.amber.core.model.AssistantAffectScope
 import app.amber.core.model.AssistantRegex
 import app.amber.feature.ui.components.message.MessageRenderCache
 
@@ -41,18 +39,13 @@ internal fun LazyListState.markdownPrewarmTexts(
 
 private fun MessageNode.markdownPrewarmTexts(regexes: List<AssistantRegex>): List<String> {
     val message = currentMessage
-    val scope = if (message.role == MessageRole.USER) {
-        AssistantAffectScope.USER
-    } else {
-        AssistantAffectScope.ASSISTANT
-    }
     return message.parts
         .filterIsInstance<UIMessagePart.Text>()
         .mapNotNull { part ->
-            MessageRenderCache.visualRegexText(
+            MessageRenderCache.displayMarkdownText(
                 text = part.text,
                 regexes = regexes,
-                scope = scope,
+                role = message.role,
             )
                 .takeIf { it.isNotBlank() }
         }

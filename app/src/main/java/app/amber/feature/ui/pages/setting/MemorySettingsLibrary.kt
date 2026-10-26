@@ -11,6 +11,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,6 +29,8 @@ import app.amber.feature.ui.components.ds.SectionLabel
 import app.amber.feature.ui.components.ui.CardGroup
 import app.amber.feature.ui.components.ui.workspaceColors
 import app.amber.feature.ui.theme.LocalAmberType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 internal fun MemoryLibrarySubpage(
@@ -60,11 +63,14 @@ internal fun MemoryLibrarySubpage(
     // The library renders memories as documents: the core bucket is one file,
     // each dream-synthesized topic is one file, and every record not yet
     // grouped into a topic merges into its per-kind document.
-    val docs = remember(memories, shortTermMemories, longTermMemories) {
-        buildMemoryDocs(memories, shortTermMemories, longTermMemories)
+    val docs by produceState<List<MemoryDoc>?>(null, memories, shortTermMemories, longTermMemories) {
+        value = withContext(Dispatchers.Default) {
+            buildMemoryDocs(memories, shortTermMemories, longTermMemories)
+        }
     }
+    val projectedDocs = docs.orEmpty()
     var openDocId by remember { mutableStateOf<String?>(null) }
-    val openDoc = docs.firstOrNull { it.id == openDocId }
+    val openDoc = projectedDocs.firstOrNull { it.id == openDocId }
     BackHandler(enabled = openDoc != null) { openDocId = null }
     val listState = rememberLazyListState()
 
@@ -107,7 +113,8 @@ internal fun MemoryLibrarySubpage(
         memoryDocumentsSection(
             title = docsTitle,
             emptyText = docsEmptyText,
-            docs = docs,
+            docs = projectedDocs,
+            isLoading = docs == null,
             infoText = docsInfoText,
             onInfoClick = onInfoClick,
             onAddMemory = onAddMemory,

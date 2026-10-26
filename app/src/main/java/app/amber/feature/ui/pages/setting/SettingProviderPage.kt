@@ -102,7 +102,8 @@ import app.amber.feature.ui.theme.LocalAmberType
 import app.amber.core.utils.ImageUtils
 import org.koin.androidx.compose.koinViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.amber.ai.provider.providers.google.AntigravityAuthStore
 import app.amber.ai.provider.providers.google.GoogleGeminiAuthStore
 import app.amber.ai.provider.providers.grok.GrokAuthStatus
@@ -426,7 +427,7 @@ internal fun ProviderSetting.isOAuthMode(): Boolean = when (this) {
     is ProviderSetting.Claude -> false
 }
 
-/** Whether the OAuth token store holds a usable session; null for non-OAuth providers. Re-read on resume. */
+/** Whether the OAuth token store holds a usable session; null for non-OAuth providers or while loading. */
 @Composable
 internal fun rememberOAuthSignedIn(provider: ProviderSetting): Boolean? {
     if (!provider.isOAuthMode()) return null
@@ -447,8 +448,14 @@ internal fun rememberOAuthSignedIn(provider: ProviderSetting): Boolean? {
         }
         is ProviderSetting.Claude -> true
     }
-    var signedIn by remember(provider.id, provider.authMode()) { mutableStateOf(read()) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { signedIn = read() }
+    // Secure-store reads decrypt on disk; keep them off the main thread (null = not loaded yet).
+    var signedIn by remember(provider.id, provider.authMode()) { mutableStateOf<Boolean?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(provider.id, provider.authMode(), lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            signedIn = withContext(Dispatchers.IO) { read() }
+        }
+    }
     return signedIn
 }
 

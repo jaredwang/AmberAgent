@@ -94,7 +94,7 @@ data class Settings(
     val init: Boolean = false,
     val developerMode: Boolean = false,
     val displaySetting: DisplaySetting = DisplaySetting(),
-    val enableWebSearch: Boolean = false,
+    val enableWebSearch: Boolean = true,
     val favoriteModels: List<Uuid> = emptyList(),
     val chatModelId: Uuid = Uuid.random(),
     val titleModelId: Uuid = Uuid.random(),

@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.amber.feature.ui.components.ds.AmberSegmentedTrack
 import app.amber.feature.ui.components.ds.pressable
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
@@ -96,34 +98,25 @@ internal fun AmberToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit, e
 internal fun AmberSeg(options: List<String>, selectedIndex: Int, onSelect: (Int) -> Unit) {
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(999.dp))
-            .background(t.surface2)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        options.forEachIndexed { index, label ->
-            val active = index == selectedIndex
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(if (active) t.raised else Color.Transparent)
-                    .pressable(onClick = { onSelect(index) })
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = label,
-                    style = type.secondary.copy(fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal),
-                    color = if (active) t.ink else t.ink3,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
+    val shape = RoundedCornerShape(999.dp)
+    AmberSegmentedTrack(
+        selectedIndex = selectedIndex,
+        optionCount = options.size,
+        onSelect = onSelect,
+        shape = shape,
+        trackColor = t.surface2,
+        thumbColor = t.raised,
+        modifier = Modifier.fillMaxWidth(),
+        itemSpacing = 3.dp,
+        contentPadding = PaddingValues(vertical = 8.dp),
+    ) { index, active ->
+        Text(
+            text = options[index],
+            style = type.secondary.copy(fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal),
+            color = if (active) t.ink else t.ink3,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

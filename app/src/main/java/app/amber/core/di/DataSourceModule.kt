@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
+import java.io.File
 import app.amber.core.agent.store.AgentRuntimeDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -38,6 +39,7 @@ import app.amber.core.settings.prefs.ExtensionPrefs
 import app.amber.core.settings.prefs.NativePathPrefs
 import app.amber.core.settings.prefs.ProviderPrefs
 import app.amber.core.settings.prefs.SearchPrefs
+import app.amber.core.infra.NativeLibraryOnDisk
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.settings.prefs.SettingsProviderRescue
 import app.amber.core.settings.prefs.UIPrefs
@@ -285,9 +287,11 @@ val dataSourceModule = module {
                 RequerySQLiteOpenHelperFactory(
                     listOf(
                 RequerySQLiteOpenHelperFactory.ConfigurationOptions { options ->
+                    val simpleLib = NativeLibraryOnDisk.resolveOrNull(context, "libsimple.so")
+                        ?: File(context.applicationInfo.nativeLibraryDir, "libsimple.so")
                     options.customExtensions.add(
                         SQLiteCustomExtension(
-                            context.applicationInfo.nativeLibraryDir + "/libsimple",
+                            simpleLib.absolutePath.removeSuffix(".so"),
                             null
                         )
                     )

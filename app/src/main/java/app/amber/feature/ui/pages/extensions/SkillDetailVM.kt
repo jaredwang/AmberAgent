@@ -27,6 +27,7 @@ import java.util.UUID
 data class SkillFile(
     val file: File,
     val relativePath: String,
+    val sizeBytes: Long,
 )
 
 sealed class SkillFileNode {
@@ -43,6 +44,32 @@ data class SkillMcpConfigState(
     val error: String? = null,
 )
 
+internal data class SkillFileTreeRow(
+    val node: SkillFileNode,
+    val depth: Int,
+) {
+    val key: String
+        get() = when (node) {
+            is SkillFileNode.FileNode -> "file:${node.skillFile.relativePath}"
+            is SkillFileNode.DirNode -> "dir:${node.relativePath}"
+        }
+}
+
+internal fun flattenSkillFileTree(
+    nodes: List<SkillFileNode>,
+    expandedPaths: Set<String>,
+): List<SkillFileTreeRow> = buildList {
+    fun appendNodes(current: List<SkillFileNode>, depth: Int) {
+        current.forEach { node ->
+            add(SkillFileTreeRow(node, depth))
+            if (node is SkillFileNode.DirNode && node.relativePath in expandedPaths) {
+                appendNodes(node.children, depth + 1)
+            }
+        }
+    }
+    appendNodes(nodes, depth = 0)
+}
+
 class SkillDetailVM(
     private val context: Application,
     private val skillManager: SkillManager,
@@ -52,6 +79,9 @@ class SkillDetailVM(
 
     private val _tree = MutableStateFlow<List<SkillFileNode>>(emptyList())
     val tree = _tree.asStateFlow()
+
+    private val _fileCount = MutableStateFlow(0)
+    val fileCount = _fileCount.asStateFlow()
 
     private val _mcpConfig = MutableStateFlow<SkillMcpConfigState?>(null)
     val mcpConfig = _mcpConfig.asStateFlow()
@@ -78,7 +108,9 @@ class SkillDetailVM(
     fun loadFiles() {
         viewModelScope.launch(Dispatchers.IO) {
             val dir = skillManager.getSkillDir(skillName) ?: return@launch
-            _tree.value = buildTree(dir, dir)
+            val tree = buildTree(dir, dir)
+            _tree.value = tree
+            _fileCount.value = tree.countFiles()
             _mcpConfig.value = readMcpConfigState(dir)
         }
     }
@@ -112,12 +144,19 @@ class SkillDetailVM(
         val files = items
             .filter { it.isFile }
             .sortedWith(compareBy({ it.name != "SKILL.md" }, { it.name }))
-            .map { f -> SkillFileNode.FileNode(SkillFile(f, f.relativeTo(root).path)) }
+            .map { f -> SkillFileNode.FileNode(SkillFile(f, f.relativeTo(root).path, f.length())) }
         val dirs = items
             .filter { it.isDirectory }
             .sortedBy { it.name }
             .map { d -> SkillFileNode.DirNode(d.name, d.relativeTo(root).path, buildTree(root, d)) }
         return dirs + files
+    }
+
+    private fun List<SkillFileNode>.countFiles(): Int = sumOf { node ->
+        when (node) {
+            is SkillFileNode.FileNode -> 1
+            is SkillFileNode.DirNode -> node.children.countFiles()
+        }
     }
 
     suspend fun readFile(skillFile: SkillFile): String = withContext(Dispatchers.IO) {

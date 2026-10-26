@@ -471,6 +471,31 @@ mod tests {
     }
 
     #[test]
+    fn html_preserves_literals_inside_raw_html_block() {
+        let html = render_to_html("<div>href=\"javascript:example\" <a title=\"a > b\" href=\"javascript:alert(1)\">link</a></div>");
+        assert!(html.contains("<div>href=\"javascript:example\""), "got: {html}");
+        assert!(html.contains("title=\"a > b\" href=\"#\""), "got: {html}");
+    }
+
+    #[test]
+    fn html_preserves_existing_link_and_raw_html_urls() {
+        let html = render_to_html(
+            "[label](https://example.com/path)\n\n<a href=\"https://example.com/raw\">raw</a>",
+        );
+        assert!(html.contains("<a href=\"https://example.com/path\">label</a>"), "got: {html}");
+        assert!(html.contains("<a href=\"https://example.com/raw\">raw</a>"), "got: {html}");
+    }
+
+    #[test]
+    fn html_sanitizes_mixed_case_destinations_without_touching_code() {
+        let html = render_to_html(
+            "[click](JaVaScRiPt:alert(1)) `href=\"javascript:alert(1)\"`",
+        );
+        assert!(html.contains("<a href=\"#\">click</a>"), "got: {html}");
+        assert!(html.contains("<code>href=\"javascript:alert(1)\"</code>"), "got: {html}");
+    }
+
+    #[test]
     fn html_preserves_cjk() {
         let html = render_to_html("你好世界");
         assert!(html.contains("你好世界"), "got: {}", html);

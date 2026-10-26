@@ -3852,4 +3852,5 @@
   <string name="deepread_accent_ink">묵흑</string>
 
   <string name="newsroom_seal_desc">도장: %1$s</string>
+  <string name="deep_read_sources_unavailable">읽을 수 있는 자료를 가져오지 못했습니다. 네트워크와 원문 링크를 확인하거나 설정에서 검색 서비스를 활성화한 후 다시 시도하세요.</string>
 </resources>

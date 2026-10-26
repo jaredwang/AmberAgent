@@ -21,14 +21,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.amber.agent.R
 import app.amber.core.ai.generative.VChartSpecValidator
 import app.amber.core.settings.GenerativeUiSetting
@@ -48,6 +51,7 @@ internal fun RichSandboxWebView(
     onWebViewReady: (WebView?) -> Unit = {},
 ) {
     val fontRepository = koinInject<SlidesFontRepository>()
+    val fontStates by fontRepository.fontsFlow.collectAsStateWithLifecycle()
     val normalizedSpecJson = remember(specJson, renderer) {
         if (renderer == "slides") VChartSpecValidator.normalizeSlidesDeckSpecJson(specJson) else specJson
     }
@@ -64,9 +68,10 @@ internal fun RichSandboxWebView(
     // Strip U+2028/U+2029 (line/paragraph separators) — JSON allows them,
     // but evaluateJavascript treats them as line terminators and silently fails.
     val safeJson = normalizedSpecJson.orEmpty().replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    val fontCss = remember(safeJson, renderer, setting) {
+    val fontCss = remember(safeJson, renderer, setting, fontStates) {
         if (renderer == "slides") fontRepository.buildSlidesFontCss(safeJson, setting) else ""
     }
+    val latestFontCss by rememberUpdatedState(fontCss)
     val animatedHeight by animateDpAsState(
         targetValue = heightDp.coerceIn(240, maxHeightDp).dp,
         animationSpec = if (streaming) snap() else tween(durationMillis = 200),
@@ -98,6 +103,12 @@ internal fun RichSandboxWebView(
     }
 
     var activeWebView by remember { mutableStateOf<WebView?>(null) }
+    LaunchedEffect(activeWebView, fontCss) {
+        activeWebView?.evaluateJavascript(
+            "window.__setAmberFontCss && window.__setAmberFontCss(${JSONObject.quote(fontCss)});",
+            null,
+        )
+    }
 
     Box(
         modifier = modifier
@@ -171,7 +182,7 @@ internal fun RichSandboxWebView(
                         override fun onPageFinished(view: WebView?, url: String?) {
                             view?.evaluateJavascript(
                                 """
-                                window.__setAmberFontCss && window.__setAmberFontCss(${JSONObject.quote(fontCss)});
+                                window.__setAmberFontCss && window.__setAmberFontCss(${JSONObject.quote(latestFontCss)});
                                 window.$renderFunction(${JSONObject.quote(safeJson)});
                                 """.trimIndent(),
                                 null,

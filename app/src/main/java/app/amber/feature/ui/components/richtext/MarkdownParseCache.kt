@@ -35,6 +35,12 @@ internal data class MarkdownParseResult(
     val preprocessed: String,
     val tree: MdNode,
     val hasHtmlBlocks: Boolean,
+    val isPlainTextFallback: Boolean = false,
+    /**
+     * Invisible equal-measurement placeholder used on a cache miss while the
+     * real tree is prepared off the main thread. Never shown as raw markup.
+     */
+    val isPendingPlaceholder: Boolean = false,
     val stableTopLevelBlocks: List<MarkdownTopLevelBlockSnapshot> = emptyList(),
     val activeBaseOffset: Int = 0,
     val syntheticSuffixStart: Int = Int.MAX_VALUE,
@@ -77,9 +83,26 @@ internal class EmptyMarkdownRootNode(
     }
 }
 
+/** Temporary, lossless UI fallback; never inserted into the parse cache. */
+internal fun plainMarkdownSnapshot(content: String): MarkdownParseResult =
+    MarkdownParseResult(content, EmptyMarkdownRootNode(content.length), false, isPlainTextFallback = true)
+
+/**
+ * Cache-miss placeholder that keeps the source's layout size but is not
+ * user-visible and contributes no semantics. Never inserted into the parse cache.
+ */
+internal fun pendingMarkdownSnapshot(content: String): MarkdownParseResult =
+    MarkdownParseResult(
+        preprocessed = content,
+        tree = EmptyMarkdownRootNode(content.length),
+        hasHtmlBlocks = false,
+        isPlainTextFallback = true,
+        isPendingPlaceholder = true,
+    )
+
 private const val MARKDOWN_PARSE_CACHE_VERSION = 1
 private const val MARKDOWN_PARSE_CACHE_MAX_ENTRIES = 128
-private const val MARKDOWN_PARSE_CACHE_MAX_CHARS = 1_200_000
+internal const val MARKDOWN_PARSE_CACHE_MAX_CHARS = 1_200_000
 private const val MARKDOWN_PERF_TAG = "AmberChatPerf"
 private const val MARKDOWN_PARSE_HIT_LOG_MIN_CHARS = 600
 
@@ -325,6 +348,51 @@ internal fun parseMarkdownUncached(content: String): MarkdownParseResult {
     return parsePreprocessedMarkdownUncached(preprocessMarkdownContent(content))
 }
 
+/** Deterministic cacheability: oversize input is rendered by the lossless raw fallback. */
+internal fun isMarkdownContentCacheable(content: String): Boolean =
+    content.length <= MARKDOWN_PARSE_CACHE_MAX_CHARS
+
+internal enum class MarkdownPreparationOutcome {
+    /** The parsed result is now in the bounded LRU. */
+    PREPARED,
+
+    /** Deterministically outside the cache budget; callers must not retry. */
+    UNCACHEABLE,
+
+    /** Parse/store failed once; callers may retry a bounded number of times. */
+    FAILED,
+}
+
+/**
+ * Parse on the calling (background) thread and report whether the result is
+ * actually retrievable from the bounded cache. A result that is parsed but
+ * rejected by the entry/character budget is [MarkdownPreparationOutcome.UNCACHEABLE]
+ * so the owner never waits for a revision that can never arrive.
+ */
+internal fun prepareMarkdownContent(content: String): MarkdownPreparationOutcome {
+    if (content.isBlank() || !isMarkdownContentCacheable(content)) {
+        return MarkdownPreparationOutcome.UNCACHEABLE
+    }
+    return try {
+        MarkdownParseCache.getOrParse(content)
+        if (MarkdownParseCache.get(content) != null) {
+            MarkdownPreparationOutcome.PREPARED
+        } else {
+            // Parsed, then rejected or immediately evicted by the char budget.
+            MarkdownPreparationOutcome.UNCACHEABLE
+        }
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
+    } catch (_: Throwable) {
+        MarkdownPreparationOutcome.FAILED
+    }
+}
+
+/**
+ * Legacy synchronous warm-up kept for callers that only want best effort.
+ * New preparation queues must use [prepareMarkdownContent] so an oversized or
+ * rejected result is reported instead of being retried forever.
+ */
 internal fun prewarmMarkdownContent(content: String) {
     if (content.isNotBlank()) {
         MarkdownParseCache.getOrParse(content)

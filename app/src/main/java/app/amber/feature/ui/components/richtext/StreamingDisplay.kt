@@ -60,6 +60,12 @@ fun rememberStreamingDisplayText(
         !streaming &&
         visible != content &&
         content.startsWith(visible)
+    // A completed Text may remain visible until its lazy item is disposed.
+    // Its finished generation must not make later edits look like new backlog.
+    // A subsequent streaming=true starts a new pacing lifetime above.
+    if (!streaming && visible == content && sawStreaming) {
+        SideEffect { sawStreaming = false }
+    }
     var previousStreaming by remember { mutableStateOf(streaming) }
     // Instance-tagged birth/death probes: several display buffers run at once
     // (reasoning + text blocks) and their emits interleave in the ring buffer.
@@ -163,7 +169,11 @@ fun rememberStreamingDisplayText(
                 )
             }
             lastFrameNanos = frameNanos
-            val backlogUnits = countStreamingReleaseUnits(target, visible.length, target.length)
+            // Above the cap the exact count cannot change the pacing decision.
+            // Bound work by the speed model, even after a very large provider burst.
+            val backlogUnits = countStreamingReleaseUnits(
+                target, visible.length, target.length, STREAMING_PACE_SATURATED_UNITS,
+            )
             val targetSpeed = streamingTargetUnitsPerSecond(
                 backlogUnits = backlogUnits,
                 draining = !updatedStreaming,
@@ -178,15 +188,18 @@ fun rememberStreamingDisplayText(
             budgetUnits -= maxUnits
             var releasedUnits = 0
             var releasedChars = 0
+            var releasedEnd = visible.length
             while (releasedUnits < maxUnits) {
-                val start = visible.length
+                val start = releasedEnd
                 val unitEnd = target.nextStreamingReleaseUnitEnd(start)
                 if (unitEnd <= start) break
-                visible = target.substring(0, unitEnd.coerceAtMost(target.length))
-                releasedChars += visible.length - start
+                releasedEnd = unitEnd.coerceAtMost(target.length)
+                releasedChars += releasedEnd - start
                 releasedUnits++
             }
             if (releasedUnits > 0) {
+                // One immutable String per frame, rather than one per released unit.
+                visible = target.substring(0, releasedEnd)
                 StreamingRenderProbe.record {
                     "display_emit id=$probeInstanceId backlog=$backlog backlogUnits=$backlogUnits " +
                         "speed=$speedUnitsPerSecond units=$releasedUnits chars=$releasedChars " +
@@ -323,12 +336,17 @@ internal fun String.nextStreamingReleaseUnitEnd(from: Int): Int {
     return safeStreamingDisplayEnd(wordEnd.coerceAtMost(length))
 }
 
-/** Number of release units between [from] and [until]. O(backlog) per frame. */
-internal fun countStreamingReleaseUnits(content: String, from: Int, until: Int): Int {
+// ceil(cap * max(stream latency, drain latency) / 1000).
+internal const val STREAMING_PACE_SATURATED_UNITS = 432
+
+/** Counts at most [maxUnits]; callers needing an exact count keep the default. */
+internal fun countStreamingReleaseUnits(
+    content: String, from: Int, until: Int, maxUnits: Int = Int.MAX_VALUE,
+): Int {
     var index = from.coerceIn(0, content.length)
     val stop = until.coerceIn(index, content.length)
     var units = 0
-    while (index < stop) {
+    while (index < stop && units < maxUnits) {
         val end = content.nextStreamingReleaseUnitEnd(index)
         if (end <= index) {
             index += Character.charCount(content.codePointAt(index))

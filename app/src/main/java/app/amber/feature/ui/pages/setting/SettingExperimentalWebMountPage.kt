@@ -201,12 +201,10 @@ fun SettingExperimentalWebMountPage() {
                         ExperimentNote(text = stringResource(R.string.setting_webmount_sites_empty))
                     } else {
                         sites.forEachIndexed { index, site ->
-                            // Recompose OAuth-dependent state when token store updates.
-                            @Suppress("UNUSED_EXPRESSION") session.oauthRevision
                             UserSiteCard(
                                 site = site,
                                 stationState = states[site.id],
-                                auth = session.siteAuth(site),
+                                session = session,
                                 busy = site.id in session.busyStations,
                                 onSignIn = if (site.authKind != AuthKind.ANONYMOUS) {
                                     { session.signIn(site) }

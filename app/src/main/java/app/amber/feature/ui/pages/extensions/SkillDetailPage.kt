@@ -1,7 +1,7 @@
 package app.amber.feature.ui.pages.extensions
 
 import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,16 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -35,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -72,6 +72,7 @@ import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.feature.ui.context.LocalToaster
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
+import app.amber.feature.ui.theme.LocalThemeDesign
 import app.amber.core.utils.plus
 import org.koin.androidx.compose.koinViewModel
 import kotlinx.coroutines.CancellationException
@@ -82,11 +83,17 @@ fun SkillDetailPage(skillName: String) {
     LaunchedEffect(skillName) { vm.init(skillName) }
 
     val tree by vm.tree.collectAsStateWithLifecycle()
+    val fileCount by vm.fileCount.collectAsStateWithLifecycle()
     val mcpConfig by vm.mcpConfig.collectAsStateWithLifecycle()
     val mcpImportPreview by vm.mcpImportPreview.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val toaster = LocalToaster.current
     val context = LocalContext.current
+    var expandedPaths by rememberSaveable(skillName) { mutableStateOf(emptyList<String>()) }
+    val expandedPathSet = remember(expandedPaths) { expandedPaths.toSet() }
+    val fileRows = remember(tree, expandedPaths) {
+        flattenSkillFileTree(tree, expandedPathSet)
+    }
 
     var editingFile by remember { mutableStateOf<SkillFile?>(null) }
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
@@ -106,38 +113,69 @@ fun SkillDetailPage(skillName: String) {
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.Transparent,
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    innerPadding + PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp)
-                ),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = innerPadding + PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp),
         ) {
             mcpConfig?.let { state ->
+                item(key = "mcp_config") {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        SectionLabel(text = stringResource(R.string.skill_detail_page_mcp_config_title))
+                        SkillMcpConfigCard(
+                            state = state,
+                            onImport = {
+                                vm.previewMcpConfig { error ->
+                                    error?.let { toaster.show(it) }
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+            item(key = "files_section") {
                 SectionLabel(
-                    text = stringResource(R.string.skill_detail_page_mcp_config_title),
-                )
-                SkillMcpConfigCard(
-                    state = state,
-                    onImport = {
-                        vm.previewMcpConfig { error ->
-                            error?.let { toaster.show(it) }
-                        }
-                    },
+                    text = stringResource(R.string.setting_skill_detail_files_title),
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
-            SectionLabel(
-                text = stringResource(R.string.setting_skill_detail_files_title),
-            )
-            SkillFilesPanel(
-                nodes = tree,
-                fileCount = remember(tree) { tree.countFiles() },
-                onAdd = { showAddDialog = true },
-                onEdit = { editingFile = it },
-                onDelete = { deleteTarget = it },
-            )
+            item(key = "files_header") {
+                SkillFilesHeader(
+                    fileCount = fileCount,
+                    empty = fileRows.isEmpty(),
+                    onAdd = { showAddDialog = true },
+                )
+            }
+            if (fileRows.isNotEmpty()) {
+                itemsIndexed(
+                    items = fileRows,
+                    key = { _, row -> row.key },
+                    contentType = { _, row ->
+                        when (row.node) {
+                            is SkillFileNode.FileNode -> "file"
+                            is SkillFileNode.DirNode -> "directory"
+                        }
+                    },
+                ) { index, row ->
+                    SkillFileTreeRowSurface(
+                        row = row,
+                        modifier = Modifier.animateItem(),
+                        isLast = index == fileRows.lastIndex,
+                        expandedPaths = expandedPathSet,
+                        onToggleDirectory = { path ->
+                            expandedPaths = if (path in expandedPathSet) {
+                                expandedPaths - path
+                            } else {
+                                expandedPaths + path
+                            }
+                        },
+                        onEdit = { editingFile = it },
+                        onDelete = { deleteTarget = it },
+                    )
+                }
+            }
         }
     }
 
@@ -271,91 +309,107 @@ private fun SkillMcpConfigCard(
 }
 
 @Composable
-private fun SkillFilesPanel(
-    nodes: List<SkillFileNode>,
+private fun SkillFilesHeader(
     fileCount: Int,
+    empty: Boolean,
     onAdd: () -> Unit,
-    onEdit: (SkillFile) -> Unit,
-    onDelete: (SkillFile) -> Unit,
 ) {
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
-    AmberCard(
+    val components = LocalThemeDesign.current?.components
+    val radius = components?.cardRadius?.toFloat()?.dp ?: 14.dp
+    val borderWidth = components?.borderWidth?.toFloat()?.dp ?: 1.dp
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = tokens.surface,
-        borderColor = tokens.line,
+        shape = RoundedCornerShape(
+            topStart = radius,
+            topEnd = radius,
+            bottomStart = if (empty) radius else 0.dp,
+            bottomEnd = if (empty) radius else 0.dp,
+        ),
+        color = tokens.surface,
+        border = if (borderWidth > 0.dp) BorderStroke(borderWidth, tokens.line) else null,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.setting_skill_detail_files_title),
-                style = type.sessionTitle,
-                color = tokens.ink,
-            )
-            Text(
-                text = stringResource(R.string.setting_skill_detail_file_count, fileCount),
-                style = type.meta,
-                color = tokens.ink2,
-                modifier = Modifier.weight(1f),
-            )
-            WorkspaceTextButton(
-                text = "+ " + stringResource(R.string.skill_detail_page_new_file),
-                onClick = onAdd,
-                tone = WorkspaceTone.Accent,
-            )
-        }
-        Hairline()
-        if (nodes.isEmpty()) {
-            Box(
+        Column {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                contentAlignment = Alignment.Center,
+                    .padding(start = 16.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
             ) {
                 Text(
-                    text = stringResource(R.string.setting_files_page_no_files),
-                    style = type.secondary,
+                    text = stringResource(R.string.setting_skill_detail_files_title),
+                    style = type.sessionTitle,
+                    color = tokens.ink,
+                )
+                Text(
+                    text = stringResource(R.string.setting_skill_detail_file_count, fileCount),
+                    style = type.meta,
                     color = tokens.ink2,
+                    modifier = Modifier.weight(1f),
+                )
+                WorkspaceTextButton(
+                    text = "+ " + stringResource(R.string.skill_detail_page_new_file),
+                    onClick = onAdd,
+                    tone = WorkspaceTone.Accent,
                 )
             }
-        } else {
-            FileTree(
-                nodes = nodes,
-                depth = 0,
-                onEdit = onEdit,
-                onDelete = onDelete,
-            )
+            if (empty) {
+                Hairline()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.setting_files_page_no_files),
+                        style = type.secondary,
+                        color = tokens.ink2,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun FileTree(
-    nodes: List<SkillFileNode>,
-    depth: Int,
+private fun SkillFileTreeRowSurface(
+    row: SkillFileTreeRow,
+    modifier: Modifier,
+    isLast: Boolean,
+    expandedPaths: Set<String>,
+    onToggleDirectory: (String) -> Unit,
     onEdit: (SkillFile) -> Unit,
     onDelete: (SkillFile) -> Unit,
 ) {
-    nodes.forEachIndexed { index, node ->
-        if (index > 0) Hairline()
-        when (node) {
+    val tokens = LocalAmberTokens.current
+    val components = LocalThemeDesign.current?.components
+    val radius = components?.cardRadius?.toFloat()?.dp ?: 14.dp
+    val borderWidth = components?.borderWidth?.toFloat()?.dp ?: 1.dp
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(
+            bottomStart = if (isLast) radius else 0.dp,
+            bottomEnd = if (isLast) radius else 0.dp,
+        ),
+        color = tokens.surface,
+        border = if (borderWidth > 0.dp) BorderStroke(borderWidth, tokens.line) else null,
+    ) {
+        when (val node = row.node) {
             is SkillFileNode.FileNode -> FileItem(
                 skillFile = node.skillFile,
-                depth = depth,
+                depth = row.depth,
                 onEdit = { onEdit(node.skillFile) },
                 onDelete = { onDelete(node.skillFile) },
             )
 
             is SkillFileNode.DirNode -> DirItem(
                 node = node,
-                depth = depth,
-                onEdit = onEdit,
-                onDelete = onDelete,
+                depth = row.depth,
+                expanded = node.relativePath in expandedPaths,
+                onToggle = { onToggleDirectory(node.relativePath) },
             )
         }
     }
@@ -398,7 +452,7 @@ private fun FileItem(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            WorkspaceStatusPill(text = "${skillFile.file.length()} B")
+            WorkspaceStatusPill(text = "${skillFile.sizeBytes} B")
             WorkspaceIconButton(
                 onClick = onEdit,
                 icon = Lucide.FilePen,
@@ -428,10 +482,9 @@ private fun FileItem(
 private fun DirItem(
     node: SkillFileNode.DirNode,
     depth: Int,
-    onEdit: (SkillFile) -> Unit,
-    onDelete: (SkillFile) -> Unit,
+    expanded: Boolean,
+    onToggle: () -> Unit,
 ) {
-    var expanded by rememberSaveable(node.relativePath) { mutableStateOf(false) }
     val tokens = LocalAmberTokens.current
     val type = LocalAmberType.current
 
@@ -440,7 +493,7 @@ private fun DirItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 40.dp)
-                .clickable { expanded = !expanded }
+                .clickable(onClick = onToggle)
                 .padding(start = (16 + depth * 18).dp, end = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -464,14 +517,6 @@ private fun DirItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
-            )
-        }
-        AnimatedVisibility(visible = expanded) {
-            FileTree(
-                nodes = node.children,
-                depth = depth + 1,
-                onEdit = onEdit,
-                onDelete = onDelete,
             )
         }
     }
@@ -513,13 +558,6 @@ private fun EditFileDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
-}
-
-private fun List<SkillFileNode>.countFiles(): Int = sumOf { node ->
-    when (node) {
-        is SkillFileNode.FileNode -> 1
-        is SkillFileNode.DirNode -> node.children.countFiles()
-    }
 }
 
 private fun McpImportPreview.toRedactedSummary(context: Context): String = buildString {

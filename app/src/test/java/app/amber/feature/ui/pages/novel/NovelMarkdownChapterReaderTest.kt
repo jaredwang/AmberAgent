@@ -225,6 +225,15 @@ class NovelMarkdownChapterReaderTest {
                 Reader(chapterPath = middle.path, readBody = { body })
             }
         }
+        // body is ~6k chars, above MARKDOWN_SYNC_PARSE_MAX_CHARS (256, device
+        // ≤4ms). First frame is the pending placeholder (no semantics); parse
+        // runs on Dispatchers.Default, outside Compose idling. Wait for the
+        // formatted tree before scrolling: scrolling the placeholder max
+        // leaves the tail below the viewport after the swap.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("FINAL_READER_SENTENCE", substring = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
         val scroll = compose.onNodeWithTag("novel-chapter-reader-scroll")
         val navigation = compose.onNodeWithTag("novel-chapter-reader-navigation")
         scroll.performSemanticsAction(SemanticsActions.ScrollBy) { scrollBy -> scrollBy(0f, Float.MAX_VALUE) }

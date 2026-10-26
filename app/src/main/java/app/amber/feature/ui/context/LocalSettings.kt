@@ -1,9 +1,10 @@
 package app.amber.feature.ui.context
 
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import app.amber.core.settings.Settings
 
-val LocalSettings = staticCompositionLocalOf<Settings> {
+val LocalSettings = compositionLocalOf<Settings> {
     error("No SettingsStore provided")
 }
 

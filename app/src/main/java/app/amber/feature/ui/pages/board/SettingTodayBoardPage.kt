@@ -57,8 +57,10 @@ fun SettingTodayBoardPage(
     val navController = LocalNavController.current
     val scope = rememberCoroutineScope()
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val focusRules by boardRepository.observeFocusRules().collectAsStateWithLifecycle(initialValue = emptyList())
-    val customHotListSources by hotListRepository.observeSources().collectAsStateWithLifecycle(initialValue = emptyList())
+    val focusRules by remember(boardRepository) { boardRepository.observeFocusRules() }
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val customHotListSources by remember(hotListRepository) { hotListRepository.observeSources() }
+        .collectAsStateWithLifecycle(initialValue = emptyList())
     val customDeepReadTemplates by deepReadTemplateRepository.observeTemplates().collectAsStateWithLifecycle()
     val invalidDeepReadTemplateCount by deepReadTemplateRepository.observeInvalidTemplateCount().collectAsStateWithLifecycle()
     val fontStates by fontRepository.fontsFlow.collectAsStateWithLifecycle()
@@ -73,14 +75,20 @@ fun SettingTodayBoardPage(
         fontScale = board.deepReadFontScale,
     )
 
-    LaunchedEffect(weightReloadKey) {
+    LaunchedEffect(boardRepository, pane, weightReloadKey) {
+        if (pane != TodayBoardSettingsPane.REVIEW) return@LaunchedEffect
         sourceWeights = boardRepository.getAllWeights()
             .filter { it.keyword == BoardWeightEntity.WHOLE_SOURCE }
             .associate { it.sourceType to it.weight }
     }
 
-    LaunchedEffect(Unit) {
-        deepReadTemplateRepository.reload()
+    LaunchedEffect(deepReadTemplateRepository, pane) {
+        if (pane == TodayBoardSettingsPane.ROOT ||
+            pane == TodayBoardSettingsPane.STYLE ||
+            pane == TodayBoardSettingsPane.HOT_LIST
+        ) {
+            deepReadTemplateRepository.reload()
+        }
     }
 
     val actions = remember(

@@ -2,7 +2,9 @@ package app.amber.feature.ui.components.message
 
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import app.amber.ai.core.MessageRole
 import app.amber.ai.ui.UIMessagePart
+import app.amber.core.ai.generative.GenerativeUiPlanner
 import app.amber.core.model.AssistantRegex
 import app.amber.core.model.AssistantAffectScope
 import app.amber.core.ai.transformers.replaceRegexes
@@ -61,6 +63,33 @@ internal object MessageRenderCache {
             trimVisualTextLocked()
         }
         return rendered
+    }
+
+    /**
+     * Cache key for settled [app.amber.feature.ui.components.richtext.MarkdownBlock]
+     * in [app.amber.feature.ui.components.message.ChatMessageMessagePartsBlock]:
+     * assistant text is visual-regex only; user text also strips `[ROUTE:…]`
+     * tags. Prefetch must warm this exact string.
+     */
+    fun displayMarkdownText(
+        text: String,
+        regexes: List<AssistantRegex>,
+        role: MessageRole,
+    ): String {
+        val visual = visualRegexText(
+            text = text,
+            regexes = regexes,
+            scope = if (role == MessageRole.USER) {
+                AssistantAffectScope.USER
+            } else {
+                AssistantAffectScope.ASSISTANT
+            },
+        )
+        return if (role == MessageRole.USER) {
+            GenerativeUiPlanner.stripVisualRouteTagsForDisplay(visual)
+        } else {
+            visual
+        }
     }
 
     fun markdownParseResult(content: String): MarkdownParseResult {

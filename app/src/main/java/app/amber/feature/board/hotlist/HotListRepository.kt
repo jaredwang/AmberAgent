@@ -1,9 +1,11 @@
 package app.amber.feature.board.hotlist
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
@@ -41,7 +43,7 @@ class HotListRepository(
             providers = providers,
             lastUpdatedAt = providers.maxOfOrNull { it.fetchedAt } ?: topics.maxOfOrNull { it.latestFetchedAt } ?: 0L,
         )
-    }
+    }.flowOn(Dispatchers.Default)
 
     fun observeSources(): Flow<List<HotListSourceEntity>> = dao.observeSources()
 
@@ -56,13 +58,13 @@ class HotListRepository(
             entity
                 ?.toHistoryItem(json)
                 ?.takeIf { includeExpired || !it.expired }
-        }
+        }.flowOn(Dispatchers.Default)
 
     fun observeDeepReadHistory(limit: Int = 100): Flow<List<DeepReadHistoryItem>> =
         dao.observeDeepReadHistory(limit).map { entities ->
             val now = System.currentTimeMillis()
             entities.map { it.toHistoryItem(json, now) }
-        }
+        }.flowOn(Dispatchers.Default)
 
     /** Raw entry for run bookkeeping — expiry filters belong to readers, not writers. */
     suspend fun getDeepReadEntry(topicId: String): DeepReadHistoryItem? =

@@ -3,11 +3,13 @@ package app.amber.core.font
 import android.content.Context
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import app.amber.core.infra.AppScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -98,6 +100,7 @@ class SlidesFontRepository(
     private val context: Context,
     private val client: OkHttpClient,
     private val json: Json,
+    private val appScope: AppScope,
 ) {
     private val fontsDir = File(context.filesDir, "fonts")
     private val manifestFile = File(fontsDir, FONT_MANIFEST_FILE)
@@ -109,7 +112,7 @@ class SlidesFontRepository(
     val downloadsFlow: StateFlow<Map<String, FontDownloadProgress>> = _downloadsFlow.asStateFlow()
 
     init {
-        refresh()
+        appScope.launch(Dispatchers.IO) { refresh() }
     }
 
     fun refresh() {
@@ -258,9 +261,12 @@ class SlidesFontRepository(
             else -> null
         }
         val packId = listOfNotNull(requested, fallback).firstOrNull() ?: return null
-        if (installedPack(packId) != null) return null
+        val fontStates = fontsFlow.value
+        if (fontStates.isEmpty()) return null
+        val fontState = fontStates.firstOrNull { it.pack.id == packId }
+        if (fontState?.installed == true) return null
         return SlidesFontHint(
-            pack = getPack(packId),
+            pack = fontState?.pack,
             requestedPackId = packId,
         )
     }

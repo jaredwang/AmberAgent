@@ -15,7 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import app.amber.ai.provider.Model
 import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderCatalog
@@ -54,7 +59,21 @@ internal fun CodexOAuthConsole(
     val providerCatalog = koinInject<ProviderCatalog>()
     val authStore = remember(context) { OpenAICodexAuthStore(context) }
     val oauthClient = remember(httpClient, authStore) { OpenAICodexOAuthClient(httpClient, authStore) }
-    var oauthTokens by remember(provider.id) { mutableStateOf(authStore.get(provider.id)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var oauthTokens by remember(provider.id, authStore) { mutableStateOf<app.amber.ai.provider.providers.openai.OpenAICodexAuthTokens?>(null) }
+    var oauthTokensLoaded by remember(provider.id, authStore) { mutableStateOf(false) }
+    val tokenReadGeneration = remember(provider.id, authStore) { mutableStateOf(0) }
+    LaunchedEffect(provider.id, authStore, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            val requestGeneration = tokenReadGeneration.value + 1
+            tokenReadGeneration.value = requestGeneration
+            val cached = withContext(Dispatchers.IO) { authStore.get(provider.id) }
+            if (tokenReadGeneration.value == requestGeneration) {
+                oauthTokens = cached
+                oauthTokensLoaded = true
+            }
+        }
+    }
     var oauthBusy by remember(provider.id) { mutableStateOf(false) }
     var oauthDeviceCode by remember(provider.id) { mutableStateOf<String?>(null) }
     var oauthVerificationUrl by remember(provider.id) { mutableStateOf<String?>(null) }
@@ -65,7 +84,8 @@ internal fun CodexOAuthConsole(
     val latestOnModelCandidatesInvalidated by rememberUpdatedState(onModelCandidatesInvalidated)
 
     suspend fun runCodexLogin() {
-        if (oauthBusy) return
+        if (oauthBusy || !oauthTokensLoaded) return
+        tokenReadGeneration.value += 1
         oauthGeneration += 1
         val loginGeneration = oauthGeneration
         latestOnModelCandidatesInvalidated()
@@ -82,6 +102,7 @@ internal fun CodexOAuthConsole(
             )
             val tokens = oauthClient.pollDeviceCode(provider.id, authorization)
             if (loginGeneration != oauthGeneration) return
+            tokenReadGeneration.value += 1
             oauthTokens = tokens
             oauthDeviceCode = null
             oauthVerificationUrl = null
@@ -133,10 +154,11 @@ internal fun CodexOAuthConsole(
 
     val latestAutoStart by rememberUpdatedState(autoStartOAuth)
     val latestOnAutoStartConsumed by rememberUpdatedState(onAutoStartConsumed)
-    LaunchedEffect(provider.id) {
+    LaunchedEffect(provider.id, oauthTokensLoaded) {
         if (
             latestAutoStart &&
             provider.authMode == OpenAIAuthMode.CODEX_OAUTH &&
+            oauthTokensLoaded &&
             oauthTokens == null &&
             !oauthBusy
         ) {
@@ -194,12 +216,14 @@ internal fun CodexOAuthConsole(
     ProviderCommandButton(
         text = stringResource(R.string.setting_provider_page_codex_oauth_login),
         accent = oauthTokens == null,
+        enabled = oauthTokensLoaded && !oauthBusy,
         onClick = { scope.launch { runCodexLogin() } },
         modifier = Modifier.fillMaxWidth(),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ProviderCommandButton(
             text = stringResource(R.string.setting_provider_page_codex_oauth_fetch_models),
+            enabled = oauthTokensLoaded && !oauthBusy,
             onClick = {
                 if (!oauthBusy) {
                     scope.launch {
@@ -258,12 +282,16 @@ internal fun CodexOAuthConsole(
         )
         ProviderCommandButton(
             text = stringResource(R.string.setting_provider_page_codex_oauth_refresh),
+            enabled = oauthTokensLoaded && !oauthBusy,
             onClick = {
                 if (!oauthBusy) {
                     scope.launch {
+                        tokenReadGeneration.value += 1
                         oauthBusy = true
                         try {
-                            oauthTokens = oauthClient.refresh(provider.id)
+                            val refreshed = oauthClient.refresh(provider.id)
+                            tokenReadGeneration.value += 1
+                            oauthTokens = refreshed
                             toaster.show(
                                 context.getString(R.string.setting_provider_page_codex_oauth_refresh_success),
                                 type = ToastType.Success,
@@ -285,7 +313,9 @@ internal fun CodexOAuthConsole(
         )
         ProviderCommandButton(
             text = stringResource(R.string.setting_provider_page_codex_oauth_logout),
+            enabled = oauthTokensLoaded,
             onClick = {
+                tokenReadGeneration.value += 1
                 oauthGeneration += 1
                 latestOnModelCandidatesInvalidated()
                 oauthClient.logout(provider.id)

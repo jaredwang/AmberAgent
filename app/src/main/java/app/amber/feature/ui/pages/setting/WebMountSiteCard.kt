@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +43,7 @@ import app.amber.feature.ui.components.ui.workspaceColors
 internal fun UserSiteCard(
     site: UserSite,
     stationState: WebMountStationState?,
-    auth: WebMountSiteAuth,
+    session: WebMountSettingsSession,
     busy: Boolean,
     onSignIn: (() -> Unit)?,
     onSignOut: (() -> Unit)?,
@@ -52,11 +53,20 @@ internal fun UserSiteCard(
     onTest: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val auth by produceState<WebMountSiteAuth?>(
+        initialValue = null,
+        site,
+        session.cookieRevision,
+        session.oauthRevision,
+    ) {
+        value = null
+        value = session.siteAuth(site)
+    }
     val workspace = workspaceColors()
-    val loggedIn = auth.loggedIn
-    val hasToken = auth.hasToken
-    val tokenExpired = auth.tokenExpired
-    val hasCredentials = auth.hasCredentials
+    val loggedIn = auth?.loggedIn
+    val hasToken = auth?.hasToken == true
+    val tokenExpired = auth?.tokenExpired == true
+    val hasCredentials = auth?.hasCredentials == true
 
     Column(
         modifier = Modifier
@@ -105,6 +115,7 @@ internal fun UserSiteCard(
                 hasToken = hasToken,
                 tokenExpired = tokenExpired,
                 hasCredentials = hasCredentials,
+                authLoaded = auth != null,
             )
         }
 
@@ -141,7 +152,7 @@ internal fun UserSiteCard(
                 ExperimentActionButton(
                     text = stringResource(R.string.setting_webmount_oauth_connect),
                     primary = true,
-                    enabled = !busy && hasCredentials,
+                    enabled = !busy && auth?.hasCredentials == true,
                     onClick = onConnect,
                 )
             }
@@ -181,6 +192,7 @@ private fun SiteStatusPill(
     hasToken: Boolean,
     tokenExpired: Boolean,
     hasCredentials: Boolean,
+    authLoaded: Boolean,
 ) {
     val workspace = workspaceColors()
     // Plan v2 review W-3 fix: operational status (DEGRADED / ERROR) takes
@@ -196,6 +208,8 @@ private fun SiteStatusPill(
             workspace.muted to R.string.setting_webmount_pill_rate_limited
         authKind == AuthKind.ANONYMOUS ->
             workspace.blue to R.string.setting_webmount_pill_public
+        !authLoaded ->
+            workspace.faint to R.string.setting_webmount_pill_unknown
         authKind == AuthKind.OAUTH && hasToken && !tokenExpired ->
             workspace.blue to R.string.setting_webmount_pill_connected
         authKind == AuthKind.OAUTH && hasCredentials ->
