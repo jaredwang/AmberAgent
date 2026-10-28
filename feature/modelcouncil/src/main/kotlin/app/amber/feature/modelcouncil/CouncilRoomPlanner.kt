@@ -81,6 +81,7 @@ internal class CouncilRoomPlanner(
             appendLine("- perspective: one sentence describing the angle this role brings and what it should focus on")
             appendLine()
             appendLine("Topic: $objective")
+            append(CouncilRoomTurnPolicy.userClarificationContext(room))
             // FULL mode: if the host already ran a pre-topic research turn, the
             // gathered facts live in room.context. Feed them to the roster planner so
             // the bespoke roles are tailored to what was actually found (e.g. once the

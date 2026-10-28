@@ -101,6 +101,32 @@ class ChatApprovalActionsTest : DurableRuntimeTestBase() {
     }
 
     @Test
+    fun `a decision already applied cannot resume again or be overwritten by a stale approval`() = runBlocking {
+        val fixture = fixture()
+        val waiting = tool("once", "file_write")
+        val conversation = Conversation.ofId(Uuid.random()).copy(messageNodes = listOf(assistantTools(waiting)))
+        fixture.repo.insertConversation(conversation)
+
+        assertTrue(fixture.actions.applyToolApprovalDecision(
+            conversation.id, waiting.toolCallId, approved = true, reason = "", answer = null,
+        ).shouldResume)
+        val duplicate = fixture.actions.applyToolApprovalDecision(
+            conversation.id, waiting.toolCallId, approved = true, reason = "", answer = null,
+        )
+        assertFalse(duplicate.applied)
+        assertFalse(duplicate.shouldResume)
+        val stale = fixture.actions.applyToolApprovalDecision(
+            conversation.id, waiting.toolCallId, approved = false, reason = "stale", answer = null,
+        )
+        assertFalse(stale.applied)
+        assertFalse(stale.shouldResume)
+        assertEquals(
+            ToolApprovalState.Approved,
+            fixture.repo.getConversationById(conversation.id)!!.currentMessages.last().getTools().single().approvalState,
+        )
+    }
+
+    @Test
     fun `batch approval keeps human and Jev decisions pending`() = runBlocking {
         val fixture = fixture()
         val ordinary = tool("ordinary", "file_write")

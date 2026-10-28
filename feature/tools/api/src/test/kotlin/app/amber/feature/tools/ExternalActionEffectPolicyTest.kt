@@ -54,4 +54,40 @@ class ExternalActionEffectPolicyTest {
             assertEquals(name, ToolEffectClass.READ_ONLY, observation.effectClass("{}"))
         }
     }
+
+    @Test
+    fun fileWriteRecoveryDistinguishesOverwriteFromAppend() {
+        val write = tool("file_write")
+        assertEquals(ToolEffectClass.IDEMPOTENT_WRITE, write.effectClass("""{"path":"notes/log.txt","content":"next"}"""))
+        assertEquals(ToolEffectClass.IDEMPOTENT_WRITE, write.effectClass("""{"append":false}"""))
+        assertEquals(ToolEffectClass.NON_IDEMPOTENT_WRITE, write.effectClass("""{"append":true}"""))
+        assertEquals("Static metadata cannot promise append-safe replay", ToolEffectClass.NON_IDEMPOTENT_WRITE, write.effectClass())
+    }
+
+    @Test
+    fun httpRecoveryUsesTheActualRequestMethod() {
+        val http = tool("http_request")
+        for (method in listOf("GET", "HEAD", "get")) {
+            assertEquals(method, ToolEffectClass.READ_ONLY, http.effectClass("""{"method":"$method"}"""))
+        }
+        assertEquals(ToolEffectClass.READ_ONLY, http.effectClass("{}"))
+        for (method in listOf("POST", "PUT", "PATCH", "DELETE")) {
+            assertEquals(method, ToolEffectClass.NON_IDEMPOTENT_WRITE, http.effectClass("""{"method":"$method"}"""))
+        }
+        assertEquals(ToolEffectClass.NON_IDEMPOTENT_WRITE, http.effectClass())
+    }
+
+    @Test
+    fun mcpExternalCallsDoNotDeriveReplaySafetyFromTheirNames() {
+        for (name in listOf("mcp__bank__transfer", "mcp__service__execute", "mcp__transfer")) {
+            val external = tool(name).copy(needsApproval = false, allowsAutoApproval = true)
+            val metadata = ToolRegistry.from(listOf(external)).metadataFor(name)!!
+            val policy = external.invocationPolicy("{}")
+            assertEquals(name, ToolEffectClass.NON_IDEMPOTENT_WRITE, external.effectClass("{}"))
+            assertTrue(name, metadata.mutates)
+            assertTrue(name, policy.needsApproval)
+            assertFalse(name, policy.concurrencySafe)
+            assertFalse(name, policy.speculativeEligible)
+        }
+    }
 }

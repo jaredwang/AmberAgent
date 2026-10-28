@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.322Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="split_at_leading_blank_line_yields_empty_inline" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.001"/>
+  <testcase name="inline_suffix_stays_in_paragraph" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="heading_suffix_uses_plain_tail" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="split_handles_windows_blank_line" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="list_suffix_uses_plain_tail" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="split_without_blank_line_keeps_everything_inline" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="split_at_blank_line_separates_following_block" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="blank_line_suffix_uses_plain_tail" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <testcase name="table_suffix_uses_plain_tail" classname="app.amber.feature.ui.components.richtext.LiveSuffixPlacementTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

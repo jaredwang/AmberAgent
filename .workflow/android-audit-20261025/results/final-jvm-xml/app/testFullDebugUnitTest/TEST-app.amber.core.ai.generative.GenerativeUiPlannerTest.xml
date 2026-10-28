@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.generative.GenerativeUiPlannerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.483Z" hostname="duguangdeMBP.lan" time="0.01">
+  <properties/>
+  <testcase name="directDrawingRequestsDoNotDisableToolCatalog" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.001"/>
+  <testcase name="diagramPromptRequiresAdaptiveSvgCanvas" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.001"/>
+  <testcase name="expectTaskUiQualityCheckAcceptsTaskUiAndRejectsShowWidget" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.004"/>
+  <testcase name="visualRequestsKeepTheNormalToolBackedStream" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.001"/>
+  <testcase name="toolMediatedDiagramStillRequiresFinalWidget" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <testcase name="animatedSvgRequestsRouteToDiagramWidget" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <testcase name="slashRoutesSeparateDrawAndSvg" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.001"/>
+  <testcase name="toolMediatedVisualRequestsWarnAgainstProgressWidgets" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <testcase name="slidesRouteDoesNotDependOnStructuredOrChartSwitches" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <testcase name="guizangRequestsRouteToDeckEvenWithoutPptKeyword" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <testcase name="studyFlashcardAndQuizRequestsRouteToTaskUi" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.001"/>
+  <testcase name="slashRouteTaskUiRoutesAndStripsCleanly" classname="app.amber.core.ai.generative.GenerativeUiPlannerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

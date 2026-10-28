@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ProviderMessageUtilsTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.428Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="empty parts should return empty groups" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="tool then reasoning then text should preserve order" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="unexecuted tool should be in Content group" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="interleaved text and tools should create alternating groups" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="only executed tools should return single Tools group" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="text then tool should create Content then Tools groups" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="image parts should be grouped with content" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="only text parts should return single Content group" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="verify tool_use followed by tool_result pattern for Claude" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="complex multi-round tool call scenario" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.001"/>
+  <testcase name="parallel tool calls should stay in same Tools group" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="multi-round reasoning should be preserved in correct positions" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="verify reasoning stays with correct content group" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="reasoning should be grouped with content" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <testcase name="tool then text should create Tools then Content groups" classname="app.amber.ai.provider.providers.ProviderMessageUtilsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.McpManagementToolsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.720Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="parsesObjectArguments" classname="app.amber.core.ai.tools.McpManagementToolsTest" time="0.002"/>
+  <testcase name="parsesStringArgumentsForCompatibility" classname="app.amber.core.ai.tools.McpManagementToolsTest" time="0.0"/>
+  <testcase name="mcpImportRejectsMissingCandidateDigest" classname="app.amber.core.ai.tools.McpManagementToolsTest" time="0.0"/>
+  <testcase name="mcpImportTrimsCandidateDigest" classname="app.amber.core.ai.tools.McpManagementToolsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

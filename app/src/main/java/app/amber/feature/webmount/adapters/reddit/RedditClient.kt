@@ -11,11 +11,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
 
 /**
  * Reddit anonymous public JSON client. Reads `<reddit>.json` endpoints.
@@ -128,7 +128,7 @@ class RedditClient(
             author = data.s("author"),
             body = data.s("body"),
             score = data.i("score"),
-            createdAtMs = (data.l("created_utc") ?: 0L) * 1000L,
+            createdAtMs = data.epochMillis("created_utc"),
             permalink = data.s("permalink"),
             parentId = data.s("parent_id"),
         )
@@ -142,7 +142,7 @@ class RedditClient(
             selftext = data.s("selftext"),
             score = data.i("score"),
             numComments = data.i("num_comments"),
-            createdAtMs = (data.l("created_utc") ?: 0L) * 1000L,
+            createdAtMs = data.epochMillis("created_utc"),
             isSelf = data["is_self"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false,
             over18 = data["over_18"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false,
         )
@@ -151,7 +151,8 @@ class RedditClient(
 
     private fun JsonObject.s(name: String): String? = this[name]?.jsonPrimitive?.contentOrNull
     private fun JsonObject.i(name: String): Int? = this[name]?.jsonPrimitive?.intOrNull
-    private fun JsonObject.l(name: String): Long? = this[name]?.jsonPrimitive?.longOrNull
+    private fun JsonObject.epochMillis(name: String): Long =
+        ((this[name]?.jsonPrimitive?.doubleOrNull ?: 0.0) * 1000L).toLong()
     private fun JsonArray?.orEmpty(): JsonArray = this ?: JsonArray(emptyList())
 
     companion object {

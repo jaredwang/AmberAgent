@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.provider.LocalFolderDocumentQueryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.814Z" hostname="duguangdeMBP.lan" time="0.017">
+  <properties/>
+  <testcase name="round trip keeps the same authority for both helpers" classname="app.amber.core.sync.provider.LocalFolderDocumentQueryTest" time="0.006"/>
+  <testcase name="child documents uri points at tree document id" classname="app.amber.core.sync.provider.LocalFolderDocumentQueryTest" time="0.005"/>
+  <testcase name="document uri resolves under the tree authority" classname="app.amber.core.sync.provider.LocalFolderDocumentQueryTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

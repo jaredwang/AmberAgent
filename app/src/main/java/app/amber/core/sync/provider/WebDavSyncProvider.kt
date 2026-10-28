@@ -1,6 +1,7 @@
 package app.amber.core.sync.provider
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,6 @@ import app.amber.core.sync.core.SyncCrypto
 import app.amber.core.sync.core.SyncExportRequest
 import app.amber.core.sync.webdav.WebDavClient
 import app.amber.core.sync.webdav.WebDavException
-import app.amber.core.sync.webdav.WebDavResourceInfo
 import java.io.File
 import app.amber.agent.R
 
@@ -65,8 +65,11 @@ class WebDavSyncProvider(
         client.ensureCollectionExists().getOrThrow()
         val resources = client.list().getOrThrow()
         resources
-            .filter { !it.isCollection && it.displayName.endsWith(SNAPSHOT_SIDECAR_SUFFIX) }
-            .mapNotNull { resource -> loadSidecar(resource) }
+            .filterNot { it.isCollection }
+            .mapNotNull { resource ->
+                val fileName = Uri.parse(resource.href).lastPathSegment
+                if (fileName?.endsWith(SNAPSHOT_SIDECAR_SUFFIX) == true) loadSidecar(fileName) else null
+            }
             .sortedByDescending { it.manifest.createdAt }
     }
 
@@ -179,16 +182,16 @@ class WebDavSyncProvider(
         Unit
     }
 
-    private suspend fun loadSidecar(resource: WebDavResourceInfo): SyncSnapshot? {
-        val snapshotId = resource.displayName.removeSuffix(SNAPSHOT_SIDECAR_SUFFIX)
+    private suspend fun loadSidecar(fileName: String): SyncSnapshot? {
+        val snapshotId = fileName.removeSuffix(SNAPSHOT_SIDECAR_SUFFIX)
         if (snapshotId.isBlank()) return null
         val manifest = runCatching {
             decodeSnapshotManifest(
                 json,
-                client(config()).get(resource.displayName).getOrThrow().decodeToString(),
+                client(config()).get(fileName).getOrThrow().decodeToString(),
             )
         }.getOrElse { error ->
-            Log.w(TAG, "Skipping unparseable sidecar ${resource.displayName}: ${error.message}")
+            Log.w(TAG, "Skipping unparseable sidecar $fileName: ${error.message}")
             return null
         }
         return SyncSnapshot(

@@ -99,17 +99,13 @@ class ChatTurnAgent(
                         // Stream the latest message list to chat.db so UI updates
                         // in real time (mirrors the legacy path's behavior).
                         val conversationUuid = Uuid.parse(input.conversationId.value)
-                        val current = conversationAccess.getConversationFlow(conversationUuid).value
-                        val updated = mergeMessages(
-                            conversation = current,
-                            generatedMessages = chunk.messages,
-                            sourceStartIndex = input.messageRangeStart,
-                        )
-                        conversationAccess.updateConversation(
-                            conversationUuid,
-                            updated,
-                            checkDeletedFiles = false,
-                        )
+                        conversationAccess.updateConversationState(conversationUuid) { current ->
+                            mergeMessages(
+                                conversation = current,
+                                generatedMessages = chunk.messages,
+                                sourceStartIndex = input.messageRangeStart,
+                            )
+                        }
                         hooks?.onStreamingMessages?.invoke(runId, chunk.messages)
 
                         val lastMsg = lastMessages.lastOrNull()

@@ -28,14 +28,14 @@ object NovelWorkspaceContextAssembler {
         flags: NovelWorkspaceInjectionFlags = NovelWorkspaceInjectionFlags(),
         locale: Locale = Locale.CHINESE,
     ): String {
-        val nodes = NovelWorkspaceNodes.collect(store, branchSlug)
-        val always = nodes.filter { node ->
-            node.injection == "always" && when (node.nodeKind) {
+        val nodes = NovelWorkspaceNodes.collect(store, branchSlug).filter { node ->
+            when (node.nodeKind) {
                 NovelWorkspaceNodes.KIND_FORESHADOWING -> flags.foreshadowing
                 NovelWorkspaceNodes.KIND_DECISION_LOG -> flags.decisions
                 else -> flags.neighborhood
             }
         }
+        val always = nodes.filter { it.injection == "always" }
         val contextual = nodes.filter { it.injection != "off" && it.injection != "always" }
         val sections = mutableListOf<String>()
         val alwaysSection = alwaysSection(always, locale)

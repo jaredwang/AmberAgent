@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.SearchOrchestratorTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:20.864Z" hostname="duguangdeMBP.lan" time="0.035">
+  <properties/>
+  <testcase name="freeAggregateStaysOnWhileEitherLegacyToggleIsOn" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.001"/>
+  <testcase name="selectorMismatchReturnsRecoverableAvailableSources" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.003"/>
+  <testcase name="keepsPartialResultWhenOnePublicSourceFails" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.008"/>
+  <testcase name="weakFreeOnlyResultsCarrySearchServiceHint" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.004"/>
+  <testcase name="legacyEngineSelectorsStillReachFreeAggregate" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.001"/>
+  <testcase name="hiddenContextsCanDisableWebViewFallbackSuggestions" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.003"/>
+  <testcase name="eachSourceReceivesPrimaryQueryBeforeVariantsConsumeBudget" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.002"/>
+  <testcase name="configuredBingCanBeSelectedByStableAlias" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.0"/>
+  <testcase name="buildsNewsAndMarketQueryVariants" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.0"/>
+  <testcase name="usesFreeAggregateWithoutConfiguredApiServices" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.0"/>
+  <testcase name="hiddenSearchToolDescriptionDoesNotAdvertiseWebViewTools" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.006"/>
+  <testcase name="freeAggregateIsCappedAtTwoVariantCalls" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.002"/>
+  <testcase name="canonicalUrlDropsTrackingParams" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.0"/>
+  <testcase name="allowWebViewAddsFallbackSuggestions" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.001"/>
+  <testcase name="hiddenStatusDoesNotAdvertiseWebViewFallback" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.0"/>
+  <testcase name="allOrdinarySourcesFailWithoutWebViewDoesNotThrow" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.002"/>
+  <testcase name="sourceStatusIncludesAcceptedSelectors" classname="app.amber.core.ai.tools.SearchOrchestratorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

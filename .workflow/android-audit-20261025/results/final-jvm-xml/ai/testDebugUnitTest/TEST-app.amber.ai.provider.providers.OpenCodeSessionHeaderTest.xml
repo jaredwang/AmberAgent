@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.OpenCodeSessionHeaderTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.258Z" hostname="duguangdeMBP.lan" time="0.056">
+  <properties/>
+  <testcase name="all Go text transports send the conversation session header" classname="app.amber.ai.provider.providers.OpenCodeSessionHeaderTest" time="0.035"/>
+  <testcase name="explicit session header is case insensitive and blank header gets a session" classname="app.amber.ai.provider.providers.OpenCodeSessionHeaderTest" time="0.006"/>
+  <testcase name="automatic session header is restricted to the OpenCode host" classname="app.amber.ai.provider.providers.OpenCodeSessionHeaderTest" time="0.001"/>
+  <testcase name="standalone session survives provider parameter retry and differs for another request" classname="app.amber.ai.provider.providers.OpenCodeSessionHeaderTest" time="0.014"/>
+  <system-out><![CDATA[[awaitClose] 关闭eventSource 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

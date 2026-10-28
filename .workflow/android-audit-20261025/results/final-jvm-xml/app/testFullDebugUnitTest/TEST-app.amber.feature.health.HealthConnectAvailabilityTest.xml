@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.health.HealthConnectAvailabilityTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:34.288Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="plannedExerciseOnlyStartsAtApi35" classname="app.amber.feature.health.HealthConnectAvailabilityTest" time="0.0"/>
+  <testcase name="api34RequiresSystemService" classname="app.amber.feature.health.HealthConnectAvailabilityTest" time="0.001"/>
+  <testcase name="api33IsUnsupportedEvenIfServiceIsReported" classname="app.amber.feature.health.HealthConnectAvailabilityTest" time="0.0"/>
+  <testcase name="everyStateHasChineseExplanation" classname="app.amber.feature.health.HealthConnectAvailabilityTest" time="0.0"/>
+  <testcase name="authorizationAndReadFailuresAreNotSuccess" classname="app.amber.feature.health.HealthConnectAvailabilityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

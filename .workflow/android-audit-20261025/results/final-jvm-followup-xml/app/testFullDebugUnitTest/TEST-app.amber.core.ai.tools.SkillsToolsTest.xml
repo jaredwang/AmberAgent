@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.SkillsToolsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.613Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="ppt adapter still uses full html deck contract" classname="app.amber.core.ai.tools.SkillsToolsTest" time="0.002"/>
+  <testcase name="generic skills do not receive guizang specific adapters" classname="app.amber.core.ai.tools.SkillsToolsTest" time="0.0"/>
+  <testcase name="zip skill import keeps html css and mjs assets under github archive root" classname="app.amber.core.ai.tools.SkillsToolsTest" time="0.0"/>
+  <testcase name="installed skill collection includes html css mjs and mcp config" classname="app.amber.core.ai.tools.SkillsToolsTest" time="0.003"/>
+  <testcase name="social card adapter uses deck compatible full html contract" classname="app.amber.core.ai.tools.SkillsToolsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

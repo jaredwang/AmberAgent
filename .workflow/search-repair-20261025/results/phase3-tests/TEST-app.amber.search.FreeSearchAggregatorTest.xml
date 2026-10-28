@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.search.FreeSearchAggregatorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:13:59.266Z" hostname="duguangdeMBP.lan" time="0.418">
+  <properties/>
+  <testcase name="allEnginesFailingReportsEachEngine" classname="app.amber.search.FreeSearchAggregatorTest" time="0.091"/>
+  <testcase name="parsesWikipediaExtractsAndDropsDisambiguation" classname="app.amber.search.FreeSearchAggregatorTest" time="0.03"/>
+  <testcase name="unwrapsBingTrackingTarget" classname="app.amber.search.FreeSearchAggregatorTest" time="0.207"/>
+  <testcase name="parsesBraveWebSnippetsAndSkipsBraveLinks" classname="app.amber.search.FreeSearchAggregatorTest" time="0.058"/>
+  <testcase name="parsesQuarkHydrateJsonWithDestUrl" classname="app.amber.search.FreeSearchAggregatorTest" time="0.003"/>
+  <testcase name="parsesDuckDuckGoHtmlAndUnwrapsRedirects" classname="app.amber.search.FreeSearchAggregatorTest" time="0.005"/>
+  <testcase name="blockedEngineIsSkippedDuringCooldownWhileOthersStillAnswer" classname="app.amber.search.FreeSearchAggregatorTest" time="0.015"/>
+  <testcase name="parses360HtmlUsingOriginalUrlAndSkipsSoComPages" classname="app.amber.search.FreeSearchAggregatorTest" time="0.002"/>
+  <testcase name="roundRobinMergeInterleavesEnginesAndDedupes" classname="app.amber.search.FreeSearchAggregatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

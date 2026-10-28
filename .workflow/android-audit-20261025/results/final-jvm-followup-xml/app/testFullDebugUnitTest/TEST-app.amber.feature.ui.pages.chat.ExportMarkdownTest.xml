@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ExportMarkdownTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:58.036Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="tool input api_key and token are masked in exported markdown" classname="app.amber.feature.ui.pages.chat.ExportMarkdownTest" time="0.002"/>
+  <testcase name="exported markdown keeps plain text and tool framing" classname="app.amber.feature.ui.pages.chat.ExportMarkdownTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

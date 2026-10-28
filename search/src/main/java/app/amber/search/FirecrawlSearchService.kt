@@ -130,7 +130,11 @@ object FirecrawlSearchService : SearchService<SearchServiceOptions.FirecrawlOpti
                 }
 
                 return@withContext Result.success(
-                    mapFirecrawlSearchResponse(response.body?.string().orEmpty(), commonOptions.resultSize)
+                    mapFirecrawlSearchResponse(
+                        response.body?.string().orEmpty(),
+                        commonOptions.resultSize,
+                        sources?.takeIf { it.isNotEmpty() } ?: listOf("web", "news"),
+                    )
                 )
             }
         }
@@ -189,7 +193,11 @@ object FirecrawlSearchService : SearchService<SearchServiceOptions.FirecrawlOpti
         }
     }
 
-    internal fun mapFirecrawlSearchResponse(body: String, resultSize: Int): SearchResult {
+    internal fun mapFirecrawlSearchResponse(
+        body: String,
+        resultSize: Int,
+        sourceOrder: List<String> = listOf("web", "news"),
+    ): SearchResult {
         val payload = json.parseToJsonElement(body).jsonObject
         if (payload["success"]?.jsonPrimitive?.booleanOrNull != true) {
             error("search request failed: ${payload["error"]?.jsonPrimitive?.contentOrNull.orEmpty()}")
@@ -198,24 +206,28 @@ object FirecrawlSearchService : SearchService<SearchServiceOptions.FirecrawlOpti
         val data = payload["data"]?.jsonObject ?: error("empty response data")
         val resultData = json.decodeFromJsonElement<FirecrawlSearchResultData>(data)
         val items = buildList {
-            resultData.web.orEmpty().forEach { item ->
-                add(
-                    SearchResultItem(
-                        title = item.title,
-                        url = item.url,
-                        text = item.markdown ?: item.description.orEmpty(),
-                    )
-                )
-            }
-            resultData.news.orEmpty().forEach { item ->
-                add(
-                    SearchResultItem(
-                        title = item.title,
-                        url = item.url,
-                        text = listOfNotNull(item.snippet, item.date).joinToString("\n"),
-                        publishedAt = item.date,
-                    )
-                )
+            for (source in sourceOrder.distinct()) {
+                when (source) {
+                    "web" -> resultData.web.orEmpty().forEach { item ->
+                        add(
+                            SearchResultItem(
+                                title = item.title,
+                                url = item.url,
+                                text = item.markdown ?: item.description.orEmpty(),
+                            )
+                        )
+                    }
+                    "news" -> resultData.news.orEmpty().forEach { item ->
+                        add(
+                            SearchResultItem(
+                                title = item.title,
+                                url = item.url,
+                                text = listOfNotNull(item.snippet, item.date).joinToString("\n"),
+                                publishedAt = item.date,
+                            )
+                        )
+                    }
+                }
             }
         }.take(resultSize)
 

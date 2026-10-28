@@ -29,7 +29,7 @@ import app.amber.ai.util.json
 import app.amber.ai.util.parseErrorDetail
 import app.amber.ai.util.stringSafe
 import app.amber.ai.util.toHeaders
-import app.amber.common.http.await
+import app.amber.ai.provider.providers.openai.withCancellableCall
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -106,12 +106,14 @@ class ClaudeProvider(
 
         Log.i(TAG, "generateText: model=${params.model.modelId}, messages=${messages.size}")
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+        val bodyStr = withCancellableCall {
+            awaitResponse(client.newCall(request)).use { response ->
+                if (!response.isSuccessful) {
+                    throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+                }
+                response.body?.string().orEmpty()
+            }
         }
-
-        val bodyStr = response.body?.string() ?: ""
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
         messagesAdapter.decodeCompletion(bodyJson)

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.sync.SyncArchiveV2Test" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:06.669Z" hostname="duguangdeMBP.lan" time="2.004">
+  <properties/>
+  <testcase name="deviceBoundArchiveRestoresOnlyOnSameDevice" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.25"/>
+  <testcase name="corruptedArchiveIsRejectedWithoutWriting" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.232"/>
+  <testcase name="correctPassphraseVerifiesAndWrongPassphraseIsRejected" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.264"/>
+  <testcase name="verifyThenDiscardLeavesNoResidueAndNoWrites" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.187"/>
+  <testcase name="legacyV1ProtectedArchiveRequiresPassphrase" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.159"/>
+  <testcase name="newExportsNeverProduceLegacyFormat" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.128"/>
+  <testcase name="fullIncludesSecretsAndStandardExcludesThem" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.324"/>
+  <testcase name="incompatibleLegacyEverythingRestoreFailsClosedBeforeWipingTables" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.144"/>
+  <testcase name="legacyV1UnprotectedArchiveIsRestorableWithControlledFallback" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.284"/>
+  <testcase name="blankPassphraseIsRejectedForPassphraseMode" classname="app.amber.agent.data.sync.SyncArchiveV2Test" time="0.031"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

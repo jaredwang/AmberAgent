@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.RunOwnershipRegistryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.797Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="cancelOneConversationRunLeavesOtherRunUntouched" classname="app.amber.feature.runtime.RunOwnershipRegistryTest" time="0.001"/>
+  <testcase name="cancelWithMismatchedConversationIdIsRejected" classname="app.amber.feature.runtime.RunOwnershipRegistryTest" time="0.0"/>
+  <testcase name="registerRefusesDifferentOwnerForSameRunId" classname="app.amber.feature.runtime.RunOwnershipRegistryTest" time="0.0"/>
+  <testcase name="cancelUnknownOrFinishedRunIdIsRejected" classname="app.amber.feature.runtime.RunOwnershipRegistryTest" time="0.0"/>
+  <testcase name="resumeReRegistersSameOwner" classname="app.amber.feature.runtime.RunOwnershipRegistryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

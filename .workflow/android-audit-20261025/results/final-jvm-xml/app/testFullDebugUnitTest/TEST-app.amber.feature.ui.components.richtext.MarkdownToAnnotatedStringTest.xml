@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.598Z" hostname="duguangdeMBP.lan" time="0.081">
+  <properties/>
+  <testcase name="paragraphs join with gap lines between non-last paragraphs" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.042"/>
+  <testcase name="table uses settled columns and keeps ragged cells stable" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.002"/>
+  <testcase name="unclosed fence ignores the token cache" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.015"/>
+  <testcase name="nested list gets deeper bullet glyph" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="closed fenced code block renders cached highlight token colors" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.002"/>
+  <testcase name="ordered list keeps author numbering" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="mapped text corresponds to source after removing synthetic prefixes" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.002"/>
+  <testcase name="headings get H1 and H3 font sizes plus heading spacing gaps" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.002"/>
+  <testcase name="marker-only heading renders nothing" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="image renders as image placeholder label" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="inline link renders label with clickable annotation and opens url" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="bare url autolink renders italic clickable" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="disabled latex rendering keeps the original inline formula" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="unordered list prefixes bullets" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="blockquote wraps content with italic and settled background" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="indented code block passes raw span through" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="backslash escapes resolve in text leaves" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="image without alt uses localized placeholder label" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="horizontal rule renders as dash glyph" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="output never carries paragraph styles" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.003"/>
+  <testcase name="inline bold italic strikethrough and inline code spans" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="soft line break inside a paragraph is preserved" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="ragged table row gets the settled renderer empty cell" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="html block passes through raw" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="unknown tokens inside paragraph pass through raw" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.0"/>
+  <testcase name="task list items get checkbox prefixes" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="math fallback reuses settled delimiter normalization" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="collector emits closed fenced blocks with stable keys" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <testcase name="fenced code block renders body monospace with background" classname="app.amber.feature.ui.components.richtext.MarkdownToAnnotatedStringTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

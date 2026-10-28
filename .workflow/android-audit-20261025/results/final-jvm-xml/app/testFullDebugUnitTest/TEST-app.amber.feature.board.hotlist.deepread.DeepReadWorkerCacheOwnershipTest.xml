@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.deepread.DeepReadWorkerCacheOwnershipTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.902Z" hostname="duguangdeMBP.lan" time="0.059">
+  <properties/>
+  <testcase name="exhausted foreground failure cannot adopt another topics same title article" classname="app.amber.feature.board.hotlist.deepread.DeepReadWorkerCacheOwnershipTest" time="0.027"/>
+  <testcase name="generation admission failure cannot adopt another topics same title article" classname="app.amber.feature.board.hotlist.deepread.DeepReadWorkerCacheOwnershipTest" time="0.019"/>
+  <testcase name="generation admission failure retains the current topics ready sections" classname="app.amber.feature.board.hotlist.deepread.DeepReadWorkerCacheOwnershipTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

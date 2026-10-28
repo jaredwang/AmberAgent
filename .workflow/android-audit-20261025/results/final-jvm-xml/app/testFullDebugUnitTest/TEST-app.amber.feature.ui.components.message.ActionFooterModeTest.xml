@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ActionFooterModeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:56.127Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="streaming_last_message_reserves_footer_space" classname="app.amber.feature.ui.components.message.ActionFooterModeTest" time="0.002"/>
+  <testcase name="completed_last_message_shows_footer" classname="app.amber.feature.ui.components.message.ActionFooterModeTest" time="0.0"/>
+  <testcase name="user_messages_never_show_footer" classname="app.amber.feature.ui.components.message.ActionFooterModeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

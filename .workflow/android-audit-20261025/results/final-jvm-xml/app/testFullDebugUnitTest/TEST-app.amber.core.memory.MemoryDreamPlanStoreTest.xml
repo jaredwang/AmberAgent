@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryDreamPlanStoreTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.731Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="pendingPlanSurvivesUntilApplyOrDismiss" classname="app.amber.core.memory.MemoryDreamPlanStoreTest" time="0.009"/>
+  <testcase name="appliedRunIsAuditedWithoutDisturbingPendingPlan" classname="app.amber.core.memory.MemoryDreamPlanStoreTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.433Z" hostname="duguangdeMBP.lan" time="0.042">
+  <properties/>
+  <testcase name="claude manual thinking budget stays valid for low level auto and short output limit" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <testcase name="gemini independent calls without provider ids stay separate across events" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.009"/>
+  <testcase name="claude 4_5 uses manual thinking while adaptive models keep adaptive thinking" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.001"/>
+  <testcase name="anthropic consecutive redacted blocks both survive replay" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <testcase name="hosted image urls survive chat completion stream without data uri wrapping" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.004"/>
+  <testcase name="anthropic adjacent signed and redacted blocks retain their boundaries" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.004"/>
+  <testcase name="anthropic repeated block index belongs to different streams" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.005"/>
+  <testcase name="gemini complete inline images in separate events remain separate images" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <testcase name="gemini empty signed thought survives snapshot and replay" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <testcase name="gemini independent tool calls in different events keep their ids and arguments" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <testcase name="anthropic redacted block survives stream snapshot and tool replay" classname="app.amber.ai.provider.providers.ProviderStreamRoundTripRegressionTest" time="0.003"/>
+  <system-out><![CDATA[[awaitClose] 关闭eventSource 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

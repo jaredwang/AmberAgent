@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.sessionhome.SessionHomeRouteTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.532Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="chat backed Continue routes are blocked when their conversation is gone" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeRouteTest" time="0.001"/>
+  <testcase name="continue routes preserve their task focus" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeRouteTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

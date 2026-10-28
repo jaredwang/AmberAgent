@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:33.836Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="defaultModeSkipsExternalCoreSeatsUnlessExplicitlyAllowed" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.003"/>
+  <testcase name="explicitNonChatModelIsRejected" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.001"/>
+  <testcase name="defaultModeSkipsStaleAndNonChatDefaultSeats" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="loginHintDetectsUrlsCodesAndUserActionWithoutMarkingReady" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.001"/>
+  <testcase name="antigravityCliUsesAgyAndDoesNotAliasGeminiCli" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="unknownSeatStrategyIsRejected" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.001"/>
+  <testcase name="compareUsesOneRoundAndAutoInjectedSeats" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliFailureMessageRedactsLoginHints" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliCommandWrapsPromptAndRejectsUnsafeModelArg" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="optionalTemperatureIsParsedAndValidated" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="agentPlannedSeatsCanFallbackToCurrentChatModelWithoutDefaultSeats" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="agentPlannedSeatsCanIncludeGeminiCliParticipantWithoutDefaultSeats" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliSeatsRequireExplicitAllowFlagAndSafeModelArg" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.001"/>
+  <testcase name="explicitAndPlannedSeatsAcceptExtendedOutputBudgetWhenSettingAllowsIt" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="debateCanUseFiveRoundsEvenWithOldStoredMaxRounds" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliRegistryBuildsCommandsForSupportedTools" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="allExternalAgentPlannedSeatsStillRequireSynthesisChatModel" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="defaultModeFallsBackToCurrentChatModelWithoutDefaultSeats" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="agentPlannedSeatsResolveModelRefAndAutoRotateFallback" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliFailureMessageKeepsOrdinaryFailureTailBounded" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliHomeUsesTheSelectedHostsHome" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="agentPlannedSeatsDeduplicateSeatIds" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="externalCliRunnerTypeAliasDoesNotFallBackToGemini" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.001"/>
+  <testcase name="temporarySeatsCanUseRolePresets" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <testcase name="disabledModeRejectsStart" classname="app.amber.feature.modelcouncil.ModelCouncilValidatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

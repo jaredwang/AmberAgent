@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.store.MemoryProfileStoreTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.097Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="profile round-trips through the json file" classname="app.amber.core.memory.store.MemoryProfileStoreTest" time="0.004"/>
+  <testcase name="freshness requires recent enough and half the sources" classname="app.amber.core.memory.store.MemoryProfileStoreTest" time="0.001"/>
+  <testcase name="missing or corrupt file reads as null" classname="app.amber.core.memory.store.MemoryProfileStoreTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

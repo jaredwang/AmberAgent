@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.document.OfficeParserFixtureTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-18T06:48:42.853Z" hostname="duguangdeMacBook-Pro.local" time="2.164">
+  <properties/>
+  <testcase name="pptxFallbackSortsSlideBasenamesNumerically" classname="app.amber.document.OfficeParserFixtureTest" time="1.615"/>
+  <testcase name="pptxUsesRelationshipNamespaceRegardlessOfAttributeOrder" classname="app.amber.document.OfficeParserFixtureTest" time="0.018"/>
+  <testcase name="strictPptxDoesNotTreatAnEmptySlideLabelAsDocumentText" classname="app.amber.document.OfficeParserFixtureTest" time="0.009"/>
+  <testcase name="strictDocxThrowsForBrokenBodyXmlAndLeavesLegacyDiagnosticUnchanged" classname="app.amber.document.OfficeParserFixtureTest" time="0.012"/>
+  <testcase name="strictEpubEmptySpineHasNoBodyAndKeepsLegacyNoContentMessage" classname="app.amber.document.OfficeParserFixtureTest" time="0.008"/>
+  <testcase name="epubPreservesXhtmlNamedAndXmlEntities" classname="app.amber.document.OfficeParserFixtureTest" time="0.401"/>
+  <testcase name="strictDocxDoesNotTreatEmptyTableMarkupAsBody" classname="app.amber.document.OfficeParserFixtureTest" time="0.008"/>
+  <testcase name="docxReadsContentControlParagraphsAndTablesInOrderWithoutDuplicates" classname="app.amber.document.OfficeParserFixtureTest" time="0.01"/>
+  <testcase name="strictEpubDoesNotTreatEmptyHeadingsOrListItemsAsBody" classname="app.amber.document.OfficeParserFixtureTest" time="0.013"/>
+  <testcase name="epubIgnoresSourceIndentationBetweenBlocks" classname="app.amber.document.OfficeParserFixtureTest" time="0.008"/>
+  <testcase name="strictReadersThrowForDamagedArchivesWhileLegacyCallsKeepTheirDiagnostics" classname="app.amber.document.OfficeParserFixtureTest" time="0.01"/>
+  <testcase name="docxReadsParagraphListAndTable" classname="app.amber.document.OfficeParserFixtureTest" time="0.008"/>
+  <testcase name="pptxReportsWhenDeclaredSlidesAreMissing" classname="app.amber.document.OfficeParserFixtureTest" time="0.007"/>
+  <testcase name="epubPreservesWhitespaceBetweenInlineElements" classname="app.amber.document.OfficeParserFixtureTest" time="0.008"/>
+  <testcase name="pptxUsesPresentationSlideOrderAndReadsTable" classname="app.amber.document.OfficeParserFixtureTest" time="0.01"/>
+  <testcase name="strictPptxDoesNotTreatEmptyTableMarkupAsBody" classname="app.amber.document.OfficeParserFixtureTest" time="0.005"/>
+  <testcase name="epubUsesSpineOrder" classname="app.amber.document.OfficeParserFixtureTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.context.AgentCapabilitySnapshotBuilderTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.365Z" hostname="duguangdeMBP.lan" time="0.012">
+  <properties/>
+  <testcase name="compactSnapshotIncludesToolsAndTasks" classname="app.amber.core.context.AgentCapabilitySnapshotBuilderTest" time="0.007"/>
+  <testcase name="compactSnapshotMarksTruncation" classname="app.amber.core.context.AgentCapabilitySnapshotBuilderTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

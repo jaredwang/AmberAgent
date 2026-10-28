@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.DefaultRunKernelTest" tests="36" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.161Z" hostname="duguangdeMBP.lan" time="0.583">
+  <properties/>
+  <testcase name="high risk auto approval executes consecutive SSH and file calls without a user pause" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.026"/>
+  <testcase name="truncated reply with a tool call executes nothing and settles as OutputLimit" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="an in-batch twin after an already counted execution is the third occurrence and stops" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.017"/>
+  <testcase name="jev gate lets a low risk auto approved call run" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.035"/>
+  <testcase name="a persisted pending tool stops the loop before any model round" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="plain answer completes the loop with no terminal signal" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.013"/>
+  <testcase name="a fully denied batch continues to the next round instead of WaitingUser" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="durable mixed approval resume finalizes every prepared effect" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.021"/>
+  <testcase name="a failed call may be retried with identical args without tripping the guard" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="fresh wait calls keep observing until the job completes" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.017"/>
+  <testcase name="an approval-parked call resumes and executes in the follow-up run" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="low risk jev result preserves high risk setting resume behavior" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="auto-allowed tool executes inline and the loop reaches a final answer" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.019"/>
+  <testcase name="steer messages join the conversation between steps" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="narrowed session policy denies a shell tool at the boundary without executing it" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="same toolCallId re-emitted in the same run is a duplicate and is not re-executed" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.018"/>
+  <testcase name="jev rechecks a persisted pending call released by high risk settings" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="same-batch twins of a screen automation tool still dedupe" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="identical tool call is skipped once with a reminder then stops the run on the third" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="truncated plain-text reply still gets the output-limit note" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="approval-required tool parks the loop at WaitingUser" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.015"/>
+  <testcase name="jev gate turns a risky auto approved call back into a manual approval" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="stored response cursor is attached only to the first model round" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="cross-step identical screen automation calls all execute without tripping the guard" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="a third same-signature call inside one batch executes nothing and stops the run" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.015"/>
+  <testcase name="jev gate never asks about read only calls" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="high risk auto approval waits for a human answer before releasing a pending batch" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="high risk auto approval rechecks the whole persisted mixed batch" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="approval resume dispatches deferred auto siblings from the same batch" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.015"/>
+  <testcase name="reading a file after editing it observes the new contents" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <testcase name="two same-signature calls in one message execute once and the twin is skipped in-batch" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.013"/>
+  <testcase name="same tool with different args is never blocked" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.015"/>
+  <testcase name="completion check continues once with a visible user message" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.019"/>
+  <testcase name="deferred auto tool that becomes approval gated keeps the mixed batch waiting" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.014"/>
+  <testcase name="jev never rechecks a manually approved persisted call" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.013"/>
+  <testcase name="exhausting the step budget reports StepLimit, never silence" classname="app.amber.core.ai.DefaultRunKernelTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -270,6 +270,90 @@ class JevScreenGoalRunnerTest {
     }
 
     @Test
+    fun switchingForegroundPackageDuringAttachedCaptureDoesNotSendTheFrame() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.99)))
+        val controller = FakeAccessibilityController(snapshot("before-capture"))
+        val runner = JevScreenGoalRunner(
+            runtime = runtime(transport) {
+                settings(JevMode.ACTIVE, JevPurpose.SCREEN_AUTOMATION.requiredScopes + JevDataScope.SCREEN_SCREENSHOTS)
+            },
+            mainDispatcher = StandardTestDispatcher(testScheduler),
+            settle = {},
+            screenshotProvider = { reference ->
+                delay(10)
+                controller.current = snapshot("other-app", packageName = "com.other.app")
+                ScreenshotAttempt.Attached(JevImageAsset(reference, "png", byteArrayOf(1)))
+            },
+        )
+
+        val result = runner.run(
+            controller, "com.example.target", "open the article", emptyList(), "capture-package-change",
+        )
+
+        assertEquals("needs_user_action", status(result))
+        assertEquals("foreground_package_changed", result["reason"]!!.jsonPrimitive.content)
+        assertEquals("skipped:foreground_package_changed", result["image"]!!.jsonPrimitive.content)
+        assertEquals("No captured bytes may leave after the package scope changed", 0, transport.calls)
+        assertEquals(0, controller.actions.size)
+    }
+
+    @Test
+    fun changingModelDuringAttachedCaptureDoesNotSendTheFrameUnderNewConfiguration() = runTest {
+        var current = settings(
+            JevMode.ACTIVE, JevPurpose.SCREEN_AUTOMATION.requiredScopes + JevDataScope.SCREEN_SCREENSHOTS,
+        )
+        val transport = ScriptedTransport(mutableListOf(answer("handback")))
+        val controller = FakeAccessibilityController(snapshot("before-capture"))
+        val runner = JevScreenGoalRunner(
+            runtime = runtime(transport) { current },
+            mainDispatcher = StandardTestDispatcher(testScheduler),
+            settle = {},
+            screenshotProvider = { reference ->
+                delay(10)
+                current = current.copy(jev = current.jev.copy(model = "jev-latest"))
+                ScreenshotAttempt.Attached(JevImageAsset(reference, "png", byteArrayOf(1)))
+            },
+        )
+
+        val result = runner.run(
+            controller, "com.example.target", "open the article", emptyList(), "capture-model-change",
+        )
+
+        assertEquals("handback", status(result))
+        assertEquals("configuration_changed", result["reason"]!!.jsonPrimitive.content)
+        assertEquals("skipped:configuration_changed", result["image"]!!.jsonPrimitive.content)
+        assertEquals("A captured frame must not be sent using a changed model configuration", 0, transport.calls)
+        assertEquals(0, controller.actions.size)
+    }
+
+    @Test
+    fun attachedCaptureStillAllowsSamePackageDecisionWhenAxIdChanges() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("handback")))
+        val controller = FakeAccessibilityController(snapshot("before-capture"))
+        val runner = JevScreenGoalRunner(
+            runtime = runtime(transport) {
+                settings(JevMode.ACTIVE, JevPurpose.SCREEN_AUTOMATION.requiredScopes + JevDataScope.SCREEN_SCREENSHOTS)
+            },
+            mainDispatcher = StandardTestDispatcher(testScheduler),
+            settle = {},
+            screenshotProvider = { reference ->
+                delay(10)
+                controller.current = snapshot("same-package-updated")
+                ScreenshotAttempt.Attached(JevImageAsset(reference, "png", byteArrayOf(1)))
+            },
+        )
+
+        val result = runner.run(
+            controller, "com.example.target", "open the article", emptyList(), "capture-same-package-change",
+        )
+
+        assertEquals("handback", status(result))
+        assertEquals("jev_requested_handback", result["reason"]!!.jsonPrimitive.content)
+        assertEquals(1, transport.calls)
+        assertEquals(0, controller.actions.size)
+    }
+
+    @Test
     fun staleDecisionNeverDispatches() = runTest {
         var current = settings(JevMode.ACTIVE)
         val transport = ScriptedTransport(mutableListOf(answer("a0"))) {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.RunRecoveryServiceResumeTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:46.095Z" hostname="duguangdeMBP.lan" time="0.422">
+  <properties/>
+  <testcase name="completedStatusWithoutOutputUsesRealSuffixStreamAndFullTerminalSnapshot" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.044"/>
+  <testcase name="recoveryNetworkResultCannotOverwriteConversationCursorOrRuntimeAfterRestore" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.028"/>
+  <testcase name="completedStoredResponseSettlesAPausedProtocolRunRow" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.034"/>
+  <testcase name="unresolvableStoredResponseFallsBackToPhase1AndClearsCursor" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.014"/>
+  <testcase name="completedCursorAtTerminalUsesCompleteGetBeforeClearingCursor" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.032"/>
+  <testcase name="serverUnreachableKeepsPauseStatesAndFallsBackForRunningRuns" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.015"/>
+  <testcase name="missingCursorWithStartedEffectsFallsBackToPhase1Rules" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.017"/>
+  <testcase name="userToggleOffKeepsPhase1BehaviorForCursorBearingRun" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.014"/>
+  <testcase name="completedStatusWithoutOutputDoesNotPromoteSeedPartialToFinal" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.017"/>
+  <testcase name="inProgressStoredResponseUnparksAWaitingUserProtocolRow" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.02"/>
+  <testcase name="inProgressStoredResponseStaysResumableWithCursor" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.018"/>
+  <testcase name="completedStoredResponseAlsoSettlesTheProtocolRunRow" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.024"/>
+  <testcase name="realGenerationWritesCursorThenProcessDeathRecoveryRestores" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.031"/>
+  <testcase name="completedStoredResponseFetchesOnlyMissingEventsAndFinishesCompletedWithSameRunId" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.025"/>
+  <testcase name="inProgressStoredResponseParksTheProtocolRunRowResumable" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.021"/>
+  <testcase name="serverCompletedRunWithStartedEffectsKeepsEffectsHonestWithoutReExecution" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.024"/>
+  <testcase name="capabilityFlagOffKeepsPhase1BehaviorForCursorBearingRun" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.022"/>
+  <testcase name="serverCancelledRunWithStartedNonIdempotentEffectMarksOutcomeUnknown" classname="app.amber.feature.runtime.RunRecoveryServiceResumeTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

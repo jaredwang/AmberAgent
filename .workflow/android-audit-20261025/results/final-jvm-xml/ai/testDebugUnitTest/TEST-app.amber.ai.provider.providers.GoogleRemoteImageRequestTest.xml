@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.GoogleRemoteImageRequestTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:01.961Z" hostname="duguangdeMBP.lan" time="0.255">
+  <properties/>
+  <testcase name="streamFetchesRemoteImageBeforeEncodingRequest" classname="app.amber.ai.provider.providers.GoogleRemoteImageRequestTest" time="0.237"/>
+  <testcase name="oversizedImagePreventsGeneration" classname="app.amber.ai.provider.providers.GoogleRemoteImageRequestTest" time="0.009"/>
+  <testcase name="failedImageDownloadPreventsGenerationRatherThanDroppingAttachment" classname="app.amber.ai.provider.providers.GoogleRemoteImageRequestTest" time="0.004"/>
+  <testcase name="completeFetchesRemoteImageBeforeEncodingRequest" classname="app.amber.ai.provider.providers.GoogleRemoteImageRequestTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

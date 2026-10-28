@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.JevStatusToolTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.901Z" hostname="duguangdeMBP.lan" time="0.04">
+  <properties/>
+  <testcase name="metrics and runtime sections are always present" classname="app.amber.core.ai.tools.JevStatusToolTest" time="0.013"/>
+  <testcase name="configured settings surface modes scopes mask and model" classname="app.amber.core.ai.tools.JevStatusToolTest" time="0.006"/>
+  <testcase name="payload never embeds the raw api key" classname="app.amber.core.ai.tools.JevStatusToolTest" time="0.006"/>
+  <testcase name="default settings report disabled and every purpose off" classname="app.amber.core.ai.tools.JevStatusToolTest" time="0.007"/>
+  <testcase name="vercel mode reports api mode resolved endpoint and model nullability" classname="app.amber.core.ai.tools.JevStatusToolTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

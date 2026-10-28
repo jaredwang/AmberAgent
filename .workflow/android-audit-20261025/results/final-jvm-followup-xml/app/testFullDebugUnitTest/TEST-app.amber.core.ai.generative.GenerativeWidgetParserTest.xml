@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.generative.GenerativeWidgetParserTest" tests="30" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.784Z" hostname="duguangdeMBP.lan" time="0.017">
+  <properties/>
+  <testcase name="doesNotTreatPlainHtmlAsFullHtmlDeck" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="parsesFullHtmlRendererAndPreservesSpecHtml" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.005"/>
+  <testcase name="parsesAnimatedSvgWidgetVerbatim" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="fullHtmlQualityGateRejectsUnsafeSocialCardSet" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="hidesTruncatedLegacyDeckHtmlPayload" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="parsesWidgetBetweenMarkdownText" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="qualityGateRequiresFullHtmlRendererAndValidSpecForDecks" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="normalizesWrappedSlidesSpecForExpandedPreview" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.002"/>
+  <testcase name="rejectsUnsupportedSlidesLayout" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="rejectsDangerousSlidesObjectKeys" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="detectsRenderableWidget" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="inlineShowWidgetTextDoesNotTriggerWidgetParsing" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="validatesSlidesSpecV2LayoutAndFontPack" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="streamsFullHtmlCoverWidgetInsteadOfRawJson" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="malformedFinalWidgetFallsBackToText" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="recoversDeckHtmlFromWrongRendererAndStandaloneJson" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="rendersStructuredChartSpec" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.002"/>
+  <testcase name="qualityGateRequiresSlidesRendererForDecks" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="clampsStructuredChartNumbersToFiniteNonNegativeValues" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="recoversSocialCardSetAsFullHtmlDeck" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="extractsPartialWidgetCodeWhileStreaming" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="parsesWidgetFenceAliases" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="rendersStructuredFlowWithinViewBox" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="parsesLegacyGuizangRendererAsFullHtmlAlias" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="validatesWrappedSlidesSpec" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="streamsFullHtmlProgressInsteadOfRawJson" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="parsesNativeActionsAndFiltersUnsafeActions" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.001"/>
+  <testcase name="normalizesPagesWrappedSlidesSpecForExpandedPreview" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="hidesTruncatedFinalFullHtmlPayload" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <testcase name="rejectsPlaceholderWidgetAsRenderableWidget" classname="app.amber.core.ai.generative.GenerativeWidgetParserTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

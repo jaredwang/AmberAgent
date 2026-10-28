@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.terminal.SshClientTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:19.539Z" hostname="duguangdeMBP.lan" time="0.113">
+  <properties/>
+  <testcase name="private key does not delay ordinary command progress output" classname="app.amber.feature.terminal.SshClientTest" time="0.001"/>
+  <testcase name="streaming redaction hides a secret split across reads" classname="app.amber.feature.terminal.SshClientTest" time="0.055"/>
+  <testcase name="streaming redaction does not hold unbounded output when no secret exists" classname="app.amber.feature.terminal.SshClientTest" time="0.0"/>
+  <testcase name="untrusted profile is rejected before credentials are read" classname="app.amber.feature.terminal.SshClientTest" time="0.045"/>
+  <testcase name="every chunk boundary preserves text and redacts complete and partial secrets" classname="app.amber.feature.terminal.SshClientTest" time="0.005"/>
+  <testcase name="pinned repository returns changed for a different host key" classname="app.amber.feature.terminal.SshClientTest" time="0.001"/>
+  <testcase name="close before execute prevents credentials from being read" classname="app.amber.feature.terminal.SshClientTest" time="0.002"/>
+  <testcase name="fingerprint is lowercase sha256 of the ssh host key blob" classname="app.amber.feature.terminal.SshClientTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

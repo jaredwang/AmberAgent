@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveDraftFillerAccessibilityTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:35.890Z" hostname="duguangdeMBP.lan" time="0.049">
+  <properties/>
+  <testcase name="the real service readback mismatch triggers copy and suppresses another target write" classname="app.amber.feature.live.LiveDraftFillerAccessibilityTest" time="0.041"/>
+  <testcase name="the default adapter fills only after real service readback matches" classname="app.amber.feature.live.LiveDraftFillerAccessibilityTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

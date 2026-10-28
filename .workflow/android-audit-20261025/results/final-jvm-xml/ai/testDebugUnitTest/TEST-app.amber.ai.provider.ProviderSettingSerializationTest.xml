@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.ProviderSettingSerializationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:01.751Z" hostname="duguangdeMBP.lan" time="0.058">
+  <properties/>
+  <testcase name="old api key data remains api key when auth mode is absent" classname="app.amber.ai.provider.ProviderSettingSerializationTest" time="0.037"/>
+  <testcase name="antigravity auth mode uses stable wire value" classname="app.amber.ai.provider.ProviderSettingSerializationTest" time="0.021"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

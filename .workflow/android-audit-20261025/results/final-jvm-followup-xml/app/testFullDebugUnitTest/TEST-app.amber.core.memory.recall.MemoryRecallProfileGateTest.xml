@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.recall.MemoryRecallProfileGateTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.677Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="enabledMemoryStillIncludesAFreshProfileWithoutIndividualRecords" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.003"/>
+  <testcase name="disablingEveryMemoryScopeSuppressesTheStoredUserProfile" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.002"/>
+  <testcase name="aFreshnessQuorumDoesNotPermitFactsFromAnArchivedSource" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.002"/>
+  <testcase name="disablingASourceScopeSuppressesTheMixedProfile" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.001"/>
+  <testcase name="sourceLessLegacyProfileRequiresAllScopesToBeEnabled" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.001"/>
+  <testcase name="expiredSourcesCannotKeepAProfileInRecall" classname="app.amber.core.memory.recall.MemoryRecallProfileGateTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

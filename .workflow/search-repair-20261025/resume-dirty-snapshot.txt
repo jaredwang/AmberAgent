@@ -1,0 +1,73 @@
+ M app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceManagerMirrorIsolationTest.kt
+ M app/src/test/java/app/amber/agent/data/context/ConversationContextPlannerTest.kt
+ M app/src/test/java/app/amber/agent/data/memory/MemoryCandidateFilterTest.kt
+ M app/src/test/java/app/amber/agent/data/memory/MemoryDreamPlannerTest.kt
+ M app/src/test/java/app/amber/agent/data/memory/MemoryImportExportTest.kt
+ M app/src/test/java/app/amber/agent/data/sync/SecretBackupExportTest.kt
+ M app/src/test/java/app/amber/core/service/NotificationApprovalDispatchTest.kt
+ M app/src/test/java/app/amber/core/sync/provider/WebDavSyncProviderTest.kt
+ M app/src/test/java/app/amber/feature/subagent/SubAgentThreadGraphIntegrationTest.kt
+ M app/src/test/java/app/amber/feature/terminal/TerminalAdmissionTest.kt
+ M core/settings/src/test/kotlin/app/amber/core/settings/prefs/SettingsAggregatorHelpersTest.kt
+ M core/settings/src/test/kotlin/app/amber/core/settings/secret/SecretPrefsChainRoundTripTest.kt
+ M core/settings/src/test/kotlin/app/amber/core/settings/secret/SettingsSecretMigrationTest.kt
+ M feature/tools/api/src/test/kotlin/app/amber/feature/tools/ExternalActionEffectPolicyTest.kt
+ M feature/workspace/src/main/kotlin/app/amber/feature/workspace/WorkspaceManager.kt
+?? .workflow/android-audit-20261025/findings.md
+?? .workflow/android-audit-20261025/logs/baseline-jvm.log
+?? .workflow/android-audit-20261025/logs/baseline-online.log
+?? .workflow/android-audit-20261025/logs/native.log
+?? .workflow/android-audit-20261025/logs/parser-offset-probe.rs
+?? .workflow/android-audit-20261025/logs/phase1-red.log
+?? .workflow/android-audit-20261025/plan.md
+?? .workflow/android-audit-20261025/results/audit-background.md
+?? .workflow/android-audit-20261025/results/audit-council.md
+?? .workflow/android-audit-20261025/results/audit-data.md
+?? .workflow/android-audit-20261025/results/audit-jev.md
+?? .workflow/android-audit-20261025/results/audit-memory-context.md
+?? .workflow/android-audit-20261025/results/audit-novel-domain.md
+?? .workflow/android-audit-20261025/results/audit-novel-storage.md
+?? .workflow/android-audit-20261025/results/audit-providers.md
+?? .workflow/android-audit-20261025/results/audit-response-api.md
+?? .workflow/android-audit-20261025/results/audit-runtime.md
+?? .workflow/android-audit-20261025/results/audit-sync.md
+?? .workflow/android-audit-20261025/results/audit-terminal.md
+?? .workflow/android-audit-20261025/results/audit-tools.md
+?? .workflow/android-audit-20261025/results/audit-ui.md
+?? .workflow/android-audit-20261025/results/audit-web-jev.md
+?? .workflow/android-audit-20261025/results/baseline-verification.md
+?? .workflow/android-audit-20261025/results/phase1-data.md
+?? .workflow/android-audit-20261025/results/phase1-memory.md
+?? .workflow/android-audit-20261025/results/phase1-runtime.md
+?? .workflow/android-audit-20261025/results/phase1-sync.md
+?? .workflow/android-audit-20261025/results/phase1-terminal-mirror.md
+?? .workflow/android-audit-20261025/results/phase1-tools.md
+?? .workflow/android-audit-20261025/results/phase2-provider.md
+?? .workflow/android-audit-20261025/results/phase2-responses.md
+?? .workflow/android-audit-20261025/results/phase2-search-app.md
+?? .workflow/android-audit-20261025/results/verify-background.md
+?? .workflow/android-audit-20261025/results/verify-data.md
+?? .workflow/android-audit-20261025/results/verify-memory-storage.md
+?? .workflow/android-audit-20261025/results/verify-novel-ui.md
+?? .workflow/android-audit-20261025/results/verify-parsers.md
+?? .workflow/android-audit-20261025/results/verify-providers.md
+?? .workflow/android-audit-20261025/results/verify-runtime.md
+?? .workflow/android-audit-20261025/results/verify-search.md
+?? .workflow/android-audit-20261025/results/verify-tools.md
+?? .workflow/android-audit-20261025/results/verify-web.md
+?? .workflow/android-audit-20261025/state.json
+?? .workflow/search-repair-20261025/plan.md
+?? .workflow/search-repair-20261025/state.json
+?? ai/src/test/java/app/amber/ai/provider/providers/ProviderBodyCancellationTest.kt
+?? ai/src/test/java/app/amber/ai/provider/providers/ProviderContentReplayTest.kt
+?? ai/src/test/java/app/amber/ai/provider/providers/openai/ResponseAPIStoredProtocolRegressionTest.kt
+?? ai/src/test/java/app/amber/ai/util/KeyRouletteTest.kt
+?? app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceDocumentsWriteTest.kt
+?? app/src/test/java/app/amber/agent/data/ai/tools/SearchAuditRegressionTest.kt
+?? app/src/test/java/app/amber/agent/data/memory/MemoryDreamPlannerVisibleInputsTest.kt
+?? app/src/test/java/app/amber/feature/board/hotlist/deepread/DeepReadSearchFallbackTest.kt
+?? app/src/test/java/app/amber/feature/runtime/ToolInvocationRecoveryRegressionTest.kt
+?? app/src/test/java/app/amber/feature/tools/WorkspaceArtifactHttpRequestTest.kt
+?? app/src/test/java/app/amber/feature/ui/components/message/SubAgentCitationInteractionTest.kt
+?? search/src/test/java/app/amber/search/SearchBodyCancellationTest.kt
+?? search/src/test/java/app/amber/search/SearchProviderProtocolRegressionTest.kt

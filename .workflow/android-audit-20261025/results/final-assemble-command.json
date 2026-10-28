@@ -1,0 +1,16 @@
+{
+  "args": [
+    "./gradlew",
+    "--offline",
+    "--continue",
+    "--max-workers=3",
+    ":app:assembleFullDebug",
+    ":app:assembleNovelDebug",
+    ":app:assembleDeepreadDebug"
+  ],
+  "JAVA_HOME": "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
+  "started": "2026-10-25T16:16:06.810327+00:00",
+  "fixture_props": false,
+  "jni_exclusions": false,
+  "source_hash": "7a99d306761f2a0e10642c2b8ec842884c9a077e99fae4fd460fd1cee5947661"
+}

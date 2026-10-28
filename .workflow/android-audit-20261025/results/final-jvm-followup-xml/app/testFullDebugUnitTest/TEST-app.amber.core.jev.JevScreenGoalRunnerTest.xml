@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevScreenGoalRunnerTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.242Z" hostname="duguangdeMBP.lan" time="0.042">
+  <properties/>
+  <testcase name="noProgressStopsAtBoundedTwoActions" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.009"/>
+  <testcase name="staleDecisionNeverDispatches" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="cancellationDuringSuspendedDecisionProducesNoAction" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.006"/>
+  <testcase name="unsafeDecisionHandsBackWithoutDispatch" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="durationLimitIsHardBeforeAnyAction" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="stepLimitIsHard" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="offModeDoesNotReadScreenOrUseNetwork" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.001"/>
+  <testcase name="shadowModeAndDryRunNeverDispatchActions" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="wrongForegroundPackageIsNeverSentToJev" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.001"/>
+  <testcase name="switchingForegroundPackageDuringAttachedCaptureDoesNotSendTheFrame" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="twoActionsThenFreshDoneCompletes" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="candidatesExcludeSensitiveAndDisabledNodes" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.001"/>
+  <testcase name="changingModelDuringAttachedCaptureDoesNotSendTheFrameUnderNewConfiguration" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.001"/>
+  <testcase name="configurationChangingAfterDecisionStillNeverDispatches" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="attachedCaptureStillAllowsSamePackageDecisionWhenAxIdChanges" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="unknownReceiptStopsWithoutReplay" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <testcase name="missingScopeDoesNotReadScreenOrSendContent" classname="app.amber.core.jev.JevScreenGoalRunnerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

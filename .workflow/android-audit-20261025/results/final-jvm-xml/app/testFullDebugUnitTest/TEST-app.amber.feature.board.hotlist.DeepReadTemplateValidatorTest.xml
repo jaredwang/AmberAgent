@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.923Z" hostname="duguangdeMBP.lan" time="0.057">
+  <properties/>
+  <testcase name="customRendererTreatsPlaceholderSyntaxInArticleTextLiterally" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.035"/>
+  <testcase name="customTemplateRejectsHeroImagePlaceholderOutsideImgSrc" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="rejectsEmbeddedAndExternalResources" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="customTemplateRejectsBlockPlaceholderInsideAttributes" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="customTemplateRequiresTitleAndSummaryPlaceholders" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="customRendererFillsPlaceholdersWithoutInventedImages" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="diagramRendererUsesReadableHtmlInsteadOfRawSvg" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.002"/>
+  <testcase name="rendererConvertsMarkdownFormattingInArticleBody" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.012"/>
+  <testcase name="acceptsStaticHtmlAndCss" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="rejectsScriptAndEventHandlers" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="customTemplateRejectsBlockPlaceholderInsideStyle" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="sourceEditKeepsLastValidDraftWhenInvalid" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="customTemplateRejectsHardcodedExternalLinksAndResources" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <testcase name="customRendererUsesHeroOnlyWhenConfidenceIsHero" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="rendererUsesOnlyVerifiedImageAssets" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.001"/>
+  <testcase name="customTemplateRejectsPlaceholderLinksAndStyleAttributes" classname="app.amber.feature.board.hotlist.DeepReadTemplateValidatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

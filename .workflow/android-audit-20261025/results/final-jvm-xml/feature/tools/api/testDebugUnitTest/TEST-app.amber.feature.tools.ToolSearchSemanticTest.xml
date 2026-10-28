@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.ToolSearchSemanticTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:26.092Z" hostname="duguangdeMBP.lan" time="0.243">
+  <properties/>
+  <testcase name="shadowResultKeepsLexicalMatches" classname="app.amber.feature.tools.ToolSearchSemanticTest" time="0.221"/>
+  <testcase name="appliedSemanticReplacesMatchesAndMarksTrace" classname="app.amber.feature.tools.ToolSearchSemanticTest" time="0.006"/>
+  <testcase name="nullResultKeepsLexicalWithoutTrace" classname="app.amber.feature.tools.ToolSearchSemanticTest" time="0.007"/>
+  <testcase name="smallCatalogNeverCallsSemantic" classname="app.amber.feature.tools.ToolSearchSemanticTest" time="0.003"/>
+  <testcase name="exactToolNameSkipsSemantic" classname="app.amber.feature.tools.ToolSearchSemanticTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

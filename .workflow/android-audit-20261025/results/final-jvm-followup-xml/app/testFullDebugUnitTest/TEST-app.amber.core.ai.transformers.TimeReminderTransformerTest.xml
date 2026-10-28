@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.transformers.TimeReminderTransformerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.764Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="gap less than 1 hour should not inject" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.001"/>
+  <testcase name="gap more than 1 hour should inject time reminder before second message" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.004"/>
+  <testcase name="single message should not inject time reminder" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <testcase name="empty messages should return empty" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <testcase name="gap in days should format correctly" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <testcase name="multiple large gaps should inject multiple reminders" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <testcase name="injected message should contain day of week and gap in hours" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <testcase name="gap exactly 1 hour should not inject" classname="app.amber.core.ai.transformers.TimeReminderTransformerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -142,9 +142,9 @@ class CouncilRoomVM(
         _answerError.value = null
     }
 
-    fun resumeAfterUserAnswer(answer: String) {
+    fun resumeAfterUserAnswer(questionId: String, answer: String) {
         viewModelScope.launch {
-            when (val result = manager.resumeAfterUserAnswer(cid, answer)) {
+            when (val result = manager.resumeAfterUserAnswer(cid, answer, questionId)) {
                 is CouncilRoomOpResult.Err -> {
                     android.util.Log.w(
                         "CouncilRoomVM",

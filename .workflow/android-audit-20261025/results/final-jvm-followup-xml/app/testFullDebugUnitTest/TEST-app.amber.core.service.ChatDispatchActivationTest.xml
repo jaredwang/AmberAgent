@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatDispatchActivationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.130Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="cancellation while the resume gate is pending releases the dispatch" classname="app.amber.core.service.ChatDispatchActivationTest" time="0.002"/>
+  <testcase name="ordinary approval resume waits for its activation before accepting another pause" classname="app.amber.core.service.ChatDispatchActivationTest" time="0.001"/>
+  <testcase name="automatic resume retains its activation barrier" classname="app.amber.core.service.ChatDispatchActivationTest" time="0.001"/>
+  <testcase name="fresh dispatch accepts its first terminal snapshot" classname="app.amber.core.service.ChatDispatchActivationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

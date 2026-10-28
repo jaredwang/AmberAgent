@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -109,6 +110,11 @@ class ChatTurnAgentTest {
         ) {
             updates += conversation
             flow.value = conversation
+        }
+
+        override fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) {
+            flow.update(update)
+            updates += flow.value
         }
 
         override suspend fun saveConversation(conversationId: Uuid, conversation: Conversation) {}

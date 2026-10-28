@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.theme.ThemePackTransferTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:15.777Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="legacy opaque ARGB exports exactly and transparent color is never silently replaced" classname="app.amber.feature.ui.theme.ThemePackTransferTest" time="0.001"/>
+  <testcase name="Pi and Notion presets match the iOS recipes and pass validation" classname="app.amber.feature.ui.theme.ThemePackTransferTest" time="0.0"/>
+  <testcase name="JSON string design from provider is decoded and validated before preview" classname="app.amber.feature.ui.theme.ThemePackTransferTest" time="0.005"/>
+  <testcase name="new core palette fills portable style slots when provider omits them" classname="app.amber.feature.ui.theme.ThemePackTransferTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

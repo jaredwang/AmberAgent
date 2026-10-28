@@ -75,4 +75,12 @@ object NovelWorkspacePaths {
         require(segments.none { it == ".." }) { "Workspace path escapes the tree: $path" }
         require(segments.none { it.startsWith(".") }) { "Workspace path is hidden: $path" }
     }
+
+    /** A saved book file must also participate in list, ledger, checkout and export. */
+    fun validateFile(path: String) {
+        validate(path)
+        require(path.endsWith(".md") || path.endsWith(".yaml")) {
+            "Workspace book files must use .md or .yaml: $path"
+        }
+    }
 }

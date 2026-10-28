@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:00.046Z" hostname="duguangdeMBP.lan" time="0.555">
+  <properties/>
+  <testcase name="backslashBeforeNonPunctuationStaysLiteral" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.07"/>
+  <testcase name="nativeTaskItemRendersCheckboxAndExcludesMarkerText" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.128"/>
+  <testcase name="escapedPunctuationRendersLiterallyWithoutEmphasis" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.055"/>
+  <testcase name="headingPreservesInteriorSpacesAroundPunctuation" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.04"/>
+  <testcase name="nativeOrderedListStartRendersSourceNumbers" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.07"/>
+  <testcase name="escapeInsideInlineCodeStaysRaw" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.066"/>
+  <testcase name="nestedFirstListItemRendersWithoutStrayMarker" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.052"/>
+  <testcase name="headingTrimsOuterWhitespaceButKeepsInterior" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.035"/>
+  <testcase name="markerOnlyHeadingRendersEmpty" classname="app.amber.feature.ui.components.richtext.tree.MarkdownEdgeShapeRenderTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

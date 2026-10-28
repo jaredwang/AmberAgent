@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:59.897Z" hostname="duguangdeMBP.lan" time="1.689">
+  <properties/>
+  <testcase name="dot-prefixed character proposal writes a visible markdown card and preserves its display title" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.362"/>
+  <testcase name="consistency failure saves an incomplete host report and can run again" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.11"/>
+  <testcase name="send stop keeps the accepted user message visible" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.065"/>
+  <testcase name="collaboration mode persists across reload and reopen and cannot change during a turn" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.092"/>
+  <testcase name="interactive discussion sends previous branch dialogue once and audits stay isolated" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.082"/>
+  <testcase name="ordinary provider failure retains partial output in the visible session" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.049"/>
+  <testcase name="missing single polish chapter reports an error without generating" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.03"/>
+  <testcase name="failure on the second chapter keeps the first review and a retry completes the book" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.077"/>
+  <testcase name="restore drops an old partial audit instead of adding it to the imported session" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.061"/>
+  <testcase name="rewrite provider failure is visible and the next rewrite is executable" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.049"/>
+  <testcase name="followup after provider failure preserves user order without treating interrupted output as a reply" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.056"/>
+  <testcase name="stopping a followup before new output does not recover the preceding assistant reply" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.055"/>
+  <testcase name="stopping a two chapter audit retains validated progress and reopens its report" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.063"/>
+  <testcase name="chapter save queued before restore cannot overwrite the imported chapter" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.052"/>
+  <testcase name="consistency stop clears both operation flags and can run again" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.069"/>
+  <testcase name="rewrite stop clears busy and can start another turn" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.048"/>
+  <testcase name="single chapter polish creates a candidate without opening an automatic job" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.047"/>
+  <testcase name="undo queued before restore cannot remove the imported chapter" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.038"/>
+  <testcase name="saving candidate can collect after the successful save callback" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.047"/>
+  <testcase name="switching branch after a deep link does not reapply the initial focus" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.042"/>
+  <testcase name="accepted send with a session write failure reports an error instead of escaping its coroutine" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.032"/>
+  <testcase name="repeated character proposal keeps the extension and leaves both same-title cards visible" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.065"/>
+  <testcase name="branch creation queued before restore cannot fork the restored manuscript" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.035"/>
+  <testcase name="invalid audit JSON clears operation flags without presenting raw output and allows retry" classname="app.amber.feature.ui.pages.novel.NovelMarkdownWorkspaceViewModelTest" time="0.063"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSpeechEngineTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.898Z" hostname="duguangdeMBP.lan" time="0.039">
+  <properties/>
+  <testcase name="pause during initialization rejects late success even when foreground again" classname="app.amber.feature.miniapp.MiniAppSpeechEngineTest" time="0.017"/>
+  <testcase name="foreground guard rejects speech before creating an engine" classname="app.amber.feature.miniapp.MiniAppSpeechEngineTest" time="0.006"/>
+  <testcase name="completion callback only clears the active utterance" classname="app.amber.feature.miniapp.MiniAppSpeechEngineTest" time="0.009"/>
+  <testcase name="close during initialization rejects late success and shuts engine down" classname="app.amber.feature.miniapp.MiniAppSpeechEngineTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

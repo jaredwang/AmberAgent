@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.model.MessageNodeTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.108Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="invalidSelectIndexFailsFast" classname="app.amber.core.model.MessageNodeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

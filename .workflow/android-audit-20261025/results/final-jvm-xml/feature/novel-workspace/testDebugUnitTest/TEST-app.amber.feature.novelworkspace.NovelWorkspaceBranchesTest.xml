@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:49.853Z" hostname="duguangdeMBP.lan" time="0.709">
+  <properties/>
+  <testcase name="switchBranch refuses while any batch job is alive" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.117"/>
+  <testcase name="activeSlug falls back to the first existing branch when the main branch directory is missing" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.031"/>
+  <testcase name="list marks the current and main branch rows" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.043"/>
+  <testcase name="createBranch refuses while any batch job is alive" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.056"/>
+  <testcase name="book export reads the requested branch and defaults to the main branch" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.042"/>
+  <testcase name="dangling polish heal shape follows the branch ancestry too" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.097"/>
+  <testcase name="branch plot staleness survives commits on other branches" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.093"/>
+  <testcase name="active marker round-trips and falls back to the main branch" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.054"/>
+  <testcase name="activeSlug keeps the manifest main branch when no branch exists at all" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.007"/>
+  <testcase name="createBranch copies the working subtree and lands a fork commit" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.04"/>
+  <testcase name="installer registers a head for every branch shipped with branch md" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.015"/>
+  <testcase name="unresolved gate stays isolated per branch" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.051"/>
+  <testcase name="createBranch rejects dot-leading and dot-only names" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.026"/>
+  <testcase name="createBranch refuses conflicts and blank names" classname="app.amber.feature.novelworkspace.NovelWorkspaceBranchesTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

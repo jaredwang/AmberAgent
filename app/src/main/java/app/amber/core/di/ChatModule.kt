@@ -100,8 +100,7 @@ val chatModule = module {
             context = get(),
             settingsStore = get(),
             providerCatalog = get(),
-            conversationRepo = get(),
-            conversationAccess = get<ConversationStore>(),
+            conversationStore = get(),
             restoreWriteGate = get(),
         )
     }

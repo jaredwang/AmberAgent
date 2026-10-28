@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:07.728Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="validLocalHttpProviderRemainsUsable" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.001"/>
+  <testcase name="vertexServiceAccountDoesNotRequireApiKey" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <testcase name="oauthUsesStoredSessionInsteadOfApiKey" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.003"/>
+  <testcase name="grokOAuthRequiresGrokSignInWhenSessionIsMissing" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <testcase name="antigravityAuthStatusTreatsRefreshableExpiryAsUsable" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.001"/>
+  <testcase name="modelOverrideUsesItsOwnConfiguration" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <testcase name="grokAuthStatusTreatsRefreshableExpiryAsUsable" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <testcase name="missingProviderAndModelHaveDifferentRepairActions" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <testcase name="configurationErrorsAreSpecific" classname="app.amber.feature.ui.pages.chat.ChatConfigurationIssueTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

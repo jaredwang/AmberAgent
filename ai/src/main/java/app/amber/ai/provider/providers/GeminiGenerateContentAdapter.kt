@@ -163,7 +163,7 @@ internal class GeminiGenerateContentAdapter(
                     metadata = part.thoughtSignatureMetadata(),
                 )
             } else {
-                UIMessagePart.Text(text)
+                UIMessagePart.Text(text, metadata = part.thoughtSignatureMetadata())
             }
         }
 
@@ -338,7 +338,10 @@ internal class GeminiGenerateContentAdapter(
     }
 
     private fun encodePart(part: UIMessagePart): JsonObject? = when (part) {
-        is UIMessagePart.Text -> buildJsonObject { put("text", part.text) }
+        is UIMessagePart.Text -> buildJsonObject {
+            put("text", part.text)
+            part.metadata?.string("thoughtSignature")?.let { put("thoughtSignature", it) }
+        }
         is UIMessagePart.Reasoning -> buildJsonObject {
             put("text", part.reasoning)
             put("thought", true)

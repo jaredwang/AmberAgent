@@ -1,0 +1,7 @@
+allprojects { p ->
+    p.tasks.withType(org.gradle.api.tasks.testing.Test).configureEach {
+        reports.junitXml.outputLocation.set(p.layout.buildDirectory.dir('test-results/search-owner/' + name))
+        reports.html.outputLocation.set(p.layout.buildDirectory.dir('reports/tests/search-owner/' + name))
+        binaryResultsDirectory.set(p.layout.buildDirectory.dir('test-results/search-owner-binary/' + name))
+    }
+}

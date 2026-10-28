@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppAndroidDeviceCapabilitiesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:36.113Z" hostname="duguangdeMBP.lan" time="0.215">
+  <properties/>
+  <testcase name="waveform capabilities dispatch without invalid timing arrays" classname="app.amber.feature.miniapp.MiniAppAndroidDeviceCapabilitiesTest" time="0.083"/>
+  <testcase name="screen brightness is returned as the contract scalar" classname="app.amber.feature.miniapp.MiniAppAndroidDeviceCapabilitiesTest" time="0.033"/>
+  <testcase name="generated QR payload decodes through the existing ZXing reader" classname="app.amber.feature.miniapp.MiniAppAndroidDeviceCapabilitiesTest" time="0.099"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

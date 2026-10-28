@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceManifestTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.444Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="unknown format and version fail the gate" classname="app.amber.feature.novelworkspace.NovelWorkspaceManifestTest" time="0.0"/>
+  <testcase name="missing optional fields fall back to defaults" classname="app.amber.feature.novelworkspace.NovelWorkspaceManifestTest" time="0.0"/>
+  <testcase name="parse round-trips the rendered manifest" classname="app.amber.feature.novelworkspace.NovelWorkspaceManifestTest" time="0.0"/>
+  <testcase name="render emits sorted keys, bare numbers, nested source" classname="app.amber.feature.novelworkspace.NovelWorkspaceManifestTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

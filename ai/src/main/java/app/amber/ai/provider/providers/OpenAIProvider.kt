@@ -455,11 +455,15 @@ class OpenAIProvider(
             .post(buildImagesGenerationsBody(params).toRequestBody("application/json".toMediaType()))
             .build()
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            error("Failed to generate image: ${response.code} ${response.body?.string()}")
+        val bodyStr = withCancellableCall {
+            awaitResponse(client.newCall(request)).use { response ->
+                if (!response.isSuccessful) {
+                    error("Failed to generate image: ${response.code} ${response.body?.string()}")
+                }
+                response.body?.string().orEmpty()
+            }
         }
-        return parseImagesResponseBody(response.body?.string() ?: "")
+        return parseImagesResponseBody(bodyStr)
     }
 
     /**
@@ -482,11 +486,15 @@ class OpenAIProvider(
             .post(buildImagesEditMultipart(params))
             .build()
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            error("Failed to edit image: ${response.code} ${response.body?.string()}")
+        val bodyStr = withCancellableCall {
+            awaitResponse(client.newCall(request)).use { response ->
+                if (!response.isSuccessful) {
+                    error("Failed to edit image: ${response.code} ${response.body?.string()}")
+                }
+                response.body?.string().orEmpty()
+            }
         }
-        return parseImagesResponseBody(response.body?.string() ?: "")
+        return parseImagesResponseBody(bodyStr)
     }
 
     /**

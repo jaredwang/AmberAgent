@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.tools.MemoryRunToolFactoryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.432Z" hostname="duguangdeMBP.lan" time="0.047">
+  <properties/>
+  <testcase name="listing hides expired and archived records without losing other scopes" classname="app.amber.core.service.tools.MemoryRunToolFactoryTest" time="0.021"/>
+  <testcase name="tool write binds source and run while stale edit never overwrites Room" classname="app.amber.core.service.tools.MemoryRunToolFactoryTest" time="0.017"/>
+  <testcase name="disabling all memory scopes removes the writable tool surface" classname="app.amber.core.service.tools.MemoryRunToolFactoryTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

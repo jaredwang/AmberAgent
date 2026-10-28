@@ -172,21 +172,23 @@ object ConversationContextPlanner {
         messages: List<UIMessage>,
         maxTokens: Int,
     ): List<UIMessage> {
-        if (maxTokens <= 0 || messages.isEmpty()) return messages.takeLast(1)
+        if (messages.isEmpty()) return emptyList()
         if (estimateTokens(messages) <= maxTokens) return messages
 
         val systemMessages = messages.filter { it.role == MessageRole.SYSTEM }
         val tail = messages.filter { it.role != MessageRole.SYSTEM }
-        val selected = mutableListOf<UIMessage>()
+        if (tail.isEmpty()) return systemMessages
+        // The live request and its tool continuation are one unit. A soft target
+        // may trim older history, but only the final provider gate may reject this unit.
+        val currentTurnStart = tail.indexOfLast { it.role == MessageRole.USER }
+            .takeIf { it >= 0 } ?: tail.lastIndex
+        val selected = tail.drop(currentTurnStart).toMutableList()
 
-        for (message in tail.asReversed()) {
+        for (message in tail.take(currentTurnStart).asReversed()) {
             selected.add(0, message)
             val candidate = systemMessages + selected
             if (estimateTokens(candidate) > maxTokens) {
                 selected.removeAt(0)
-                if (selected.isEmpty()) {
-                    selected.add(0, message)
-                }
                 break
             }
         }

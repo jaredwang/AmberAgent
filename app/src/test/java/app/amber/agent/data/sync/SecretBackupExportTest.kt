@@ -15,6 +15,7 @@ import app.amber.core.settings.secret.SecretStoreBackend
 import app.amber.core.sync.core.SyncMode
 import app.amber.core.sync.core.SyncRedactor
 import app.amber.core.sync.encodeSettingsForBackup
+import app.amber.search.SearchServiceOptions
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -114,6 +115,84 @@ class SecretBackupExportTest {
         assertFalse(json.contains("mcp-export-token"))
         assertFalse(json.contains("dav-export-pass"))
         assertFalse(json.contains("s3-export-secret"))
+    }
+
+    @Test
+    fun `standard restore keeps local WebDAV username and password at the same endpoint`() {
+        val local = runtimeSettings()
+
+        val restored = SyncRedactor(JsonInstant).decodeSettingsForRestore(
+            settingsJson = exportedSettingsJson(local, SyncMode.STANDARD),
+            mode = SyncMode.STANDARD,
+            localSettings = local,
+        )
+
+        assertEquals(local.webDavConfig.username, restored.webDavConfig.username)
+        assertEquals(local.webDavConfig.password, restored.webDavConfig.password)
+    }
+
+    @Test
+    fun `standard restore keeps local SearXNG credentials for the same service`() {
+        val service = SearchServiceOptions.SearXNGOptions(
+            url = "https://search.example",
+            username = "search-user",
+            password = "search-password",
+        )
+        val local = runtimeSettings().copy(searchServices = listOf(service))
+
+        val restored = SyncRedactor(JsonInstant).decodeSettingsForRestore(
+            settingsJson = exportedSettingsJson(local, SyncMode.STANDARD),
+            mode = SyncMode.STANDARD,
+            localSettings = local,
+        )
+
+        val restoredService = restored.searchServices.single() as SearchServiceOptions.SearXNGOptions
+        assertEquals(service.username, restoredService.username)
+        assertEquals(service.password, restoredService.password)
+    }
+
+    @Test
+    fun `standard restore does not copy local credentials to a different endpoint`() {
+        val service = SearchServiceOptions.SearXNGOptions(
+            url = "https://search.example",
+            username = "search-user",
+            password = "search-password",
+        )
+        val local = runtimeSettings().copy(searchServices = listOf(service))
+        val exported = local.copy(
+            webDavConfig = local.webDavConfig.copy(url = "https://other-dav.example"),
+            searchServices = listOf(service.copy(url = "https://other-search.example")),
+        )
+
+        val restored = SyncRedactor(JsonInstant).decodeSettingsForRestore(
+            settingsJson = exportedSettingsJson(exported, SyncMode.STANDARD),
+            mode = SyncMode.STANDARD,
+            localSettings = local,
+        )
+
+        assertEquals("", restored.webDavConfig.username)
+        assertEquals("", restored.webDavConfig.password)
+        val restoredService = restored.searchServices.single() as SearchServiceOptions.SearXNGOptions
+        assertEquals("", restoredService.username)
+        assertEquals("", restoredService.password)
+    }
+
+    @Test
+    fun `standard restore does not reuse a password when a legacy plaintext username differs`() {
+        val local = runtimeSettings()
+        val exported = local.copy(webDavConfig = local.webDavConfig.copy(
+            username = "other-user",
+            password = "__MASKED_BY_AMBERAGENT_SYNC__",
+        ))
+
+        val restored = SyncRedactor(JsonInstant).decodeSettingsForRestore(
+            settingsJson = JsonInstant.encodeToString(exported),
+            mode = SyncMode.STANDARD,
+            localSettings = local,
+        )
+
+        assertEquals("other-user", restored.webDavConfig.username)
+        assertEquals("", restored.webDavConfig.password)
     }
 
     @Test

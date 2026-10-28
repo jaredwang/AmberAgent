@@ -65,7 +65,7 @@ import app.amber.feature.modelcouncil.running
 @Composable
 fun CouncilTimelineTab(
     room: CouncilRoom,
-    onAnswer: ((String) -> Unit)?,
+    onAnswer: ((String, String) -> Unit)?,
     modifier: Modifier = Modifier,
     composer: @Composable () -> Unit = {},
 ) {
@@ -440,7 +440,7 @@ fun CouncilTimelineTab(
             msg.kind == CouncilMessageKind.ASK_USER &&
                 room.messages.none {
                     it.authorId == COUNCIL_ROOM_USER_ID &&
-                        (it.replyToMessageId == msg.id || it.createdAtMs > msg.createdAtMs)
+                        it.replyToMessageId == msg.id
                 }
         }
     }
@@ -569,14 +569,12 @@ fun CouncilTimelineTab(
                         is TimelineEntry.Message -> {
                             if (entry.msg.kind == CouncilMessageKind.ASK_USER) {
                                 val answered = room.messages.any { msg ->
-                                    val isAnswer = msg.replyToMessageId == entry.msg.id ||
-                                        msg.createdAtMs > entry.msg.createdAtMs
-                                    msg.authorId == COUNCIL_ROOM_USER_ID && isAnswer
+                                    msg.authorId == COUNCIL_ROOM_USER_ID && msg.replyToMessageId == entry.msg.id
                                 }
                                 CouncilAskUserCard(
                                     msg = entry.msg,
                                     answered = answered,
-                                    onAnswer = onAnswer,
+                                    onAnswer = onAnswer?.let { submit -> { answer -> submit(entry.msg.id, answer) } },
                                 )
                             } else {
                                 // Only the actively-streaming turn drives bottom-follow,

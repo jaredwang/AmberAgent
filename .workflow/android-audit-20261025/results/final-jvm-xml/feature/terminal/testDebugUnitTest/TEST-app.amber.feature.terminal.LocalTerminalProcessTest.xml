@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.terminal.LocalTerminalProcessTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:19.152Z" hostname="duguangdeMBP.lan" time="0.269">
+  <properties/>
+  <testcase name="actual process drains utf8 output before returning its exit code" classname="app.amber.feature.terminal.LocalTerminalProcessTest" time="0.016"/>
+  <testcase name="timeout stops the actual process and preserves its timeout verdict" classname="app.amber.feature.terminal.LocalTerminalProcessTest" time="0.249"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -566,7 +566,11 @@ class TerminalRuntime(
                 return
             }
             appScope.launch(Dispatchers.IO) {
-                agentTaskStore.update(job.id, status = AgentTaskStatus.RUNNING)
+                agentTaskStore.update(
+                    job.id,
+                    status = AgentTaskStatus.RUNNING,
+                    expectedStatus = AgentTaskStatus.QUEUED,
+                )
             }
             termux.start(job.id, job.command)
             job.worker = appScope.launch(Dispatchers.IO) {

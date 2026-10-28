@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ChatMessageReasoningTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:48.767Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="reasoning widget source ignores inline marker" classname="app.amber.feature.ui.components.message.ChatMessageReasoningTest" time="0.001"/>
+  <testcase name="reasoning widget source extracts only fenced widget tail" classname="app.amber.feature.ui.components.message.ChatMessageReasoningTest" time="0.0"/>
+  <testcase name="reasoning widget source accepts fence aliases" classname="app.amber.feature.ui.components.message.ChatMessageReasoningTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

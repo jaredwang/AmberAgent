@@ -32,6 +32,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -74,19 +75,22 @@ internal class ResponseEventTransport(
 
         Log.i(TAG, "generateText: model=${params.model.modelId}")
 
-        var response = client.newCall(request).await()
-        if (response.code == 401) {
-            response.close()
-            val retryRequest = request.newBuilder()
-                .header("Authorization", "Bearer ${bearerResolver(providerSetting, true)}")
-                .build()
-            response = client.newCall(retryRequest).await()
+        val bodyStr = withCancellableCall {
+            var response = awaitResponse(client.newCall(request))
+            if (response.code == 401) {
+                response.close()
+                val retryRequest = request.newBuilder()
+                    .header("Authorization", "Bearer ${bearerResolver(providerSetting, true)}")
+                    .build()
+                response = awaitResponse(client.newCall(retryRequest))
+            }
+            response.use {
+                if (!it.isSuccessful) {
+                    throw Exception("Failed to get response: ${it.code} ${it.body.string()}")
+                }
+                it.body?.string().orEmpty()
+            }
         }
-        if (!response.isSuccessful) {
-            throw Exception("Failed to get response: ${response.code} ${response.body.string()}")
-        }
-
-        val bodyStr = response.body?.string() ?: ""
         Log.i(TAG, "generateText: response ${bodyStr.length} chars")
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
         val output = ResponseEventDecoder.parseResponseOutput(bodyJson)
@@ -229,7 +233,7 @@ internal class ResponseEventTransport(
         data class Data(
             val sequence: Long,
             val responseId: String?,
-            val chunk: MessageChunk,
+            val chunk: MessageChunk?,
             val terminal: Boolean = false,
         ) : StoredQueuedChunk
 
@@ -256,10 +260,12 @@ internal class ResponseEventTransport(
         resume: ResponsesResumeRequest?,
         customHeaders: List<CustomHeader>,
         cursorFloor: Long? = null,
+        knownResponseId: String? = null,
+        standaloneSuffixReplay: Boolean = false,
     ): Flow<StoredQueuedChunk> = flow {
         val events = Channel<StoredQueuedChunk>(Channel.UNLIMITED)
         val terminationGuard = StreamTerminationGuard(StreamProtocol.OPENAI_RESPONSES)
-        var currentResponseId: String? = null
+        var currentResponseId: String? = knownResponseId
         val listener = object : EventSourceListener() {
             override fun onEvent(
                 eventSource: EventSource,
@@ -282,12 +288,15 @@ internal class ResponseEventTransport(
                         if (json["error"] != null) {
                             throw json["error"]!!.parseErrorDetail()
                         }
+                        val sequence = json["sequence_number"]?.jsonPrimitive?.longOrNull ?: -1L
                         if (json["type"]?.jsonPrimitive?.contentOrNull == "response.created") {
                             currentResponseId = json["response"]?.jsonObjectOrNull
                                 ?.get("id")?.jsonPrimitiveOrNull?.contentOrNull
+                            // Save the server identity through the ordered drain even
+                            // when generation disconnects before its first output.
+                            events.trySend(StoredQueuedChunk.Data(sequence, currentResponseId, chunk = null))
                             continue
                         }
-                        val sequence = json["sequence_number"]?.jsonPrimitive?.longOrNull ?: -1L
                         val chunk = ResponseEventDecoder.parseResponseDelta(json)
                         if (chunk != null) {
                             val terminal = type == "response.completed" || type == "response.incomplete"
@@ -296,7 +305,7 @@ internal class ResponseEventTransport(
                                 StoredQueuedChunk.Data(
                                     sequence = sequence,
                                     responseId = currentResponseId,
-                                    chunk = reconciler.reconcile(chunk),
+                                    chunk = chunk,
                                     terminal = terminal,
                                 )
                             )
@@ -361,7 +370,19 @@ internal class ResponseEventTransport(
                 when (event) {
                     is StoredQueuedChunk.Data -> {
                         if (cursorFloor == null || event.sequence > cursorFloor) {
-                            emit(event)
+                            // A replayed event must not mutate reconciliation state
+                            // before its sequence has passed deduplication.
+                            val chunk = when {
+                                !standaloneSuffixReplay -> event.chunk?.let(reconciler::reconcile)
+                                event.terminal -> event.chunk
+                                // This fresh reconciler has no pre-cursor prefix.
+                                // Item snapshots cannot be diffed against its suffix,
+                                // or treated as a complete response. Keep the actual
+                                // deltas until the full terminal snapshot replaces them.
+                                event.chunk?.choices?.any { it.delta == null && it.message != null } == true -> null
+                                else -> event.chunk?.let(reconciler::reconcile)
+                            }
+                            emit(event.copy(chunk = chunk))
                         }
                     }
 
@@ -370,12 +391,13 @@ internal class ResponseEventTransport(
                         val cursor = resume.store.load(resume.runId) ?: throw event.cause
                         val replay = storedEventStream(
                             providerSetting = providerSetting,
-                            request = storedRequest(providerSetting, cursor.responseId, customHeaders),
+                            request = storedRequest(providerSetting, cursor.responseId, customHeaders, cursor.sequence),
                             reconciler = reconciler,
                             reconnectAllowed = false,
                             resume = resume,
                             customHeaders = customHeaders,
                             cursorFloor = cursor.sequence,
+                            knownResponseId = cursor.responseId,
                         )
                         replay.collect { emit(it) }
                         return@flow // the reconnect stream ended (terminal or failure)
@@ -404,15 +426,19 @@ internal class ResponseEventTransport(
         if (resume != null && responseId != null && event.sequence >= 0) {
             resume.store.save(resume.runId, responseId, event.sequence, providerId)
         }
-        emit(event.chunk)
+        event.chunk?.let { emit(it) }
     }
 
     private suspend fun storedRequest(
         providerSetting: ProviderSetting.OpenAI,
         responseId: String,
         customHeaders: List<CustomHeader>,
+        startingAfter: Long? = null,
     ): Request = Request.Builder()
-        .url("${providerSetting.baseUrl}/responses/$responseId")
+        .url("${providerSetting.baseUrl}/responses/$responseId".toHttpUrl().newBuilder()
+            .addQueryParameter("stream", "true")
+            .apply { startingAfter?.let { addQueryParameter("starting_after", it.toString()) } }
+            .build())
         .headers(customHeaders.toHeaders())
         .addHeader("Authorization", "Bearer ${bearerResolver(providerSetting, false)}")
         .addHeader("Accept", "text/event-stream")
@@ -466,12 +492,14 @@ internal class ResponseEventTransport(
         val resume = ResponsesResumeRequest(runId = runId, store = store)
         val raw = storedEventStream(
             providerSetting = providerSetting,
-            request = storedRequest(providerSetting, responseId, emptyList()),
+            request = storedRequest(providerSetting, responseId, emptyList(), cursor?.sequence),
             reconciler = ResponseStreamReconciler(),
             reconnectAllowed = false,
             resume = resume,
             customHeaders = emptyList(),
             cursorFloor = cursor?.sequence,
+            knownResponseId = responseId,
+            standaloneSuffixReplay = cursor != null,
         )
         return persistDrain(
             events = raw,

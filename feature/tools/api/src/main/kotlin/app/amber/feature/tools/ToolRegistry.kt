@@ -627,6 +627,7 @@ private val EXTERNAL_ACTION_TOOLS = setOf(
 
 private fun Tool.mutatesState(): Boolean {
     if (name in EXTERNAL_ACTION_TOOLS) return true
+    if (name.startsWith("mcp__")) return true
     if (name == "memory_tool") return true
     if (name == "deep_read_open") return true
     if (name == "run_plan_update") return false
@@ -905,12 +906,22 @@ fun Tool.effectClass(input: String? = null): ToolEffectClass = when {
     // recovery semantics, so classify it explicitly without changing
     // mutatesState()/approval policy.
     name == "generate_image" -> ToolEffectClass.NON_IDEMPOTENT_WRITE
-    // Signing supports both reads and writes. Recovery needs the actual
-    // invocation method; without args, its static metadata cannot promise a read.
-    name == "wm_signed_fetch" -> if (input != null && !invocationPolicy(input).mutates) {
+    // HTTP tools support both reads and writes. Recovery needs the actual
+    // invocation method; without args, static metadata cannot promise a read.
+    name == "http_request" || name == "wm_signed_fetch" -> if (input != null && !invocationPolicy(input).mutates) {
         ToolEffectClass.READ_ONLY
     } else {
         ToolEffectClass.NON_IDEMPOTENT_WRITE
+    }
+    name == "file_write" -> {
+        val args = input?.let {
+            runCatching { JsonInstant.parseToJsonElement(it.ifBlank { "{}" }).jsonObject }.getOrNull()
+        }
+        if (args != null && !args.booleanValue("append")) {
+            ToolEffectClass.IDEMPOTENT_WRITE
+        } else {
+            ToolEffectClass.NON_IDEMPOTENT_WRITE
+        }
     }
     !mutatesState() -> ToolEffectClass.READ_ONLY
     name in IDEMPOTENT_WRITE_TOOLS -> ToolEffectClass.IDEMPOTENT_WRITE
@@ -925,18 +936,14 @@ fun Tool.effectClass(input: String? = null): ToolEffectClass = when {
 fun Tool.supportsReconcile(): Boolean = false
 
 /**
- * Whether the tool can be retried safely with identical arguments. The only
- * idempotent write today is `file_write`, a local whole-file overwrite: a
- * retry with the same args converges because it reproduces the same end
- * state — there is no external system that needs an idempotency key yet.
- * Passing the effectId as an idempotency key to an external system is
- * deferred until the first external idempotent write tool exists.
+ * Static metadata promises idempotency only for tools whose every invocation
+ * converges. file_write needs its actual append argument and is classified
+ * per invocation above; its generic schema cannot promise safe replay.
+ * No external tool currently receives an effectId as an idempotency key.
  */
 fun Tool.idempotencyKeySupported(): Boolean = effectClass() == ToolEffectClass.IDEMPOTENT_WRITE
 
 private val IDEMPOTENT_WRITE_TOOLS = setOf(
-    // Whole-file overwrite with identical args converges on the same content.
-    "file_write",
     // Merging a fetched model catalog / overwriting one settings slot with the
     // same target value converges on the same end state on retry.
     "provider_refresh_models",

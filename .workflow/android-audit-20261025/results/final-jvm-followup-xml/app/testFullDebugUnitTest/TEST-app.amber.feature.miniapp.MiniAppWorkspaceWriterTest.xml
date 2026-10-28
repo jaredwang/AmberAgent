@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppWorkspaceWriterTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:33.764Z" hostname="duguangdeMBP.lan" time="0.06">
+  <properties/>
+  <testcase name="concurrentDuplicateEffectCallsCreateExactlyOneArtifact" classname="app.amber.feature.miniapp.MiniAppWorkspaceWriterTest" time="0.018"/>
+  <testcase name="createArtifactPersistsAndReturnsOpenableRoute" classname="app.amber.feature.miniapp.MiniAppWorkspaceWriterTest" time="0.013"/>
+  <testcase name="migration11to12AddsConversationDraftTableOnly" classname="app.amber.feature.miniapp.MiniAppWorkspaceWriterTest" time="0.016"/>
+  <testcase name="duplicateEffectIdReusesExistingArtifact" classname="app.amber.feature.miniapp.MiniAppWorkspaceWriterTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

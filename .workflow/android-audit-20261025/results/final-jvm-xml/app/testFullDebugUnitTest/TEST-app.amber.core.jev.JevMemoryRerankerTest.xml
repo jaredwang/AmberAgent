@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevMemoryRerankerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.089Z" hostname="duguangdeMBP.lan" time="0.029">
+  <properties/>
+  <testcase name="shadowReturnsWithoutWaitingForJev" classname="app.amber.core.jev.JevMemoryRerankerTest" time="0.012"/>
+  <testcase name="modeSwitchBetweenChunksDiscardsEarlierActiveScores" classname="app.amber.core.jev.JevMemoryRerankerTest" time="0.005"/>
+  <testcase name="shadowStillRecordsAllChunksWithoutApplying" classname="app.amber.core.jev.JevMemoryRerankerTest" time="0.005"/>
+  <testcase name="multiChunkAggregatesIntoSingleRecord" classname="app.amber.core.jev.JevMemoryRerankerTest" time="0.003"/>
+  <testcase name="secondChunkFailureRecordsNothing" classname="app.amber.core.jev.JevMemoryRerankerTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

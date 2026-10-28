@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:19.977Z" hostname="duguangdeMBP.lan" time="0.064">
+  <properties/>
+  <testcase name="late load code assist cannot overwrite newer tokens with its old session snapshot" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" time="0.015"/>
+  <testcase name="late onboard user completion cannot resurrect tokens after logout" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" time="0.011"/>
+  <testcase name="late refresh cannot resurrect tokens after logout" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" time="0.009"/>
+  <testcase name="late authorization exchange cannot replace a newer session" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" time="0.017"/>
+  <testcase name="late refresh cannot replace a session installed by another client after logout" classname="app.amber.ai.provider.providers.google.GoogleGeminiOAuthSessionTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

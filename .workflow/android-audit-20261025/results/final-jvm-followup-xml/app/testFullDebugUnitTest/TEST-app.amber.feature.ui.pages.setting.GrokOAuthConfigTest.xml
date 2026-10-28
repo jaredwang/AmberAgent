@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.GrokOAuthConfigTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.581Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="enteringGrokLeavesOriginalEndpointUntilLoginAndPinsChatProtocol" classname="app.amber.feature.ui.pages.setting.GrokOAuthConfigTest" time="0.002"/>
+  <testcase name="grokApiKeyExitUsesSavedCustomXaiGateway" classname="app.amber.feature.ui.pages.setting.GrokOAuthConfigTest" time="0.0"/>
+  <testcase name="legacyGrokWithoutBackupFallsBackToXaiInsteadOfGenericOpenAi" classname="app.amber.feature.ui.pages.setting.GrokOAuthConfigTest" time="0.001"/>
+  <testcase name="customGrokApiKeyExitRestoresOriginalEndpointAndRetainsKey" classname="app.amber.feature.ui.pages.setting.GrokOAuthConfigTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

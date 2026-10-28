@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.996Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="emits after one second when content changed" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.001"/>
+  <testcase name="parts hash is lazy and unchanged due check does not reset the window" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="first offer arms the window without emitting" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="new tail message resets the char baseline" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="message switch does not bypass the time pace cap below char threshold" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="emits before one second once 512 new chars accumulated" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="never emits when hash unchanged even after interval" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <testcase name="after emit next emit requires another interval or char delta" classname="app.amber.feature.chat.impl.StreamCheckpointCoalescerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

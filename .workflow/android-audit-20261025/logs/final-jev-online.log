@@ -1,0 +1,91 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :core:jev:preBuild UP-TO-DATE
+> Task :core:jev:preDebugBuild UP-TO-DATE
+> Task :core:jev:generateDebugResources UP-TO-DATE
+> Task :core:jev:packageDebugResources UP-TO-DATE
+> Task :core:jev:processDebugNavigationResources UP-TO-DATE
+> Task :core:jev:parseDebugLocalResources UP-TO-DATE
+> Task :core:jev:generateDebugRFile UP-TO-DATE
+> Task :core:jev:compileDebugKotlin UP-TO-DATE
+> Task :core:jev:javaPreCompileDebug UP-TO-DATE
+> Task :core:jev:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:jev:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:jev:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:jev:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:jev:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:jev:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:jev:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:jev:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:jev:processDebugJavaRes UP-TO-DATE
+> Task :core:jev:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:jev:testDebugUnitTest UP-TO-DATE
+
+BUILD SUCCESSFUL in 2s
+15 actionable tasks: 15 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppStreamingCodePreviewTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:36.654Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="caps displayed tail window at limit and prepends omitted character count" classname="app.amber.feature.miniapp.MiniAppStreamingCodePreviewTest" time="0.001"/>
+  <testcase name="incrementally decodes html field across arbitrary chunk boundaries" classname="app.amber.feature.miniapp.MiniAppStreamingCodePreviewTest" time="0.0"/>
+  <testcase name="resets cleanly when stream snapshot is replaced rather than appended" classname="app.amber.feature.miniapp.MiniAppStreamingCodePreviewTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

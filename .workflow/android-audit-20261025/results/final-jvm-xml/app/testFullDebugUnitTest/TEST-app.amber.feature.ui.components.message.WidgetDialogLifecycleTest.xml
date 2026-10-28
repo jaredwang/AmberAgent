@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.WidgetDialogLifecycleTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:57.650Z" hostname="duguangdeMBP.lan" time="0.672">
+  <properties/>
+  <testcase name="closing expanded widget destroys its actual webview exactly once" classname="app.amber.feature.ui.components.message.WidgetDialogLifecycleTest" time="0.671"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

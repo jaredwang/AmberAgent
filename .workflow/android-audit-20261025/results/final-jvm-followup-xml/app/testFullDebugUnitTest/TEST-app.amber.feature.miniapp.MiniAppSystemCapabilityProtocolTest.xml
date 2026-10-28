@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:33.749Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="registry maps every system method to its permission" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="output parser accepts new system permissions" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.001"/>
+  <testcase name="available methods are the registry intersected with handler support" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="bridge version only reports system-capabilities when the full set is supported" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="openURL rejects local private and dangerous targets" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.001"/>
+  <testcase name="public host check rejects private ranges and accepts public hosts" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="openURL rejects control characters whitespace and oversized input" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.001"/>
+  <testcase name="system gate is off when systemCapabilitiesEnabled is false" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="openURL accepts valid ports and public IPv6 with port" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="openURL accepts public https mailto and tel" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="new system permissions belong to V3 set and enum" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="system permissions enabled by default and require declaration" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <testcase name="permission aliases normalize to system permissions" classname="app.amber.feature.miniapp.MiniAppSystemCapabilityProtocolTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

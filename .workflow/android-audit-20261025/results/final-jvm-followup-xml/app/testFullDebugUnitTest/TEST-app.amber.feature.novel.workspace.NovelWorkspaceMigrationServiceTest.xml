@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:38.056Z" hostname="duguangdeMBP.lan" time="0.131">
+  <properties/>
+  <testcase name="restoredEmptyNativeSnapshotDisablesAutomaticMigrationButAllowsExplicitMigration" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" time="0.091"/>
+  <testcase name="migrateAllKeepsTheCallerEpochCapturedBeforeDispatch" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" time="0.006"/>
+  <testcase name="restoreAfterLegacyLoadPreventsOldProjectFromBeingInstalled" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" time="0.009"/>
+  <testcase name="restoreAfterLegacyListPreventsMigrateAllFromInstallingTheOldList" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" time="0.007"/>
+  <testcase name="restoreAfterLegacyLoadPreservesRestoredProjectAndSessionsWithTheSameId" classname="app.amber.feature.novel.workspace.NovelWorkspaceMigrationServiceTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

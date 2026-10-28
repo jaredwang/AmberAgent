@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatErrorFilterTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.146Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="A session generating while user switches to B does not leak A error into B" classname="app.amber.core.service.ChatErrorFilterTest" time="0.0"/>
+  <testcase name="conversation A generation error does not surface in conversation B" classname="app.amber.core.service.ChatErrorFilterTest" time="0.0"/>
+  <testcase name="global provider config error is separated from per-conversation errors" classname="app.amber.core.service.ChatErrorFilterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.GenerationPromptsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.426Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="generativeUiPromptKeepsClaudePolishAndActions" classname="app.amber.core.ai.GenerationPromptsTest" time="0.002"/>
+  <testcase name="generativeUiPromptAddsDeepSeekVisibleOutputGuidance" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <testcase name="soulPromptWrapsAgentsMarkdown" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <testcase name="fullHtmlDeckPromptDoesNotDependOnStructuredOrChartSwitches" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <testcase name="generativeUiPromptAddsMiniMaxBoundsGuidance" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <testcase name="generativeUiPromptAddsKimiNoToolDrawingGuidance" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <testcase name="generativeUiPromptIsControlledBySetting" classname="app.amber.core.ai.GenerationPromptsTest" time="0.001"/>
+  <testcase name="generativeUiPromptIncludesTaskUiProtocolAndRoutingBoundaries" classname="app.amber.core.ai.GenerationPromptsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -14,6 +14,28 @@ class MemoryCandidateFilterTest {
     private val filter = MemoryCandidateFilter()
 
     @Test
+    fun longSharedPrefixDoesNotHideDistinctFactsOrWeakenExactDedupe() {
+        val prefix = "Shared project context ".repeat(20)
+        val first = prefix + "Alpha uses port 8080"
+        val second = prefix + "Beta uses port 9090"
+        val existing = MemoryRecord(
+            id = 1, content = first, scope = MemoryScope.LONG_TERM,
+            kind = MemoryKind.PROJECT, assistantId = "__long_term__",
+        )
+        val distinct = MemoryCandidate(
+            id = "distinct", content = second, scope = MemoryScope.LONG_TERM,
+            kind = MemoryKind.PROJECT, confidence = 0.9f,
+        )
+        val result = filter.filter(
+            listOf(distinct, distinct.copy(id = "same-content"), distinct.copy(id = "existing-copy", content = first)),
+            listOf(existing),
+        )
+
+        assertEquals(listOf("distinct"), result.accepted.map { it.id })
+        assertEquals(setOf("same-content", "existing-copy"), result.rejected.map { it.id }.toSet())
+    }
+
+    @Test
     fun filtersDuplicatesSensitiveAndWeakCandidates() {
         val existing = listOf(
             MemoryRecord(

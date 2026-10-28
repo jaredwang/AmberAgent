@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.ExecutionPolicyNarrowTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:45.995Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="capabilities intersect and null is the universe" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.001"/>
+  <testcase name="shell survives only when both sides allow it" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="path roots do not match by string prefix alone" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="a fully narrowed child intersected with an equally narrow parent keeps the policy" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="an uncanonicalizable child root is dropped while sibling roots survive" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="path roots keep only child roots contained under a parent root" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.001"/>
+  <testcase name="path roots compare canonically so cosmetic differences still intersect" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="null path and domain dimensions absorb the child verbatim" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="domains keep only child domains equal to or a subdomain of a parent domain" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="a dot-dot child root cannot widen the parent sandbox" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <testcase name="narrowing never widens an empty intersection into permission" classname="app.amber.feature.runtime.ExecutionPolicyNarrowTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

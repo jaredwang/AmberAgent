@@ -15,13 +15,18 @@ internal class ChatInputSubmissionOwner(private val input: ChatInputState) {
         regenerate: Boolean,
         send: (parts: List<UIMessagePart>, messageId: Uuid, regenerate: Boolean) -> Boolean,
     ): Boolean {
-        if (input.hasUnresolvedAttachmentImports()) return false
+        if (inFlight || input.hasUnresolvedAttachmentImports()) return false
         val snapshot = input.captureSubmission() ?: return false
         val messageId = snapshot.editingMessage ?: return false
         if (snapshot.parts.isEmptyInputMessage()) return false
-        val accepted = send(snapshot.parts, messageId, regenerate)
-        if (accepted) input.consumeAcceptedSubmission(snapshot)
-        return accepted
+        inFlight = true
+        return try {
+            val accepted = send(snapshot.parts, messageId, regenerate)
+            if (accepted) input.consumeAcceptedSubmission(snapshot)
+            accepted
+        } finally {
+            inFlight = false
+        }
     }
 
     fun sendWidgetAction(

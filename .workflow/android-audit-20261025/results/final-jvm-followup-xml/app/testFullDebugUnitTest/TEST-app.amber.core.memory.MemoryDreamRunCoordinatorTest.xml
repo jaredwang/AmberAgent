@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryDreamRunCoordinatorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.626Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="modelPlanStillPendsReviewWhenAutoApplyOn" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.002"/>
+  <testcase name="allDreamGatesOffDisablesRun" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.001"/>
+  <testcase name="autoApplyOffMergesBothSourcesIntoSinglePendingPlan" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.0"/>
+  <testcase name="autoRunStopsAtDailyLimitButManualCanStillRun" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.001"/>
+  <testcase name="autoRunAppliesMaintenanceWithoutReviewAndRecordsAppliedRun" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.001"/>
+  <testcase name="emptyAutoRunRecordsRunButDoesNotSavePendingOrNotifyReview" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.0"/>
+  <testcase name="pendingPlanSurvivesMaintenanceOnlyAutoRun" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.0"/>
+  <testcase name="maintenanceAppliesWhileModelPlanPendsInSameRun" classname="app.amber.core.memory.MemoryDreamRunCoordinatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.sync.SyncArchiveTableCoverageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:17.754Z" hostname="duguangdeMBP.lan" time="0.03">
+  <properties/>
+  <testcase name="preservedConversationTablesIncludeDerivedStats" classname="app.amber.agent.data.sync.SyncArchiveTableCoverageTest" time="0.008"/>
+  <testcase name="syncTablesCoverDurableAppDatabaseTables" classname="app.amber.agent.data.sync.SyncArchiveTableCoverageTest" time="0.015"/>
+  <testcase name="ephemeralCachesStayOutOfSyncTables" classname="app.amber.agent.data.sync.SyncArchiveTableCoverageTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

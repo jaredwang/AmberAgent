@@ -30,11 +30,14 @@ import app.amber.feature.runtime.RoomThreadGraphStore
 import app.amber.feature.task.AgentTaskSnapshot
 import app.amber.feature.task.AgentTaskStore
 import app.amber.feature.task.AgentTaskStatus
+import app.amber.feature.task.running
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +48,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -54,6 +58,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -129,6 +134,8 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
         flags: CapabilityFlags? = threadGraphFlags,
         restoreWriteGate: SyncRestoreWriteGate? = null,
         turnAgentRegistered: Boolean = true,
+        threadStore: ThreadGraphStore? = null,
+        taskStore: AgentTaskStore = AgentTaskStore(context, Json),
     ): SubAgentManager {
         val payloads = SubAgentTurnPayloads()
         lastPayloads = payloads
@@ -155,11 +162,11 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
             appScope = appScope,
             settingsStore = settingsStore,
             json = Json,
-            agentTaskStore = AgentTaskStore(context, Json),
+            agentTaskStore = taskStore,
             sessionAccessGrantStore = SessionAccessGrantStore(),
             agentRunner = agentRunner,
             turnPayloads = payloads,
-            threadGraphStore = RoomThreadGraphStore(database.threadGraphDao(), restoreWriteGate),
+            threadGraphStore = threadStore ?: RoomThreadGraphStore(database.threadGraphDao(), restoreWriteGate),
             capabilityFlags = flags,
         )
     }
@@ -172,6 +179,122 @@ class SubAgentThreadGraphIntegrationTest : DurableRuntimeTestBase() {
                 put("objective", objective)
             }
         )
+    }
+
+    @Test
+    fun cancellationDuringInitialWriteAheadCannotLeaveAStartedThreadRunning() = runBlocking {
+        val entered = CompletableDeferred<String>()
+        val release = CompletableDeferred<Unit>()
+        val cancellationReachedStore = CompletableDeferred<Unit>()
+        val backing = RoomThreadGraphStore(database.threadGraphDao())
+        val store = object : ThreadGraphStore by backing {
+            override suspend fun getNode(threadId: String): ThreadNodeRecord? {
+                if (entered.isCompleted && !release.isCompleted) cancellationReachedStore.complete(Unit)
+                return backing.getNode(threadId)
+            }
+
+            override suspend fun upsertNode(node: ThreadNodeRecord) {
+                if (!entered.isCompleted) {
+                    entered.complete(node.threadId)
+                    release.await()
+                }
+                backing.upsertNode(node)
+            }
+        }
+        val manager = manager(threadStore = store)
+        fakeRunner.gate = CompletableDeferred()
+        val starting = async {
+            manager.start(conversationId, startInput("Cancel during startup"), parentTools(), "parent_start")
+        }
+        val threadId = withTimeout(5_000) { entered.await() }
+        val cancelling = async { manager.cancel(threadId) }
+        try {
+            // Exercise a cancel during the write. A serialized owner may hold it until startup
+            // completes; an unguarded owner reaches finishNode while the original write is blocked.
+            withTimeoutOrNull(250) { cancellationReachedStore.await() }
+        } finally {
+            release.complete(Unit)
+        }
+        withTimeout(5_000) {
+            starting.await()
+            assertEquals("cancelled", payloadStatus(cancelling.await()))
+            while (fakeRunner.calls.any { it.runId !in fakeRunner.cancelledRuns }) delay(5)
+        }
+        assertEquals(SubAgentRunStatus.CANCELLED, manager.snapshot(threadId)?.status)
+        assertEquals(SubAgentRunStatus.CANCELLED.name, backing.getNode(threadId)?.status)
+        assertEquals("cancelled", payloadStatus(manager.read(threadId)))
+    }
+
+    @Test
+    fun cancelledInitialWriteAheadReleasesTheAdmissionAndSettlesPublishedTask() = runBlocking {
+        settingsStore.update { settings ->
+            settings.copy(agentRuntime = settings.agentRuntime.copy(
+                subAgent = settings.agentRuntime.subAgent.copy(maxConcurrentRuns = 1),
+            ))
+        }
+        val entered = CompletableDeferred<String>()
+        val release = CompletableDeferred<Unit>()
+        val backing = RoomThreadGraphStore(database.threadGraphDao())
+        val store = object : ThreadGraphStore by backing {
+            override suspend fun upsertNode(node: ThreadNodeRecord) {
+                if (!entered.isCompleted) {
+                    entered.complete(node.threadId)
+                    release.await()
+                }
+                backing.upsertNode(node)
+            }
+        }
+        val tasks = AgentTaskStore(context, Json)
+        val manager = manager(threadStore = store, taskStore = tasks)
+        val starting = async {
+            manager.start(conversationId, startInput("Cancelled admission"), parentTools(), "parent_start")
+        }
+        val threadId = withTimeout(5_000) { entered.await() }
+        starting.cancelAndJoin()
+        release.complete(Unit)
+
+        assertFalse(manager.snapshot(threadId)?.status?.running == true)
+        assertFalse(tasks.tasksFlow.value.first { it.taskId == threadId }.status.running)
+        assertTrue(fakeRunner.calls.isEmpty())
+        val replacement = manager.start(conversationId, startInput("Replacement admission"), parentTools(), "parent_start")
+        assertNotEquals("too_many_subagents", replacement["code"]?.jsonPrimitive?.contentOrNull)
+        val replacementId = replacement["run_id"]!!.jsonPrimitive.content
+        awaitTerminal(manager, replacementId)
+    }
+
+    @Test
+    fun failedInitialWriteAheadReleasesTheAdmissionAndPreservesTheFailure() = runBlocking {
+        settingsStore.update { settings ->
+            settings.copy(agentRuntime = settings.agentRuntime.copy(
+                subAgent = settings.agentRuntime.subAgent.copy(maxConcurrentRuns = 1),
+            ))
+        }
+        val backing = RoomThreadGraphStore(database.threadGraphDao())
+        val failure = IllegalStateException("write-ahead failed")
+        var failedThreadId: String? = null
+        val store = object : ThreadGraphStore by backing {
+            override suspend fun upsertNode(node: ThreadNodeRecord) {
+                if (failedThreadId == null) {
+                    failedThreadId = node.threadId
+                    throw failure
+                }
+                backing.upsertNode(node)
+            }
+        }
+        val tasks = AgentTaskStore(context, Json)
+        val manager = manager(threadStore = store, taskStore = tasks)
+        val caught = runCatching {
+            manager.start(conversationId, startInput("Failed admission"), parentTools(), "parent_start")
+        }.exceptionOrNull()
+        assertTrue(caught is IllegalStateException)
+        assertEquals(failure.message, caught?.message)
+        val threadId = checkNotNull(failedThreadId)
+        assertEquals(SubAgentRunStatus.FAILED, manager.snapshot(threadId)?.status)
+        assertEquals(AgentTaskStatus.FAILED, tasks.tasksFlow.value.first { it.taskId == threadId }.status)
+        assertTrue(fakeRunner.calls.isEmpty())
+        val replacement = manager.start(conversationId, startInput("Replacement admission"), parentTools(), "parent_start")
+        assertNotEquals("too_many_subagents", replacement["code"]?.jsonPrimitive?.contentOrNull)
+        awaitTerminal(manager, replacement["run_id"]!!.jsonPrimitive.content)
     }
 
     /**
@@ -1311,6 +1434,7 @@ class FakeSubAgentRunner : SubAgentRunner {
     )
 
     val calls = CopyOnWriteArrayList<CapturedCall>()
+    val cancelledRuns = CopyOnWriteArrayList<String?>()
     val receivedSteerMessages = CopyOnWriteArrayList<String>()
     var gate: CompletableDeferred<SubAgentResult>? = null
     var consumeSteerBeforeReturn: Boolean = true
@@ -1355,7 +1479,12 @@ class FakeSubAgentRunner : SubAgentRunner {
             liveText.value = "fake answer: ${task.objective}"
         }
         val g = gate
-        val result = if (g != null) g.await() else nextResult
+        val result = try {
+            if (g != null) g.await() else nextResult
+        } catch (cancelled: CancellationException) {
+            cancelledRuns += runId
+            throw cancelled
+        }
         if (consumeSteerBeforeReturn) receivedSteerMessages += consumeSteerMessages().map { it.toText() }
         return result
     }

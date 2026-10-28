@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.bubble.AgentBubbleReducerTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:33.963Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="run end transitions running to finished keeping final text" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.001"/>
+  <testcase name="ask_user pending is marked as ask user" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="visibility requires setting service foreground and active state" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="finished without prior running goes idle" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="pick returns null when nothing active" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="non screen or finished tool does not request passthrough" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="user stop cancels straight to idle without finished linger" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="finished lingers then goes idle after 12s" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="last assistant text picks last non blank text part" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="pick keeps previous conversation while still active" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="running state with no messages yields empty preview" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="pick falls back to activity conversation then first active" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="cross conversation running screen tool requests passthrough with empty step title" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="picked conversation running non screen tool shows title without passthrough" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="pending approval on last tool surfaces approval" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <testcase name="running screen tool sets step title and touch passthrough" classname="app.amber.feature.bubble.AgentBubbleReducerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

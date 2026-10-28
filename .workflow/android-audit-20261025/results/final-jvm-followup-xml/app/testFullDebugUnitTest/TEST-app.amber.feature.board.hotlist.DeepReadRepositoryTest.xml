@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadRepositoryTest" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.695Z" hostname="duguangdeMBP.lan" time="0.059">
+  <properties/>
+  <testcase name="overviewToolAcceptsEightyCharsAndReportsShortSummary" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.012"/>
+  <testcase name="overviewToolPreservesCompleteSummaryBeyondSoftGuideline" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="replaceTopicsPreservesCustomDeepReadTopics" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.003"/>
+  <testcase name="getFreshDeepReadReturnsNullForInvalidJson" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="fallbackSectionPreservesSourceLinksButDoesNotMarkReady" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.002"/>
+  <testcase name="diagramToolDoesNotMarkGenerationComplete" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.009"/>
+  <testcase name="getFreshDeepReadFallsBackToFreshTitleWhenTopicIdChanges" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="sectionWriterScopedToolsExposeOnlyTargetSectionWriter" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.0"/>
+  <testcase name="getFreshDeepReadHonorsTtlAndDecodesJson" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="sectionWriterToolsMergeSectionsAndMarkComplete" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.003"/>
+  <testcase name="saveDeepReadPreservesSourceUrlAcrossSectionWrites" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.002"/>
+  <testcase name="upsertTopicRoundTripsCustomSeedContent" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.002"/>
+  <testcase name="fallbackSectionPreservesExtendedReadingLinksButDoesNotMarkReady" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="observeDashboardHidesCustomTopics" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.006"/>
+  <testcase name="historyIncludesExpiredRowsWithStatus" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.003"/>
+  <testcase name="fallbackSectionPreservesLinksDuringCoverageRepairWithoutDegradingQuality" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="narrativeToolReportsAcceptedDroppedAndDropReasons" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="overviewToolDoesNotSelectHeroImage" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="visualsToolOnlyAcceptsCandidatePoolImages" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.003"/>
+  <testcase name="diagramToolCompactsDenseSpecsBeforePersisting" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.002"/>
+  <testcase name="materializeFreshDeepReadSkipsStaleDirectRowAndUsesFreshTitleFallback" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.001"/>
+  <testcase name="optionalVisualAndDiagramWritesDoNotBlockFinish" classname="app.amber.feature.board.hotlist.DeepReadRepositoryTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

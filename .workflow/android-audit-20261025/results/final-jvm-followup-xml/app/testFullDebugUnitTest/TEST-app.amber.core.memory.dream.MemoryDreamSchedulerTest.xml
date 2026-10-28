@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.dream.MemoryDreamSchedulerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.676Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="charging alone still gates" classname="app.amber.core.memory.dream.MemoryDreamSchedulerTest" time="0.0"/>
+  <testcase name="charging preference replaces idle gate" classname="app.amber.core.memory.dream.MemoryDreamSchedulerTest" time="0.0"/>
+  <testcase name="both gates off keeps run unconstrained" classname="app.amber.core.memory.dream.MemoryDreamSchedulerTest" time="0.0"/>
+  <testcase name="idle gate applies only when charging preference is off" classname="app.amber.core.memory.dream.MemoryDreamSchedulerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

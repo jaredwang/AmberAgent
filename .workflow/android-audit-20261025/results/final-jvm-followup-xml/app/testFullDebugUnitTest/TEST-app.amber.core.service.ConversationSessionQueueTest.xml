@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ConversationSessionQueueTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.161Z" hostname="duguangdeMBP.lan" time="0.063">
+  <properties/>
+  <testcase name="movePendingMessageReordersQueue" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.007"/>
+  <testcase name="stopSemanticsPreserveQueueWithoutDowngrade" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.006"/>
+  <testcase name="steerMessagesAreInsertedBeforeFollowupMessages" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.007"/>
+  <testcase name="collectedPendingMessagesKeepStableMarkers" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.005"/>
+  <testcase name="existingPendingInputLoadsSynchronouslyAndMoveToInputCommitsRemoval" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.008"/>
+  <testcase name="restoredQueueUsesTheSameFlowAndNeverWritesTheOldPendingSnapshotBack" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.009"/>
+  <testcase name="queueLimitAndCancelAreStable" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.006"/>
+  <testcase name="collectDrainIsDurableBeforePreparedInputIsReturned" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.007"/>
+  <testcase name="pendingMessagesAreDequeuedInFifoOrder" classname="app.amber.core.service.ConversationSessionQueueTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

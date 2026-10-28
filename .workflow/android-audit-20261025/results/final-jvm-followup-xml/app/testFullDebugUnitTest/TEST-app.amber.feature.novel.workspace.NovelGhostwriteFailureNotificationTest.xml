@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:33.845Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="polish pointer-commit window reports the polished chapter, not the next one" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="unknown ordinal drops the chapter prefix but keeps the reason" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.001"/>
+  <testcase name="blank book title falls back to the generic ghostwrite title" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="reason collapses to one bounded line" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="write failures report manuscript head plus one" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="polish batches carry the polish label" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="polish ordinary failures report the chapter being attempted" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="uses the book title and the failed chapter ordinal when both are known" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <testcase name="blank reason still yields a usable line" classname="app.amber.feature.novel.workspace.NovelGhostwriteFailureNotificationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

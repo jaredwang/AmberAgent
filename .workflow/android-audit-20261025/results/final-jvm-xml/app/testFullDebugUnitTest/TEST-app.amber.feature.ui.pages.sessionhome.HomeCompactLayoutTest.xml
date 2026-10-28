@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.sessionhome.HomeCompactLayoutTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:13.812Z" hostname="duguangdeMBP.lan" time="0.212">
+  <properties/>
+  <testcase name="homeTopFadeStaysAtClippedEdgeUntilReturningToStart" classname="app.amber.feature.ui.pages.sessionhome.HomeCompactLayoutTest" time="0.104"/>
+  <testcase name="runningSubtitleCrossfadesToRealStageAndReturnsToTitleWhenPaused" classname="app.amber.feature.ui.pages.sessionhome.HomeCompactLayoutTest" time="0.049"/>
+  <testcase name="idleCardHasTitleRightAlignedContinueAndCompactHeight" classname="app.amber.feature.ui.pages.sessionhome.HomeCompactLayoutTest" time="0.032"/>
+  <testcase name="narrowLargeTextHeaderShowsWholeDateAndSearchStillOpens" classname="app.amber.feature.ui.pages.sessionhome.HomeCompactLayoutTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,1307 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :core:agent-utils:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-utils:compileKotlin UP-TO-DATE
+> Task :core:agent-utils:compileJava NO-SOURCE
+> Task :core:agent-utils:processResources NO-SOURCE
+> Task :core:agent-utils:classes UP-TO-DATE
+> Task :core:agent-utils:jar UP-TO-DATE
+> Task :core:event:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:event:compileKotlin UP-TO-DATE
+> Task :core:event:compileJava NO-SOURCE
+> Task :core:event:processResources NO-SOURCE
+> Task :core:event:classes UP-TO-DATE
+> Task :core:event:jar UP-TO-DATE
+> Task :core:agent-runtime:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-runtime:compileKotlin UP-TO-DATE
+> Task :core:agent-runtime:compileJava NO-SOURCE
+> Task :core:agent-runtime:processResources NO-SOURCE
+> Task :core:agent-runtime:classes UP-TO-DATE
+> Task :core:agent-runtime:jar UP-TO-DATE
+> Task :feature:live:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:live:api:compileKotlin UP-TO-DATE
+> Task :feature:live:api:compileJava NO-SOURCE
+> Task :feature:live:api:processResources NO-SOURCE
+> Task :feature:live:api:classes UP-TO-DATE
+> Task :feature:live:api:jar UP-TO-DATE
+> Task :core:ai-prompts:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:ai-prompts:compileKotlin UP-TO-DATE
+> Task :core:ai-prompts:compileJava NO-SOURCE
+> Task :core:ai-prompts:processResources NO-SOURCE
+> Task :core:ai-prompts:classes UP-TO-DATE
+> Task :core:ai-prompts:jar UP-TO-DATE
+> Task :feature:history:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:history:compileKotlin UP-TO-DATE
+> Task :feature:history:compileJava NO-SOURCE
+> Task :feature:history:processResources NO-SOURCE
+> Task :feature:history:classes UP-TO-DATE
+> Task :feature:history:jar UP-TO-DATE
+> Task :feature:webview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:webview:compileKotlin UP-TO-DATE
+> Task :feature:webview:compileJava NO-SOURCE
+> Task :feature:webview:processResources NO-SOURCE
+> Task :feature:webview:classes UP-TO-DATE
+> Task :feature:webview:jar UP-TO-DATE
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:compileDebugKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :ai:bundleLibCompileToJarDebug UP-TO-DATE
+
+> Task :app:cargoBuildHtmlDiffNormalizer
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildMarkdownParser
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.03s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildMarkdownPreprocess
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.02s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildReaderExtractor
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.07s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildRegexTransformer
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.02s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildSyncCrypto
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.03s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:prepareEmbeddedTerminalRuntime UP-TO-DATE
+> Task :app:preBuild
+> Task :app:preFullDebugBuild
+> Task :app:generateFullDebugBuildConfig UP-TO-DATE
+> Task :ai:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdFullDebug UP-TO-DATE
+> Task :app:injectCrashlyticsVersionControlInfoFullDebug UP-TO-DATE
+> Task :app:processFullDebugGoogleServices SKIPPED
+> Task :app:extractFullDebugSupportedLocales UP-TO-DATE
+> Task :app:mapFullDebugSourceSetPaths UP-TO-DATE
+> Task :common:extractDebugSupportedLocales UP-TO-DATE
+
+> Task :document:cargoBuildOfficeParsers
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.03s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/document/build/rustJniLibs/android
+
+> Task :document:preBuild
+> Task :document:preDebugBuild
+> Task :document:extractDebugSupportedLocales UP-TO-DATE
+
+> Task :highlight:cargoBuildHighlightParser
+    Building arm64-v8a (aarch64-linux-android)
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/highlight/build/rustJniLibs/android
+
+> Task :highlight:preBuild
+> Task :highlight:preDebugBuild
+> Task :highlight:extractDebugSupportedLocales UP-TO-DATE
+> Task :search:preBuild UP-TO-DATE
+> Task :search:preDebugBuild UP-TO-DATE
+> Task :search:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-runtime-impl:preBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:preDebugBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-store-room:preBuild UP-TO-DATE
+> Task :core:agent-store-room:preDebugBuild UP-TO-DATE
+> Task :core:agent-store-room:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:app-infra:preBuild UP-TO-DATE
+> Task :core:app-infra:preDebugBuild UP-TO-DATE
+> Task :core:app-infra:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:jev:preBuild UP-TO-DATE
+> Task :core:jev:preDebugBuild UP-TO-DATE
+> Task :core:jev:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:model:preBuild UP-TO-DATE
+> Task :core:model:preDebugBuild UP-TO-DATE
+> Task :core:model:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:settings:preBuild UP-TO-DATE
+> Task :core:settings:preDebugBuild UP-TO-DATE
+> Task :core:settings:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:usage:preBuild UP-TO-DATE
+> Task :core:usage:preDebugBuild UP-TO-DATE
+> Task :core:usage:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:icloud:preBuild UP-TO-DATE
+> Task :feature:icloud:preDebugBuild UP-TO-DATE
+> Task :feature:icloud:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:modelcouncil:preBuild UP-TO-DATE
+> Task :feature:modelcouncil:preDebugBuild UP-TO-DATE
+> Task :feature:modelcouncil:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel:preBuild UP-TO-DATE
+> Task :feature:novel:preDebugBuild UP-TO-DATE
+> Task :feature:novel:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel-workspace:preBuild UP-TO-DATE
+> Task :feature:novel-workspace:preDebugBuild UP-TO-DATE
+> Task :feature:novel-workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:subagent:preBuild UP-TO-DATE
+> Task :feature:subagent:preDebugBuild UP-TO-DATE
+> Task :feature:subagent:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:system:preBuild UP-TO-DATE
+> Task :feature:system:preDebugBuild UP-TO-DATE
+> Task :feature:system:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:task:preBuild UP-TO-DATE
+> Task :feature:task:preDebugBuild UP-TO-DATE
+> Task :feature:task:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:terminal:preBuild UP-TO-DATE
+> Task :feature:terminal:preDebugBuild UP-TO-DATE
+> Task :feature:terminal:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:workspace:preBuild UP-TO-DATE
+> Task :feature:workspace:preDebugBuild UP-TO-DATE
+> Task :feature:workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:board:impl:preBuild UP-TO-DATE
+> Task :feature:board:impl:preDebugBuild UP-TO-DATE
+> Task :feature:board:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:runtime:api:preBuild UP-TO-DATE
+> Task :feature:runtime:api:preDebugBuild UP-TO-DATE
+> Task :feature:runtime:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:access:preBuild UP-TO-DATE
+> Task :feature:tools:access:preDebugBuild UP-TO-DATE
+> Task :feature:tools:access:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:api:preBuild UP-TO-DATE
+> Task :feature:tools:api:preDebugBuild UP-TO-DATE
+> Task :feature:tools:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:impl:preBuild UP-TO-DATE
+> Task :feature:tools:impl:preDebugBuild UP-TO-DATE
+> Task :feature:tools:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:generateFullDebugLocaleConfig
+> Task :app:generateFullDebugResources UP-TO-DATE
+> Task :document:processDebugNavigationResources UP-TO-DATE
+> Task :highlight:processDebugNavigationResources UP-TO-DATE
+> Task :search:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-store-room:processDebugNavigationResources UP-TO-DATE
+> Task :core:app-infra:processDebugNavigationResources UP-TO-DATE
+> Task :core:jev:processDebugNavigationResources UP-TO-DATE
+> Task :core:model:processDebugNavigationResources UP-TO-DATE
+> Task :core:settings:processDebugNavigationResources UP-TO-DATE
+> Task :core:usage:processDebugNavigationResources UP-TO-DATE
+> Task :feature:icloud:processDebugNavigationResources UP-TO-DATE
+> Task :feature:modelcouncil:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel-workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:subagent:processDebugNavigationResources UP-TO-DATE
+> Task :feature:system:processDebugNavigationResources UP-TO-DATE
+> Task :feature:task:processDebugNavigationResources UP-TO-DATE
+> Task :feature:terminal:processDebugNavigationResources UP-TO-DATE
+> Task :feature:workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:board:impl:processDebugNavigationResources UP-TO-DATE
+> Task :feature:runtime:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:access:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:impl:processDebugNavigationResources UP-TO-DATE
+> Task :app:processFullDebugNavigationResources
+> Task :app:packageFullDebugResources
+> Task :document:generateDebugResources UP-TO-DATE
+> Task :document:packageDebugResources UP-TO-DATE
+> Task :document:parseDebugLocalResources UP-TO-DATE
+> Task :document:generateDebugRFile UP-TO-DATE
+> Task :app:parseFullDebugLocalResources
+> Task :document:compileDebugKotlin UP-TO-DATE
+> Task :document:javaPreCompileDebug UP-TO-DATE
+> Task :document:compileDebugJavaWithJavac UP-TO-DATE
+> Task :document:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :highlight:generateDebugResources UP-TO-DATE
+> Task :highlight:packageDebugResources UP-TO-DATE
+> Task :highlight:parseDebugLocalResources UP-TO-DATE
+> Task :highlight:generateDebugRFile UP-TO-DATE
+> Task :app:generateFullDebugRFile
+> Task :highlight:compileDebugKotlin UP-TO-DATE
+> Task :highlight:javaPreCompileDebug UP-TO-DATE
+> Task :highlight:compileDebugJavaWithJavac NO-SOURCE
+> Task :highlight:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :search:generateDebugResources UP-TO-DATE
+> Task :search:packageDebugResources UP-TO-DATE
+> Task :search:parseDebugLocalResources UP-TO-DATE
+> Task :search:generateDebugRFile UP-TO-DATE
+> Task :search:compileDebugKotlin UP-TO-DATE
+> Task :search:javaPreCompileDebug UP-TO-DATE
+> Task :search:compileDebugJavaWithJavac NO-SOURCE
+> Task :search:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:packageDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugRFile UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugKotlin UP-TO-DATE
+> Task :core:agent-runtime-impl:javaPreCompileDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:agent-runtime-impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-store-room:generateDebugResources UP-TO-DATE
+> Task :core:agent-store-room:packageDebugResources UP-TO-DATE
+> Task :core:agent-store-room:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-store-room:generateDebugRFile UP-TO-DATE
+> Task :core:agent-store-room:kspDebugKotlin UP-TO-DATE
+> Task :core:agent-store-room:compileDebugKotlin UP-TO-DATE
+> Task :core:agent-store-room:javaPreCompileDebug UP-TO-DATE
+> Task :core:agent-store-room:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:agent-store-room:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:app-infra:generateDebugResources UP-TO-DATE
+> Task :core:app-infra:packageDebugResources UP-TO-DATE
+> Task :core:app-infra:parseDebugLocalResources UP-TO-DATE
+> Task :core:app-infra:generateDebugRFile UP-TO-DATE
+> Task :core:app-infra:compileDebugKotlin UP-TO-DATE
+> Task :core:app-infra:javaPreCompileDebug UP-TO-DATE
+> Task :core:app-infra:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:app-infra:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:jev:generateDebugResources UP-TO-DATE
+> Task :core:jev:packageDebugResources UP-TO-DATE
+> Task :core:jev:parseDebugLocalResources UP-TO-DATE
+> Task :core:jev:generateDebugRFile UP-TO-DATE
+> Task :core:jev:compileDebugKotlin UP-TO-DATE
+> Task :core:jev:javaPreCompileDebug UP-TO-DATE
+> Task :core:jev:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:jev:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:model:generateDebugResources UP-TO-DATE
+> Task :core:model:packageDebugResources UP-TO-DATE
+> Task :core:model:parseDebugLocalResources UP-TO-DATE
+> Task :core:model:generateDebugRFile UP-TO-DATE
+> Task :core:model:compileDebugKotlin UP-TO-DATE
+> Task :core:model:javaPreCompileDebug UP-TO-DATE
+> Task :core:model:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:model:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:settings:generateDebugResources UP-TO-DATE
+> Task :core:settings:packageDebugResources UP-TO-DATE
+> Task :core:settings:parseDebugLocalResources UP-TO-DATE
+> Task :core:settings:generateDebugRFile UP-TO-DATE
+> Task :core:settings:compileDebugKotlin UP-TO-DATE
+> Task :core:settings:javaPreCompileDebug UP-TO-DATE
+> Task :core:settings:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:settings:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:usage:generateDebugResources UP-TO-DATE
+> Task :core:usage:packageDebugResources UP-TO-DATE
+> Task :core:usage:parseDebugLocalResources UP-TO-DATE
+> Task :core:usage:generateDebugRFile UP-TO-DATE
+> Task :core:usage:compileDebugKotlin UP-TO-DATE
+> Task :core:usage:javaPreCompileDebug UP-TO-DATE
+> Task :core:usage:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:usage:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:icloud:generateDebugResources UP-TO-DATE
+> Task :feature:icloud:packageDebugResources UP-TO-DATE
+> Task :feature:icloud:parseDebugLocalResources UP-TO-DATE
+> Task :feature:icloud:generateDebugRFile UP-TO-DATE
+> Task :feature:icloud:compileDebugKotlin UP-TO-DATE
+> Task :feature:icloud:javaPreCompileDebug UP-TO-DATE
+> Task :feature:icloud:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:icloud:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:packageDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:parseDebugLocalResources UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugRFile UP-TO-DATE
+> Task :feature:task:generateDebugResources UP-TO-DATE
+> Task :feature:task:packageDebugResources UP-TO-DATE
+> Task :feature:task:parseDebugLocalResources UP-TO-DATE
+> Task :feature:task:generateDebugRFile UP-TO-DATE
+> Task :feature:task:compileDebugKotlin UP-TO-DATE
+> Task :feature:task:javaPreCompileDebug UP-TO-DATE
+> Task :feature:task:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:task:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:terminal:generateDebugResources UP-TO-DATE
+> Task :feature:terminal:packageDebugResources UP-TO-DATE
+> Task :feature:terminal:parseDebugLocalResources UP-TO-DATE
+> Task :feature:terminal:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:generateDebugResources UP-TO-DATE
+> Task :feature:workspace:packageDebugResources UP-TO-DATE
+> Task :feature:workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:compileDebugKotlin UP-TO-DATE
+> Task :feature:workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:workspace:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:workspace:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:generateDebugResources UP-TO-DATE
+> Task :feature:runtime:api:packageDebugResources UP-TO-DATE
+> Task :feature:runtime:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:runtime:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:generateDebugResources UP-TO-DATE
+> Task :feature:tools:api:packageDebugResources UP-TO-DATE
+> Task :feature:tools:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:compileDebugKotlin UP-TO-DATE
+> Task :feature:tools:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:api:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:api:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:compileDebugKotlin UP-TO-DATE
+> Task :feature:runtime:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:runtime:api:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:runtime:api:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:terminal:compileDebugKotlin UP-TO-DATE
+> Task :feature:terminal:javaPreCompileDebug UP-TO-DATE
+> Task :feature:terminal:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:terminal:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugKotlin UP-TO-DATE
+> Task :feature:modelcouncil:javaPreCompileDebug UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:modelcouncil:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:novel:generateDebugResources UP-TO-DATE
+> Task :feature:novel:packageDebugResources UP-TO-DATE
+> Task :feature:novel:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:packageDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugKotlin UP-TO-DATE
+> Task :feature:novel-workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel-workspace:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:novel:compileDebugKotlin UP-TO-DATE
+> Task :feature:novel:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:subagent:generateDebugResources UP-TO-DATE
+> Task :feature:subagent:packageDebugResources UP-TO-DATE
+> Task :feature:subagent:parseDebugLocalResources UP-TO-DATE
+> Task :feature:subagent:generateDebugRFile UP-TO-DATE
+> Task :feature:subagent:compileDebugKotlin UP-TO-DATE
+> Task :feature:subagent:javaPreCompileDebug UP-TO-DATE
+> Task :feature:subagent:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:subagent:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:system:generateDebugResources UP-TO-DATE
+> Task :feature:system:packageDebugResources UP-TO-DATE
+> Task :feature:system:parseDebugLocalResources UP-TO-DATE
+> Task :feature:system:generateDebugRFile UP-TO-DATE
+> Task :feature:system:compileDebugKotlin UP-TO-DATE
+> Task :feature:system:javaPreCompileDebug UP-TO-DATE
+> Task :feature:system:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:system:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:board:impl:generateDebugResources UP-TO-DATE
+> Task :feature:board:impl:packageDebugResources UP-TO-DATE
+> Task :feature:board:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:board:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:board:impl:compileDebugKotlin UP-TO-DATE
+> Task :feature:board:impl:javaPreCompileDebug UP-TO-DATE
+> Task :feature:board:impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:board:impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:tools:access:generateDebugResources UP-TO-DATE
+> Task :feature:tools:access:packageDebugResources UP-TO-DATE
+> Task :feature:tools:access:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:access:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:access:compileDebugKotlin UP-TO-DATE
+> Task :feature:tools:access:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:access:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:access:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:tools:impl:generateDebugResources UP-TO-DATE
+> Task :feature:tools:impl:packageDebugResources UP-TO-DATE
+> Task :feature:tools:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:impl:compileDebugKotlin UP-TO-DATE
+> Task :feature:tools:impl:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :app:javaPreCompileFullDebug UP-TO-DATE
+> Task :ai:mapDebugSourceSetPaths UP-TO-DATE
+> Task :ai:compileDebugLibraryResources UP-TO-DATE
+> Task :ai:writeDebugAarMetadata UP-TO-DATE
+> Task :common:writeDebugAarMetadata UP-TO-DATE
+> Task :document:writeDebugAarMetadata UP-TO-DATE
+> Task :highlight:writeDebugAarMetadata UP-TO-DATE
+> Task :search:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-runtime-impl:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-store-room:writeDebugAarMetadata UP-TO-DATE
+> Task :core:app-infra:writeDebugAarMetadata UP-TO-DATE
+> Task :core:jev:writeDebugAarMetadata UP-TO-DATE
+> Task :core:model:writeDebugAarMetadata UP-TO-DATE
+> Task :core:settings:writeDebugAarMetadata UP-TO-DATE
+> Task :core:usage:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:icloud:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:modelcouncil:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel-workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:subagent:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:system:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:task:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:terminal:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:board:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:runtime:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:access:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :app:compileFullDebugNavigationResources
+> Task :app:checkFullDebugAarMetadata
+> Task :app:createFullDebugCompatibleScreenManifests UP-TO-DATE
+> Task :ai:extractDeepLinksDebug UP-TO-DATE
+> Task :ai:processDebugManifest UP-TO-DATE
+> Task :app:extractDeepLinksFullDebug UP-TO-DATE
+> Task :common:extractDeepLinksDebug UP-TO-DATE
+> Task :common:processDebugManifest UP-TO-DATE
+> Task :document:extractDeepLinksDebug UP-TO-DATE
+> Task :document:processDebugManifest UP-TO-DATE
+> Task :highlight:extractDeepLinksDebug UP-TO-DATE
+> Task :highlight:processDebugManifest UP-TO-DATE
+> Task :search:extractDeepLinksDebug UP-TO-DATE
+> Task :search:processDebugManifest UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugManifest UP-TO-DATE
+> Task :core:agent-store-room:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-store-room:processDebugManifest UP-TO-DATE
+> Task :core:app-infra:extractDeepLinksDebug UP-TO-DATE
+> Task :core:app-infra:processDebugManifest UP-TO-DATE
+> Task :core:jev:extractDeepLinksDebug UP-TO-DATE
+> Task :core:jev:processDebugManifest UP-TO-DATE
+> Task :core:model:extractDeepLinksDebug UP-TO-DATE
+> Task :core:model:processDebugManifest UP-TO-DATE
+> Task :core:settings:extractDeepLinksDebug UP-TO-DATE
+> Task :core:settings:processDebugManifest UP-TO-DATE
+> Task :core:usage:extractDeepLinksDebug UP-TO-DATE
+> Task :core:usage:processDebugManifest UP-TO-DATE
+> Task :feature:icloud:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:icloud:processDebugManifest UP-TO-DATE
+> Task :feature:modelcouncil:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:modelcouncil:processDebugManifest UP-TO-DATE
+> Task :feature:novel:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel:processDebugManifest UP-TO-DATE
+> Task :feature:novel-workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugManifest UP-TO-DATE
+> Task :feature:subagent:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:subagent:processDebugManifest UP-TO-DATE
+> Task :feature:system:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:system:processDebugManifest UP-TO-DATE
+> Task :feature:task:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:task:processDebugManifest UP-TO-DATE
+> Task :feature:terminal:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:terminal:processDebugManifest UP-TO-DATE
+> Task :feature:workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:workspace:processDebugManifest UP-TO-DATE
+> Task :feature:board:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:board:impl:processDebugManifest UP-TO-DATE
+> Task :feature:runtime:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:runtime:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:access:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:access:processDebugManifest UP-TO-DATE
+> Task :feature:tools:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:impl:processDebugManifest UP-TO-DATE
+> Task :app:mergeFullDebugResources
+> Task :app:processFullDebugMainManifest
+> Task :app:processFullDebugManifest
+> Task :common:mapDebugSourceSetPaths UP-TO-DATE
+> Task :common:compileDebugLibraryResources UP-TO-DATE
+> Task :document:mapDebugSourceSetPaths UP-TO-DATE
+> Task :document:compileDebugLibraryResources UP-TO-DATE
+> Task :highlight:mapDebugSourceSetPaths UP-TO-DATE
+> Task :highlight:compileDebugLibraryResources UP-TO-DATE
+> Task :search:mapDebugSourceSetPaths UP-TO-DATE
+> Task :search:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-runtime-impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-store-room:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-store-room:compileDebugLibraryResources UP-TO-DATE
+> Task :core:app-infra:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:app-infra:compileDebugLibraryResources UP-TO-DATE
+> Task :core:jev:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:jev:compileDebugLibraryResources UP-TO-DATE
+> Task :core:model:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:model:compileDebugLibraryResources UP-TO-DATE
+> Task :core:settings:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:settings:compileDebugLibraryResources UP-TO-DATE
+> Task :core:usage:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:usage:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:icloud:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:processFullDebugManifestForPackage
+> Task :feature:icloud:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:modelcouncil:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel-workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:subagent:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:subagent:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:system:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:system:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:task:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:task:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:terminal:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:terminal:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:board:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:board:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:runtime:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:runtime:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:access:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:access:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :app:preFullDebugUnitTestBuild
+> Task :app:javaPreCompileFullDebugUnitTest UP-TO-DATE
+> Task :ai:generateDebugAssets UP-TO-DATE
+> Task :ai:mergeDebugAssets UP-TO-DATE
+> Task :app:generateFullDebugAssets UP-TO-DATE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :common:mergeDebugAssets UP-TO-DATE
+> Task :document:generateDebugAssets UP-TO-DATE
+> Task :document:mergeDebugAssets UP-TO-DATE
+> Task :highlight:generateDebugAssets UP-TO-DATE
+> Task :highlight:mergeDebugAssets UP-TO-DATE
+> Task :search:generateDebugAssets UP-TO-DATE
+> Task :search:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:generateDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:mergeDebugAssets UP-TO-DATE
+> Task :core:app-infra:generateDebugAssets UP-TO-DATE
+> Task :core:app-infra:mergeDebugAssets UP-TO-DATE
+> Task :core:jev:generateDebugAssets UP-TO-DATE
+> Task :core:jev:mergeDebugAssets UP-TO-DATE
+> Task :core:model:generateDebugAssets UP-TO-DATE
+> Task :core:model:mergeDebugAssets UP-TO-DATE
+> Task :core:settings:generateDebugAssets UP-TO-DATE
+> Task :core:settings:mergeDebugAssets UP-TO-DATE
+> Task :core:usage:generateDebugAssets UP-TO-DATE
+> Task :core:usage:mergeDebugAssets UP-TO-DATE
+> Task :feature:icloud:generateDebugAssets UP-TO-DATE
+> Task :feature:icloud:mergeDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel:generateDebugAssets UP-TO-DATE
+> Task :feature:novel:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:subagent:generateDebugAssets UP-TO-DATE
+> Task :feature:subagent:mergeDebugAssets UP-TO-DATE
+> Task :feature:system:generateDebugAssets UP-TO-DATE
+> Task :feature:system:mergeDebugAssets UP-TO-DATE
+> Task :feature:task:generateDebugAssets UP-TO-DATE
+> Task :feature:task:mergeDebugAssets UP-TO-DATE
+> Task :feature:terminal:generateDebugAssets UP-TO-DATE
+> Task :feature:terminal:mergeDebugAssets UP-TO-DATE
+> Task :feature:workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:board:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:board:impl:mergeDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:generateDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:access:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:access:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:api:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeFullDebugAssets
+> Task :app:processFullDebugResources
+
+> Task :app:processFullDebugUnitTestManifest
+/Users/arquiel/Downloads/AI/amberagent-Android/app/src/debug/AndroidManifest.xml Warning:
+	meta-data#androidx.work.WorkManagerInitializer was tagged at AndroidManifest.xml:0 to remove other declarations but no other declaration present
+
+> Task :app:packageFullDebugUnitTestForUnitTest
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :app:generateFullDebugUnitTestConfig
+> Task :document:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :document:processDebugJavaRes UP-TO-DATE
+> Task :highlight:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :highlight:processDebugJavaRes UP-TO-DATE
+> Task :search:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :search:processDebugJavaRes UP-TO-DATE
+> Task :core:agent-runtime-impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugJavaRes UP-TO-DATE
+> Task :core:agent-store-room:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:agent-store-room:processDebugJavaRes UP-TO-DATE
+> Task :core:app-infra:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:app-infra:processDebugJavaRes UP-TO-DATE
+> Task :core:jev:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:jev:processDebugJavaRes UP-TO-DATE
+> Task :core:model:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:model:processDebugJavaRes UP-TO-DATE
+> Task :core:settings:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:settings:processDebugJavaRes UP-TO-DATE
+> Task :core:usage:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:usage:processDebugJavaRes UP-TO-DATE
+> Task :feature:icloud:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:icloud:processDebugJavaRes UP-TO-DATE
+> Task :feature:modelcouncil:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel-workspace:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugJavaRes UP-TO-DATE
+> Task :feature:subagent:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:subagent:processDebugJavaRes UP-TO-DATE
+> Task :feature:system:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:system:processDebugJavaRes UP-TO-DATE
+> Task :feature:task:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:task:processDebugJavaRes UP-TO-DATE
+> Task :feature:terminal:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:terminal:processDebugJavaRes UP-TO-DATE
+> Task :feature:workspace:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:workspace:processDebugJavaRes UP-TO-DATE
+> Task :feature:board:impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:board:impl:processDebugJavaRes UP-TO-DATE
+> Task :feature:runtime:api:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:access:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:access:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:api:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:impl:processDebugJavaRes UP-TO-DATE
+> Task :ai:preDebugUnitTestBuild UP-TO-DATE
+> Task :ai:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :ai:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :ai:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :ai:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :ai:testDebugUnitTest UP-TO-DATE
+> Task :search:preDebugUnitTestBuild UP-TO-DATE
+> Task :search:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :search:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :search:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :search:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :search:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :search:testDebugUnitTest UP-TO-DATE
+> Task :document:preDebugUnitTestBuild
+> Task :app:kspFullDebugKotlin
+> Task :document:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :document:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :document:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :document:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :document:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :document:testDebugUnitTest UP-TO-DATE
+> Task :app:compileFullDebugKotlin
+> Task :core:agent-runtime:compileTestKotlin
+> Task :core:agent-runtime:compileTestKotlin UP-TO-DATE
+> Task :core:agent-runtime:compileTestJava NO-SOURCE
+> Task :core:agent-runtime:processTestResources NO-SOURCE
+> Task :core:agent-runtime:testClasses UP-TO-DATE
+> Task :core:agent-runtime:test
+> Task :core:agent-runtime-impl:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:agent-runtime-impl:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:agent-runtime-impl:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:agent-runtime-impl:testDebugUnitTest UP-TO-DATE
+> Task :core:agent-store-room:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:agent-store-room:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:agent-store-room:kspDebugUnitTestKotlin UP-TO-DATE
+> Task :core:agent-store-room:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:agent-store-room:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:agent-store-room:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:agent-store-room:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:agent-store-room:testDebugUnitTest
+> Task :core:settings:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:settings:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:settings:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:settings:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:settings:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:settings:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:settings:testDebugUnitTest UP-TO-DATE
+> Task :feature:novel:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:novel:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:novel:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:novel:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:novel:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:novel:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:novel:testDebugUnitTest UP-TO-DATE
+> Task :feature:novel-workspace:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:novel-workspace:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:novel-workspace:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:novel-workspace:testDebugUnitTest UP-TO-DATE
+> Task :feature:modelcouncil:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:modelcouncil:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:modelcouncil:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:modelcouncil:testDebugUnitTest UP-TO-DATE
+> Task :feature:terminal:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:terminal:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:tools:api:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:tools:api:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:tools:api:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:tools:api:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:tools:api:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:tools:api:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:tools:api:testDebugUnitTest UP-TO-DATE
+> Task :feature:tools:access:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:terminal:generateDebugUnitTestStubRFile
+> Task :feature:tools:access:generateDebugUnitTestStubRFile
+> Task :feature:tools:access:compileDebugUnitTestKotlin
+> Task :feature:tools:access:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:tools:access:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:tools:access:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:terminal:compileDebugUnitTestKotlin
+> Task :feature:tools:access:testDebugUnitTest
+> Task :feature:terminal:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:terminal:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:terminal:testDebugUnitTest
+> Task :feature:workspace:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:workspace:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:workspace:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:workspace:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:workspace:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:workspace:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:workspace:testDebugUnitTest UP-TO-DATE
+> Task :feature:task:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:task:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:task:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:task:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:task:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:task:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:task:testDebugUnitTest UP-TO-DATE
+> Task :feature:live:api:compileTestKotlin UP-TO-DATE
+> Task :feature:live:api:compileTestJava NO-SOURCE
+> Task :feature:live:api:processTestResources NO-SOURCE
+> Task :feature:live:api:testClasses UP-TO-DATE
+> Task :feature:live:api:test UP-TO-DATE
+
+> Task :app:compileFullDebugKotlin
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/agent/RouteActivity.kt:220:37 This declaration needs opt-in. Its usage should be marked with '@coil3.annotation.ExperimentalCoilApi' or '@OptIn(coil3.annotation.ExperimentalCoilApi::class)'
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/agent/RouteActivity.kt:222:55 This declaration needs opt-in. Its usage should be marked with '@coil3.annotation.ExperimentalCoilApi' or '@OptIn(coil3.annotation.ExperimentalCoilApi::class)'
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:200:50 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolEffectLedger'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:200:68 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:586:46 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolEffectLedger'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:587:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:633:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/DefaultRunKernel.kt:635:50 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolEffectLedger'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/mcp/McpOAuthClient.kt:329:37 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/mcp/transport/StreamableHttpClientTransport.kt:353:32 'suspend fun ByteReadChannel.readUTF8Line(max: Int = ...): String?' is deprecated. Use readLineStrict or readLine instead. See deprecation notes for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/tools/ProviderConfigurationApply.kt:218:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/tools/ProviderConfigurationApply.kt:239:54 Elvis operator (?:) always returns the left operand of non-nullable type 'ProviderSetting'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/tools/ProviderConfigurationApply.kt:244:38 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/tools/ProviderConfigurationApply.kt:262:38 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/transformers/TemplateTransformer.kt:27:67 Redundant call of conversion method.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/ai/transformers/TemplateTransformer.kt:28:67 Redundant call of conversion method.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:121:42 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:216:41 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:371:69 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:374:61 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:379:57 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:387:99 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:444:37 Elvis operator (?:) always returns the left operand of non-nullable type 'AccessibilityNodeInfo'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:449:42 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:452:42 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/automation/AccessibilityNativeScreen.kt:454:78 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/context/TokenBudgetFitter.kt:237:9 'when' is exhaustive so 'else' is redundant here.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/jev/JevScreenGoalRunner.kt:106:74 Unnecessary safe call on a non-null receiver of type 'suspend (String) -> ScreenshotAttempt'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/jev/JevWebGoalRunner.kt:353:122 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Pair<Int, Double>'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/memory/extraction/MemoryExtractor.kt:223:54 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MemoryRecord'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/memory/extraction/MemoryExtractor.kt:253:54 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MemoryRecord'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/memory/store/MemoryRepository.kt:752:49 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MemoryEntity'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/memory/store/MemoryRepository.kt:764:68 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MemoryEntity'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/memory/store/MemoryRepository.kt:784:48 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MemoryEntity'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatApprovalActions.kt:306:29 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolEffectLedger'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1086:61 Unnecessary safe call on a non-null receiver of type 'RunTerminalStore'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1091:29 Unnecessary safe call on a non-null receiver of type 'RunTerminalStore'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1106:29 Unnecessary safe call on a non-null receiver of type 'RunTerminalStore'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1188:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1207:53 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1210:62 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1307:72 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/service/ChatRunCoordinator.kt:1317:75 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/utils/ContextUtil.kt:329:49 'static field ACTION_MEDIA_SCANNER_SCAN_FILE: String' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/utils/ContextUtil.kt:386:49 'static field ACTION_MEDIA_SCANNER_SCAN_FILE: String' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/core/utils/ContextUtil.kt:446:49 'static field ACTION_MEDIA_SCANNER_SCAN_FILE: String' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/home/ContinueCandidateAggregator.kt:36:59 Unchecked cast of 'List<Any>' to 'List<ContinueCandidate>'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/miniapp/MiniAppNetwork.kt:108:32 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/miniapp/MiniAppNetwork.kt:147:32 Unnecessary safe call on a non-null receiver of type 'ResponseBody'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/recipe/RecipeRunner.kt:167:72 Unnecessary safe call on a non-null receiver of type 'RecipeResumeCheckpoint'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ChatAttachmentImporter.kt:187:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ChatInputAttachmentImport'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ChatAttachmentImporter.kt:188:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ChatInputAttachmentImport'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ChatAttachmentImporter.kt:205:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ChatInputAttachmentImport'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ChatAttachmentImporter.kt:297:47 Unnecessary non-null assertion (!!) on a non-null receiver of type 'UIMessagePart.Document'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ChatAttachmentImporter.kt:310:65 Unnecessary non-null assertion (!!) on a non-null receiver of type 'UIMessagePart.Document'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ModelList.kt:176:25 Condition is always 'false'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ai/ModelList.kt:475:14 This declaration is in a preview state and can be changed in a backwards-incompatible manner with a best-effort migration. Its usage should be marked with '@kotlinx.coroutines.FlowPreview' or '@OptIn(kotlinx.coroutines.FlowPreview::class)' if you accept the drawback of relying on preview API
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/ChatMessageCouncilStep.kt:293:17 'fun ScrollableTabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., edgePadding: Dp = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryScrollableTabRow and SecondaryScrollableTabRow tab variants.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/ChatMessageMessagePartsBlock.kt:243:58 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ThemeTryOnCardTarget'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/ChatMessageSubAgentStep.kt:486:24 Unnecessary non-null assertion (!!) on a non-null receiver of type 'SubAgentRunStatus'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GeneratedImageCarousel.kt:384:38 Unnecessary safe call on a non-null receiver of type 'ClipDescription'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:280:49 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:281:53 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:293:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:294:20 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:308:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GenerativeWidgetDialog.kt:309:24 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GuizangDeckWebView.kt:162:30 'var databaseEnabled: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GuizangDeckWebView.kt:165:30 'var allowFileAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/message/GuizangDeckWebView.kt:166:30 'var allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/HtmlMarkdownParse.kt:20:30 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/HtmlMarkdownParse.kt:48:23 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/MarkdownParseCache.kt:31:5 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/MarkdownParseCache.kt:317:37 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/MarkdownTable.kt:159:54 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/richtext/MarkdownToAnnotatedString.kt:672:52 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HighlightTextColorPalette'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/components/ui/Tooltip.kt:18:44 'fun rememberTooltipPositionProvider(spacingBetweenTooltipAndAnchor: Dp = ...): PopupPositionProvider' is deprecated. Deprecated in favor of rememberTooltipPositionProvider API that takes a preferred positioning. Please use rememberTooltipPositionProvider with TooltipAnchorPosition.Above if this same behavior is desired.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/backup/BackupModels.kt:23:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/backup/BackupModels.kt:31:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/backup/BackupModels.kt:32:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:24:49 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:25:53 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:33:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:34:20 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:51:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadReaderWindow.kt:52:24 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadStaticTemplateWebView.kt:147:14 'var allowFileAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/board/DeepReadStaticTemplateWebView.kt:148:14 'var allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/councilroom/CouncilRoomDevEntry.kt:44:30 Condition is always 'true'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:223:49 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:224:53 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:231:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:232:20 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:247:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:248:24 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:437:26 'var allowFileAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:438:26 'var allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppRunnerPage.kt:439:26 'var databaseEnabled: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppSourceEditor.kt:636:26 'var allowFileAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppSourceEditor.kt:637:26 'var allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/miniapp/MiniAppSourceEditor.kt:638:26 'var databaseEnabled: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownDiscardedSheet.kt:114:47 Condition is always 'true'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspacePage.kt:122:36 Unnecessary safe call on a non-null receiver of type 'NovelMarkdownGhostwriteUi'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/search/SearchVM.kt:186:24 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/sessionhome/HomeSessionRow.kt:79:24 'fun rememberSwipeToDismissBoxState(initialValue: SwipeToDismissBoxValue = ..., confirmValueChange: (SwipeToDismissBoxValue) -> Boolean = ..., positionalThreshold: (Float) -> Float = ...): SwipeToDismissBoxState' is deprecated. confirmValueChange is deprecated without replacement. Rather than relying on a callback to veto state changes, the anchor set should not include disallowed anchors. See androidx.compose.foundation.samples.AnchoredDraggableDynamicAnchorsSample for an example of using dynamic anchors over confirmValueChange.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/synara/SynaraVM.kt:37:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/synara/SynaraVM.kt:42:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/synara/SynaraVM.kt:172:62 The corresponding parameter in the supertype 'WebSocketListener' is named 't'. This may cause problems when calling this function with named arguments.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/synara/SynaraWorkspacePage.kt:299:26 'var databaseEnabled: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/zcode/ZCodePage.kt:226:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/pages/zcode/ZCodeSessionPage.kt:104:23 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/subagent/SubAgentDisplayLocalizer.kt:35:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/subagent/SubAgentDisplayLocalizer.kt:36:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/subagent/SubAgentDisplayLocalizer.kt:37:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/subagent/SubAgentDisplayLocalizer.kt:38:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/theme/ThemePackageManager.kt:399:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'DisplaySetting'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/ui/theme/ThemePackageManager.kt:399:56 Unnecessary non-null assertion (!!) on a non-null receiver of type 'DisplaySetting'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:6:8 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:7:8 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:112:25 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:112:35 'constructor(p0: Context): MasterKey.Builder' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:113:27 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:113:37 'enum class KeyScheme : Enum<MasterKey.KeyScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:115:9 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:119:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:119:40 'enum class PrefKeyEncryptionScheme : Enum<EncryptedSharedPreferences.PrefKeyEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:120:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/PendingOAuthStore.kt:120:40 'enum class PrefValueEncryptionScheme : Enum<EncryptedSharedPreferences.PrefValueEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:6:8 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:7:8 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:201:25 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:201:35 'constructor(p0: Context): MasterKey.Builder' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:202:27 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:202:37 'enum class KeyScheme : Enum<MasterKey.KeyScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:204:9 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:208:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:208:40 'enum class PrefKeyEncryptionScheme : Enum<EncryptedSharedPreferences.PrefKeyEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:209:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/oauth/WebMountOAuthTokenStore.kt:209:40 'enum class PrefValueEncryptionScheme : Enum<EncryptedSharedPreferences.PrefValueEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/SessionHandle.kt:838:26 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/SessionHandle.kt:853:29 Non-public primary constructor is exposed via the generated 'copy()' method of the 'data' class.
+
+The generated 'copy()' will change its visibility in future releases.
+
+To suppress the warning do one of the following:
+- Annotate the data class with the '@ConsistentCopyVisibility' annotation.
+- Use the '-Xconsistent-data-class-copy-visibility' compiler flag.
+- Annotate the data class with the '@ExposedCopyVisibility' annotation 
+  (Discouraged, but can be used to keep binary compatibility).
+
+To learn more, see the documentation of the '@ConsistentCopyVisibility' and '@ExposedCopyVisibility' annotations.
+
+This will become an error in language version 2.5. See https://youtrack.jetbrains.com/issue/KT-11914.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/WebViewPool.kt:335:9 'var databaseEnabled: Boolean' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/WebViewPool.kt:498:35 'fun injectFeishuCompatibility(view: WebView?, url: String?): Unit' is deprecated. Use WebViewCompatibility.injectFallback; kept for older WebMount call sites.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/WebViewPool.kt:523:39 'fun injectFeishuCompatibility(view: WebView?, url: String?): Unit' is deprecated. Use WebViewCompatibility.injectFallback; kept for older WebMount call sites.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/primitives/WebViewPool.kt:653:35 'fun injectFeishuCompatibility(view: WebView?, url: String?): Unit' is deprecated. Use WebViewCompatibility.injectFallback; kept for older WebMount call sites.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:6:8 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:7:8 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:235:25 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:235:35 'constructor(p0: Context): MasterKey.Builder' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:236:27 'class MasterKey : Any' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:236:37 'enum class KeyScheme : Enum<MasterKey.KeyScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:238:9 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:242:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:242:40 'enum class PrefKeyEncryptionScheme : Enum<EncryptedSharedPreferences.PrefKeyEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:243:13 'class EncryptedSharedPreferences : Any, SharedPreferences' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/profile/ProfileRegistry.kt:243:40 'enum class PrefValueEncryptionScheme : Enum<EncryptedSharedPreferences.PrefValueEncryptionScheme!>' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/main/java/app/amber/feature/webmount/tools/WebMountInteractionTools.kt:732:25 Unnecessary safe call on a non-null receiver of type 'JsonObject'.
+
+> Task :app:compileFullDebugJavaWithJavac
+> Task :app:processFullDebugJavaRes
+> Task :app:bundleFullDebugClassesToCompileJar
+> Task :app:bundleFullDebugClassesToRuntimeJar
+> Task :app:kspFullDebugUnitTestKotlin
+
+> Task :app:compileFullDebugUnitTestKotlin
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/RouteNavigationMotionTest.kt:41:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:64:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:75:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:86:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:101:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/live/LiveUiTreeProcessorTest.kt:112:33 'fun shouldAnalyze(previousHash: String?, nextHash: String?, nowMillis: Long, changedAtMillis: Long, lastAnalysisAtMillis: Long, stableDelayMs: Long, minAnalysisIntervalMs: Long, force: Boolean = ...): Boolean' is deprecated. 由 LiveEngine 取代，仅留作参考.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/agent/workspace/WorkspaceManagerMirrorIsolationTest.kt:252:36 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/data/sync/BackupArtifactTreeProvider.kt:39:29 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:79:30 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:80:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:82:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:86:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:89:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:94:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:99:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:104:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:110:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:115:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:121:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:127:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:132:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:136:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:140:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:144:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:146:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:150:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:152:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:156:13 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:182:19 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/di/KoinGraphVerifyTest.kt:182:42 API marked as @KoinExperimentalAPI. The current API is actively under development, and may change or be removed without notice. Feedback will help stabilize this API.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/replay/ReplayGoldenTest.kt:1167:13 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/replay/ReplayGoldenTest.kt:1171:24 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:70:22 Unnecessary safe call on a non-null receiver of type 'MarkdownTableData'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:93:61 Unnecessary safe call on a non-null receiver of type 'MarkdownTableData'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:99:19 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/MarkdownTableTest.kt:99:58 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingMarkdownMotionTest.kt:111:13 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingMarkdownMotionTest.kt:111:52 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/agent/ui/components/richtext/StreamingPlainTextComposeTest.kt:51:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/ChatGenerationRoundEngineTest.kt:304:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'Conversation'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:107:62 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:108:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:109:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:110:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:111:41 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:119:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:120:38 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ToolInvocationPolicy'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/ai/tools/ThemePackToolsTest.kt:258:65 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/conversation/exchange/ConversationExchangeServiceTest.kt:101:22 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/conversation/exchange/ConversationExchangeServiceTest.kt:127:29 No cast needed.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevMemoryCorpusBaselineTest.kt:112:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevScreenCorpusBaselineTest.kt:65:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/jev/baseline/JevToolCorpusBaselineTest.kt:104:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'ClassLoader?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/service/ConversationEditorTest.kt:202:77 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:285:51 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:299:47 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/core/sync/provider/LocalFolderSyncProviderUploadTest.kt:312:47 'fun <T : Parcelable!> getParcelable(p0: String?): T?' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/home/NovelWorkspaceContinueSourceTest.kt:46:9 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:78:22 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:79:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/live/LiveDraftFillerAccessibilityTest.kt:84:74 'static fun obtain(): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/miniapp/MiniAppSourceEditorVersionTest.kt:75:30 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MiniAppEntity'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/miniapp/MiniAppSystemCapabilityBridgeTest.kt:282:16 Redundant creation of Json format. Creating instances for each usage can be slow.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:11:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:18:65 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:19:65 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:24:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:33:60 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:40:55 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:48:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:52:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:61:48 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/novel/workspace/NovelGhostwriteFailureNotificationTest.kt:64:60 'fun content(bookTitle: String?, chapterOrdinal: Int?, reason: String?, taskLabel: String = ...): NovelGhostwriteFailureNotification.Content' is deprecated. Production callers must pass localized notification templates.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/reminder/ReminderOwnerTest.kt:28:25 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/subagent/SubAgentThreadGraphIntegrationTest.kt:1258:24 Unnecessary non-null assertion (!!) on a non-null receiver of type 'suspend (GenerationTerminal) -> Unit'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/tools/ScreenAutomationAcceptanceTest.kt:226:42 'static fun obtain(): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/tools/ScreenAutomationAcceptanceTest.kt:247:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/ComposerInteractionTest.kt:50:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/ModelMenuInteractionTest.kt:64:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ai/SubAgentDockInteractionTest.kt:40:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ds/GraphiteComposePipelineTest.kt:23:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatDocumentOpenTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatMessageLongPressTest.kt:42:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatMessageTouchTargetTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/ChatToolApprovalCardNoticeTest.kt:33:19 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/message/WidgetDialogLifecycleTest.kt:32:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/JvmMdTreeTest.kt:31:26 'constructor(flavour: MarkdownFlavourDescriptor): MarkdownParser' is deprecated. Use constructor with CancellationToken.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/JvmMdTreeTest.kt:39:26 'fun buildMarkdownTreeFromString(text: String): ASTNode' is deprecated. Use the CharSequence overload.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownEdgeShapeRenderTest.kt:65:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownRendererSnapshotTest.kt:105:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/richtext/tree/MarkdownTreeParityTest.kt:289:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/ui/CardGroupDynamicContentTest.kt:24:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/components/webmount/WebMountTaskCardTest.kt:51:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/hooks/ColorModeStateTest.kt:26:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/backup/BackupVMRestoreCleanupTest.kt:112:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/board/TodayBoardSettingsPaneTest.kt:43:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatConfigurationHintTest.kt:29:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatEmptyContentTest.kt:41:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatEmptyContentTest.kt:116:13 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'File?'.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatListNormalAnchorTest.kt:52:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatTailGrowthHoldTest.kt:27:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/chat/ChatTimelineEffectsTest.kt:40:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/councilroom/CouncilTimelineInteractionTest.kt:43:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/extensions/SkillsLayoutTest.kt:31:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/miniapp/MiniAppSourceEditorLayoutTest.kt:36:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/miniapp/MiniAppThemeProviderTest.kt:31:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownChapterReaderTest.kt:48:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownMaterialSheetsTest.kt:28:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownReviewCardsTest.kt:42:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownReviewSheetsTest.kt:37:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspaceMotionTest.kt:45:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelMarkdownWorkspacePageTest.kt:27:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelWorkspaceContinuityReportUiTest.kt:30:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/novel/NovelWorkspacePaneInteractionTest.kt:46:29 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/sessionhome/HomeCompactLayoutTest.kt:66:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ExperimentActionButtonTest.kt:26:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ModelContextWindowInputTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ModelPickerSheetTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ProviderFileImportPreviewTest.kt:26:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/ProviderModelRowTest.kt:38:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/SettingAgentMemoryLayoutTest.kt:36:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/setting/SettingModelPagePromptTest.kt:42:19 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/feature/ui/pages/webmount/WebMountSessionHeaderTest.kt:36:29 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/review/TerminalUtf8OutputTest.kt:21:86 This class is not recommended for use in Kotlin. Use 'kotlin.Function0' instead.
+w: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/src/test/java/app/amber/review/TerminalUtf8OutputTest.kt:21:130 This class is not recommended for use in Kotlin. Use 'kotlin.Function1' instead.
+
+> Task :app:compileFullDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processFullDebugUnitTestJavaRes
+
+> Task :app:testFullDebugUnitTest
+
+WorkspaceManagerMirrorIsolationTest > activeTerminalMirrorRejectsSafMutationsBeforeTheyCanBeAcknowledged FAILED
+    java.lang.AssertionError at WorkspaceManagerMirrorIsolationTest.kt:156
+
+WorkspaceManagerMirrorIsolationTest > idleSafMutationsSurviveTheStaleMirrorFlushWhenClearingWorkspace FAILED
+    org.junit.ComparisonFailure at WorkspaceManagerMirrorIsolationTest.kt:184
+
+SecretBackupExportTest > standard restore keeps local SearXNG credentials for the same service FAILED
+    org.junit.ComparisonFailure at SecretBackupExportTest.kt:150
+
+SecretBackupExportTest > standard restore keeps local WebDAV username and password at the same endpoint FAILED
+    org.junit.ComparisonFailure at SecretBackupExportTest.kt:130
+
+AntigravityOAuthSessionTest > late invalid grant cannot clear a session created after logout FAILED
+    java.lang.AssertionError at AntigravityOAuthSessionTest.kt:58
+
+AntigravityOAuthSessionTest > late successful refresh cannot replace a session created after logout FAILED
+    java.lang.AssertionError at AntigravityOAuthSessionTest.kt:27
+
+ConversationContextPlannerTest > softFitKeepsCurrentUserAndToolContinuationEvenWhenTheyExceedTarget FAILED
+    java.lang.AssertionError at ConversationContextPlannerTest.kt:33
+
+ConversationContextPlannerTest > zeroSoftBudgetStillKeepsCurrentUserAndItsContinuation FAILED
+    java.lang.AssertionError at ConversationContextPlannerTest.kt:43
+
+MemoryCandidateFilterTest > longSharedPrefixDoesNotHideDistinctFactsOrWeakenExactDedupe FAILED
+    java.lang.AssertionError at MemoryCandidateFilterTest.kt:34
+
+MemoryDreamPlannerTest > deterministicMaintenanceDoesNotMergeLongPrefixMatchesOrIgnoreTheirCandidates FAILED
+    java.lang.AssertionError at MemoryDreamPlannerTest.kt:42
+
+MemoryDreamPlannerVisibleInputsTest > modelPlanCanOnlyTargetRecordsAndCandidatesActuallyIncludedInItsPrompt FAILED
+    java.lang.AssertionError at MemoryDreamPlannerVisibleInputsTest.kt:52
+
+MemoryImportExportTest > importRemapsSupersessionAfterAllRowsExistAndDropsMissingForeignReferences FAILED
+    java.lang.AssertionError at MemoryImportExportTest.kt:32
+
+NotificationApprovalDispatchTest > approval waits for predecessor pause handoff without cancelling the run FAILED
+    java.lang.AssertionError at NotificationApprovalDispatchTest.kt:24
+
+WebDavSyncProviderTest > listSnapshots uses href identity when displayname differs from the filename FAILED
+    java.lang.AssertionError at WebDavSyncProviderTest.kt:222
+
+WebDavSyncProviderTest > listSnapshots keeps a child returned before the collection itself FAILED
+    java.lang.AssertionError at WebDavSyncProviderTest.kt:206
+
+ToolInvocationRecoveryRegressionTest > interruptedAppendHttpMutationAndMcpCallsRequireAnOutcomeDecision FAILED
+    java.lang.AssertionError at ToolInvocationRecoveryRegressionTest.kt:16
+
+SubAgentThreadGraphIntegrationTest > failedInitialWriteAheadReleasesTheAdmissionAndPreservesTheFailure FAILED
+    java.lang.AssertionError at SubAgentThreadGraphIntegrationTest.kt:253
+
+SubAgentThreadGraphIntegrationTest > cancellationDuringInitialWriteAheadCannotLeaveAStartedThreadRunning FAILED
+    org.junit.ComparisonFailure at SubAgentThreadGraphIntegrationTest.kt:183
+
+SubAgentThreadGraphIntegrationTest > cancelledInitialWriteAheadReleasesTheAdmissionAndSettlesPublishedTask FAILED
+    java.lang.AssertionError at SubAgentThreadGraphIntegrationTest.kt:216
+
+WorkspaceArtifactHttpRequestTest > defaultGetWithBodyIsRejectedBeforeItCanBecomePost FAILED
+    java.lang.AssertionError at WorkspaceArtifactHttpRequestTest.kt:80
+
+WorkspaceArtifactHttpRequestTest > explicitGetWithEmptyBodyIsRejectedBeforeItCanBecomePost FAILED
+    java.lang.AssertionError at WorkspaceArtifactHttpRequestTest.kt:80
+
+WorkspaceArtifactHttpRequestTest > headWithBodyIsRejectedBeforeConnecting FAILED
+    java.lang.AssertionError at WorkspaceArtifactHttpRequestTest.kt:80
+
+3124 tests completed, 22 failed, 14 skipped
+
+> Task :app:testFullDebugUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testFullDebugUnitTest'.
+> There were failing tests. See the report at: file:///Users/arquiel/Downloads/AI/amberagent-Android/app/build/reports/tests/testFullDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 7m 6s
+580 actionable tasks: 42 executed, 538 up-to-date

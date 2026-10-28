@@ -14,12 +14,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.Buffer
 
-private val SENSITIVE_HEADERS = setOf(
+internal val sensitiveHttpHeaders = setOf(
     "authorization",
     "proxy-authorization",
     "cookie",
@@ -28,6 +29,7 @@ private val SENSITIVE_HEADERS = setOf(
     "api-key",
     "x-goog-api-key",
     "x-auth-token",
+    "x-subscription-token",
 )
 
 private val SENSITIVE_QUERY_PARAMS = setOf(
@@ -128,12 +130,6 @@ class RequestLoggingInterceptor(
         return response
     }
 
-    private fun okhttp3.Headers.toRedactedMap(): Map<String, String> {
-        return names().associateWith { name ->
-            if (name.lowercase() in SENSITIVE_HEADERS) "[redacted]" else get(name) ?: ""
-        }
-    }
-
     private fun HttpUrl.redactedString(): String {
         val sensitive = queryParameterNames.filter { it.lowercase() in SENSITIVE_QUERY_PARAMS }
         if (sensitive.isEmpty()) return toString()
@@ -141,4 +137,8 @@ class RequestLoggingInterceptor(
         sensitive.forEach { builder.setQueryParameter(it, "[redacted]") }
         return builder.build().toString()
     }
+}
+
+internal fun Headers.toRedactedMap(): Map<String, String> = names().associateWith { name ->
+    if (name.lowercase() in sensitiveHttpHeaders) "[redacted]" else get(name).orEmpty()
 }

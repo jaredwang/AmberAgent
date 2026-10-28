@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.modelcouncil.CouncilRoomManagerTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:16.353Z" hostname="duguangdeMBP.lan" time="0.906">
+  <properties/>
+  <testcase name="inviteNext launches guest generation and creates streaming message" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.602"/>
+  <testcase name="close cancel=false during FINALIZING waits for synthesis" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.017"/>
+  <testcase name="late classifier preserves a mode explicitly selected while classification is running" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.03"/>
+  <testcase name="close while research awaits answer cancels the same run without planning or generating" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.012"/>
+  <testcase name="cancel caller after open returns preserves task stop ownership" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.004"/>
+  <testcase name="full existing roster withdraws no comment review and does not research again" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.02"/>
+  <testcase name="close cancel=true cancels guest generation and marks cancelled" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.064"/>
+  <testcase name="synthesize launches host generation and finalizes room" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.004"/>
+  <testcase name="full review question resumes the same run with a reply linked user answer" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.013"/>
+  <testcase name="steering received during roster planning is processed once even with matching timestamps" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.073"/>
+  <testcase name="background generation carries the store write context" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.005"/>
+  <testcase name="composer answer resumes the pending question once and is not replayed as an interjection" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.011"/>
+  <testcase name="standard auto run honors explicit mode and orders host guest rounds and synthesis" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.005"/>
+  <testcase name="full empty roster researches before planning and shares facts through final synthesis" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.009"/>
+  <testcase name="streaming chunks merge into a single message" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.004"/>
+  <testcase name="answer accepted while question publication is finishing wakes the original waiter" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.009"/>
+  <testcase name="cancel after room publication completes task handoff and its stop callback" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.005"/>
+  <testcase name="closing gate prevents new generation jobs from starting" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.005"/>
+  <testcase name="cancel while reading before publication creates neither room nor task" classname="app.amber.feature.modelcouncil.CouncilRoomManagerTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

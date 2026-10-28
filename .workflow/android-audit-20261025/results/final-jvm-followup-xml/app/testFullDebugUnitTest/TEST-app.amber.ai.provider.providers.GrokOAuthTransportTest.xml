@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.GrokOAuthTransportTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:19.801Z" hostname="duguangdeMBP.lan" time="0.118">
+  <properties/>
+  <testcase name="managed Grok complete pins chat path despite incompatible persisted configuration" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.053"/>
+  <testcase name="cancelling Grok stream during refresh prevents request replay" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.017"/>
+  <testcase name="managed Grok stream refreshes initial rejected bearer before emitting and retries" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.016"/>
+  <testcase name="API key chat does not invoke OAuth refresh on 401 for complete and stream" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.012"/>
+  <testcase name="Grok chat retries a rejected bearer only once for complete and stream" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.012"/>
+  <testcase name="managed Grok complete refreshes rejected unexpired cached bearer and retries" classname="app.amber.ai.provider.providers.GrokOAuthTransportTest" time="0.008"/>
+  <system-out><![CDATA[[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

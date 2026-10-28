@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.home.ContinueCandidateAggregatorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:30.935Z" hostname="duguangdeMBP.lan" time="0.022">
+  <properties/>
+  <testcase name="route parameters are passed through unchanged" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.016"/>
+  <testcase name="dismissed candidate disappears before expiry and reappears after" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.002"/>
+  <testcase name="sort is stable across equal timestamps" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.001"/>
+  <testcase name="sort places waitingUser then failedResumable then recent paused and draft then pinned" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.001"/>
+  <testcase name="candidate removed by its source (completed or deleted) no longer appears" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.001"/>
+  <testcase name="aggregation prunes expired dismiss records via deleteExpired" classname="app.amber.feature.home.ContinueCandidateAggregatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

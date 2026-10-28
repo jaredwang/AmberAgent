@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.FileJevCalibrationStoreTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.940Z" hostname="duguangdeMBP.lan" time="0.023">
+  <properties/>
+  <testcase name="roundTripPreservesRecords" classname="app.amber.core.jev.FileJevCalibrationStoreTest" time="0.01"/>
+  <testcase name="rotationKeepsNewestHalf" classname="app.amber.core.jev.FileJevCalibrationStoreTest" time="0.008"/>
+  <testcase name="clearEmptiesLog" classname="app.amber.core.jev.FileJevCalibrationStoreTest" time="0.002"/>
+  <testcase name="malformedLinesAreSkipped" classname="app.amber.core.jev.FileJevCalibrationStoreTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

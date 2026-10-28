@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:57.726Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="collects video parts as VIDEO and markdown images from text" classname="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" time="0.001"/>
+  <testcase name="markdown images inside fenced code are not shelf artifacts" classname="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" time="0.0"/>
+  <testcase name="inline data images get no label and duplicates keep the newest message" classname="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" time="0.0"/>
+  <testcase name="collects current-branch artifacts newest first without duplicates" classname="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" time="0.0"/>
+  <testcase name="collects openable show-widget HTML cards from assistant text and respects setting toggle" classname="app.amber.feature.ui.pages.chat.ChatShelfItemsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

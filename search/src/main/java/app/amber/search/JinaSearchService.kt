@@ -150,6 +150,7 @@ object JinaSearchService : SearchService<SearchServiceOptions.JinaOptions> {
                     title = it.title,
                     url = it.url,
                     text = it.description.ifBlank { it.content },
+                    publishedAt = it.publishedTime ?: it.date,
                 )
             }
         )
@@ -168,7 +169,9 @@ object JinaSearchService : SearchService<SearchServiceOptions.JinaOptions> {
         val url: String,
         val description: String = "",
         val content: String = "",
-        val usage: JinaUsage? = null
+        val usage: JinaUsage? = null,
+        val publishedTime: String? = null,
+        val date: String? = null,
     )
 
     @Serializable

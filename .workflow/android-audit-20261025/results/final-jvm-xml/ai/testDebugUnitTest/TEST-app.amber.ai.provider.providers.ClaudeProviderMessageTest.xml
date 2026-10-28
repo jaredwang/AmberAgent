@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ClaudeProviderMessageTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:01.813Z" hostname="duguangdeMBP.lan" time="0.064">
+  <properties/>
+  <testcase name="remote image uses url source instead of invalid base64" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.027"/>
+  <testcase name="parallel tool calls should be in same assistant message" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.028"/>
+  <testcase name="multi-round tool calls should produce tool_use followed by tool_result" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.002"/>
+  <testcase name="user messages should have correct content format" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.0"/>
+  <testcase name="tool_use in assistant should be immediately followed by user message with tool_result" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.001"/>
+  <testcase name="image encoding failure should fail instead of inserting empty text block" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.002"/>
+  <testcase name="thinking blocks should be included in assistant content" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.002"/>
+  <testcase name="multi-round reasoning and tools should maintain correct order" classname="app.amber.ai.provider.providers.ClaudeProviderMessageTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

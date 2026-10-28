@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.canary.RuntimeChainCanaryTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:53.672Z" hostname="duguangdeMBP.lan" time="1.178">
+  <properties/>
+  <testcase name="chain3_processDeathRecoveryReconcilesStartedAndReapprovesPrepared" classname="app.amber.agent.canary.RuntimeChainCanaryTest" time="0.853"/>
+  <testcase name="chain4_promptAssemblyTransformerSteerFinalFitProviderBoundary" classname="app.amber.agent.canary.RuntimeChainCanaryTest" time="0.128"/>
+  <testcase name="chain1_streamToolApprovalSideEffectResultNextTurnDurableTerminal" classname="app.amber.agent.canary.RuntimeChainCanaryTest" time="0.106"/>
+  <testcase name="chain2_stopCancelsOnlyTheTargetRun" classname="app.amber.agent.canary.RuntimeChainCanaryTest" time="0.091"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

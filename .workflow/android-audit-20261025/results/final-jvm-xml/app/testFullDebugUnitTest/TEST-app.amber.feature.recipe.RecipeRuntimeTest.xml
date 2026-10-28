@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.recipe.RecipeRuntimeTest" tests="25" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:45.067Z" hostname="duguangdeMBP.lan" time="0.313">
+  <properties/>
+  <testcase name="rollback makes the newer version unselectable and works only once" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.029"/>
+  <testcase name="imported recipe is discovered by tool_search" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.017"/>
+  <testcase name="manifest carrying a code field is rejected" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.009"/>
+  <testcase name="apply rejects a stale approval when the installed version changed" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="recipe_import audit uses the conversation id instead of a random session" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="recipe factory refreshes its registry snapshot at the next round" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.011"/>
+  <testcase name="denying a nested checkpoint produces no primitive side effect" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.018"/>
+  <testcase name="nested approval returns a checkpoint and only the resumed step is approved" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.017"/>
+  <testcase name="manifest referencing an arbitrary-code primitive is rejected" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.009"/>
+  <testcase name="compensation approval is blocked without claiming compensation" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="nested steps emit their tool lifecycle events into the run stream" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="a mid-run registry update does not change the fixed snapshot and step outputs flow as structured JSON" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.015"/>
+  <testcase name="recipe preview counts dynamic signed fetch writes conservatively" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.009"/>
+  <testcase name="manifest referencing an unknown primitive is rejected" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.008"/>
+  <testcase name="inline interpolation of a string value does not quote it" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.013"/>
+  <testcase name="write recipes are not registered without a durable ledger" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.012"/>
+  <testcase name="delete rejects a stale expected digest" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.018"/>
+  <testcase name="manifest referencing a js_cell_run primitive is rejected" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.009"/>
+  <testcase name="write steps do not bypass approval or the effect ledger" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="tampered recipe checkpoint provenance fails closed" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="outer recipe approval cannot auto execute an inner approval step" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.012"/>
+  <testcase name="recipe management mutations are high risk mandatory non idempotent writes" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.011"/>
+  <testcase name="resume keeps failed steps from the original checkpoint" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.009"/>
+  <testcase name="recipe_preview reports per-step tool and args summary for approval" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.01"/>
+  <testcase name="deleted recipes are no longer discovered" classname="app.amber.feature.recipe.RecipeRuntimeTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

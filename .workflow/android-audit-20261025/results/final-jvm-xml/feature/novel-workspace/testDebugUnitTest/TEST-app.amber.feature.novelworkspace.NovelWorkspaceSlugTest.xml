@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.756Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="ascii titles lowercase" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.0"/>
+  <testcase name="reserved path deduplicates with numeric suffixes" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.001"/>
+  <testcase name="forbidden characters collapse to single dashes" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.0"/>
+  <testcase name="empty slug falls back to id prefix then untitled" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.003"/>
+  <testcase name="non-ascii titles keep their characters" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.001"/>
+  <testcase name="reserved path keeps directory prefix while deduplicating leaves" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.002"/>
+  <testcase name="empty input yields empty slug" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.0"/>
+  <testcase name="leading and trailing dashes are trimmed" classname="app.amber.feature.novelworkspace.NovelWorkspaceSlugTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

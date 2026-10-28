@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.920Z" hostname="duguangdeMBP.lan" time="0.065">
+  <properties/>
+  <testcase name="createdIdentityIsDurableBeforeAnyVisibleOutput" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.047"/>
+  <testcase name="disconnectAfterCreatedBeforeTextCanReconnectAndKeepResponseIdentity" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.003"/>
+  <testcase name="nonStreamingEncoderDoesNotReturnAnImmediatelyQueuedBackgroundResponse" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.001"/>
+  <testcase name="suffixReplayUsesServerCursorAndCheckpointsWithoutACreatedEvent" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.003"/>
+  <testcase name="onlyOptedInOfficialStreamingCreationUsesBackgroundMode" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.008"/>
+  <testcase name="fullRebuildRequestsSseWithoutSkippingTheDurablyMissingPrefix" classname="app.amber.ai.provider.providers.openai.ResponseAPIStoredProtocolRegressionTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

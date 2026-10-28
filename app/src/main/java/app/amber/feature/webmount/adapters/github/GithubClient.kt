@@ -8,6 +8,7 @@ import io.ktor.client.request.parameter
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -98,7 +99,8 @@ class GithubClient(
         ref: String?,
         bearerToken: String?,
     ): GithubFileContent? {
-        val response = http.get("$BASE/repos/$owner/$repo/contents/$path") {
+        val response = http.get(BASE) {
+            url { appendPathSegments("repos", owner, repo, "contents", path) }
             applyHeaders(bearerToken)
             if (!ref.isNullOrBlank()) parameter("ref", ref)
             // Request raw content when possible; falls back to base64-encoded JSON.

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.webmount.adapters.reddit.RedditClientTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.454Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="postAndCommentCreationTimesAcceptDecimalEpochSeconds" classname="app.amber.feature.webmount.adapters.reddit.RedditClientTest" time="0.004"/>
+  <testcase name="postWithCommentsDropsMoreContinuationNodes" classname="app.amber.feature.webmount.adapters.reddit.RedditClientTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

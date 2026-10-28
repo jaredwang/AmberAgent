@@ -10,6 +10,7 @@ import app.amber.core.repository.ConversationRepository
 import app.amber.core.settings.prefs.SettingsAggregator
 import app.amber.core.sync.core.SyncRestoreWriteEpoch
 import app.amber.core.sync.core.SyncRestoreWriteGate
+import java.time.Instant
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.coroutineContext
@@ -410,8 +411,16 @@ class ConversationStore(
             saveConversationInternal(conversationId, conversation)
             return
         }
+        // A window checkpoint may have queued before a metadata command. It owns
+        // message content; the current session owns the latest title and suggestions.
+        val current = getConversationFlow(conversationId).value
+        val checkpoint = conversation.copy(
+            title = current.title,
+            chatSuggestions = current.chatSuggestions,
+            updateAt = maxOf(conversation.updateAt, current.updateAt),
+        )
         conversationRepo.upsertConversationWindow(
-            conversation = conversation,
+            conversation = checkpoint,
             firstNodeIndex = loadState.oldestLoadedIndex,
             indexFts = indexFts,
         )
@@ -440,27 +449,15 @@ class ConversationStore(
         // while preventing a synchronous update from scheduling cleanup under
         // a newer epoch after an older generation resumes.
         session.state.value = conversation
-        val loadState = session.timelineLoadState.value
-        if (loadState.initialized) {
-            val loadedNodeCount = conversation.messageNodes.size
-            val totalNodeCount = if (loadState.isFullyLoaded) {
-                loadedNodeCount
-            } else {
-                maxOf(loadState.totalNodeCount, loadState.oldestLoadedIndex + loadedNodeCount)
-            }
-            session.setTimelineLoadState(
-                loadState.copy(
-                    loadedNodeCount = loadedNodeCount,
-                    totalNodeCount = totalNodeCount,
-                    isFullyLoaded = loadState.isFullyLoaded && loadState.oldestLoadedIndex == 0,
-                )
-            )
-        }
+        session.refreshTimelineNodeCount()
     }
 
-    fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) {
-        val current = getConversationFlow(conversationId).value
-        updateConversation(conversationId, update(current))
+    override fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) {
+        val session = session(conversationId)
+        session.state.update { current ->
+            update(current).takeIf { it.id == conversationId } ?: current
+        }
+        session.refreshTimelineNodeCount()
     }
 
     private fun checkFilesDelete(
@@ -479,6 +476,31 @@ class ConversationStore(
     override suspend fun saveConversation(conversationId: Uuid, conversation: Conversation) {
         withConversationWrite {
             saveConversationInternal(conversationId, conversation)
+        }
+    }
+
+    suspend fun updateTitle(conversationId: Uuid, title: String) =
+        updateMetadata(conversationId, title = title)
+
+    suspend fun updateSuggestions(conversationId: Uuid, suggestions: List<String>) =
+        updateMetadata(conversationId, suggestions = suggestions)
+
+    private suspend fun updateMetadata(conversationId: Uuid, title: String? = null, suggestions: List<String>? = null) {
+        withConversationWrite {
+            if (conversationId in deletedConversationIds) return@withConversationWrite
+            val updatedAt = Instant.now()
+            conversationRepo.updateConversationMetadata(
+                conversationId, title = title, chatSuggestions = suggestions, updateAt = updatedAt,
+            )
+            // Streaming can publish a newer tail while Room commits metadata.
+            // Patch the latest projection instead of restoring a pre-write snapshot.
+            updateConversationState(conversationId) { current ->
+                current.copy(
+                    title = title ?: current.title,
+                    chatSuggestions = suggestions ?: current.chatSuggestions,
+                    updateAt = maxOf(current.updateAt, updatedAt),
+                )
+            }
         }
     }
 

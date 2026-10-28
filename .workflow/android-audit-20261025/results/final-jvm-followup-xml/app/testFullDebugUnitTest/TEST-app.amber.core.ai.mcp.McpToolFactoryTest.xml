@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.mcp.McpToolFactoryTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.877Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="oldMessageToolCallReplaysThroughUniqueGateway" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.005"/>
+  <testcase name="oldMessageReplayAcrossTwoServersIsRejectedNotMisrouted" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.001"/>
+  <testcase name="legacyUniqueAliasRoutesToTheOnlyServer" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.001"/>
+  <testcase name="ambiguousGatewayHasEmptySchemaAndNoApprovalRequirement" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.0"/>
+  <testcase name="uniqueGatewaySchemaAlsoCarriesOriginalIdentity" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.0"/>
+  <testcase name="namespacedToolKeepsOriginalIdentityInSchema" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.0"/>
+  <testcase name="twoServersSameToolCreateTwoDistinctNamespacedEntries" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.0"/>
+  <testcase name="legacyMultiMatchGatewayRejectsWithStructuredError" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.001"/>
+  <testcase name="gatewayCollidingWithNamespacedNameIsSkipped" classname="app.amber.core.ai.mcp.McpToolFactoryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

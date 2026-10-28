@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.481Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="gemini reasoning request preserves thought flag and signature" classname="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" time="0.0"/>
+  <testcase name="anthropic official event sequence preserves tool index usage and terminal state" classname="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" time="0.002"/>
+  <testcase name="gemini official wrapped chunk preserves provider tool id citations usage and errors" classname="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" time="0.002"/>
+  <testcase name="gemini completion uses provider candidate index and rejects error envelope" classname="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" time="0.0"/>
+  <testcase name="gemini late provider tool id replaces only marked fallback id" classname="app.amber.ai.provider.providers.ProviderWireAdapterFixtureTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

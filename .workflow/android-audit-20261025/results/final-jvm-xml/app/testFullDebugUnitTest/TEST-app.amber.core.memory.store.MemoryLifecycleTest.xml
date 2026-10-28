@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.store.MemoryLifecycleTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.081Z" hostname="duguangdeMBP.lan" time="0.014">
+  <properties/>
+  <testcase name="restore binds to the seen revision" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.004"/>
+  <testcase name="accepting an invalidation archives its live target without a replacement" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="archived records leave recall entirely" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="supersede keeps a still-valid expiry" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="restore keeps a still-valid expiry" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="accepting an invalidation keeps an already archived target archived" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="supersede drops an expiry that already passed" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="accepting an invalidation after its target was deleted does not recreate a memory" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="accepting a confirm on an archived target re-adds a fresh record" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="touchMemories reinforces use count" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="accepting a confirm candidate reinforces the target and logs" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="supersede archives the old record and links the new one" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="supersede on a stale snapshot changes nothing" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <testcase name="accepting an update candidate supersedes the target" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.002"/>
+  <testcase name="restore revives an archived record and clears a stale expiry" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.0"/>
+  <testcase name="unrelated updates preserve the use count" classname="app.amber.core.memory.store.MemoryLifecycleTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

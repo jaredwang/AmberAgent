@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.ImageEditCapabilityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.250Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="codexOauthAndCodingPlansNeverDeclareEdit" classname="app.amber.ai.provider.providers.ImageEditCapabilityTest" time="0.004"/>
+  <testcase name="googleAndClaudeDoNotDeclareEdit" classname="app.amber.ai.provider.providers.ImageEditCapabilityTest" time="0.002"/>
+  <testcase name="paramsDefaultToCreateWithoutSource" classname="app.amber.ai.provider.providers.ImageEditCapabilityTest" time="0.001"/>
+  <testcase name="openAiApiKeyDeclaresEditCapability" classname="app.amber.ai.provider.providers.ImageEditCapabilityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

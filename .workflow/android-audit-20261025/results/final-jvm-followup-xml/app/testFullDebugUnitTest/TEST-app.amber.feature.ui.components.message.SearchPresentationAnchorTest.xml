@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:49.239Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="anchorsImagesByCitationIdAndLeavesUnreferencedImagesForHeader" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.001"/>
+  <testcase name="canonicalUrlMatchingKeepsDistinctQueries" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.001"/>
+  <testcase name="deriveSearchPresentationKeepsGlobalImageCapAtFive" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.0"/>
+  <testcase name="resolverCapsImagesPerBlockAtTwo" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.0"/>
+  <testcase name="canonicalUrlMatchingUnifiesWwwWhenItemHasWwwAndLinkDoesNot" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.001"/>
+  <testcase name="skipsCodeAndMarkdownImageReferences" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.0"/>
+  <testcase name="resolverDeduplicatesUsedImagesAcrossBlocks" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.001"/>
+  <testcase name="hostFallbackUsesUnusedImagesInOrder" classname="app.amber.feature.ui.components.message.SearchPresentationAnchorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

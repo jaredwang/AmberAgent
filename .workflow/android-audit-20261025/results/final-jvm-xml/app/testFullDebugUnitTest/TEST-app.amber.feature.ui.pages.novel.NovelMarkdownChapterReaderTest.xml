@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:09.295Z" hostname="duguangdeMBP.lan" time="0.811">
+  <properties/>
+  <testcase name="busyRewriteBlocksEditingAndRevisionReloadsSameLengthCommittedManuscript" classname="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" time="0.225"/>
+  <testcase name="fullManuscriptCanScrollToItsTailAbovePersistentChapterNavigation" classname="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" time="0.092"/>
+  <testcase name="lateChapterReadCannotReplaceNewChapterAndBackRemainsAvailableDuringLoading" classname="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" time="0.126"/>
+  <testcase name="chapterNavigationUsesActualNeighborsAcrossOrdinalGapsAndDisablesBookBoundaries" classname="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" time="0.159"/>
+  <testcase name="readFailureAndMissingChapterKeepAnExitAndRetryCanOpenTheActualEditor" classname="app.amber.feature.ui.pages.novel.NovelMarkdownChapterReaderTest" time="0.209"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

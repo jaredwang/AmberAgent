@@ -57,7 +57,7 @@ private val TOOL_APPROVAL_CONTINUATION_WORDS = setOf(
     "approved",
 )
 
-internal data class ApprovalDecisionResult(val shouldResume: Boolean)
+internal data class ApprovalDecisionResult(val shouldResume: Boolean, val applied: Boolean = true)
 
 internal data class IdleToolBlockerDecision(
     val changed: Boolean,
@@ -107,6 +107,12 @@ class ChatApprovalActions(
         answer: String?,
     ): ApprovalDecisionResult {
         val conversation = conversationStore.ensureFullConversationLoaded(conversationId)
+        // The predecessor can finish another decision while this request waits for its handoff.
+        // Only a still-pending tool on the selected history can consume this user action.
+        if (conversation.currentMessages.none { message ->
+                message.getTools().any { it.toolCallId == toolCallId && it.isPending }
+            }
+        ) return ApprovalDecisionResult(shouldResume = false, applied = false)
         val approvedToolName = conversation.findToolName(toolCallId)
         val newApprovalState = when {
             answer != null -> ToolApprovalState.Answered(answer)

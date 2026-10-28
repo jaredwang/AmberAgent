@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.MiniAppSettingSystemCapabilitySerializationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:07.740Z" hostname="duguangdeMBP.lan" time="0.011">
+  <properties/>
+  <testcase name="legacy json without the field decodes as enabled" classname="app.amber.core.settings.MiniAppSettingSystemCapabilitySerializationTest" time="0.001"/>
+  <testcase name="defaults to enabled" classname="app.amber.core.settings.MiniAppSettingSystemCapabilitySerializationTest" time="0.001"/>
+  <testcase name="explicit false survives round trip" classname="app.amber.core.settings.MiniAppSettingSystemCapabilitySerializationTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.workspace.ArtifactRepositoryTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:18.486Z" hostname="duguangdeMBP.lan" time="0.191">
+  <properties/>
+  <testcase name="createRestartOpenArtifact" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.027"/>
+  <testcase name="reparseFailsWhenSourceDeletedThenSucceedsAfterRestore" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.02"/>
+  <testcase name="largeContentStoredAsFileAndDuplicateDigestKeepsBoth" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.054"/>
+  <testcase name="completedDeepReadUpdatesRegistryRow" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.017"/>
+  <testcase name="migration10to11AddsArtifactTablesOnly" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.01"/>
+  <testcase name="staleChatArtifactWriterIsRejectedAfterRestore" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.016"/>
+  <testcase name="duplicateSaveUpdatesInPlaceOrCreatesCopy" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.016"/>
+  <testcase name="sourceConversationDeletedArtifactStillReadableButSourceUnavailable" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.016"/>
+  <testcase name="deleteReferencedArtifactCleansReferencesAndContent" classname="app.amber.agent.data.workspace.ArtifactRepositoryTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

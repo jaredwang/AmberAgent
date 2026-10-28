@@ -126,6 +126,7 @@ object PerplexitySearchService : SearchService<SearchServiceOptions.PerplexityOp
                         title = it.title!!,
                         url = it.url!!,
                         text = it.snippet ?: it.text ?: "",
+                        publishedAt = it.date,
                         images = imgs,
                     )
                 }
@@ -161,6 +162,7 @@ object PerplexitySearchService : SearchService<SearchServiceOptions.PerplexityOp
             val title: String? = null,
             val url: String? = null,
             val snippet: String? = null,
+            val date: String? = null,
             @SerialName("text") val text: String? = null,
         )
 

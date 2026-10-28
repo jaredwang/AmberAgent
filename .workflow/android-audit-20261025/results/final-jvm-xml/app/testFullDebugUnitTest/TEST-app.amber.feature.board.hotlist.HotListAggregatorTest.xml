@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.HotListAggregatorTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.982Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="usesChineseDisplayTitleWithoutLosingOriginalSourceTitle" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.003"/>
+  <testcase name="focusOnlyCanFindAiTopicOutsideTopTenPool" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.002"/>
+  <testcase name="doesNotOverMergeShortChineseTitles" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="mergesChineseAndEnglishAliasesWhenTwoEntitiesMatch" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="dashboardFilterRemovesDisabledProviderCachesAndTopicSources" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="focusFirstKeepsOtherHotTopicsAfterMatches" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.001"/>
+  <testcase name="preservesRawProviderOrderInsideProviderSnapshot" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="shortAsciiFocusKeywordUsesTokenBoundary" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="doesNotMergeDifferentEventsThatShareOneEntity" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <testcase name="dashboardFilterReturnsEmptyStateWhenNoSourcesEnabled" classname="app.amber.feature.board.hotlist.HotListAggregatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

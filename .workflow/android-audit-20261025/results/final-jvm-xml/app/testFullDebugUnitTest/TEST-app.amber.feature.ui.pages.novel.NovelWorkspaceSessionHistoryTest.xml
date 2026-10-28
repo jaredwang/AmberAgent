@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.novel.NovelWorkspaceSessionHistoryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:13.789Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="recovery is durable and a completed output replaces its recovered copy once" classname="app.amber.feature.ui.pages.novel.NovelWorkspaceSessionHistoryTest" time="0.004"/>
+  <testcase name="an append accepted before restore cannot alter the imported session" classname="app.amber.feature.ui.pages.novel.NovelWorkspaceSessionHistoryTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.547Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="listPaneIsNarrowAndClamped" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.002"/>
+  <testcase name="tabletAndUnfoldedLandscapeUseTwoPanes" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="openingASessionFromHomeReplacesTheDetailInsteadOfStacking" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="portraitTabletsAndLandscapePhonesStaySinglePane" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="openingASessionOnPhoneStillPushesOverHome" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="homeAloneGetsAnEmptyDetailPane" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="anyOtherScreenAboveHomeStaysFullScreen" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.001"/>
+  <testcase name="topChatSitsBesideHome" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <testcase name="chatCentresInAReadingColumnOnlyWhenThePaneIsWider" classname="app.amber.feature.ui.adaptive.TwoPaneLayoutTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

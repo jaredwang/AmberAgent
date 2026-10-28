@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.LaunchStartModeTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:37.094Z" hostname="duguangdeMBP.lan" time="0.092">
+  <properties/>
+  <testcase name="stored launch mode wins over legacy boolean" classname="app.amber.agent.LaunchStartModeTest" time="0.013"/>
+  <testcase name="resolver handles all launch modes" classname="app.amber.agent.LaunchStartModeTest" time="0.069"/>
+  <testcase name="legacy launch boolean migrates to equivalent mode" classname="app.amber.agent.LaunchStartModeTest" time="0.0"/>
+  <testcase name="auto and last session fall back to new chat when last id is unusable" classname="app.amber.agent.LaunchStartModeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

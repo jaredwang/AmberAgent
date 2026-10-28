@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.home.ImageGenerationContinueSourceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:34.661Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="non-image and terminal effects are not projected" classname="app.amber.feature.home.ImageGenerationContinueSourceTest" time="0.001"/>
+  <testcase name="active image effect projects to its owning chat" classname="app.amber.feature.home.ImageGenerationContinueSourceTest" time="0.0"/>
+  <testcase name="recent completed image result keeps message and tool call anchors" classname="app.amber.feature.home.ImageGenerationContinueSourceTest" time="0.0"/>
+  <testcase name="missing conversation is not projected" classname="app.amber.feature.home.ImageGenerationContinueSourceTest" time="0.0"/>
+  <testcase name="unknown image outcome becomes an approval candidate" classname="app.amber.feature.home.ImageGenerationContinueSourceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

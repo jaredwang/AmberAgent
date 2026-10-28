@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.search.SearchAdapterMappingTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:19.741Z" hostname="duguangdeMBP.lan" time="0.036">
+  <properties/>
+  <testcase name="jinaResponseUsesContentWhenDescriptionIsEmpty" classname="app.amber.search.SearchAdapterMappingTest" time="0.004"/>
+  <testcase name="grokResponseMapsAnswerAndCitations" classname="app.amber.search.SearchAdapterMappingTest" time="0.008"/>
+  <testcase name="linkUpResponseMapsSourcedAnswer" classname="app.amber.search.SearchAdapterMappingTest" time="0.001"/>
+  <testcase name="bochaResponseMapsSummaryAndPublishedAt" classname="app.amber.search.SearchAdapterMappingTest" time="0.003"/>
+  <testcase name="tavilyResponseMapsStringAndObjectImagesToFirstResult" classname="app.amber.search.SearchAdapterMappingTest" time="0.003"/>
+  <testcase name="firecrawlResponseMapsWebAndNews" classname="app.amber.search.SearchAdapterMappingTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

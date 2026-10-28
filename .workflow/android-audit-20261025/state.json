@@ -1,0 +1,67 @@
+{
+  "baseline": "0971aa41ca7a2526e9ee17eb9497b7edc1db07be",
+  "stage": "complete",
+  "authorization": "local review and precise fixes only",
+  "preexisting_untracked": [
+    ".workflow/search-repair-20261025/"
+  ],
+  "search_production_owner": ".workflow/search-repair-20261025",
+  "gradle_coordinator": "audit_novel_storage",
+  "coordination": "coordination-search.md",
+  "search_gradle_wrapper_pid": null,
+  "search_gradle_log": ".workflow/search-repair-20261025/logs/phase4-final-apk.log",
+  "search_coordination_request": "Search complete; Gradle window released;5592 closed;5580 preserved",
+  "phase1": "complete; focused GREEN and independent reviews clean",
+  "search_integration": "complete:14 real fixed, source budget withdrawn; per-phase independent review/JVM117/finalAPK/UI accepted; completion-audit.md records external gates",
+  "gradle_busy": false,
+  "gradle_wrapper_pid": 54920,
+  "gradle_log": ".workflow/android-audit-20261025/logs/final-assemble-normal.log",
+  "gradle_exit_code": 0,
+  "phase2": "complete; AI257 and recovery18 GREEN; independent provider/Responses/native reviews clean",
+  "gradle_waiting_for_external": false,
+  "external_wrapper_pids_observed": [
+    13253,
+    17238
+  ],
+  "phase3_storage": "NS1/NS2 verified GREEN; full novel-workspace155 and app owner tests pass; independent review clean",
+  "phase3_verification": "Initial app72 pass/1fixture corrected; CouncilUI2 pass; DailyReview4 pass; final Cron6 pass; no skips in Phase3 gates",
+  "phase3": "complete; eleven groups repaired; Novel peer clean; BG/Council followups clean; full novel-workspace155/task15/council36 plus app owner checks GREEN",
+  "phase4_verification": "Original75 GREEN; residual Aux2/Jev17 GREEN; consistent atomic owner affected46 GREEN; independent phase closure pending",
+  "final_jvm": {
+    "modules": 21,
+    "passed": 4075,
+    "skipped": 23,
+    "failures": 0,
+    "errors": 0
+  },
+  "final_apks": "six normal-config APKs verified signatures, eight Rust ELF64/AArch64 libraries each, no fixture markers",
+  "final_source_hash": "7a99d306761f2a0e10642c2b8ec842884c9a077e99fae4fd460fd1cee5947661",
+  "status": "complete",
+  "complete": true,
+  "issue_groups": 65,
+  "priority_counts": {
+    "P1": 22,
+    "P2": 43
+  },
+  "native_host": {
+    "passed": 92,
+    "failed": 0,
+    "ignored": 1
+  },
+  "final_apk": {
+    "count": 6,
+    "flavors": [
+      "fullDebug",
+      "novelDebug",
+      "deepreadDebug"
+    ],
+    "normal_configuration": true,
+    "signatures_verified": true,
+    "rust_libs_per_apk": 8,
+    "fixture_marker_absent": true
+  },
+  "final_new_apk_device_acceptance": false,
+  "commit_push_publish": false,
+  "final_report": "final-report.md",
+  "findings": "findings.md"
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatStartSuggestionStreamTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.298Z" hostname="duguangdeMBP.lan" time="0.594">
+  <properties/>
+  <testcase name="stream deltas are collected into three complete suggestions" classname="app.amber.core.service.ChatStartSuggestionStreamTest" time="0.059"/>
+  <testcase name="cancellation after headers cancels the call without waiting for the body" classname="app.amber.core.service.ChatStartSuggestionStreamTest" time="0.521"/>
+  <testcase name="empty reasoning markers between text deltas do not split suggestion lines" classname="app.amber.core.service.ChatStartSuggestionStreamTest" time="0.014"/>
+  <system-out><![CDATA[[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+[awaitClose] 关闭eventSource 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

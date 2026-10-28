@@ -1,0 +1,30 @@
+{
+  "baseline": "0971aa41ca7a2526e9ee17eb9497b7edc1db07be",
+  "phase": 4,
+  "status": "complete",
+  "authorization": "review and repair all confirmed findings; phased independent reviews; UI checks; no questions; no commit/push",
+  "resume_note": "Original15 reviewed:14 confirmed and repaired, configured-source budget finding withdrawn as design. Preserve concurrent audit edits.",
+  "phase1": "complete: independent review, persistence/migration/logging checks and restart UI closure",
+  "gradle": {
+    "status": "finished",
+    "log": "logs/phase4-final-apk.log",
+    "exit_code": 0
+  },
+  "phase2": "code review and targeted JVM checks passed",
+  "phase3": "independent review and all targeted JVM gates passed",
+  "ui_device": {
+    "serial": "emulator-5592",
+    "pid": 43748,
+    "mode": "read-only task-owned AVD overlay",
+    "reason": "another workflow reinstalled package on shared5580; preserve their session",
+    "status": "task-owned5592 closed after evidence saved; shared5580 preserved"
+  },
+  "phase4_ui_issue": "Observed title/status-bar overlap after scroll at320/360dp; page-local pinned toolbar plus viewport padding fix, rebuilding.",
+  "phase4_review": "complete: integration and bounded maintainability review; final APK screenshots independently accepted with no blockers",
+  "completed_at_utc": "2026-10-25T15:40:56.812692+00:00",
+  "confirmed_findings": 14,
+  "withdrawn_findings": 1,
+  "additional_ui_fixes": 2,
+  "completion_audit": "results/completion-audit.md",
+  "phase4": "final FullDebug build/signature/install/foreground and scoped UI verification passed; paid-provider/real-model/physical-device acceptance not performed"
+}

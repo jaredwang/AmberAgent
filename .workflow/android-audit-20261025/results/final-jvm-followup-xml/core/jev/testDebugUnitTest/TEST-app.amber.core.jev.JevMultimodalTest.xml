@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevMultimodalTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:22.188Z" hostname="duguangdeMacBook-Pro.local" time="0.005">
+  <properties/>
+  <testcase name="missingReferenceInStateIsRejected" classname="app.amber.core.jev.JevMultimodalTest" time="0.001"/>
+  <testcase name="boxAnswerRejectsOutOfRangeAndInvertedEdges" classname="app.amber.core.jev.JevMultimodalTest" time="0.0"/>
+  <testcase name="boxAnswerIsDecodedWithRangeValidation" classname="app.amber.core.jev.JevMultimodalTest" time="0.0"/>
+  <testcase name="gatewayEncodeSplitsStatePartsAroundTheReference" classname="app.amber.core.jev.JevMultimodalTest" time="0.001"/>
+  <testcase name="nativeEncodeCarriesAssetsAndDangerZoneHeader" classname="app.amber.core.jev.JevMultimodalTest" time="0.001"/>
+  <testcase name="boxQuestionOnlyOnNativeApi" classname="app.amber.core.jev.JevMultimodalTest" time="0.001"/>
+  <testcase name="providersWithoutImageSupportRejectAssets" classname="app.amber.core.jev.JevMultimodalTest" time="0.0"/>
+  <testcase name="imageEdgeRangeIsEnforcedWhenKnown" classname="app.amber.core.jev.JevMultimodalTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

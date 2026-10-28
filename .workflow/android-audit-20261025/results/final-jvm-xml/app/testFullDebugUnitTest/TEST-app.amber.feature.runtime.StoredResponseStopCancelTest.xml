@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.StoredResponseStopCancelTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:47.234Z" hostname="duguangdeMBP.lan" time="0.119">
+  <properties/>
+  <testcase name="confirmedServerCancelIsDecidableAndClearsCursor" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.014"/>
+  <testcase name="regenerationFinishesTheOldRunBeforeANewRunCanBeSelected" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.012"/>
+  <testcase name="nothingStoredIsDecidableWithoutServerCall" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.011"/>
+  <testcase name="cancelRaceServerAlreadySettledIsStillDecidable" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.015"/>
+  <testcase name="failedServerCancelIsUndecidableAndKeepsCursor" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.014"/>
+  <testcase name="cancelApiThrowingIsUndecidableForCaller" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.012"/>
+  <testcase name="regenerationWaitsWhenTheOldResponseCannotBeCancelled" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.013"/>
+  <testcase name="stopUnconfirmedHandoffIsRunScopedAndConsumedOnce" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.012"/>
+  <testcase name="regenerationFailureDoesNotLeaveAStopHandlerHandoff" classname="app.amber.feature.runtime.StoredResponseStopCancelTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

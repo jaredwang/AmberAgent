@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.provider.SnapshotPolicyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:27.693Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="snapshot ids are unique per call" classname="app.amber.core.sync.provider.SnapshotPolicyTest" time="0.0"/>
+  <testcase name="create copy never supersedes and keeps remote snapshots" classname="app.amber.core.sync.provider.SnapshotPolicyTest" time="0.0"/>
+  <testcase name="blank device id is not treated as a same-device match" classname="app.amber.core.sync.provider.SnapshotPolicyTest" time="0.0"/>
+  <testcase name="overwrite with no same-device snapshot does not supersede" classname="app.amber.core.sync.provider.SnapshotPolicyTest" time="0.0"/>
+  <testcase name="overwrite supersedes same-device snapshot" classname="app.amber.core.sync.provider.SnapshotPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

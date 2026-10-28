@@ -58,12 +58,13 @@ data class UIMessage(
             var newParts = delta.parts.fold(parts) { acc, deltaPart ->
                 when (deltaPart) {
                     is UIMessagePart.Text -> {
-                        // Skip empty text deltas
-                        if (deltaPart.text.isEmpty()) {
+                        if (deltaPart.text.isEmpty() && !deltaPart.metadata.hasThoughtSignature()) {
                             acc
                         } else {
                             val lastPart = acc.lastOrNull()
-                            if (lastPart is UIMessagePart.Text) {
+                            if (lastPart is UIMessagePart.Text &&
+                                !lastPart.metadata.hasThoughtSignature() && !deltaPart.metadata.hasThoughtSignature()
+                            ) {
                                 // Append to the last Text part
                                 acc.dropLast(1) + lastPart.copy(text = lastPart.text + deltaPart.text)
                             } else {
@@ -185,7 +186,7 @@ data class UIMessage(
 
     fun isValidToUpload() = parts.any { part ->
         when (part) {
-            is UIMessagePart.Text -> part.text.isNotBlank()
+            is UIMessagePart.Text -> part.text.isNotBlank() || part.metadata.hasThoughtSignature()
             is UIMessagePart.Image -> part.url.isNotBlank()
             is UIMessagePart.Video -> part.url.isNotBlank()
             is UIMessagePart.Audio -> part.url.isNotBlank()

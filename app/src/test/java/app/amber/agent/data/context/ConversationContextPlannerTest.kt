@@ -1,6 +1,8 @@
 package app.amber.core.context
 
 import app.amber.ai.ui.UIMessage
+import app.amber.ai.ui.UIMessagePart
+import app.amber.ai.core.MessageRole
 import app.amber.core.model.MessageNode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -8,6 +10,39 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ConversationContextPlannerTest {
+    @Test
+    fun softFitKeepsCurrentUserAndToolContinuationEvenWhenTheyExceedTarget() {
+        val summary = UIMessage.system("Earlier facts")
+        val history = UIMessage.user("old request " + "h".repeat(4_000))
+        val user = UIMessage.user("current constraints " + "u".repeat(6_000))
+        val toolResult = UIMessage(
+            role = MessageRole.ASSISTANT,
+            parts = listOf(UIMessagePart.Tool(
+                toolCallId = "current-tool",
+                toolName = "read_file",
+                input = "{}",
+                output = listOf(UIMessagePart.Text("result " + "r".repeat(6_000))),
+            )),
+        )
+
+        val fitted = ConversationContextPlanner.fitMessagesToTokenBudget(
+            listOf(summary, history, user, toolResult),
+            maxTokens = 2_000,
+        )
+
+        assertEquals(listOf(summary.id, user.id, toolResult.id), fitted.map { it.id })
+    }
+
+    @Test
+    fun zeroSoftBudgetStillKeepsCurrentUserAndItsContinuation() {
+        val user = UIMessage.user("Keep this request")
+        val continuation = UIMessage(role = MessageRole.ASSISTANT, parts = listOf(UIMessagePart.Text("Working")))
+
+        val fitted = ConversationContextPlanner.fitMessagesToTokenBudget(listOf(user, continuation), 0)
+
+        assertEquals(listOf(user.id, continuation.id), fitted.map { it.id })
+    }
+
     @Test
     fun belowThresholdDoesNotCompact() {
         val nodes = List(8) { MessageNode.of(UIMessage.user("short $it")) }

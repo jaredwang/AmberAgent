@@ -15,7 +15,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.unit.dp
+import app.amber.core.settings.Settings
 import app.amber.feature.modelcouncil.COUNCIL_ROOM_HOST_ID
+import app.amber.feature.modelcouncil.COUNCIL_ROOM_USER_ID
 import app.amber.feature.modelcouncil.CouncilMessage
 import app.amber.feature.modelcouncil.CouncilMessageKind
 import app.amber.feature.modelcouncil.CouncilMessageStatus
@@ -23,6 +25,7 @@ import app.amber.feature.modelcouncil.CouncilRoom
 import app.amber.feature.modelcouncil.CouncilRoomMode
 import app.amber.feature.modelcouncil.CouncilRoomStatus
 import app.amber.feature.ui.pages.chat.LocalChatTheme
+import app.amber.feature.ui.context.LocalSettings
 import app.amber.feature.ui.pages.chat.toChatTheme
 import app.amber.feature.ui.theme.AmberBase
 import app.amber.feature.ui.theme.LocalAmberTokens
@@ -93,26 +96,40 @@ class CouncilTimelineInteractionTest {
             hostAssistantId = Uuid.random(),
             objective = "Active question",
             status = CouncilRoomStatus.INTERRUPTED,
-            messages = listOf(question),
+            messages = listOf(
+                question,
+                CouncilMessage(
+                    id = "unlinked-user-message",
+                    authorId = COUNCIL_ROOM_USER_ID,
+                    authorName = "You",
+                    role = "user",
+                    round = 1,
+                    mode = CouncilRoomMode.EXPLORE,
+                    text = "This ordinary message has not been accepted as the question answer.",
+                    createdAtMs = 2L,
+                    status = CouncilMessageStatus.COMPLETED,
+                ),
+            ),
             createdAtMs = 1L,
         )
-        val receivedAnswers = mutableListOf<String>()
-        showTimeline(room, onAnswer = { receivedAnswers += it })
+        val receivedAnswers = mutableListOf<Pair<String, String>>()
+        showTimeline(room, onAnswer = { questionId, answer -> receivedAnswers += questionId to answer })
         compose.onNodeWithText(question.text).assertIsDisplayed()
         compose.onAllNodes(hasSetTextAction()).assertCountEquals(1)
         val editor = compose.onNode(hasSetTextAction())
         editor.performTextInput("  采用第二个方案  ")
         compose.onNodeWithText("→").performClick()
         compose.runOnIdle {
-            assertEquals(listOf("采用第二个方案"), receivedAnswers)
+            assertEquals(listOf(question.id to "采用第二个方案"), receivedAnswers)
         }
         assertEquals("", editor.fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
     }
 
-    private fun showTimeline(room: CouncilRoom, onAnswer: ((String) -> Unit)?) {
+    private fun showTimeline(room: CouncilRoom, onAnswer: ((String, String) -> Unit)?) {
         val tokens = buildAmberTokens(AmberBase.LIGHT, Color(0xFFB8623A))
         compose.setContent {
             CompositionLocalProvider(
+                LocalSettings provides Settings(),
                 LocalAmberTokens provides tokens,
                 LocalChatTheme provides tokens.toChatTheme(),
             ) {

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.AgentToolDispatcherTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.688Z" hostname="duguangdeMBP.lan" time="0.05">
+  <properties/>
+  <testcase name="toolExceptionReturnsShortStructuredFailure" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.004"/>
+  <testcase name="executeBatchSerializesOneParallelGroupButRunsDifferentGroupsTogether" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.004"/>
+  <testcase name="executeBatchKeepsDifferentWebMountSessionsParallel" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.002"/>
+  <testcase name="safeReadOnlyToolRetriesTransientFailure" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.003"/>
+  <testcase name="approvedCallWithMatchingArgsExecutesWithoutLedgerContext" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.028"/>
+  <testcase name="executeBatchSerializesWebMountCallsInSameSession" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.002"/>
+  <testcase name="executeAddsPermissionTraceMetadata" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.0"/>
+  <testcase name="approvedCallWithMissingApprovalRecordIsBlockedWithoutLedgerContext" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.001"/>
+  <testcase name="hookFailureDoesNotInterruptToolExecutionButCancellationPropagates" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.002"/>
+  <testcase name="mutatingToolDoesNotAutoRetry" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.0"/>
+  <testcase name="executeBatchKeepsOriginalOrderForReadOnlyTools" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.0"/>
+  <testcase name="approvedCallWithChangedArgsIsBlockedWithoutLedgerContext" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.002"/>
+  <testcase name="validationHookCanReturnStructuredFailure" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.001"/>
+  <testcase name="hookObservesSuccessfulAndFailedCalls" classname="app.amber.feature.runtime.AgentToolDispatcherTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

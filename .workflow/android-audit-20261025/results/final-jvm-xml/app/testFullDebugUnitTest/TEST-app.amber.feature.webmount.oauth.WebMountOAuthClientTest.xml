@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.webmount.oauth.WebMountOAuthClientTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:16.292Z" hostname="duguangdeMBP.lan" time="0.043">
+  <properties/>
+  <testcase name="secureStoresInitializeOffCallerThreadAndImmediateCallbackStillResumes" classname="app.amber.feature.webmount.oauth.WebMountOAuthClientTest" time="0.02"/>
+  <testcase name="concurrentAccessTokenRequestsRefreshOnce" classname="app.amber.feature.webmount.oauth.WebMountOAuthClientTest" time="0.011"/>
+  <testcase name="disconnectDuringRefreshDiscardsLateToken" classname="app.amber.feature.webmount.oauth.WebMountOAuthClientTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

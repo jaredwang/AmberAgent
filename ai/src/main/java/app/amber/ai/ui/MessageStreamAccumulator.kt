@@ -122,10 +122,13 @@ class MessageStreamAccumulator(
         )
 
         private fun appendText(deltaPart: UIMessagePart.Text) {
-            if (deltaPart.text.isEmpty()) return
+            if (deltaPart.text.isEmpty() && !deltaPart.metadata.hasThoughtSignature()) return
 
             val lastPart = parts.lastOrNull()
-            if (lastPart is MutablePart.Text) {
+            // Gemini signatures bind individual wire parts, including empty text.
+            if (lastPart is MutablePart.Text &&
+                !lastPart.metadata.hasThoughtSignature() && !deltaPart.metadata.hasThoughtSignature()
+            ) {
                 lastPart.text.append(deltaPart.text)
                 lastPart.metadata = deltaPart.metadata ?: lastPart.metadata
             } else {
@@ -319,9 +322,12 @@ private fun List<UIMessagePart>.coalesceStreamParts(): List<UIMessagePart> {
     for (part in this) {
         when (part) {
             is UIMessagePart.Text -> {
-                if (part.text.isEmpty()) continue
+                if (part.text.isEmpty() && !part.metadata.hasThoughtSignature()) continue
                 val previous = pendingText
-                pendingText = if (previous == null) {
+                pendingText = if (previous == null ||
+                    previous.metadata.hasThoughtSignature() || part.metadata.hasThoughtSignature()
+                ) {
+                    flushText()
                     part
                 } else {
                     previous.copy(

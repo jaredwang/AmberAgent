@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.WebMountSlashCommandInstallerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:03.636Z" hostname="duguangdeMBP.lan" time="0.055">
+  <properties/>
+  <testcase name="two install callbacks queued behind a settings write publish one durable command" classname="app.amber.feature.ui.pages.setting.WebMountSlashCommandInstallerTest" time="0.035"/>
+  <testcase name="an existing case insensitive command is preserved without replacing its user content" classname="app.amber.feature.ui.pages.setting.WebMountSlashCommandInstallerTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

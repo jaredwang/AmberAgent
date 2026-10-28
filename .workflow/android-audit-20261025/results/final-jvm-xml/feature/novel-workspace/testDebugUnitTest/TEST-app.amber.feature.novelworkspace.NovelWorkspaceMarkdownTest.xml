@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.445Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="sections splits on h2 headings" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.001"/>
+  <testcase name="render without body ends after the fence" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="body and title edits preserve relations lists policy and unknown header structure" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.002"/>
+  <testcase name="split highlights separates summary from recent bullets" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="render preserves host field order and appends aliases last" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.001"/>
+  <testcase name="unquote reverses quoting" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="split highlights without marker returns null list" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="parse file without fence treats everything as body" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="bullets strips dash prefixes and blanks" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="raw body helper respects crlf headers and keeps thematic breaks as prose" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.001"/>
+  <testcase name="parse file round-trips rendered fields lists and body" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="yaml scalar quoting matches ios rules" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="parse mapping flattens one nested level" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <testcase name="parse file with unclosed fence treats everything as body" classname="app.amber.feature.novelworkspace.NovelWorkspaceMarkdownTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

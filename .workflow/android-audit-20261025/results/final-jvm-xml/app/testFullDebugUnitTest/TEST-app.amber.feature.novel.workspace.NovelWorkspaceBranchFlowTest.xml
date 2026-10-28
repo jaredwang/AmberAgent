@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:37.847Z" hostname="duguangdeMBP.lan" time="0.302">
+  <properties/>
+  <testcase name="saving an edit to a stale branch path is refused" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.062"/>
+  <testcase name="ghostwrite candidate on a forked branch stays private to that branch job" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.057"/>
+  <testcase name="switching branches is refused while a batch is alive" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.039"/>
+  <testcase name="job resume and retry are bound to the job's own branch" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.014"/>
+  <testcase name="legacy undo records without a branch are treated as main-branch records" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.044"/>
+  <testcase name="status tool resolves the active branch head after the source branch moves on" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.041"/>
+  <testcase name="undo is branch-bound and never crosses branches" classname="app.amber.feature.novel.workspace.NovelWorkspaceBranchFlowTest" time="0.045"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

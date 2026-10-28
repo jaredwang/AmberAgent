@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.DefaultRunKernelDurableTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:17.386Z" hostname="duguangdeMBP.lan" time="0.533">
+  <properties/>
+  <testcase name="a guard-skipped duplicate's PREPARED effect is failed, not left orphaned" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.079"/>
+  <testcase name="durable path never creates a speculative runner even when enabled" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.038"/>
+  <testcase name="a same-batch third duplicate stops the run and terminalizes the rejected effects" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.057"/>
+  <testcase name="guard rebuild counts a finished effect so a re-emitted signature skips across runs" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.093"/>
+  <testcase name="an approval-parked PREPARED emission still executes on durable resume" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.061"/>
+  <testcase name="a finished callId re-emitted under the same id is not re-executed on the durable path" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.063"/>
+  <testcase name="non-durable path still wires the speculative runner when enabled" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.081"/>
+  <testcase name="same toolCallId with different args fails closed instead of binding the old effect" classname="app.amber.core.ai.DefaultRunKernelDurableTest" time="0.061"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

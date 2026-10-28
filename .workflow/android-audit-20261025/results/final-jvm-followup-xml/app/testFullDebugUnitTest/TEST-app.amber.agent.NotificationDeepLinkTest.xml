@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.NotificationDeepLinkTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:11.952Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="parser normalizes exact conversation identity and preserves run" classname="app.amber.agent.NotificationDeepLinkTest" time="0.001"/>
+  <testcase name="malformed notification identity cannot fall back to a chat target" classname="app.amber.agent.NotificationDeepLinkTest" time="0.0"/>
+  <testcase name="run ownership rejects missing mismatched and terminal runs" classname="app.amber.agent.NotificationDeepLinkTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

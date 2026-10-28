@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.health.HealthConnectPaginationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:30.912Z" hostname="duguangdeMBP.lan" time="0.01">
+  <properties/>
+  <testcase name="production pager sends ascending only on first request and stops at minus one" classname="app.amber.feature.health.HealthConnectPaginationTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -74,6 +74,40 @@ class ChatInputSubmissionOwnerTest {
     }
 
     @Test
+    fun editConfirmationSharesTheSubmissionAlreadyWaitingForValidation() = runTest {
+        val input = input("edited historical message")
+        val messageId = Uuid.random()
+        input.editingMessage = messageId
+        input.setContents(listOf(UIMessagePart.Text("edited historical message")))
+        val owner = ChatInputSubmissionOwner(input)
+        val releaseValidation = CompletableDeferred<Unit>()
+        var submissions = 0
+        val pendingSend = async(start = CoroutineStart.UNDISPATCHED) {
+            owner.submit(
+                conversationId = "conversation-a",
+                validate = { releaseValidation.await(); true },
+                send = { parts, target ->
+                    assertEquals(messageId, target)
+                    assertEquals(listOf(UIMessagePart.Text("edited historical message")), parts)
+                    submissions++
+                    true
+                },
+            )
+        }
+
+        assertFalse(owner.confirmEdit(regenerate = false) { _, _, _ ->
+            submissions++
+            true
+        })
+        assertEquals(0, submissions)
+        assertEquals(messageId, input.editingMessage)
+        releaseValidation.complete(Unit)
+        assertTrue(pendingSend.await())
+        assertEquals(1, submissions)
+        assertTrue(input.isEmpty())
+    }
+
+    @Test
     fun nextDraftTypedDuringValidationIsPreservedWhileTheClickedSnapshotIsSent() = runTest {
         val input = input()
         val owner = ChatInputSubmissionOwner(input)

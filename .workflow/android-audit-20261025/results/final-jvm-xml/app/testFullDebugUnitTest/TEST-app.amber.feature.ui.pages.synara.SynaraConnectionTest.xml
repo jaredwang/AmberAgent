@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.synara.SynaraConnectionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:15.641Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="parses ws bootstrap url" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.001"/>
+  <testcase name="rejects payloads without token or scheme" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <testcase name="restores brackets on ipv6 literal host" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <testcase name="ws probe urls try bootstrap first then legacy" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <testcase name="parses bridge http pairing url" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <testcase name="url-decodes token and honours https scheme" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.001"/>
+  <testcase name="roundtrips workspaceUrl" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <testcase name="parses wss bootstrap url" classname="app.amber.feature.ui.pages.synara.SynaraConnectionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

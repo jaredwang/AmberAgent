@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.ConversationHistoryBudgetTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:45.273Z" hostname="duguangdeMBP.lan" time="0.052">
+  <properties/>
+  <testcase name="expandedMessagesRespectTheRequestedBudgetAndReportTruncation" classname="app.amber.feature.tools.ConversationHistoryBudgetTest" time="0.018"/>
+  <testcase name="expandedMessageBudgetIsSharedAcrossTheWholeReturnedWindow" classname="app.amber.feature.tools.ConversationHistoryBudgetTest" time="0.011"/>
+  <testcase name="readingALongFirstMessageReturnsItsPrefixAndReportsTruncation" classname="app.amber.feature.tools.ConversationHistoryBudgetTest" time="0.013"/>
+  <testcase name="expandedMessagesConsumeTheActualReturnedGrantBudget" classname="app.amber.feature.tools.ConversationHistoryBudgetTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

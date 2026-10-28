@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" tests="49" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:14.416Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="codeLangExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.002"/>
+  <testcase name="taskCheckedExtra_0_means_unchecked" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_fenced_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="codeLangExtra_lang_len_128_two_byte_varint" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="listStartExtra_large_value_multi_byte" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeLangExtra_kotlin_returns_kotlin" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="headingLevelExtra_empty_extras_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="listStartExtra_start_1" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="listStartExtra_start_7" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="tableAlignmentsExtra_empty_extras_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_headingLevel_02_headings_all_levels" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="headingLevelExtra_byte_7_out_of_range_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_indented_returns_false" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeLangExtra_oversized_varint_returns_null_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="taskCheckedExtra_1_means_checked" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="tableAlignmentsExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_empty_extras_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="linkTitleExtra_empty_title_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="findChildOfTypeRecursive_selfMatch_returnsItself" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeLangExtra_lang_len_127_boundary" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="codeLangExtra_cjk_utf8" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="linkHrefExtra_oversized_varint_returns_null_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="taskCheckedExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="listStartExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeLangExtra_empty_lang_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="linkTitleExtra_oversized_second_varint_returns_null_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_codeFenceKindExtra_07_fenced_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="findChildOfTypeRecursive_descendantSearch_stillWorks" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="linkHrefExtra_returns_url" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="taskCheckedExtra_empty_extras_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_taskMarkers_15_task_lists" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.002"/>
+  <testcase name="golden_codeFenceKindExtra_09_indented_returns_false" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="golden_linkHref_04_links_inline" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="listStartExtra_too_short_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_missing_kind_byte_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="headingLevelExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="findChildOfTypeRecursive_golden_root_selfMatch" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="linkHrefExtra_image_type_also_works" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="headingLevelExtra_byte_0_out_of_range_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.001"/>
+  <testcase name="listStartExtra_start_42_le" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_codeLang_07_fenced_code_kotlin" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_table_12_gfm_table_aligned_has_no_extras" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.002"/>
+  <testcase name="linkHrefExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="golden_listStart_14_ordered_list_start" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_fenced_with_lang_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="headingLevelExtra_h6_returns_6" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="codeFenceKindExtra_wrong_type_returns_null" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="headingLevelExtra_h1_returns_1" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <testcase name="linkTitleExtra_non_empty_title_returned" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstExtrasTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

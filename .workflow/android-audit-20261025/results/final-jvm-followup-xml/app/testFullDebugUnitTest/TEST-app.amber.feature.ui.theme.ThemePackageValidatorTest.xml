@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.theme.ThemePackageValidatorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.292Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="malformed json is rejected" classname="app.amber.feature.ui.theme.ThemePackageValidatorTest" time="0.001"/>
+  <testcase name="invalid allowlisted token values are rejected" classname="app.amber.feature.ui.theme.ThemePackageValidatorTest" time="0.001"/>
+  <testcase name="unknown tokens are kept with a warning instead of rejection" classname="app.amber.feature.ui.theme.ThemePackageValidatorTest" time="0.001"/>
+  <testcase name="builtin reserved id cannot be imported over built-in themes" classname="app.amber.feature.ui.theme.ThemePackageValidatorTest" time="0.0"/>
+  <testcase name="unknown schemaVersion is rejected" classname="app.amber.feature.ui.theme.ThemePackageValidatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.MessageRenderRegexCacheTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:57.485Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="editingSameHashVisualReplacementUpdatesAlreadyRenderedText" classname="app.amber.feature.ui.components.message.MessageRenderRegexCacheTest" time="0.0"/>
+  <testcase name="editingSameHashVisualPatternUpdatesAlreadyRenderedText" classname="app.amber.feature.ui.components.message.MessageRenderRegexCacheTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

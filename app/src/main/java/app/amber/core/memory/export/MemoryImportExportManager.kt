@@ -101,7 +101,6 @@ class MemoryImportExportManager(
         // a second file matching the same row CAS-succeeds instead of crashing
         // the import on the pre-import snapshot revision.
         val currentRecords = memoryRepository.getAllRecords().toMutableList()
-        var imported = 0
         var skipped = 0
         val decoded = sequenceOf(File(resolvedRoot, "memories"), File(resolvedRoot, "archive"))
             .filter { it.exists() }
@@ -116,6 +115,8 @@ class MemoryImportExportManager(
         // Non-topic records first so a file-id -> new-id map exists when
         // topics import; member ids from another database would dangle.
         val remappedIds = mutableMapOf<Int, Int>()
+        val importedRowIds = mutableListOf<Int>()
+        val importedSupersessions = mutableMapOf<Int, List<Int>>()
         decoded.filter { it.kind != MemoryKind.TOPIC }.forEach { record ->
             val existing = currentRecords
                 .filter { candidate ->
@@ -125,7 +126,9 @@ class MemoryImportExportManager(
                 }
                 .minByOrNull { it.id }
             val written = try {
-                memoryRepository.upsertRecord(record.mergingOnto(existing))
+                memoryRepository.upsertRecord(
+                    record.mergingOnto(existing).copy(supersedesIds = existing?.supersedesIds.orEmpty())
+                )
             } catch (stale: MemoryStaleException) {
                 // A concurrent writer owns the row now — skip, don't abort.
                 skipped++
@@ -134,8 +137,10 @@ class MemoryImportExportManager(
             currentRecords.replaceAll { if (it.id == written.id) written else it }
             if (existing == null) currentRecords += written
             remappedIds[record.id] = written.id
-            imported++
+            importedRowIds += written.id
+            importedSupersessions[written.id] = record.supersedesIds
         }
+        val memberIdMap = remappedIds.toMap()
         decoded.filter { it.kind == MemoryKind.TOPIC }.forEach { record ->
             // Same normalization the dream applier uses for topic upserts, so
             // an imported title matches what review would have produced.
@@ -153,7 +158,10 @@ class MemoryImportExportManager(
             val written = try {
                 memoryRepository.upsertRecord(
                     record.mergingOnto(existing)
-                        .copy(memberIds = record.memberIds.mapNotNull(remappedIds::get))
+                        .copy(
+                            memberIds = record.memberIds.mapNotNull(memberIdMap::get),
+                            supersedesIds = existing?.supersedesIds.orEmpty(),
+                        )
                 )
             } catch (stale: MemoryStaleException) {
                 skipped++
@@ -161,8 +169,26 @@ class MemoryImportExportManager(
             }
             currentRecords.replaceAll { if (it.id == written.id) written else it }
             if (existing == null) currentRecords += written
-            imported++
+            remappedIds[record.id] = written.id
+            importedRowIds += written.id
+            importedSupersessions[written.id] = record.supersedesIds
         }
+        // Replacements may precede their archived sources in the export. Rebase
+        // lineage only after every source ID has a local mapping; never store foreign IDs.
+        val lineageConflicts = mutableSetOf<Int>()
+        importedSupersessions.forEach { (localId, sourceIds) ->
+            val current = currentRecords.first { it.id == localId }
+            val supersedesIds = sourceIds.mapNotNull(remappedIds::get).distinct().filter { it != localId }
+            if (current.supersedesIds == supersedesIds) return@forEach
+            try {
+                val written = memoryRepository.upsertRecord(current.copy(supersedesIds = supersedesIds))
+                currentRecords.replaceAll { if (it.id == written.id) written else it }
+            } catch (_: MemoryStaleException) {
+                lineageConflicts += localId
+            }
+        }
+        val imported = importedRowIds.count { it !in lineageConflicts }
+        skipped += importedRowIds.size - imported
         return MemoryImportResult(
             root = resolvedRoot,
             importedCount = imported,

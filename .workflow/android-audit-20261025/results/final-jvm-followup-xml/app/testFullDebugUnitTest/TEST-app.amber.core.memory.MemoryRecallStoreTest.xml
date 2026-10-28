@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryRecallStoreTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.674Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="activeShortProjectStillWinsProjectContinuationQuery" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="oversizedFirstRecordDoesNotBypassPromptBudget" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.001"/>
+  <testcase name="noteDoesNotBecomeAlwaysEligibleWithoutTerms" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="englishFutureHintsUseWordBoundaries" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="durableUserCanRecallWithoutKeywordAndOutrankShortProject" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="durableAutoWriteRequiresExplicitDurableCandidate" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="conservativeTimeHintsDoNotDecayBareHistoricalChineseFacts" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="expiredFutureIntentTimeAnchorsAreDecayed" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <testcase name="feedbackRecallsWithoutKeyword" classname="app.amber.core.memory.MemoryRecallStoreTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

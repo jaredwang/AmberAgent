@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.core.SyncCryptoParityTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.794Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="pbkdf2_byte_golden_utf8" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.0"/>
+  <testcase name="aes_gcm_roundtrip_with_appended_tag" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.001"/>
+  <testcase name="aes_gcm_wrong_key_throws" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.0"/>
+  <testcase name="pbkdf2_byte_golden_ascii" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.0"/>
+  <testcase name="pbkdf2_diverges_on_different_passphrase" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.002"/>
+  <testcase name="sync_crypto_native_object_is_addressable" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.001"/>
+  <testcase name="pbkdf2_is_deterministic" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.002"/>
+  <testcase name="sha256_known_answer_abc" classname="app.amber.core.sync.core.SyncCryptoParityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

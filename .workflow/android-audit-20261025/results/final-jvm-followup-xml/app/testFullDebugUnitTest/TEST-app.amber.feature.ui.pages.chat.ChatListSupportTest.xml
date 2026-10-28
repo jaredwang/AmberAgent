@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatListSupportTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:57.675Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="latest render token changes when non trailing tool input changes" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.003"/>
+  <testcase name="latest render token uses current message from last node" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.001"/>
+  <testcase name="latest render token changes when same count annotations change" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.001"/>
+  <testcase name="latest render token keeps compact text and tool part format" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.0"/>
+  <testcase name="latest render token is empty for empty conversation" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.0"/>
+  <testcase name="latest render token changes when same shape text content changes" classname="app.amber.feature.ui.pages.chat.ChatListSupportTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

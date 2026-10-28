@@ -1,8 +1,10 @@
 package app.amber.feature.subagent
 
 import android.content.Context
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -266,63 +268,81 @@ class SubAgentManager(
         if (admissionError != null) {
             return@withContext errorPayload(admissionError.first, admissionError.second)
         }
-        runStateFlows[runId] = MutableStateFlow(run)
+        // Initial publication, write-ahead and turn launch share the same owner as cancel /
+        // interrupt / followup. A visible startup cannot be settled before its turn is registered.
+        threadOperationLock(runId).withLock {
+            try {
+                runStateFlows[runId] = MutableStateFlow(run)
 
-        // Publish the live flows before the task snapshot. The dock can open as soon as the
-        // snapshot reaches its process-wide collector; it must never bind to a permanent empty
-        // fallback during this small registration window.
-        val liveText = MutableStateFlow("")
-        val liveParts = MutableStateFlow<List<UIMessagePart>>(emptyList())
-        liveTextFlows[runId] = liveText
-        livePartsFlows[runId] = liveParts
-        capLiveTextFlows()
-        agentTaskStore.register(run.toAgentTaskSnapshot(), cancel = {
-            cancel(runId)
-            true
-        })
-        appendEvent(runtimeRun, "started", runToPayload(run))
+                // The dock can bind immediately when register publishes the task.
+                val liveText = MutableStateFlow("")
+                val liveParts = MutableStateFlow<List<UIMessagePart>>(emptyList())
+                liveTextFlows[runId] = liveText
+                livePartsFlows[runId] = liveParts
+                capLiveTextFlows()
+                agentTaskStore.register(run.toAgentTaskSnapshot(), cancel = {
+                    cancel(runId)
+                    true
+                })
+                appendEvent(runtimeRun, "started", runToPayload(run))
 
-        // P4-02 write-ahead: persist the RUNNING node BEFORE the job launches,
-        // so a crash right after subagent_start leaves a recoverable thread
-        // instead of a phantom in-memory run.
-        if (threadGraph) {
-            val startContext = requireNotNull(threadStart)
-            withContext(threadGraphWriteContext) {
-                threadGraphManager.startNode(
-                    run = run,
-                    rootRunId = startContext.rootRunId,
-                    parentThreadId = startContext.parentThreadId,
-                )
+                if (threadGraph) {
+                    val startContext = requireNotNull(threadStart)
+                    withContext(threadGraphWriteContext) {
+                        threadGraphManager.startNode(
+                            run = run,
+                            rootRunId = startContext.rootRunId,
+                            parentThreadId = startContext.parentThreadId,
+                        )
+                    }
+                }
+
+                if (!launchTurn(
+                        runtimeRun = runtimeRun,
+                        settings = settings,
+                        tools = scopedSubAgentTools(allowedTools),
+                        liveText = liveText,
+                        liveParts = liveParts,
+                        threadGraph = threadGraph,
+                        previousAnswer = "",
+                        parentConversationId = parentConversationId,
+                        parentRunId = parentRunId,
+                        followup = false,
+                        parentPolicy = parentPolicy,
+                    )
+                ) {
+                    finishLocked(
+                        runtimeRun,
+                        SubAgentResult(
+                            status = SubAgentRunStatus.FAILED,
+                            error = "Sub-agent turn agent is not registered in the kernel.",
+                        ),
+                    )
+                    return@withLock errorPayload("launch_failed", "Sub-agent turn could not be launched.")
+                }
+
+                runToPayload(run)
+            } catch (error: Exception) {
+                // No observation job owns a failed startup. Release its admission through the
+                // normal terminal path, retaining the captured restore epoch and original error.
+                withContext(NonCancellable) {
+                    runCatching {
+                        finishLocked(
+                            runtimeRun,
+                            SubAgentResult(
+                                status = if (error is CancellationException) {
+                                    SubAgentRunStatus.CANCELLED
+                                } else {
+                                    SubAgentRunStatus.FAILED
+                                },
+                                error = error.message.orEmpty(),
+                            ),
+                        )
+                    }.onFailure(error::addSuppressed)
+                }
+                throw error
             }
         }
-
-        runStateFlows.getOrPut(runId) { MutableStateFlow(run) }.value = run
-
-        if (!launchTurn(
-                runtimeRun = runtimeRun,
-                settings = settings,
-                tools = scopedSubAgentTools(allowedTools),
-                liveText = liveText,
-                liveParts = liveParts,
-                threadGraph = threadGraph,
-                previousAnswer = "",
-                parentConversationId = parentConversationId,
-                parentRunId = parentRunId,
-                followup = false,
-                parentPolicy = parentPolicy,
-            )
-        ) {
-            finish(
-                runtimeRun,
-                SubAgentResult(
-                    status = SubAgentRunStatus.FAILED,
-                    error = "Sub-agent turn agent is not registered in the kernel.",
-                ),
-            )
-            return@withContext errorPayload("launch_failed", "Sub-agent turn could not be launched.")
-        }
-
-        runToPayload(run)
     }
 
     suspend fun read(runId: String): JsonObject = withContext(Dispatchers.IO) {

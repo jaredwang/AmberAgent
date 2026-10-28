@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" tests="52" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:38.853Z" hostname="duguangdeMBP.lan" time="1.125">
+  <properties/>
+  <testcase name="free writes land immediately, canon writes wait for the author" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.016"/>
+  <testcase name="collect draft as new chapter commits and consumes the draft" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="model front matter never replaces host identity and host files refuse writes" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.02"/>
+  <testcase name="failed interactive turn restores free write preimages" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.008"/>
+  <testcase name="unreviewed auto approval cannot suppress middle chapter gate using polish marker" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.033"/>
+  <testcase name="ghostwrite chapter writes its domain events into the run event stream" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.014"/>
+  <testcase name="reopening retains proposal identity bindings and edits before durable approval" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.014"/>
+  <testcase name="renaming a middle chapter preserves fresh plot until its body changes" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.025"/>
+  <testcase name="two reviewed chapters rotate plan atomically without a planning call" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.049"/>
+  <testcase name="joint review parser is strict about the complete JSON object" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.002"/>
+  <testcase name="unreadable pending proposals are preserved and block replacing the only copy" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="interactive polish plain text becomes an approval proposal without changing canon" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="workspace tools never pause the generic approval pipeline" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="undo last collect restores files, moves head back, and is single-level" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.013"/>
+  <testcase name="cold recovery repairs reviewed commit accounting without another model call" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.021"/>
+  <testcase name="repairable review rewrites the same candidate then commits once" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.026"/>
+  <testcase name="bound ghostwrite tools are read only and only a private candidate is persisted" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="interactive polish proposal retains the original tree binding when files change during generation" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.01"/>
+  <testcase name="numbered Chinese and Markdown English chapter headings still split from prose" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.026"/>
+  <testcase name="cold recovery refuses a working tree that no longer matches the reviewed commit" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.02"/>
+  <testcase name="ordinary prose beginning with di and mentioning a badge stays in chapter body" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.022"/>
+  <testcase name="narrated bound chapter is stored as a candidate before canon" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.011"/>
+  <testcase name="legacy running job host fallback commits and keeps undo accounting" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="cold recovery restores nonfinal plan rotation without another model call" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.02"/>
+  <testcase name="targeted rewrites receive the immediately preceding private candidate title and prose" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.031"/>
+  <testcase name="collect append keeps identity and replacing a middle chapter records the unresolved gate" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.019"/>
+  <testcase name="reviewed polish host write refuses stale tree or original chapter bindings" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.011"/>
+  <testcase name="new ghostwrite job freezes the confirmed plan and rejects a changed tree" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.008"/>
+  <testcase name="ghostwrite batch retries a transient chapter failure exactly once" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.023"/>
+  <testcase name="ghostwrite canon writes are locked to one target chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.017"/>
+  <testcase name="candidate keeps one identity and plan across at most two targeted rewrites" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.016"/>
+  <testcase name="short filler answer is not filed as a chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="latestFailed surfaces the newest failed job while listActive stays terminal-free" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.007"/>
+  <testcase name="failed ghostwrite turn rolls back uncommitted canon writes" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.008"/>
+  <testcase name="proposal editing cannot retarget host files" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.007"/>
+  <testcase name="bound candidate turn refuses plan writes and does not create a chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.01"/>
+  <testcase name="ghostwrite batch fails with the surfaced error when the retry also fails" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="legacy running job auto commit does not require phase zero plan binding" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.011"/>
+  <testcase name="five and ten chapter healthy batches stay at two calls per chapter" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.291"/>
+  <testcase name="job owner claim and conditional transitions preserve the latest user state" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="blocking joint review keeps the private candidate out of canon" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.022"/>
+  <testcase name="pause during provider turn prevents the chapter commit" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="reject drops the proposal without touching the book" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="autoApproveCanon writes canon directly and commits at turn end" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.011"/>
+  <testcase name="read list grep status tools answer from the store" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.009"/>
+  <testcase name="editing reopened stale proposal keeps its original CAS and rejection is durable" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.012"/>
+  <testcase name="missing reviewed next plan adds exactly one read-only planning turn" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.035"/>
+  <testcase name="manual edit preserves identity, commits, and gates middle edits" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.019"/>
+  <testcase name="ghostwrite batch derives progress from owned receipts, not chapter ordinals" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.019"/>
+  <testcase name="healthy reviewed chapter uses two calls and commits chapter plus plot atomically" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.024"/>
+  <testcase name="renaming a dirty middle chapter cannot hide its uncommitted body change" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.021"/>
+  <testcase name="cold recovery restores partial reviewed writes before ledger commit" classname="app.amber.feature.novel.workspace.NovelWorkspaceRuntimeTest" time="0.026"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

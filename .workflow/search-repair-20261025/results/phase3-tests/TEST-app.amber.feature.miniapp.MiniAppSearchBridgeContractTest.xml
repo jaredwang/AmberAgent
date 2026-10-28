@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSearchBridgeContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:17:42.313Z" hostname="duguangdeMBP.lan" time="0.075">
+  <properties/>
+  <testcase name="answerOnlyProviderSuccessRemainsEmptyInThePageListContract" classname="app.amber.feature.miniapp.MiniAppSearchBridgeContractTest" time="0.07"/>
+  <testcase name="providerPageResultsKeepTheirSuccessfulStatusAndUrl" classname="app.amber.feature.miniapp.MiniAppSearchBridgeContractTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

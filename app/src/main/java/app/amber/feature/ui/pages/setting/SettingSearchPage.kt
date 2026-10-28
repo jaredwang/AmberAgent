@@ -3,8 +3,10 @@ package app.amber.feature.ui.pages.setting
 import app.amber.core.ai.tools.SearchOrchestrator
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
@@ -30,14 +32,13 @@ import app.amber.feature.ui.components.ds.amberCanvas
 import app.amber.feature.ui.components.nav.BackButton
 import app.amber.feature.ui.components.ui.WorkspaceTopBar
 import app.amber.feature.ui.components.ui.workspaceColors
-import app.amber.core.utils.plus
 import app.amber.search.SearchServiceOptions
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var editingService by remember { mutableStateOf<SearchServiceEditorTarget?>(null) }
@@ -108,8 +109,10 @@ fun SettingSearchPage(vm: SettingVM = koinViewModel()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(contentPadding)
+                .consumeWindowInsets(contentPadding)
                 .imePadding(),
-            contentPadding = contentPadding + PaddingValues(horizontal = SettingPageHorizontalInset, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = SettingPageHorizontalInset, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = lazyListState,
         ) {

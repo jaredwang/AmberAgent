@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.SearchAggregatorTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:17:41.180Z" hostname="duguangdeMBP.lan" time="0.849">
+  <properties/>
+  <testcase name="keepsPartialResultsWhenOneServiceFails" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.672"/>
+  <testcase name="deduplicatesCanonicalUrlsAcrossSources" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.013"/>
+  <testcase name="keepsNativeTopicForTavily" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.001"/>
+  <testcase name="keepsPartialResultsWhenOneServiceThrows" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.151"/>
+  <testcase name="acceptsStableServiceAliasesForEnabledConfiguredServices" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.01"/>
+  <testcase name="filtersEnabledServicesAndRequestedSubset" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.001"/>
+  <testcase name="addsTimeWindowToServicesWithoutNativeTopic" classname="app.amber.core.ai.tools.SearchAggregatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.subagent.RoomThreadGraphStoreTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:47.666Z" hostname="duguangdeMBP.lan" time="0.099">
+  <properties/>
+  <testcase name="claimQueuedMessagesIsSingleConsumer" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.02"/>
+  <testcase name="nodeAndResultSurviveStoreRecreation" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.012"/>
+  <testcase name="requeueUndrainedMessagesChangesOnlySelectedDeliveredIdsInTheSameThread" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.013"/>
+  <testcase name="messageDeliveryStatesArePersisted" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.014"/>
+  <testcase name="captureWriteContextPreservesCallerEpochOrCapturesCurrentGateEpoch" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.013"/>
+  <testcase name="queuedMessageSurvivesStoreRecreationUntilAThreadClaimsIt" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.012"/>
+  <testcase name="concurrentDrainClaimsEachQueuedMessageOnce" classname="app.amber.feature.subagent.RoomThreadGraphStoreTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
