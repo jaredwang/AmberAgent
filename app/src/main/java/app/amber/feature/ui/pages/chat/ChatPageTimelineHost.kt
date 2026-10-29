@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import app.amber.agent.R
 import app.amber.core.utils.navigateToChatPage
 import app.amber.feature.ui.context.LocalToaster
+import app.amber.feature.ui.utils.ChatPerfTargetKind
+import app.amber.feature.ui.utils.ChatPerfTrace
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -38,7 +40,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -155,6 +159,13 @@ internal fun ChatPageTimelineHost(
     // History fades in once it can compose; a page shown without an enter slide
     // (returning from another screen) starts fully visible.
     val timelineVisible = timelineReady && timelinePrepared
+    val readinessTick = remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    if (ChatPerfTrace.enabled) {
+        DisposableEffect(Unit) {
+            ChatPerfTrace.readinessInvalidation = { readinessTick.intValue++ }
+            onDispose { ChatPerfTrace.readinessInvalidation = null }
+        }
+    }
     val timelineFade = remember(conversationId) { Animatable(if (timelineVisible) 1f else 0f) }
     LaunchedEffect(timelineVisible) {
         if (timelineVisible) timelineFade.animateTo(1f, tween(durationMillis = 180))
@@ -174,6 +185,19 @@ internal fun ChatPageTimelineHost(
         loading = loading,
         settings = setting,
     ) { timelineConversation, chatTimelinePlan ->
+        val targetNode = timelineConversation.messageNodes.lastOrNull()
+        SideEffect {
+            if (timelineReady && timelinePrepared) {
+                ChatPerfTrace.beginTarget(
+                    kind = if (targetNode == null) {
+                        ChatPerfTargetKind.EMPTY_HERO
+                    } else {
+                        ChatPerfTargetKind.MESSAGE
+                    },
+                    nodeId = targetNode?.id,
+                )
+            }
+        }
         val latestJumpConversation by rememberUpdatedState(timelineConversation)
         val latestJumpPlan by rememberUpdatedState(chatTimelinePlan)
         LaunchedEffect(jumpTarget) {
@@ -238,7 +262,13 @@ internal fun ChatPageTimelineHost(
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithContent {
+                        // Draw-scope state read: late parse/image/viewport
+                        // readiness invalidates a fresh draw of ready content.
+                        readinessTick.intValue
                         drawContent()
+                        if (ChatPerfTrace.enabled) {
+                            ChatPerfTrace.onTargetDraw(timelineFade.value)
+                        }
                         if (!firstDraw[0]) {
                             firstDraw[0] = true
                             vm.onTimelineFirstFrameRendered()
@@ -364,6 +394,7 @@ internal fun ChatPageTimelineHost(
                 // 401/慢响应时整屏空白看着像卡死. 改成 isEmpty 时 hero 一直保留 (loading 时 hero 上叠
                 // 半透蒙层 spinner 反馈), 直到第一个 chunk 落 (messageNodes 非空) 再切到 ChatList.
                 if (!hasMessages) {
+                    SideEffect { ChatPerfTrace.onEmptyHeroComposed() }
                     val startSuggestions by rememberChatStartSuggestions(vm, setting)
                     val nick = setting.displaySetting.userNickname.trim()
                     val heroText = if (nick.isNotEmpty()) {

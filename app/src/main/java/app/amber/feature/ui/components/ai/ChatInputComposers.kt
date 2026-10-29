@@ -75,6 +75,8 @@ import app.amber.feature.ui.hooks.ChatInputAttachmentKind
 import app.amber.feature.ui.hooks.ChatInputState
 import app.amber.core.utils.appLocale
 import app.amber.feature.ui.theme.LocalAmberTokens
+import app.amber.feature.ui.utils.ChatPerfCommandBridge
+import app.amber.feature.ui.utils.ChatPerfTrace
 import app.amber.feature.ui.theme.LocalAmberType
 import org.koin.compose.koinInject
 
@@ -443,6 +445,10 @@ internal fun TextInputRow(
                 .contentReceiver(receiveContentListener)
                 .onFocusChanged {
                     isFocused = it.isFocused
+                    if (it.isFocused) {
+                        ChatPerfTrace.observeFirstFocus()
+                        ChatPerfCommandBridge.reportInteraction("input-tap", "input-focus")
+                    }
                 },
             contentPadding = if (minimalChrome) {
                 // 单行高度压到 ≤46dp，让外层 pill 的 heightIn(min=46) 钳到 46dp，与两侧圆按钮齐平

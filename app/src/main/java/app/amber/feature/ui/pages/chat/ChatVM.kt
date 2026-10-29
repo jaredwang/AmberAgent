@@ -72,6 +72,7 @@ import app.amber.feature.miniapp.ConversationDraftStore
 import app.amber.feature.ui.hooks.writeStringPreference
 import app.amber.feature.ui.hooks.ChatInputState
 import app.amber.feature.ui.components.message.prewarmChatMessageToolJson
+import app.amber.feature.ui.utils.ChatPerfTrace
 import kotlinx.coroutines.yield
 import kotlin.uuid.Uuid
 
@@ -216,6 +217,7 @@ class ChatVM(
                     return@collectLatest
                 }
                 hasInitialized = true
+                ChatPerfTrace.dataReady()
                 val nodes = conversation.value.messageNodes
                 val loadingLastMessage = conversationJob.value != null
                 // Baseline taken before ChatList can mount for this initialized
@@ -226,15 +228,21 @@ class ChatVM(
                 // and still missed user/short bodies (which then parsed synchronously on
                 // the main thread). Never let a prewarm failure trap the spinner either.
                 var firstScreen: TimelinePrewarmSelection? = null
+                val prepCookie = ChatPerfTrace.beginInitialPreparation()
                 try {
                     firstScreen = prewarmFirstScreenTimelineNodes(nodes, loadingLastMessage)
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Exception) {
                     Log.w(TAG, "Timeline Markdown prewarm failed; rendering will parse on demand", error)
+                } finally {
+                    ChatPerfTrace.endInitialPreparation(prepCookie)
                 }
                 currentCoroutineContext().ensureActive()
-                if (timelineLoadState.value.initialized) _timelineMarkdownReady.value = true
+                if (timelineLoadState.value.initialized) {
+                    _timelineMarkdownReady.value = true
+                    ChatPerfTrace.initialPreparationReady()
+                }
                 // Everything above the initial viewport is warmed after the list has
                 // mounted. This is background work only: it must not keep timelineReady
                 // false, and collectLatest still cancels it on a new page/restore.
@@ -621,6 +629,10 @@ class ChatVM(
                 loadingLastMessage = loadingLastMessage,
                 budget = TimelineFirstScreenPrewarmBudget,
             )
+            ChatPerfTrace.recordPreparation(
+                texts = selection.texts.size,
+                chars = selection.texts.sumOf { it.length },
+            )
             prewarmMarkdownTexts(selection.texts)
             // Tool cards parse their JSON lazily in composition; warm the same
             // bounded tail on Default so they do not join the main-thread burst.
@@ -666,15 +678,27 @@ class ChatVM(
     ) {
         var index = startIndex.coerceAtMost(nodes.lastIndex)
         var count = 0
+        var toolInputs = 0
+        var toolOutputCharsPrepared = 0L
         while (index >= 0 && count < maxNodes) {
             currentCoroutineContext().ensureActive()
             if (!(loadingLastMessage && index == nodes.lastIndex)) {
+                if (ChatPerfTrace.enabled) {
+                    val tools = nodes[index].currentMessage.parts.filterIsInstance<UIMessagePart.Tool>()
+                    toolInputs += tools.size
+                    toolOutputCharsPrepared += ChatPerfTrace.countToolOutputChars(tools)
+                }
                 nodes[index].prewarmChatMessageToolJson()
             }
             index--
             count++
             yield()
         }
+        ChatPerfTrace.recordPreparation(
+            nodes = count,
+            toolInputs = toolInputs,
+            toolOutputCharsPrepared = toolOutputCharsPrepared,
+        )
     }
 
     /**

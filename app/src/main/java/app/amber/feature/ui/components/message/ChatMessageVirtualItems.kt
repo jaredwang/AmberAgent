@@ -33,6 +33,7 @@ import app.amber.feature.ui.components.richtext.topLevelBlockCount
 import app.amber.feature.ui.components.richtext.topLevelBlockKey
 import app.amber.feature.ui.context.LocalChatFontScale
 import app.amber.feature.ui.context.LocalSettings
+import app.amber.feature.ui.utils.ChatPerfNodeProbes
 import app.amber.feature.ui.utils.amberTraceMeasure
 import app.amber.core.utils.copyMessageToClipboard
 
@@ -423,8 +424,9 @@ internal fun ChatMessageVirtualItemContent(
                 } else null,
             ),
     ) {
+        ChatPerfNodeProbes(node.id.toString()) {
         CompositionLocalProvider(LocalChatFontScale provides chatFontScale) {
-        val itemTraceName = if (BuildConfig.DEBUG) {
+        val itemTraceName = if (BuildConfig.DEBUG || BuildConfig.CHAT_PERF_TRACE) {
             "Amber item ${item::class.simpleName}-${message.role.name.lowercase()}"
         } else {
             null
@@ -603,6 +605,7 @@ internal fun ChatMessageVirtualItemContent(
             }
         }
         if (itemTraceName != null) Trace.endSection()
+        }
         }
     }
 

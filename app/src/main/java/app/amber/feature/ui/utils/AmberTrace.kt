@@ -17,7 +17,7 @@ internal fun AmberTraceSection(
     name: String,
     content: @Composable () -> Unit,
 ) {
-    if (!BuildConfig.DEBUG) {
+    if (!BuildConfig.DEBUG && !BuildConfig.CHAT_PERF_TRACE) {
         content()
         return
     }
