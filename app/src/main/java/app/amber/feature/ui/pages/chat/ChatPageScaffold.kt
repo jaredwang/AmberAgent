@@ -18,7 +18,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
@@ -46,7 +49,6 @@ import app.amber.core.service.ChatError
 import app.amber.core.service.PendingUserMessage
 import app.amber.feature.ui.components.ai.ChatInputSubmissionOwner
 import app.amber.feature.ui.components.ai.SandboxActivitySheet
-import app.amber.feature.ui.components.ai.TopModelMenu
 import app.amber.feature.ui.components.ds.amberCanvas
 import app.amber.feature.ui.components.ui.ImagePreviewDialog
 import app.amber.agent.Screen
@@ -166,9 +168,12 @@ internal fun ChatPageScaffold(
 
     // Graphite TopModelMenu: header 下方卷帘下拉的开合状态（顶栏触发器 + 内容区 overlay 共享）
     var modelMenuOpen by remember { mutableStateOf(false) }
-    // 菜单挂在 Scaffold 之上（遮罩必须盖住 bottomBar 输入区），但面板仍要从 header 正下方
-    // 展开，所以记下 Scaffold 测出的顶栏高度（content 的 innerPadding.top）。
+    // 菜单挂在 app shell 的模态层上（遮罩必须盖住 header、输入区以及展开屏左侧列表），
+    // 但面板仍要从 header 正下方、聊天栏内展开，所以记下 Scaffold 测出的顶栏高度
+    // （content 的 innerPadding.top）与聊天栏在窗口里的左边界（双栏时在左侧列表之后）。
     var headerInset by remember { mutableStateOf(0.dp) }
+    var chatPaneStartInset by remember { mutableStateOf(0.dp) }
+    val windowDensity = LocalDensity.current
     // Header island: recap panel, shelf panel, and timeline jumps they trigger.
     var recapOpen by remember(conversation.id) { mutableStateOf(false) }
     var shelfOpen by remember(conversation.id) { mutableStateOf(false) }
@@ -219,7 +224,16 @@ internal fun ChatPageScaffold(
         activityOpen = false
     }
     CompositionLocalProvider(LocalTimelineHighlight provides timelineHighlight) {
-        Box(modifier = Modifier.fillMaxSize().amberCanvas()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .amberCanvas()
+                .onGloballyPositioned { coordinates ->
+                    chatPaneStartInset = with(windowDensity) {
+                        coordinates.boundsInWindow().left.toDp()
+                    }
+                },
+        ) {
             Scaffold(
                 modifier = Modifier.amberTraceMeasure("Amber ChatPage measure"),
                 topBar = {
@@ -455,13 +469,12 @@ internal fun ChatPageScaffold(
                 }  // end outer Box (fillMaxSize)
             }
 
-            // Graphite TopModelMenu —— 挂在 Scaffold 之上：Scaffold 的 content 位于 bottomBar
-            // 之下，遮罩放进 content 就永远盖不住输入区（真机只能在菜单里点模型才关得掉）。
-            // 遮罩铺满 header 以下的整屏（含输入区），面板仍从 header 正下方卷帘展开。
-            TopModelMenu(
+            // Graphite TopModelMenu —— 发布到 app shell 的模态层：遮罩铺满整个应用窗口
+            // （header、输入区、展开屏左侧会话列表），面板仍从 header 正下方、聊天栏内卷帘展开。
+            // 只挂在 ChatPage 自己身上时，header 返回和左栏设置会在第一次点击时穿透。
+            ChatModelMenuOverlay(
                 open = modelMenuOpen,
                 providers = chatProvidersForMenu,
-                modelType = ModelType.CHAT,
                 currentProviderId = currentProviderIdForMenu,
                 currentModelId = chatModelIdForMenu,
                 onSelect = { model ->
@@ -482,7 +495,8 @@ internal fun ChatPageScaffold(
                         )
                     }
                 },
-                modifier = Modifier.padding(top = headerInset),
+                panelTopInset = headerInset,
+                panelStartInset = chatPaneStartInset,
                 header = if (conversation.messageNodes.isNotEmpty()) {
                     {
                         ChatModelMenuUsageHeader(
