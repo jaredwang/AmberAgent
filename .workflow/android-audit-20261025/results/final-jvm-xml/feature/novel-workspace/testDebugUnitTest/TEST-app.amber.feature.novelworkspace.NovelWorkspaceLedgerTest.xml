@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.420Z" hostname="duguangdeMBP.lan" time="0.023">
+  <properties/>
+  <testcase name="make commit computes tree hash" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.002"/>
+  <testcase name="branch id uses the sole ledger head for legacy imports without branch metadata" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.008"/>
+  <testcase name="status reports dirty paths, plot staleness, unresolved" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.002"/>
+  <testcase name="ancestry walks parent chain oldest first" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.001"/>
+  <testcase name="missing ledger is empty" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.001"/>
+  <testcase name="tree sha is order-insensitive and excludes nothing implicitly" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.001"/>
+  <testcase name="corrupt ledger is quarantined, not silently replaced" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.002"/>
+  <testcase name="save and load round-trip with ios wire shape" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.003"/>
+  <testcase name="appending advances head and deduplicates by id" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.0"/>
+  <testcase name="omits null parent and empty heads" classname="app.amber.feature.novelworkspace.NovelWorkspaceLedgerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

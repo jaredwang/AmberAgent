@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ChatMessageVirtualItemsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:57.219Z" hostname="duguangdeMBP.lan" time="0.012">
+  <properties/>
+  <testcase name="virtualContentKeysUseSameTypeOrdinal" classname="app.amber.feature.ui.components.message.ChatMessageVirtualItemsTest" time="0.004"/>
+  <testcase name="virtualContentKeysDoNotUseOriginalPartIndex" classname="app.amber.feature.ui.components.message.ChatMessageVirtualItemsTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

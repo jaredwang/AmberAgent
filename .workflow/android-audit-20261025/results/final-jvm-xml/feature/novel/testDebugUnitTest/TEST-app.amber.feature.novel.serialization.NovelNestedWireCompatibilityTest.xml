@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.serialization.NovelNestedWireCompatibilityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:22.202Z" hostname="duguangdeMBP.lan" time="0.11">
+  <properties/>
+  <testcase name="nestedIosRecordsRoundTripWithoutDroppingPayloads" classname="app.amber.feature.novel.serialization.NovelNestedWireCompatibilityTest" time="0.021"/>
+  <testcase name="askUserPromptAllowsMissingOptionalPayloadAndUnknownFields" classname="app.amber.feature.novel.serialization.NovelNestedWireCompatibilityTest" time="0.048"/>
+  <testcase name="decodesIosAskUserAndIdentityClarificationRecords" classname="app.amber.feature.novel.serialization.NovelNestedWireCompatibilityTest" time="0.008"/>
+  <testcase name="stateSnapshotCacheFingerprintIncludesIdentityClarifications" classname="app.amber.feature.novel.serialization.NovelNestedWireCompatibilityTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

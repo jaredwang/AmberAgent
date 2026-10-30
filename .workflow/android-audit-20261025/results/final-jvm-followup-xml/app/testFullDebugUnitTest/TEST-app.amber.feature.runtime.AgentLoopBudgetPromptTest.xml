@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.AgentLoopBudgetPromptTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.478Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="promptContainsStageSpecificInstruction" classname="app.amber.feature.runtime.AgentLoopBudgetPromptTest" time="0.001"/>
+  <testcase name="finalStageHidesToolsUnlessResumingExistingTools" classname="app.amber.feature.runtime.AgentLoopBudgetPromptTest" time="0.0"/>
+  <testcase name="smallBudgetKeepsInitialToolTurnsAvailable" classname="app.amber.feature.runtime.AgentLoopBudgetPromptTest" time="0.0"/>
+  <testcase name="twoStepRecoveryRunKeepsFirstTurnToolCapable" classname="app.amber.feature.runtime.AgentLoopBudgetPromptTest" time="0.0"/>
+  <testcase name="largeBudgetStagesAreMutuallyExclusive" classname="app.amber.feature.runtime.AgentLoopBudgetPromptTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

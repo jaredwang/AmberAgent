@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.mcp.McpImportTransactionTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.609Z" hostname="duguangdeMBP.lan" time="0.027">
+  <properties/>
+  <testcase name="applyAfterApprovalPublishesWholeBatchOnce" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.015"/>
+  <testcase name="appliedCandidatesBecomeTypedServerConfigs" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.002"/>
+  <testcase name="missingUrlIsAnExplicitErrorNotASilentSkip" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <testcase name="existingServerNameConflictsRejectTheWholeBatch" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.002"/>
+  <testcase name="unknownTransportFailsClosed" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="changedInputAfterApprovalIsStaleAndNothingIsPublished" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.002"/>
+  <testcase name="approvalForDifferentCandidateDigestIsStaleAndNothingIsPublished" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <testcase name="applyWithoutApprovalIsStale" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="httpFixturePreparesHttpTransportPreview" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="anyPreflightFailureRejectsTheWholeBatch" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <testcase name="nonObjectServerIsRejectedWithoutThrowing" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="sseFixturePreparesSseTransportPreview" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="headerValuesArePartOfTheBindingDigest" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <testcase name="duplicateNamesRejectTheWholeBatch" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="applyAfterRejectedOutcomeIsStaleEvenWithTheSameDigest" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <testcase name="duplicateNamesWithEscapedUnicodeKeysAreStillDetected" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.0"/>
+  <testcase name="headersAreRedactedToNamesOnly" classname="app.amber.core.ai.mcp.McpImportTransactionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -37,7 +37,8 @@ class MiniAppSearchBridge(
         val status = result["status"]?.jsonPrimitive?.contentOrNull ?: "error"
         val items = result["items"]?.jsonArray ?: JsonArray(emptyList())
         return buildJsonObject {
-            put("status", status)
+            // This bridge exposes page rows, not provider-generated answers.
+            put("status", if (status != "error" && items.isEmpty()) "empty" else status)
             result["error"]?.let { put("error", it) }
             put("sourceErrors", buildJsonArray {
                 result["sources"]?.jsonArray.orEmpty().forEach { element ->

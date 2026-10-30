@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.ToolProfileFilterTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.465Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="codingProfileKeepsWorkspaceTerminalMcpAndSkillTools" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.001"/>
+  <testcase name="minimalProfileKeepsOnlyCoreUtilityTools" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <testcase name="nonFullProfilesFilterLateAddedOrchestrationTools" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <testcase name="workspaceReadProfileExcludesWriteEditMoveDeleteAndTerminal" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <testcase name="webReadProfileExcludesInteractionAndEvalTools" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <testcase name="codingProfileDoesNotKeepWebViewSearchFallbackTool" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <testcase name="fullProfilePreservesAllTools" classname="app.amber.feature.tools.ToolProfileFilterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

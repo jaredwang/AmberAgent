@@ -22,6 +22,7 @@ import app.amber.search.SearchCommonOptions
 import app.amber.search.SearchResult
 import app.amber.search.SearchService
 import app.amber.search.SearchServiceOptions
+import app.amber.search.ZhipuSearchService
 import java.net.URI
 import java.net.URLEncoder
 import java.time.LocalDate
@@ -32,6 +33,7 @@ import kotlin.uuid.Uuid
 internal object SearchOrchestrator {
     private const val MAX_SOURCES = 5
     private const val MAX_SOURCE_VARIANT_CALLS = 10
+    private const val MAX_ANSWER_LENGTH = 4_000
     private const val WEAK_RESULT_THRESHOLD = 3
     private const val FREE_SEARCH_HINT =
         "Only built-in free sources are enabled; they are limited by network environment and anti-bot checks. " +
@@ -89,6 +91,7 @@ internal object SearchOrchestrator {
                     )
                 }
                 put("items", JsonArray(emptyList()))
+                put("answers", JsonArray(emptyList()))
                 put("sources", JsonArray(emptyList()))
             }
         }
@@ -129,6 +132,8 @@ internal object SearchOrchestrator {
             topic = topic,
             timeRange = timeRange,
         ).take(maxResults)
+        val answers = collectAnswers(sourceResults)
+        val hasResults = merged.isNotEmpty() || answers.isNotEmpty()
         val anyFailure = sourceResults.any { it.result.isFailure }
         val shouldOfferWebView = includeWebViewFallback &&
             settings.searchGoogleWebViewFallbackEnabled &&
@@ -138,9 +143,8 @@ internal object SearchOrchestrator {
             put(
                 "status",
                 when {
-                    merged.isNotEmpty() && anyFailure -> "partial"
-                    merged.isNotEmpty() -> "ok"
-                    sourceResults.isNotEmpty() && anyFailure -> "empty"
+                    hasResults && anyFailure -> "partial"
+                    hasResults -> "ok"
                     else -> "empty"
                 }
             )
@@ -165,6 +169,7 @@ internal object SearchOrchestrator {
                     imagesBudget = (imagesBudget - toEmit).coerceAtLeast(0)
                 }
             })
+            put("answers", answers)
             // The chat renderer derives image galleries from items[].images. Keep
             // images out of assistant text so they are never re-parsed or fed back
             // into the model as markdown/fence syntax.
@@ -186,7 +191,7 @@ internal object SearchOrchestrator {
             if (merged.size < WEAK_RESULT_THRESHOLD && sources.all { it.builtin }) {
                 put("search_service_hint", FREE_SEARCH_HINT)
             }
-            if (merged.isEmpty()) {
+            if (!hasResults) {
                 put(
                     "message",
                     if (shouldOfferWebView) {
@@ -355,6 +360,11 @@ internal object SearchOrchestrator {
             sources.forEachIndexed { sourceIndex, source ->
                 if (calls.size >= MAX_SOURCE_VARIANT_CALLS) return@forEachIndexed
                 if (variantIndex >= source.maxVariantCalls) return@forEachIndexed
+                if (
+                    source is OrchestratorSource.Configured &&
+                    source.options is SearchServiceOptions.ZhipuOptions &&
+                    variants[variantIndex].length > ZhipuSearchService.MAX_QUERY_LENGTH
+                ) return@forEachIndexed
                 calls += SourceSearchRequest(
                     source = source,
                     sourceIndex = sourceIndex,
@@ -440,7 +450,7 @@ internal object SearchOrchestrator {
         }
     }
 
-    private fun SourceSearchRequest.serviceParams(): JsonObject {
+    internal fun SourceSearchRequest.serviceParams(): JsonObject {
         return when (source) {
             OrchestratorSource.BuiltInFreeAggregate -> buildJsonObject {
                 put("query", query)
@@ -452,6 +462,7 @@ internal object SearchOrchestrator {
                 timeRange = timeRange,
                 recencyDays = recencyDays,
                 options = source.options,
+                locale = locale,
             )
         }
     }
@@ -464,6 +475,26 @@ internal object SearchOrchestrator {
         }
     }
 
+    private fun collectAnswers(results: List<SourceSearchResult>): JsonArray = buildJsonArray {
+        val seen = mutableSetOf<Pair<String, String>>()
+        results.forEach { sourceResult ->
+            val answer = sourceResult.result.getOrNull()?.answer?.trim()?.takeIf { it.isNotEmpty() }
+                ?: return@forEach
+            val request = sourceResult.request
+            val source = request.source
+            if (!seen.add(source.id to answer)) return@forEach
+            add(buildJsonObject {
+                put("answer", answer.take(MAX_ANSWER_LENGTH))
+                put("source_service", source.name)
+                put("service_id", source.id)
+                put("source_kind", source.kind)
+                put("builtin", source.builtin)
+                put("query", request.query)
+                put("variant_index", request.variantIndex)
+            })
+        }
+    }
+
     private fun mergeResults(
         results: List<SourceSearchResult>,
         originalQuery: String,
@@ -471,7 +502,6 @@ internal object SearchOrchestrator {
         timeRange: String,
     ): List<OrchestratedSearchItem> {
         val byKey = LinkedHashMap<String, OrchestratedSearchItem>()
-        val byTitle = LinkedHashMap<String, OrchestratedSearchItem>()
         val queryTokens = originalQuery.lowercase(Locale.ROOT)
             .split(Regex("[\\s/,_，。:：\\-]+"))
             .filter { it.length >= 2 }
@@ -483,7 +513,8 @@ internal object SearchOrchestrator {
                 val canonical = canonicalizeUrl(item.url)
                 val domain = domain(item.url)
                 val titleKey = domain + "|" + normalizedTitle(item.title)
-                val existing = byKey[canonical] ?: byTitle[titleKey]
+                val key = if (item.url.isNotBlank()) canonical else titleKey
+                val existing = byKey[key]
                 if (existing == null) {
                     val hitBoost = queryTokens.count { token ->
                         item.title.contains(token, ignoreCase = true) ||
@@ -512,8 +543,7 @@ internal object SearchOrchestrator {
                         // thumbnail.src and thumbnail.original).
                         images = item.images.distinct().take(5),
                     )
-                    byKey[canonical] = created
-                    byTitle[titleKey] = created
+                    byKey[key] = created
                 } else {
                     existing.sourceServices.add(sourceResult.request.source.name)
                     existing.duplicateCount += 1
@@ -558,7 +588,9 @@ internal object SearchOrchestrator {
                 ?.joinToString("&")
                 ?.takeIf { it.isNotBlank() }
             buildString {
-                append(scheme).append("://").append(host).append(path)
+                append(scheme).append("://").append(host)
+                if (uri.port != -1) append(':').append(uri.port)
+                append(path)
                 if (query != null) append('?').append(query)
             }
         }.getOrElse {

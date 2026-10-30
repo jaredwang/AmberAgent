@@ -16,6 +16,28 @@ import org.junit.Test
 class RedditClientTest {
 
     @Test
+    fun postAndCommentCreationTimesAcceptDecimalEpochSeconds() = runBlocking {
+        for (seconds in listOf("1315269998", "1315269998.0")) {
+            val listing = """{"kind":"Listing","data":{"children":[{"kind":"%s","data":{"id":"item","created_utc":$seconds}}]}}"""
+            val http = HttpClient(MockEngine {
+                respond(
+                    content = "[${listing.format("t3")},${listing.format("t1")} ]",
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
+            })
+            try {
+                val detail = RedditClient(http).postWithComments("/r/Android/comments/post-1/title")
+
+                assertEquals(1_315_269_998_000L, (detail.post as RedditChild.Post).createdAtMs)
+                assertEquals(1_315_269_998_000L, (detail.comments.single() as RedditChild.Comment).createdAtMs)
+            } finally {
+                http.close()
+            }
+        }
+    }
+
+    @Test
     fun postWithCommentsDropsMoreContinuationNodes() = runBlocking {
         val response = """
             [

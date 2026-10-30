@@ -117,6 +117,7 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
                             title = result.title,
                             url = result.url,
                             text = result.content,
+                            publishedAt = result.publishedDate,
                             images = imgs.take(2),
                         )
                     }
@@ -142,7 +143,7 @@ object SearXNGService : SearchService<SearchServiceOptions.SearXNGOptions> {
         @SerialName("query")
         val query: String,
         @SerialName("number_of_results")
-        val numberOfResults: Int,
+        val numberOfResults: Int = 0,
         @SerialName("results")
         val results: List<SearXNGResult>,
     )

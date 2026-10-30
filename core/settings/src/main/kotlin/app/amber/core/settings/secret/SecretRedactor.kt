@@ -139,7 +139,7 @@ class SecretRedactor(private val secretStore: SecretStore) {
     /**
      * redact 单个字段。返回持久化形式的值（掩码或原样）。
      * 规则：
-     * - 空值 → 无 reference；
+     * - 空值 → 无 reference；现有密文暂时不可读时保留其 reference，避免误清空；
      * - 值等于已有 reference 的掩码（恢复/回环场景）→ 保留原 reference，不重写 secret；
      * - 值本身已是掩码但无 reference（孤儿掩码）→ 原样保留，不建 reference；
      * - 其余 → 写入 SecretStore（幂等 upsert），产出新 reference。
@@ -154,9 +154,18 @@ class SecretRedactor(private val secretStore: SecretStore) {
         out: MutableMap<String, SecretReference>,
         failOnWriteFailure: Boolean = false,
     ): String {
-        if (value.isBlank()) return ""
         val descriptor = SecretDescriptor(scope, ownerId, fieldName)
         val existing = existingRefs[descriptor.key]
+        if (value.isBlank()) {
+            // Rehydration represents an unreadable credential as empty. A
+            // normal settings save must not turn that read failure into an
+            // explicit clear. A readable empty field still clears its secret.
+            if (existing != null && secretStore.has(descriptor) && secretStore.read(descriptor) == null) {
+                out[descriptor.key] = existing
+                return existing.mask
+            }
+            return ""
+        }
         if (existing != null && value == existing.mask) {
             out[descriptor.key] = existing
             return value
@@ -326,13 +335,9 @@ class SecretRedactor(private val secretStore: SecretStore) {
             redactedServer.clone(
                 commonOptions = common.copy(
                     headers = common.headers.map { (name, value) ->
-                        if (value.isBlank()) {
-                            name to value
-                        } else {
-                            name to redactSecret(
-                                "mcp", server.id.toString(), "header:$name", value, existingRefs, out,
-                            )
-                        }
+                        name to redactSecret(
+                            "mcp", server.id.toString(), "header:$name", value, existingRefs, out,
+                        )
                     },
                     oauth = common.oauth?.let { oauth ->
                         oauth.copy(
@@ -384,7 +389,7 @@ class SecretRedactor(private val secretStore: SecretStore) {
         existingRefs: Map<String, SecretReference>,
         out: MutableMap<String, SecretReference>,
     ): String? = this?.let { url ->
-        if (!url.hasSensitiveMcpUrlParts()) {
+        if (url.isNotBlank() && !url.hasSensitiveMcpUrlParts()) {
             url
         } else {
             redactSecret(
@@ -405,7 +410,7 @@ class SecretRedactor(private val secretStore: SecretStore) {
         out: MutableMap<String, SecretReference>,
     ): String {
         val url = server.mcpUrl()
-        if (!url.hasSensitiveMcpUrlParts()) return url
+        if (url.isNotBlank() && !url.hasSensitiveMcpUrlParts()) return url
         return redactSecret(
             scope = "mcp",
             ownerId = server.id.toString(),
@@ -488,13 +493,9 @@ class SecretRedactor(private val secretStore: SecretStore) {
         existingRefs: Map<String, SecretReference>,
         out: MutableMap<String, SecretReference>,
     ): List<CustomHeader> = map { header ->
-        if (header.value.isBlank()) {
-            header
-        } else {
-            header.copy(
-                value = redactSecret(scope, ownerId, "customHeader:${header.name}", header.value, existingRefs, out)
-            )
-        }
+        header.copy(
+            value = redactSecret(scope, ownerId, "customHeader:${header.name}", header.value, existingRefs, out)
+        )
     }
 
     /** 聚合器全量 redact：产出各域持久化形式 + 完整 refs map。 */

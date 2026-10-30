@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.webmount.profile.SiteProfileTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:04.741Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="originsMustHaveScheme" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="scriptsCallPageFnMustBeDeclaredInPermissions" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="extractOriginNormalizesCaseAndQueryString" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="readOnlyClassification" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.001"/>
+  <testcase name="unknownPermissionRejected" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="emptyOriginsRejected" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="trailingSlashOriginRejected" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="snakeCaseKeysMapToCamelCaseFields" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="parsesAndValidatesMinimalProfile" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="versionZeroRejected" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="loginCookieRequiresDetectLoginPermission" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="permissionParserHandlesAllVariants" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="invalidRateLimitMapToRejected" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <testcase name="rateLimitClampedToRange" classname="app.amber.feature.webmount.profile.SiteProfileTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

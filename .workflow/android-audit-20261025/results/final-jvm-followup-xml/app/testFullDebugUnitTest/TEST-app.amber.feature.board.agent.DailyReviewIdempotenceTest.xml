@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.agent.DailyReviewIdempotenceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.531Z" hostname="duguangdeMBP.lan" time="0.104">
+  <properties/>
+  <testcase name="completed evening suppresses repeated automatic evening and delayed noon calls" classname="app.amber.feature.board.agent.DailyReviewIdempotenceTest" time="0.027"/>
+  <testcase name="disabled chat history is absent from actual daily review provider prompt" classname="app.amber.feature.board.agent.DailyReviewIdempotenceTest" time="0.041"/>
+  <testcase name="noon and evening are generated once and evening appends exactly once" classname="app.amber.feature.board.agent.DailyReviewIdempotenceTest" time="0.018"/>
+  <testcase name="concurrent evening cycles share one generation and one durable supplement" classname="app.amber.feature.board.agent.DailyReviewIdempotenceTest" time="0.018"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

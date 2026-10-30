@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundaryTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.538Z" hostname="duguangdeMBP.lan" time="0.201">
+  <properties/>
+  <testcase name="zip decoded across restore cannot install into the new epoch" classname="app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundaryTest" time="0.01"/>
+  <testcase name="restore begins only after entire existing multi file writer leaves shared monitor" classname="app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundaryTest" time="0.111"/>
+  <testcase name="restore maintenance pauses running jobs preserving candidates receipts and terminal records" classname="app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundaryTest" time="0.029"/>
+  <testcase name="restore blocks canon private state and corrupt quarantine then rejects stale writer" classname="app.amber.feature.novelworkspace.NovelWorkspaceRestoreBoundaryTest" time="0.051"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

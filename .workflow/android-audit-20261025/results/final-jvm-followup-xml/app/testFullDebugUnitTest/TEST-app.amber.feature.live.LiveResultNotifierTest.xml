@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveResultNotifierTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.380Z" hostname="duguangdeMBP.lan" time="0.013">
+  <properties/>
+  <testcase name="automatic result replaces the previous completion and truncates the summary" classname="app.amber.feature.live.LiveResultNotifierTest" time="0.008"/>
+  <testcase name="completion uses private notification and the real companion route" classname="app.amber.feature.live.LiveResultNotifierTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

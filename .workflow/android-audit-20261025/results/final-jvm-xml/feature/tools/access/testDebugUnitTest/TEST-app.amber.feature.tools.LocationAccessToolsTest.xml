@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.LocationAccessToolsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:33.263Z" hostname="duguangdeMBP.lan" time="0.184">
+  <properties/>
+  <testcase name="equalTimestampChoosesTheMoreAccurateProvider" classname="app.amber.feature.tools.LocationAccessToolsTest" time="0.148"/>
+  <testcase name="aNewerLocationStillWinsRegardlessOfAccuracy" classname="app.amber.feature.tools.LocationAccessToolsTest" time="0.036"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
+Intent = Intent { act=android.location.PROVIDERS_CHANGED (has extras) }; Matching wrappers: []
+]]></system-err>
+</testsuite>

@@ -119,6 +119,7 @@ class MemoryDreamPlanner(
         val promptRecords = records
             .filter { !it.archived && it.expiresAt.let { exp -> exp == null || exp > now } }
             .take(80)
+        val promptCandidates = candidates.take(50)
         // Lexically-similar pairs are surfaced so the model can resolve them
         // by semantics: merge true duplicates, supersede outdated records, or
         // leave them. Pairs a recent plan already suggested are not re-flagged
@@ -135,7 +136,7 @@ class MemoryDreamPlanner(
                 UIMessage.user(
                     MemoryDreamPrompt.build(
                         records = promptRecords,
-                        candidates = candidates.take(50),
+                        candidates = promptCandidates,
                         nearDuplicatePairs = nearDuplicatePairs,
                         currentProfile = currentProfile,
                     )
@@ -147,7 +148,7 @@ class MemoryDreamPlanner(
             ),
         )
         val text = response.choices.firstOrNull()?.message?.toText().orEmpty()
-        return parseModelPlanJson(text, records, candidates, json)
+        return parseModelPlanJson(text, promptRecords, promptCandidates, json)
     }
 
     private fun resolveDaydreamModel(settings: Settings) =
@@ -316,7 +317,7 @@ class MemoryDreamPlanner(
         private const val MAX_PROFILE_CHARS: Int = 2_000
 
         private fun normalize(text: String): String =
-            text.lowercase().filter { it.isLetterOrDigit() }.take(200)
+            text.lowercase().filter { it.isLetterOrDigit() }
 
         /**
          * Exact-normalize dedupe catches verbatim copies only. This scans

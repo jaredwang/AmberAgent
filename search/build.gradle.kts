@@ -29,6 +29,10 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        // Protocol fixtures exercise Android services without an Android logger.
+        unitTests.isReturnDefaultValues = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

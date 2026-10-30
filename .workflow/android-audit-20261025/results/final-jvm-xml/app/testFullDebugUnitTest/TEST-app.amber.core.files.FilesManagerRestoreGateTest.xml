@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.files.FilesManagerRestoreGateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.567Z" hostname="duguangdeMBP.lan" time="0.062">
+  <properties/>
+  <testcase name="stale upload writer is rejected and staged file is cleaned" classname="app.amber.core.files.FilesManagerRestoreGateTest" time="0.024"/>
+  <testcase name="stale attachment cleanup is rejected before physical unlink" classname="app.amber.core.files.FilesManagerRestoreGateTest" time="0.021"/>
+  <testcase name="stale chat image cleanup is rejected before recursive unlink" classname="app.amber.core.files.FilesManagerRestoreGateTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

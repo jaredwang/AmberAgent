@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.CalendarAccessToolsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:28.940Z" hostname="duguangdeMBP.lan" time="4.302">
+  <properties/>
+  <testcase name="recurringEventTimeChangesDoNotWriteInvalidDtend" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="4.119"/>
+  <testcase name="existingSnapshotPassesThroughUnchanged" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.031"/>
+  <testcase name="updateValues_rejectsEmptyUpdate" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.013"/>
+  <testcase name="updateValues_onlyContainsFieldsProvidedByCaller" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.028"/>
+  <testcase name="updateValues_rejectsInvalidTimeRangeUsingUnchangedSide" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.021"/>
+  <testcase name="missingEventSnapshotProducesVisibleNotFound" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.02"/>
+  <testcase name="recurringEventWithoutDtendAllowsNonTimeUpdates" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.019"/>
+  <testcase name="updateAndDeleteFactoriesRequireApprovalAndDisableAutoApproval" classname="app.amber.feature.tools.CalendarAccessToolsTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

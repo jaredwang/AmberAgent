@@ -9,6 +9,7 @@ import app.amber.core.memory.dream.MemoryDreamScheduler
 import app.amber.feature.cron.AgentCronManager
 import app.amber.feature.reminder.ReminderScheduler
 import app.amber.feature.board.collector.NotificationSignalCollector
+import app.amber.feature.board.BoardSignalSourceType
 import app.amber.feature.board.hotlist.HotListScheduler
 import app.amber.feature.board.worker.BoardScheduler
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +67,10 @@ internal class AppBackgroundSchedulers(
             val settingsStore = settings()
             val collector = notificationCollector()
             settingsStore.settingsFlow
-                .map { it.agentRuntime.todayBoard.enabled }
+                .map {
+                    val board = it.agentRuntime.todayBoard
+                    board.enabled && BoardSignalSourceType.NOTIFICATION in board.enabledSources
+                }
                 .distinctUntilChanged()
                 .collect { enabled ->
                     if (enabled) {

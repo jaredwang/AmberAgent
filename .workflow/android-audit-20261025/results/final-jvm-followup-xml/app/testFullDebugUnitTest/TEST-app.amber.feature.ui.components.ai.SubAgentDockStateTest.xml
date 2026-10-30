@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.SubAgentDockStateTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:47.499Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="activeTaskFromAnotherConversationIsRetainedThroughItsTerminalSnapshot" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.001"/>
+  <testcase name="terminalResultKeepsStructuredRiskAndNextStepSemantics" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.001"/>
+  <testcase name="runningSnapshotSummaryIsExposedOnlyAsObjective" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="dismissAllHidesActiveRunsWithoutCancellingAndNewGenerationReappears" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="aRecoveredFollowupDoesNotShowThePreviousPersistedAnswerAsItsOwn" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="dismissDoesNotMutateTaskAndReusedTaskIdWithNewGenerationReappears" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="livePartsProduceOnlyRealToolReasoningAndAssistantExcerpts" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="structuredFollowupOutputKeepsPreviousAnswerSeparate" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="recoveryDoesNotInventRunningAndMatchingApprovalOverridesOnlyAnActiveSnapshot" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="currentProcessTerminalSurvivesAConflatedActiveEmission" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="consecutiveToolsDoNotEvictEarlierReadableProgress" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.001"/>
+  <testcase name="oldGenerationKeyIsRejectedAndFollowupSeedStaysPreviousOutput" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="terminalAutoHideUsesFirstFinishDeadlineAndKeepsAnOpenDetailsRow" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <testcase name="persistedApprovalProjectsOnlyOntoTheMatchingRecoveredGeneration" classname="app.amber.feature.ui.components.ai.SubAgentDockStateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

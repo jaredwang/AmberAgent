@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:27.687Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="snapshot file names derive from snapshot id" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.001"/>
+  <testcase name="snapshot manifest maps to display archive manifest" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.001"/>
+  <testcase name="serialize and deserialize round trip preserves all fields" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.001"/>
+  <testcase name="archive manifest maps into unified snapshot manifest" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.001"/>
+  <testcase name="unknown sidecar fields are ignored for forward compatibility" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.0"/>
+  <testcase name="domainsForMode reflects full versus standard exclusion" classname="app.amber.core.sync.provider.SnapshotManifestRoundTripTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

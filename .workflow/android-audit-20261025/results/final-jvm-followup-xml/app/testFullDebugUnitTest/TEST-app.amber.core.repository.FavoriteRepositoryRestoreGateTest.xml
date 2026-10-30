@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.repository.FavoriteRepositoryRestoreGateTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.774Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="stale favorite writer is rejected after restore" classname="app.amber.core.repository.FavoriteRepositoryRestoreGateTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -93,13 +93,24 @@ internal class NovelWorkspaceChapterGenerator(
             locale = locale,
         )
         val writingPrompt = if (rewrite) {
-            basePrompt + ghostwriteLocalized(
-                locale,
-                chinese = "\n\n## 本次定向修复\n只修复下列已确认问题，保持本章计划、核心事件和未被指出的正文不变：\n" +
-                    repairInstructions.joinToString("\n") { "- $it" },
-                english = "\n\n## Targeted repairs\nFix only the confirmed issues below. Keep the chapter plan, core events, and unaffected prose unchanged:\n" +
-                    repairInstructions.joinToString("\n") { "- $it" },
-            )
+            buildString {
+                append(basePrompt)
+                boundJob?.pendingCandidate?.let { candidate ->
+                    append(ghostwriteLocalized(locale, "\n\n## 待修复候选标题\n", "\n\n## Candidate title to repair\n"))
+                    append(candidate.title)
+                    append(ghostwriteLocalized(locale, "\n\n## 待修复候选正文\n", "\n\n## Candidate prose to repair\n"))
+                    append(candidate.body)
+                }
+                append(
+                    ghostwriteLocalized(
+                        locale,
+                        chinese = "\n\n## 本次定向修复\n只修复下列已确认问题，保持本章计划、核心事件和未被指出的正文不变：\n" +
+                            repairInstructions.joinToString("\n") { "- $it" },
+                        english = "\n\n## Targeted repairs\nFix only the confirmed issues below. Keep the chapter plan, core events, and unaffected prose unchanged:\n" +
+                            repairInstructions.joinToString("\n") { "- $it" },
+                    ),
+                )
+            }
         } else {
             basePrompt
         }
@@ -251,6 +262,8 @@ internal class NovelWorkspaceChapterGenerator(
         return NovelWorkspaceChapterResult(commitId = null)
     }
 
+    private val numberedChapterHeading = Regex("""^第\s*[0-9０-９零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟]+\s*章""")
+
     /** Leading "# 标题" / "第N章 标题" line becomes the chapter title; rest is body. */
     private fun splitChapterTitle(text: String, chapterOrdinal: Int): Pair<String, String> {
         val firstLine = text.lineSequence().firstOrNull { it.isNotBlank() } ?: return "第 $chapterOrdinal 章" to text
@@ -259,7 +272,7 @@ internal class NovelWorkspaceChapterGenerator(
         if (trimmed.startsWith("#") && heading.isNotEmpty()) {
             return heading to text.substringAfter(trimmed).trim()
         }
-        if (trimmed.startsWith("第") && trimmed.contains("章")) {
+        if (numberedChapterHeading.containsMatchIn(trimmed)) {
             return trimmed to text.substringAfter(trimmed).trim()
         }
         return "第 $chapterOrdinal 章" to text

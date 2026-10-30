@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatTimelinePlanIncrementalTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:58.009Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="changedProtectedNodesOrPostSendStateRebuildsThePrefix" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanIncrementalTest" time="0.006"/>
+  <testcase name="tailOnlyReuseMatchesFullPlanAndEqualLengthPrefixReplacementRebuilds" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanIncrementalTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.prompts.SoulImportTransactionTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:39.983Z" hostname="duguangdeMBP.lan" time="0.097">
+  <properties/>
+  <testcase name="rollback refuses when no previous version exists" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.012"/>
+  <testcase name="apply updates the soul atomically and keeps the previous version" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.021"/>
+  <testcase name="apply rejects the stale approval when the soul changed after the preview" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.011"/>
+  <testcase name="apply rejects when the candidate changed after the preview" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.01"/>
+  <testcase name="preview shows diff impact scope and bound digest" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.008"/>
+  <testcase name="rollback restores the previous soul exactly once" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.013"/>
+  <testcase name="rollback refuses when the soul changed again after the import" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.013"/>
+  <testcase name="preview rejects blank and oversized candidates" classname="app.amber.feature.prompts.SoulImportTransactionTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

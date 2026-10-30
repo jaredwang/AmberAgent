@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.988Z" hostname="duguangdeMBP.lan" time="0.088">
+  <properties/>
+  <testcase name="final text matching accumulated merges usage and annotations without duplicating text" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="completed output parses url citations into annotations" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="arguments delta event parses as append tool delta" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.0"/>
+  <testcase name="streamed reasoning is not duplicated by final summary" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.0"/>
+  <testcase name="response incomplete event carries finish reason and partial output" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.0"/>
+  <testcase name="refusal only in final message is appended as delta" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="final tool matches streamed tool by order when call id is unknown" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.003"/>
+  <testcase name="streamed annotation dedupes with final annotations" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="arguments done event parses as replace tool delta" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="replace control metadata does not leak into accumulated tool part" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="text only in done event is emitted once" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="annotation added event parses as annotation-only delta" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="response failed event throws provider error" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.0"/>
+  <testcase name="final only encrypted reasoning without visible summary is replayable" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.062"/>
+  <testcase name="streamed refusal is not duplicated by final message" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.002"/>
+  <testcase name="tool args only in final completed are merged into streamed tool" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.002"/>
+  <testcase name="reasoning only in final output is forwarded" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="arguments deltas append and done replaces without duplication" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.002"/>
+  <testcase name="encrypted reasoning without visible summary survives snapshot and replay once" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.002"/>
+  <testcase name="incomplete response completes partial text without duplication" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <testcase name="tool only in final completed is added as new part" classname="app.amber.ai.provider.providers.openai.ResponseAPIStreamReconcileTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

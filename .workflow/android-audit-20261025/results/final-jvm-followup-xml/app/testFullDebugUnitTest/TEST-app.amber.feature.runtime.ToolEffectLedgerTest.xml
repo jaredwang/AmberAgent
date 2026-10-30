@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.ToolEffectLedgerTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:41.720Z" hostname="duguangdeMBP.lan" time="0.251">
+  <properties/>
+  <testcase name="prepareDoesNotMintSecondRowWhenSameCallIdIsFinished" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.012"/>
+  <testcase name="outcomeUnknownEffectsAreListed" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.012"/>
+  <testcase name="argsDigestIsIndependentOfTopLevelObjectKeyOrder" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.009"/>
+  <testcase name="prepareRebindRejectsMismatchedReusableRowAcrossRuns" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="abandonRecordsStructuredRejectionAndBlocksReuse" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.01"/>
+  <testcase name="markResultPersistedClearsPayloadAfterConversationWrite" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.031"/>
+  <testcase name="prepareWithDifferentToolNameForSameRunCallIdFailsClosed" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.03"/>
+  <testcase name="prepareReusesEffectWithinSameRun" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.012"/>
+  <testcase name="argsDigestFiltersDisplayTitleAtEveryNestingLevel" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.01"/>
+  <testcase name="prepareMintsFreshRowForFailedRetry" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.015"/>
+  <testcase name="failureRecordsErrorCategory" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.01"/>
+  <testcase name="argsDigestCanonicalizesNestedObjectsAndArrayElements" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="markStartedLeavesFinishedRowUntouched" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.012"/>
+  <testcase name="prepareRebindsEffectToNewRunAfterCrashResume" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="prepareWithDifferentArgsForSameRunCallIdFailsClosed" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="startedWithoutFinishCanBeMarkedOutcomeUnknownAndReconciled" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="payloadSweepClearsFinishedRowEvenWhenYoungerRowsShareTheCallId" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="markResultPersistedKeepsUnfinishedEffectsUntouched" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <testcase name="writeAheadProtocolAdvancesPreparedStartedFinished" classname="app.amber.feature.runtime.ToolEffectLedgerTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -21,7 +21,7 @@ pub use packed_ast::pack;
 pub use tree_builder::build_tree;
 
 use std::panic::{catch_unwind, AssertUnwindSafe};
-use pulldown_cmark::Options;
+use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 
 /// Single source of truth for which pulldown-cmark extensions we enable.
 /// Both the packed-AST path (`tree_builder::build_tree`) and the HTML emit
@@ -153,39 +153,31 @@ pub extern "system" fn Java_app_amber_agent_ui_components_richtext_nativebridge_
 /// Two safety nets mirror JetBrains' GFMFlavourDescriptor flags:
 /// - Bare HTTP/HTTPS URLs wrapped in `<...>` before parsing so pulldown-cmark
 ///   emits anchors (mirrors `makeHttpsAutoLinks = true`; Round 1 P1 fix).
-/// - URL-bearing events strip dangerous schemes (`javascript:`, `data:`,
-///   `vbscript:`, `file:`) to mirror `useSafeLinks = true`.
+/// - Link/image destinations and raw HTML attributes strip dangerous URL
+///   schemes to mirror `useSafeLinks = true`, without changing text or code.
 fn render_to_html(text: &str) -> String {
-    use pulldown_cmark::{html, Event, Parser, Tag};
+    use pulldown_cmark::html;
     let pre = autolink_bare_urls(text);
-    // Sanitize URL-bearing events before HTML emission. A whole-document
-    // replacement also rewrites literal examples in text and code.
-    let parser = Parser::new_ext(&pre, markdown_options()).map(|event| match event {
-        Event::Start(Tag::Link { link_type, dest_url, title, id }) =>
-            Event::Start(Tag::Link {
-                link_type, dest_url: safe_destination(dest_url), title, id,
-            }),
-        Event::Start(Tag::Image { link_type, dest_url, title, id }) =>
-            Event::Start(Tag::Image {
-                link_type, dest_url: safe_destination(dest_url), title, id,
-            }),
-        Event::Html(raw) => Event::Html(sanitize_dangerous_schemes(&raw).into()),
-        Event::InlineHtml(raw) => Event::InlineHtml(sanitize_dangerous_schemes(&raw).into()),
-        other => other,
+    // Raw HTML arrives as line events, while a tag can span several lines.
+    // Sanitize the complete parser-owned block, leaving Text/Code untouched.
+    let mut raw_html_block = String::new();
+    let parser = Parser::new_ext(&pre, markdown_options()).filter_map(|event| match event {
+        Event::Start(Tag::HtmlBlock) => {
+            raw_html_block.clear();
+            None
+        }
+        Event::Html(html) => {
+            raw_html_block.push_str(&html);
+            None
+        }
+        Event::End(TagEnd::HtmlBlock) => Some(Event::Html(
+            sanitize_raw_html_attributes(&raw_html_block).into(),
+        )),
+        _ => Some(sanitize_link_event(event)),
     });
     let mut html_out = String::with_capacity(pre.len() + (pre.len() / 4));
     html::push_html(&mut html_out, parser);
     html_out
-}
-
-fn safe_destination(url: pulldown_cmark::CowStr<'_>) -> pulldown_cmark::CowStr<'_> {
-    if ["javascript:", "data:", "vbscript:", "file:"]
-        .iter().any(|scheme| url.to_ascii_lowercase().starts_with(scheme))
-    {
-        "#".into()
-    } else {
-        url
-    }
 }
 
 /// Wrap bare `https?://...` URLs in CommonMark autolink `<...>` syntax so
@@ -235,62 +227,79 @@ fn autolink_bare_urls(text: &str) -> String {
     out
 }
 
-/// Byte ranges that should be left alone when wrapping bare URLs:
-/// - `<...>` autolinks
-/// - `[text](url)` markdown links
-/// - `` `...` `` inline code
-/// - fenced (including unclosed) and indented code blocks
+/// Use the parser's own source ranges so all valid code delimiters and links
+/// are protected, including indented code and fences that continue to EOF.
 fn collect_skip_ranges(text: &str) -> Vec<(usize, usize)> {
-    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
-    let mut ranges = Vec::new();
-    let mut code_block_start = None;
-    for (event, range) in Parser::new_ext(text, markdown_options()).into_offset_iter() {
-        match event {
-            Event::Start(Tag::CodeBlock(_)) => code_block_start = Some(range.start),
-            Event::End(TagEnd::CodeBlock) => {
-                if let Some(start) = code_block_start.take() {
-                    ranges.push((start, range.end));
-                }
-            }
-            Event::Start(Tag::Link { .. } | Tag::Image { .. }) |
-            Event::Code(_) | Event::Html(_) | Event::InlineHtml(_) =>
-                ranges.push((range.start, range.end)),
-            _ => {}
-        }
-    }
-
-    ranges.sort_by_key(|r| r.0);
-    ranges
+    Parser::new_ext(text, markdown_options())
+        .into_offset_iter()
+        .filter_map(|(event, range)| match event {
+            Event::Start(Tag::CodeBlock(_) | Tag::Link { .. } | Tag::Image { .. })
+            | Event::Code(_)
+            | Event::Html(_)
+            | Event::InlineHtml(_) => Some((range.start, range.end)),
+            _ => None,
+        })
+        .collect()
 }
 
 fn in_any_range(ranges: &[(usize, usize)], pos: usize) -> bool {
     ranges.iter().any(|&(start, end)| pos >= start && pos < end)
 }
 
-/// Replace `href="javascript:..."` / `data:` / `vbscript:` / `file:` with `href="#"`
-/// (and same for `src=`) to mirror JetBrains' `useSafeLinks = true`.
-fn sanitize_dangerous_schemes(html: &str) -> String {
+fn sanitize_link_event(mut event: Event<'_>) -> Event<'_> {
+    match &mut event {
+        Event::Start(Tag::Link { dest_url, .. } | Tag::Image { dest_url, .. }) => {
+            if has_dangerous_scheme(dest_url) {
+                *dest_url = "#".into();
+            }
+        }
+        Event::InlineHtml(html) => {
+            *html = sanitize_raw_html_attributes(html).into();
+        }
+        _ => {}
+    }
+    event
+}
+
+fn has_dangerous_scheme(url: &str) -> bool {
+    url.split_once(':').is_some_and(|(scheme, _)| {
+        ["javascript", "data", "vbscript", "file"]
+            .iter()
+            .any(|dangerous| scheme.eq_ignore_ascii_case(dangerous))
+    })
+}
+
+/// Raw HTML events can also contain character data. Only quoted href/src
+/// attributes in actual tags participate in the existing safe-link policy.
+fn sanitize_raw_html_attributes(html: &str) -> String {
     use std::sync::OnceLock;
-    // Raw HTML blocks may contain text as well as tags. Restrict attribute
-    // replacement to start tags, respecting quoted `>` characters.
     static TAG_RE: OnceLock<regex::Regex> = OnceLock::new();
+    static ATTRIBUTE_RE: OnceLock<regex::Regex> = OnceLock::new();
     let tags = TAG_RE.get_or_init(|| {
-        regex::Regex::new(r#"(?is)<[a-z][^<>"']*(?:(?:"[^"]*"|'[^']*')[^<>"']*)*>"#)
+        regex::Regex::new(r#"<[A-Za-z](?:[^"'<>]|"[^"]*"|'[^']*')*>"#)
             .expect("HTML tag regex compiles")
     });
-    static SAFE_LINK_RE: OnceLock<regex::Regex> = OnceLock::new();
-    let re = SAFE_LINK_RE.get_or_init(|| {
-        // `(?i)` for case-insensitive; `[^"']*` for URL value; `["']` for either quote style.
-        regex::Regex::new(
-            r#"(?i)(href|src)\s*=\s*(["'])(?:javascript:|data:|vbscript:|file:)[^"']*(["'])"#,
-        )
-        .expect("safe-link regex compiles")
+    let attributes = ATTRIBUTE_RE.get_or_init(|| {
+        regex::Regex::new(r#"([^\s"'<>/=]+)(\s*=\s*)("[^"]*"|'[^']*')"#)
+            .expect("HTML attribute regex compiles")
     });
     tags.replace_all(html, |tag: &regex::Captures| {
-        re.replace_all(&tag[0], |caps: &regex::Captures| {
-            format!("{}={}#{}", &caps[1], &caps[2], &caps[3])
-        }).into_owned()
-    }).into_owned()
+        attributes
+            .replace_all(&tag[0], |attribute: &regex::Captures| {
+                let name = &attribute[1];
+                let value = &attribute[3];
+                if (name.eq_ignore_ascii_case("href") || name.eq_ignore_ascii_case("src"))
+                    && has_dangerous_scheme(&value[1..value.len() - 1])
+                {
+                    let quote = &value[..1];
+                    format!("{name}{}{quote}#{quote}", &attribute[2])
+                } else {
+                    attribute[0].to_owned()
+                }
+            })
+            .into_owned()
+    })
+    .into_owned()
 }
 
 
@@ -418,6 +427,25 @@ mod tests {
         assert!(!html.contains("javascript:"), "got: {html}");
     }
 
+    #[test]
+    fn html_preserves_raw_html_text_and_non_url_attributes() {
+        let html = render_to_html(
+            "<div title='href=\"javascript:literal\"' data-href=\"javascript:opaque\">href=\"javascript:sample\"<a href='javascript:alert(1)'>click</a></div>",
+        );
+        let expected = r#"<div title='href="javascript:literal"' data-href="javascript:opaque">href="javascript:sample"<a href='#'>click</a></div>"#;
+        assert!(html.contains(expected), "got: {html}");
+    }
+
+    #[test]
+    fn html_sanitizes_multiline_raw_html_tags() {
+        let html = render_to_html(
+            "<div>\n<a\n href=\"javascript:alert(1)\">click</a>\n<img\n src='file:/tmp/image'>\n</div>",
+        );
+        assert!(html.contains("href=\"#\""), "got: {html}");
+        assert!(html.contains("src='#'"), "got: {html}");
+        assert!(!html.contains("javascript:") && !html.contains("file:"), "got: {html}");
+    }
+
     /// useSafeLinks=true in JetBrains strips dangerous schemes. Round 1 P1 fix.
     #[test]
     fn html_strips_javascript_href() {
@@ -441,7 +469,6 @@ mod tests {
         let html = render_to_html("[ok](https://example.com)");
         assert!(html.contains("href=\"https://example.com\""), "got: {}", html);
     }
-
 
     #[test]
     fn html_preserves_literals_inside_raw_html_block() {

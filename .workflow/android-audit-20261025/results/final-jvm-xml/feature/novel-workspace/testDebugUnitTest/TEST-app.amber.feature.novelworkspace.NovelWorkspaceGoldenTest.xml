@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.272Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="chapter file golden bytes" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.0"/>
+  <testcase name="canon gate protects chapters and plot only" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.0"/>
+  <testcase name="manifest golden bytes" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.001"/>
+  <testcase name="free write whitelist matches ios" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.0"/>
+  <testcase name="chapter file name uses zero-padded ordinal identity" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.001"/>
+  <testcase name="plot current golden bytes with highlights" classname="app.amber.feature.novelworkspace.NovelWorkspaceGoldenTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

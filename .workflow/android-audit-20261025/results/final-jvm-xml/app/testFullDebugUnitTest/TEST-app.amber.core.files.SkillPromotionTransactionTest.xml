@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.files.SkillPromotionTransactionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.653Z" hostname="duguangdeMBP.lan" time="0.231">
+  <properties/>
+  <testcase name="prepare rejects a candidate without SKILL md" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.016"/>
+  <testcase name="rollback refuses when no previous version exists" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.02"/>
+  <testcase name="rollback refuses when the skill was promoted again after the last rollback window" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.038"/>
+  <testcase name="mcp config raises the preview risk to high but stays importable" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.014"/>
+  <testcase name="rollback restores the previous version exactly once" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.02"/>
+  <testcase name="prepare rejects a manifest without name or description" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.012"/>
+  <testcase name="preview produces diff risk and bound digest" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.018"/>
+  <testcase name="rollback failure keeps the previous snapshot and metadata" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.017"/>
+  <testcase name="apply rejects a stale approval when the candidate changed" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.013"/>
+  <testcase name="prepare rejects forbidden secret files" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.011"/>
+  <testcase name="prepare rejects unsafe paths and oversized files" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.014"/>
+  <testcase name="apply rejects a stale approval when the installed base changed" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.017"/>
+  <testcase name="apply promotes the candidate atomically and keeps the previous version" classname="app.amber.core.files.SkillPromotionTransactionTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

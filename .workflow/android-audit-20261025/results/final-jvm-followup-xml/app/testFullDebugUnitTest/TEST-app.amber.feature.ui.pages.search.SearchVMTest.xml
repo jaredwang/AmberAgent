@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.search.SearchVMTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.152Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="home filter can find an untitled conversation by its placeholder" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.001"/>
+  <testcase name="all filter keeps title and body FTS hits" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.001"/>
+  <testcase name="conversation filter keeps title hits including body title merges" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.0"/>
+  <testcase name="message filter keeps body hits including body title merges" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.0"/>
+  <testcase name="home filter is local title filtering and keeps source order" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.0"/>
+  <testcase name="blank query shows recent sessions for all and conversation filters only" classname="app.amber.feature.ui.pages.search.SearchVMTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

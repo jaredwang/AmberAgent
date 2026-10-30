@@ -176,6 +176,7 @@ object CouncilRoomPrompts {
     fun synthesize(room: CouncilRoom): String = """
         Topic: ${room.objective}
         ${backgroundSection(room)}
+        ${CouncilRoomTurnPolicy.userClarificationContext(room)}
 
         Discussion record (guest contributions):
         ${room.messages
@@ -207,6 +208,7 @@ object CouncilRoomPrompts {
     fun hostOpeningPrompt(room: CouncilRoom): String = """
         Topic (from the initiator): ${room.objective}
         ${backgroundSection(room)}
+        ${CouncilRoomTurnPolicy.userClarificationContext(room)}
         Mode: ${modeName(room.mode)}
         Members: ${room.participants
             .filter { it.kind == CouncilParticipantKind.GUEST }

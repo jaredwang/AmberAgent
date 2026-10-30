@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:54.854Z" hostname="duguangdeMBP.lan" time="0.034">
+  <properties/>
+  <testcase name="parsePickReturnsConcreteTemplate" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.007"/>
+  <testcase name="parseDebateNeedsTwoCamps" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.006"/>
+  <testcase name="parseQaKeepsCitedSourceIds" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.002"/>
+  <testcase name="numberedCapsAtTwelveSources" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.0"/>
+  <testcase name="parseTimelineNeedsThreeEvents" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.003"/>
+  <testcase name="parseSkipsFencesAndStringBraces" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.001"/>
+  <testcase name="parseBriefRequiresPoints" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.0"/>
+  <testcase name="parseReviewRequiresVerdict" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.003"/>
+  <testcase name="markdownExportsAllSections" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.002"/>
+  <testcase name="normalizeKeepsSynthesisAndCustomIds" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.001"/>
+  <testcase name="parseRepairsTruncatedBrief" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.001"/>
+  <testcase name="parsePickFallsBackForMagazineAutoAndGarbage" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.0"/>
+  <testcase name="numberedDropsBlankAndUrlEchoContent" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.0"/>
+  <testcase name="decodeRoundTripsEncodedArticle" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.005"/>
+  <testcase name="parsePickToleratesProseAroundJson" classname="app.amber.agent.data.agent.board.hotlist.DeepReadSynthesisWriterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

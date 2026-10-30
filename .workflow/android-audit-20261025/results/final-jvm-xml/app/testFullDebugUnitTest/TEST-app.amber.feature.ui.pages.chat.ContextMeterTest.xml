@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ContextMeterTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:08.595Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="fullUsage_fiveBars" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.004"/>
+  <testcase name="halfUsage_threeBars" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.0"/>
+  <testcase name="zeroTotal_guardsAgainstDivByZero" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.0"/>
+  <testcase name="overflow_clampsToFive" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.0"/>
+  <testcase name="lowUsage_roundsToOneBar" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.0"/>
+  <testcase name="emptyUsage_zeroBars" classname="app.amber.feature.ui.pages.chat.ContextMeterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

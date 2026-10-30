@@ -26,7 +26,7 @@ interface StoredResponseApi {
     ): StoredResponseStatus
 
     /**
-     * GET /responses/{responseId} with `Accept: text/event-stream` — replays
+     * GET /responses/{responseId}?stream=true — replays
      * the stored event stream. Events with sequence <= [cursor].sequence are
      * skipped (dedup); the cursor is write-ahead persisted for the rest.
      */

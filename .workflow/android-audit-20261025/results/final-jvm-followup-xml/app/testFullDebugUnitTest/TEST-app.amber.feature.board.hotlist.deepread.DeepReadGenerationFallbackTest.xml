@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.876Z" hostname="duguangdeMBP.lan" time="0.361">
+  <properties/>
+  <testcase name="synthesis uses the direct provider and preserves complete cache and forced metadata" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.142"/>
+  <testcase name="single section retry keeps ready siblings and completes through the real writer" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.085"/>
+  <testcase name="cancellation escapes the manager without a nonstream stage retry" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.024"/>
+  <testcase name="a real writer from the old run cannot overwrite a restored article" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.028"/>
+  <testcase name="provider timeout fails the target section without the nonstream fallback" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.024"/>
+  <testcase name="synthesis workspace artifact retains full body and references on generation and cached republish" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.027"/>
+  <testcase name="manager completes the full magazine after stream IO with real nonstream writer calls" classname="app.amber.feature.board.hotlist.deepread.DeepReadGenerationFallbackTest" time="0.031"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

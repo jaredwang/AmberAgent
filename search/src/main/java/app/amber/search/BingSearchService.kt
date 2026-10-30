@@ -77,21 +77,23 @@ object BingSearchService : SearchService<SearchServiceOptions.BingLocalOptions> 
                 .timeout(10_000)
                 .get()
 
+            parseSearchPage(doc, commonOptions.resultSize)
+        }
+    }
+
+    internal fun parseSearchPage(doc: Document, limit: Int): SearchResult {
+        val results = parseDocument(doc, limit)
+        require(results.isNotEmpty()) {
             val pageText = doc.text()
-            require(!pageText.contains("verify you are human", ignoreCase = true) &&
-                    !pageText.contains("unusual traffic", ignoreCase = true) &&
-                    !pageText.contains("captcha", ignoreCase = true)) {
+            if (pageText.contains("verify you are human", ignoreCase = true) ||
+                pageText.contains("unusual traffic", ignoreCase = true) ||
+                pageText.contains("captcha", ignoreCase = true)) {
                 "Bing blocked the request with a verification page"
-            }
-
-            val results = parseDocument(doc, commonOptions.resultSize)
-
-            require(results.isNotEmpty()) {
+            } else {
                 "Search failed: no results found"
             }
-
-            SearchResult(items = results)
         }
+        return SearchResult(items = results)
     }
 
     internal fun parseDocument(doc: Document, limit: Int): List<SearchResultItem> {

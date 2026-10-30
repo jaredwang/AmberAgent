@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.232Z" hostname="duguangdeMBP.lan" time="0.039">
+  <properties/>
+  <testcase name="polish progress counts polish commits since the job started" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.007"/>
+  <testcase name="polish progress uses the exact job boundary and the job ordinal range" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.006"/>
+  <testcase name="owned polish progress counts distinct ordinals even unchanged and excludes other jobs and branches" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.007"/>
+  <testcase name="polish mode persists its name and round-trips" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.002"/>
+  <testcase name="version-bound write job round-trips its plan and owned receipts" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.004"/>
+  <testcase name="latest helpers stay mode-agnostic over the same store" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.003"/>
+  <testcase name="legacy job json without a mode field decodes as Write" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.001"/>
+  <testcase name="write mode round-trips without emitting default mode noise" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.001"/>
+  <testcase name="bound write progress counts only owned receipts on branch ancestry" classname="app.amber.feature.novelworkspace.NovelWorkspaceGhostwriteJobModeTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

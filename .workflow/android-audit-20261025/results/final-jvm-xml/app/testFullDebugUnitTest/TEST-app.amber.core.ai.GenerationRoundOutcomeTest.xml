@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.GenerationRoundOutcomeTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.434Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="non-streaming capture reads the single complete chunk" classname="app.amber.core.ai.GenerationRoundOutcomeTest" time="0.001"/>
+  <testcase name="normal stops and unknown reasons never count as truncation" classname="app.amber.core.ai.GenerationRoundOutcomeTest" time="0.0"/>
+  <testcase name="streaming capture takes the last non-null finish_reason across chunks" classname="app.amber.core.ai.GenerationRoundOutcomeTest" time="0.0"/>
+  <testcase name="multi-choice chunks resolve to the last choice carrying a reason" classname="app.amber.core.ai.GenerationRoundOutcomeTest" time="0.0"/>
+  <testcase name="output-limit reasons are recognized across provider vocabularies and case" classname="app.amber.core.ai.GenerationRoundOutcomeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

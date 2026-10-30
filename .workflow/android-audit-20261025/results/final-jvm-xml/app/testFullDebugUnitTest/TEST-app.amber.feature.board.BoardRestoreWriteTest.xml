@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.BoardRestoreWriteTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.565Z" hostname="duguangdeMBP.lan" time="0.044">
+  <properties/>
+  <testcase name="pre-restore board owner cannot overwrite restored item or signal" classname="app.amber.feature.board.BoardRestoreWriteTest" time="0.029"/>
+  <testcase name="current board owner writes after restore" classname="app.amber.feature.board.BoardRestoreWriteTest" time="0.015"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

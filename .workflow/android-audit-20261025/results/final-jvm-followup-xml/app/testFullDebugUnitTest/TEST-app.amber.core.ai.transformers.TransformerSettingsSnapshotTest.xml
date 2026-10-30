@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.transformers.TransformerSettingsSnapshotTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:22.781Z" hostname="duguangdeMBP.lan" time="0.035">
+  <properties/>
+  <testcase name="missingOcrConfigurationIsCheckedOnlyWhenRecognitionIsNeeded" classname="app.amber.core.ai.transformers.TransformerSettingsSnapshotTest" time="0.01"/>
+  <testcase name="placeholderReadsTheTransformerSettingsSnapshot" classname="app.amber.core.ai.transformers.TransformerSettingsSnapshotTest" time="0.008"/>
+  <testcase name="templateReadsTheTransformerSettingsSnapshot" classname="app.amber.core.ai.transformers.TransformerSettingsSnapshotTest" time="0.008"/>
+  <testcase name="runSnapshotControlsTimeAndMiniAppGates" classname="app.amber.core.ai.transformers.TransformerSettingsSnapshotTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

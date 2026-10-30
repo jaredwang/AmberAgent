@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import app.amber.ai.provider.ProviderSetting
+import app.amber.ai.provider.CustomHeader
 import app.amber.core.ai.mcp.McpCommonOptions
+import app.amber.core.ai.mcp.McpOAuthState
 import app.amber.core.ai.mcp.McpServerConfig
 import app.amber.core.agent.utils.JsonInstant
 import app.amber.core.infra.AppScope
@@ -324,6 +326,49 @@ class SecretPrefsChainRoundTripTest {
     }
 
     @Test
+    fun `unrelated save preserves an unreadable credential until it can be read again`() = runBlocking {
+        val cipher = TemporarilyUnreadableCipher()
+        secretStore = SecretStore(inMemoryBackend(), cipher)
+        secretRedactor = SecretRedactor(secretStore)
+        val aggregator = buildAggregator()
+        aggregator.settingsFlow.awaitUntil { !it.init }
+        val provider = ProviderSetting.OpenAI(apiKey = "sk-retain-on-read-failure")
+        val descriptor = SecretDescriptor("provider", provider.id.toString(), "apiKey")
+        val server = McpServerConfig.StreamableHTTPServer(
+            url = "https://mcp.example.test?token=keep-query-secret",
+            commonOptions = McpCommonOptions(
+                headers = listOf("Authorization" to "Bearer keep-header-secret"),
+                oauth = McpOAuthState(
+                    accessToken = "keep-access-token",
+                    tokenEndpoint = "https://auth.example.test/token?client_secret=keep-endpoint-secret",
+                ),
+            ),
+        )
+        aggregator.update(Settings(
+            providers = listOf(provider),
+            customHeaders = listOf(CustomHeader("Authorization", "Bearer keep-custom-header")),
+            mcpServers = listOf(server),
+        ))
+        val references = secretRedactor.readRefs(dataStore.data.first())
+        val credentials = references.values.associate { it.descriptor() to secretStore.read(it.descriptor()) }
+        assertTrue(descriptor in credentials)
+
+        cipher.readable = false
+        aggregator.update { it.copy(developerMode = !it.developerMode) }
+        cipher.readable = true
+
+        credentials.forEach { (key, value) ->
+            assertEquals("An unrelated save must retain unreadable ciphertext for ${key.key}", value, secretStore.read(key))
+        }
+        assertEquals(references, secretRedactor.readRefs(dataStore.data.first()))
+        aggregator.update { it.copy(developerMode = !it.developerMode) }
+        assertEquals("sk-retain-on-read-failure", (aggregator.settingsFlow.value.providers.single() as ProviderSetting.OpenAI).apiKey)
+
+        aggregator.update { it.copy(providers = emptyList()) }
+        assertNull("Removing the owner must still remove its credential", secretStore.read(descriptor))
+    }
+
+    @Test
     fun `settings update preserves SSH profile credentials while reclaiming settings orphans`() = runBlocking {
         val aggregator = buildAggregator()
         aggregator.settingsFlow.awaitUntil { !it.init }
@@ -394,5 +439,14 @@ class SecretPrefsChainRoundTripTest {
         }
 
         override fun decrypt(stored: String): String = stored.substringAfter(":").substringAfter(":")
+    }
+
+    private class TemporarilyUnreadableCipher : SecretCipher {
+        var readable: Boolean = true
+
+        override fun encrypt(plaintext: String): String = "enc:$plaintext"
+
+        override fun decrypt(stored: String): String? =
+            stored.removePrefix("enc:").takeIf { readable }
     }
 }

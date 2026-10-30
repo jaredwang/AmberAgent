@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSourceChecksTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.810Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="balancedHtmlPassesAllChecks" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.002"/>
+  <testcase name="stringsAndCommentsDoNotHideFollowingBrackets" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="unbalancedScriptBracesAreReported" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="unsavedIndicatorHelper" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="jsStringContainingHtmlTagIsNotFlagged" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="unbalancedClosingTagIsReported" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="unclosedTagIsReported" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="unbalancedStyleBracesAreReported" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="stringsAndCommentsDoNotHideUnexpectedClosingBrackets" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <testcase name="securityRulesStillEnforced" classname="app.amber.feature.miniapp.MiniAppSourceChecksTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

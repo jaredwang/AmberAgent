@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.ComposerInteractionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.963Z" hostname="duguangdeMBP.lan" time="0.301">
+  <properties/>
+  <testcase name="idle_emptyDraft_sendIsDisabled_tapDoesNothing" classname="app.amber.feature.ui.components.ai.ComposerInteractionTest" time="0.146"/>
+  <testcase name="draft_withText_sendEnabled_tapFires" classname="app.amber.feature.ui.components.ai.ComposerInteractionTest" time="0.046"/>
+  <testcase name="streamingEmpty_stopState_sendEnabled_tapFires" classname="app.amber.feature.ui.components.ai.ComposerInteractionTest" time="0.048"/>
+  <testcase name="stateMachine_idleToDraftToSent_gateTogglesWithDraft" classname="app.amber.feature.ui.components.ai.ComposerInteractionTest" time="0.061"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

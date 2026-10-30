@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:59.901Z" hostname="duguangdeMBP.lan" time="0.025">
+  <properties/>
+  <testcase name="genuine content difference survives normalisation" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.012"/>
+  <testcase name="missing wrapper element survives normalisation" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="extra block survives normalisation" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="entity escape mode standardised" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="code block trailing newline equalised" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.002"/>
+  <testcase name="leading and trailing whitespace stripped" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="identical input yields identical output" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="attr order does not matter" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="gfm table row newlines equalised" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.003"/>
+  <testcase name="self-closing style normalised by jsoup html5" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="whitespace runs collapse" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="empty input handled" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="task list checkbox attr order normalised" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="nested attribute sorting recursive" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.001"/>
+  <testcase name="oversize input short-circuits to identity" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="cjk content preserved" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.0"/>
+  <testcase name="malformed input does not crash" classname="app.amber.feature.ui.components.richtext.nativebridge.HtmlDiffNormalizerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

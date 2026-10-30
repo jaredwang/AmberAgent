@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelLegacyWorkspaceMigratorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:22.384Z" hostname="duguangdeMBP.lan" time="0.282">
+  <properties/>
+  <testcase name="minimal blank project migrates to an empty book" classname="app.amber.feature.novel.workspace.NovelLegacyWorkspaceMigratorTest" time="0.11"/>
+  <testcase name="installed migration carries one initial commit and sessions" classname="app.amber.feature.novel.workspace.NovelLegacyWorkspaceMigratorTest" time="0.033"/>
+  <testcase name="legacy document becomes an installable workspace" classname="app.amber.feature.novel.workspace.NovelLegacyWorkspaceMigratorTest" time="0.003"/>
+  <testcase name="two-branch legacy document migrates with a registered head per active branch" classname="app.amber.feature.novel.workspace.NovelLegacyWorkspaceMigratorTest" time="0.136"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

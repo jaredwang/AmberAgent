@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.storage.StorageCleanupTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.554Z" hostname="duguangdeMBP.lan" time="0.236">
+  <properties/>
+  <testcase name="removedGeneratedImagesAreCleanedWithinTheirConversationOnly" classname="app.amber.core.storage.StorageCleanupTest" time="0.032"/>
+  <testcase name="cleanupOnlyDeletesRegisteredAttachments" classname="app.amber.core.storage.StorageCleanupTest" time="0.028"/>
+  <testcase name="deletionLeavesNoOrphanAttachmentsOrRows" classname="app.amber.core.storage.StorageCleanupTest" time="0.024"/>
+  <testcase name="analyzeReportsCategoriesWithSizesAndCounts" classname="app.amber.core.storage.StorageCleanupTest" time="0.02"/>
+  <testcase name="cleanupPreservesAttachmentStillReferencedByRecentConversation" classname="app.amber.core.storage.StorageCleanupTest" time="0.023"/>
+  <testcase name="dryRunFiltersByCutoffAndExcludesPinned" classname="app.amber.core.storage.StorageCleanupTest" time="0.021"/>
+  <testcase name="dryRunNumbersMatchActualDeletion" classname="app.amber.core.storage.StorageCleanupTest" time="0.025"/>
+  <testcase name="physicalDeleteFailureKeepsFailedManagedFileVisibleForRetry" classname="app.amber.core.storage.StorageCleanupTest" time="0.024"/>
+  <testcase name="cancellationDuringFirstDeleteStillCommitsPhysicalAndDatabaseCleanup" classname="app.amber.core.storage.StorageCleanupTest" time="0.02"/>
+  <testcase name="preRestorePreviewCannotDeleteRestoredConversationOrFile" classname="app.amber.core.storage.StorageCleanupTest" time="0.019"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

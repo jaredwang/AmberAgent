@@ -106,7 +106,9 @@ class ResponseAPIResumeStreamTest {
             withTimeout(10_000) { while (transport.streams.isEmpty()) yield() }
             val (request, listener) = transport.streams.single()
             assertEquals("GET", request.method)
-            assertEquals("https://api.openai.com/v1/responses/resp_old", request.url.toString())
+            assertEquals("/v1/responses/resp_old", request.url.encodedPath)
+            assertEquals("true", request.url.queryParameter("stream"))
+            assertNull(request.url.queryParameter("starting_after"))
             listener.onEvent(transport.sources.single(), null, "response.created", createdEvent(0, "resp_old"))
             for ((index, char) in "abcdef".withIndex()) {
                 listener.onEvent(transport.sources.single(), null, "response.output_text.delta",
@@ -233,17 +235,20 @@ class ResponseAPIResumeStreamTest {
         assertEquals(5L, store.load("run_1")!!.sequence)
         transport.streams[0].second.onFailure(transport.sources[0], IOException("connection reset"), null)
 
-        // The drain reconnects via GET /responses/resp_1 (replay from cursor).
+        // The drain asks the server for SSE events after the durable cursor.
         while (transport.streams.size < 2) yield()
         val (replayRequest, replayListener) = transport.streams[1]
         assertEquals("GET", replayRequest.method)
-        assertTrue(replayRequest.url.toString().endsWith("/responses/resp_1"))
+        assertEquals("/v1/responses/resp_1", replayRequest.url.encodedPath)
+        assertEquals("true", replayRequest.url.queryParameter("stream"))
+        assertEquals("5", replayRequest.url.queryParameter("starting_after"))
 
-        // Server replays the FULL event history (0..10) + terminal.
+        // Duplicate history is still accepted, without contaminating final
+        // reconciliation. The terminal output supplies the final-only suffix k.
         replayListener.onEvent(transport.sources[1], null, "response.created", createdEvent(0, "resp_1"))
         for (i in 1..10) {
             replayListener.onEvent(
-                transport.sources[1], null, "response.output_text.delta", deltaEvent(i.toLong(), "resp_1", "msg_1", "fghijklmno"[i - 1].toString())
+                transport.sources[1], null, "response.output_text.delta", deltaEvent(i.toLong(), "resp_1", "msg_1", "abcdefghij"[i - 1].toString())
             )
         }
         replayListener.onEvent(
@@ -255,7 +260,7 @@ class ResponseAPIResumeStreamTest {
                     put("id", "resp_1")
                     put("status", "completed")
                     put("output", json.parseToJsonElement(
-                        """[{"type":"message","id":"msg_1","status":"completed","role":"assistant","content":[{"type":"output_text","text":"abcdefghijklmno"}]}]"""
+                        """[{"type":"message","id":"msg_1","status":"completed","role":"assistant","content":[{"type":"output_text","text":"abcdefghijk"}]}]"""
                     ))
                 })
             }.toString()
@@ -267,10 +272,9 @@ class ResponseAPIResumeStreamTest {
         // the replayed 1..5) + the terminal chunk = 11 chunks, no duplicates.
         assertEquals(11, chunks.size)
         val deltaTexts = chunks.take(10).joinToString("") { deltaText(it) }
-        // replay deltas are f..o; dedup drops f..j (seq 1..5 replayed) and
-        // keeps k..o (seq 6..10) — nothing delivered twice.
-        assertEquals("abcdeklmno", deltaTexts)
+        assertEquals("abcdefghij", deltaTexts)
         assertEquals(10, deltaTexts.toSet().size)
+        assertEquals("abcdefghijk", chunks.joinToString("") { deltaText(it) })
         // The chat owner clears the cursor after its durable final
         // conversation checkpoint; this transport-level test has no owner,
         // so the terminal cursor remains available for recovery.
@@ -390,7 +394,7 @@ class ResponseAPIResumeStreamTest {
             """[{"type":"message","id":"msg_1","role":"assistant","content":[{"type":"output_text","text":"a"}]}]"""))
         withTimeout(10_000) { saveEntered.await() }
         assertTrue("Queued events must not escape a suspended cursor save", chunks.isEmpty())
-        assertNull(store.load("run_1"))
+        assertEquals(ResponseCursor("resp_1", 0, setting.id.toString()), store.load("run_1"))
         releaseSave.complete(Unit)
         job.join()
 

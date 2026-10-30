@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:37.929Z" hostname="duguangdeMBP.lan" time="0.125">
+  <properties/>
+  <testcase name="decision archive is stable per message scoped to branch and uses ordinary edit delete" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.034"/>
+  <testcase name="stale material source active job and author CAS reject without changing files" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.014"/>
+  <testcase name="multiline author titles survive create rename and decision reload as one scalar" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.018"/>
+  <testcase name="created material appears in catalog and real context and delete remains undoable" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.017"/>
+  <testcase name="rollback reports a blocked restore and still restores the remaining preimages" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.011"/>
+  <testcase name="branch material edits retain identity aliases relations and injection and expose global after override deletion" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.02"/>
+  <testcase name="author transaction restores raw files if committing fails before ledger persistence" classname="app.amber.feature.novel.workspace.NovelWorkspaceMaterialActionsTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

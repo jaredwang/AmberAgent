@@ -1,0 +1,1693 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :core:agent-utils:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-utils:compileKotlin UP-TO-DATE
+> Task :core:agent-utils:compileJava NO-SOURCE
+> Task :core:agent-utils:processResources NO-SOURCE
+> Task :core:agent-utils:classes UP-TO-DATE
+> Task :core:agent-utils:jar UP-TO-DATE
+> Task :core:event:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:event:compileKotlin UP-TO-DATE
+> Task :core:event:compileJava NO-SOURCE
+> Task :core:event:processResources NO-SOURCE
+> Task :core:event:classes UP-TO-DATE
+> Task :core:event:jar UP-TO-DATE
+> Task :core:agent-runtime:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:agent-runtime:compileKotlin UP-TO-DATE
+> Task :core:agent-runtime:compileJava NO-SOURCE
+> Task :core:agent-runtime:processResources NO-SOURCE
+> Task :core:agent-runtime:classes UP-TO-DATE
+> Task :core:agent-runtime:jar UP-TO-DATE
+> Task :feature:live:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:live:api:compileKotlin UP-TO-DATE
+> Task :feature:live:api:compileJava NO-SOURCE
+> Task :feature:live:api:processResources NO-SOURCE
+> Task :feature:live:api:classes UP-TO-DATE
+> Task :feature:live:api:jar UP-TO-DATE
+> Task :core:ai-prompts:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:ai-prompts:compileKotlin UP-TO-DATE
+> Task :core:ai-prompts:compileJava NO-SOURCE
+> Task :core:ai-prompts:processResources NO-SOURCE
+> Task :core:ai-prompts:classes UP-TO-DATE
+> Task :core:ai-prompts:jar UP-TO-DATE
+> Task :feature:history:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:history:compileKotlin UP-TO-DATE
+> Task :feature:history:compileJava NO-SOURCE
+> Task :feature:history:processResources NO-SOURCE
+> Task :feature:history:classes UP-TO-DATE
+> Task :feature:history:jar UP-TO-DATE
+> Task :feature:webview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:webview:compileKotlin UP-TO-DATE
+> Task :feature:webview:compileJava NO-SOURCE
+> Task :feature:webview:processResources NO-SOURCE
+> Task :feature:webview:classes UP-TO-DATE
+> Task :feature:webview:jar UP-TO-DATE
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:compileDebugKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :ai:bundleLibCompileToJarDebug UP-TO-DATE
+
+> Task :app:cargoBuildHtmlDiffNormalizer
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling jni-sys v0.3.1
+   Compiling jni v0.21.1
+   Compiling html-diff-normalizer v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/html-diff-normalizer)
+    Finished `release` profile [optimized] target(s) in 4.52s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildMarkdownParser
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling jni-sys v0.3.1
+   Compiling jni v0.21.1
+   Compiling markdown-parser v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/markdown-parser)
+    Finished `release` profile [optimized] target(s) in 8.77s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildMarkdownPreprocess
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling jni v0.21.1
+   Compiling markdown-preprocess v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/markdown-preprocess)
+    Finished `release` profile [optimized] target(s) in 2.77s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildReaderExtractor
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling jni-sys v0.3.1
+   Compiling jni v0.21.1
+   Compiling reader-extractor v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/reader-extractor)
+    Finished `release` profile [optimized] target(s) in 8.64s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildRegexTransformer
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling regex-transformer v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/regex-transformer)
+    Finished `release` profile [optimized] target(s) in 0.43s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:cargoBuildSyncCrypto
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling sync-crypto v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/sync-crypto)
+    Finished `release` profile [optimized] target(s) in 0.30s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/app/build/rustJniLibs/android
+
+> Task :app:prepareEmbeddedTerminalRuntime UP-TO-DATE
+> Task :app:preBuild
+> Task :app:preFullDebugBuild
+> Task :app:generateFullDebugBuildConfig UP-TO-DATE
+> Task :ai:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:injectCrashlyticsMappingFileIdFullDebug UP-TO-DATE
+> Task :app:injectCrashlyticsVersionControlInfoFullDebug UP-TO-DATE
+> Task :app:processFullDebugGoogleServices SKIPPED
+> Task :app:extractFullDebugSupportedLocales UP-TO-DATE
+> Task :app:mapFullDebugSourceSetPaths UP-TO-DATE
+> Task :common:extractDebugSupportedLocales UP-TO-DATE
+
+> Task :document:cargoBuildOfficeParsers
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling office-parsers v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/office-parsers)
+    Finished `release` profile [optimized] target(s) in 3.36s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/document/build/rustJniLibs/android
+
+> Task :document:preBuild
+> Task :document:preDebugBuild
+> Task :document:extractDebugSupportedLocales UP-TO-DATE
+
+> Task :highlight:cargoBuildHighlightParser
+    Building arm64-v8a (aarch64-linux-android)
+   Compiling highlight-parser v0.1.0 (/Users/arquiel/Downloads/AI/amberagent-Android/native/highlight-parser)
+    Finished `release` profile [optimized] target(s) in 0.85s
+     Copying libraries to /Users/arquiel/Downloads/AI/amberagent-Android/highlight/build/rustJniLibs/android
+
+> Task :highlight:preBuild
+> Task :highlight:preDebugBuild
+> Task :highlight:extractDebugSupportedLocales UP-TO-DATE
+> Task :search:preBuild UP-TO-DATE
+> Task :search:preDebugBuild UP-TO-DATE
+> Task :search:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-runtime-impl:preBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:preDebugBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:agent-store-room:preBuild UP-TO-DATE
+> Task :core:agent-store-room:preDebugBuild UP-TO-DATE
+> Task :core:agent-store-room:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:app-infra:preBuild UP-TO-DATE
+> Task :core:app-infra:preDebugBuild UP-TO-DATE
+> Task :core:app-infra:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:jev:preBuild UP-TO-DATE
+> Task :core:jev:preDebugBuild UP-TO-DATE
+> Task :core:jev:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:model:preBuild UP-TO-DATE
+> Task :core:model:preDebugBuild UP-TO-DATE
+> Task :core:model:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:settings:preBuild UP-TO-DATE
+> Task :core:settings:preDebugBuild UP-TO-DATE
+> Task :core:settings:extractDebugSupportedLocales UP-TO-DATE
+> Task :core:usage:preBuild UP-TO-DATE
+> Task :core:usage:preDebugBuild UP-TO-DATE
+> Task :core:usage:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:icloud:preBuild UP-TO-DATE
+> Task :feature:icloud:preDebugBuild UP-TO-DATE
+> Task :feature:icloud:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:modelcouncil:preBuild UP-TO-DATE
+> Task :feature:modelcouncil:preDebugBuild UP-TO-DATE
+> Task :feature:modelcouncil:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel:preBuild UP-TO-DATE
+> Task :feature:novel:preDebugBuild UP-TO-DATE
+> Task :feature:novel:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:novel-workspace:preBuild UP-TO-DATE
+> Task :feature:novel-workspace:preDebugBuild UP-TO-DATE
+> Task :feature:novel-workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:subagent:preBuild UP-TO-DATE
+> Task :feature:subagent:preDebugBuild UP-TO-DATE
+> Task :feature:subagent:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:system:preBuild UP-TO-DATE
+> Task :feature:system:preDebugBuild UP-TO-DATE
+> Task :feature:system:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:task:preBuild UP-TO-DATE
+> Task :feature:task:preDebugBuild UP-TO-DATE
+> Task :feature:task:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:terminal:preBuild UP-TO-DATE
+> Task :feature:terminal:preDebugBuild UP-TO-DATE
+> Task :feature:terminal:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:workspace:preBuild UP-TO-DATE
+> Task :feature:workspace:preDebugBuild UP-TO-DATE
+> Task :feature:workspace:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:board:impl:preBuild UP-TO-DATE
+> Task :feature:board:impl:preDebugBuild UP-TO-DATE
+> Task :feature:board:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:runtime:api:preBuild UP-TO-DATE
+> Task :feature:runtime:api:preDebugBuild UP-TO-DATE
+> Task :feature:runtime:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:access:preBuild UP-TO-DATE
+> Task :feature:tools:access:preDebugBuild UP-TO-DATE
+> Task :feature:tools:access:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:api:preBuild UP-TO-DATE
+> Task :feature:tools:api:preDebugBuild UP-TO-DATE
+> Task :feature:tools:api:extractDebugSupportedLocales UP-TO-DATE
+> Task :feature:tools:impl:preBuild UP-TO-DATE
+> Task :feature:tools:impl:preDebugBuild UP-TO-DATE
+> Task :feature:tools:impl:extractDebugSupportedLocales UP-TO-DATE
+> Task :app:generateFullDebugLocaleConfig FAILED
+> Task :app:generateFullDebugResources
+> Task :document:processDebugNavigationResources UP-TO-DATE
+> Task :highlight:processDebugNavigationResources UP-TO-DATE
+> Task :search:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugNavigationResources UP-TO-DATE
+> Task :core:agent-store-room:processDebugNavigationResources UP-TO-DATE
+> Task :core:app-infra:processDebugNavigationResources UP-TO-DATE
+> Task :core:jev:processDebugNavigationResources UP-TO-DATE
+> Task :core:model:processDebugNavigationResources UP-TO-DATE
+> Task :core:settings:processDebugNavigationResources UP-TO-DATE
+> Task :core:usage:processDebugNavigationResources UP-TO-DATE
+> Task :feature:icloud:processDebugNavigationResources UP-TO-DATE
+> Task :feature:modelcouncil:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel:processDebugNavigationResources UP-TO-DATE
+> Task :feature:novel-workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:subagent:processDebugNavigationResources UP-TO-DATE
+> Task :feature:system:processDebugNavigationResources UP-TO-DATE
+> Task :feature:task:processDebugNavigationResources UP-TO-DATE
+> Task :feature:terminal:processDebugNavigationResources UP-TO-DATE
+> Task :feature:workspace:processDebugNavigationResources UP-TO-DATE
+> Task :feature:board:impl:processDebugNavigationResources UP-TO-DATE
+> Task :feature:runtime:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:access:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:api:processDebugNavigationResources UP-TO-DATE
+> Task :feature:tools:impl:processDebugNavigationResources UP-TO-DATE
+> Task :app:processFullDebugNavigationResources FAILED
+> Task :document:generateDebugResources UP-TO-DATE
+> Task :document:packageDebugResources UP-TO-DATE
+> Task :document:parseDebugLocalResources UP-TO-DATE
+> Task :document:generateDebugRFile UP-TO-DATE
+> Task :document:compileDebugKotlin FAILED
+> Task :document:javaPreCompileDebug UP-TO-DATE
+> Task :highlight:generateDebugResources UP-TO-DATE
+> Task :highlight:packageDebugResources UP-TO-DATE
+> Task :highlight:parseDebugLocalResources UP-TO-DATE
+> Task :highlight:generateDebugRFile UP-TO-DATE
+> Task :highlight:compileDebugKotlin FAILED
+> Task :highlight:javaPreCompileDebug UP-TO-DATE
+> Task :search:generateDebugResources UP-TO-DATE
+> Task :search:packageDebugResources UP-TO-DATE
+> Task :search:parseDebugLocalResources UP-TO-DATE
+> Task :search:generateDebugRFile UP-TO-DATE
+> Task :search:compileDebugKotlin UP-TO-DATE
+> Task :search:javaPreCompileDebug UP-TO-DATE
+> Task :search:compileDebugJavaWithJavac NO-SOURCE
+> Task :search:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:packageDebugResources UP-TO-DATE
+> Task :core:agent-runtime-impl:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugRFile UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugKotlin UP-TO-DATE
+> Task :core:agent-runtime-impl:javaPreCompileDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:agent-runtime-impl:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:agent-store-room:generateDebugResources UP-TO-DATE
+> Task :core:agent-store-room:packageDebugResources UP-TO-DATE
+> Task :core:agent-store-room:parseDebugLocalResources UP-TO-DATE
+> Task :core:agent-store-room:generateDebugRFile UP-TO-DATE
+> Task :core:agent-store-room:kspDebugKotlin FAILED
+> Task :core:agent-store-room:javaPreCompileDebug UP-TO-DATE
+> Task :core:app-infra:generateDebugResources UP-TO-DATE
+> Task :core:app-infra:packageDebugResources UP-TO-DATE
+> Task :core:app-infra:parseDebugLocalResources UP-TO-DATE
+> Task :core:app-infra:generateDebugRFile UP-TO-DATE
+> Task :core:app-infra:compileDebugKotlin UP-TO-DATE
+> Task :core:app-infra:javaPreCompileDebug UP-TO-DATE
+> Task :core:app-infra:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:app-infra:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:jev:generateDebugResources UP-TO-DATE
+> Task :core:jev:packageDebugResources UP-TO-DATE
+> Task :core:jev:parseDebugLocalResources UP-TO-DATE
+> Task :core:jev:generateDebugRFile UP-TO-DATE
+> Task :core:jev:compileDebugKotlin UP-TO-DATE
+> Task :core:jev:javaPreCompileDebug UP-TO-DATE
+> Task :core:jev:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:jev:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:model:generateDebugResources UP-TO-DATE
+> Task :core:model:packageDebugResources UP-TO-DATE
+> Task :core:model:parseDebugLocalResources UP-TO-DATE
+> Task :core:model:generateDebugRFile UP-TO-DATE
+> Task :core:model:compileDebugKotlin UP-TO-DATE
+> Task :core:model:javaPreCompileDebug UP-TO-DATE
+> Task :core:model:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:model:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:settings:generateDebugResources UP-TO-DATE
+> Task :core:settings:packageDebugResources UP-TO-DATE
+> Task :core:settings:parseDebugLocalResources UP-TO-DATE
+> Task :core:settings:generateDebugRFile UP-TO-DATE
+> Task :core:settings:compileDebugKotlin UP-TO-DATE
+> Task :core:settings:javaPreCompileDebug UP-TO-DATE
+> Task :core:settings:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:settings:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core:usage:generateDebugResources UP-TO-DATE
+> Task :core:usage:packageDebugResources UP-TO-DATE
+> Task :core:usage:parseDebugLocalResources UP-TO-DATE
+> Task :core:usage:generateDebugRFile UP-TO-DATE
+> Task :core:usage:compileDebugKotlin UP-TO-DATE
+> Task :core:usage:javaPreCompileDebug UP-TO-DATE
+> Task :core:usage:compileDebugJavaWithJavac NO-SOURCE
+> Task :core:usage:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:icloud:generateDebugResources UP-TO-DATE
+> Task :feature:icloud:packageDebugResources UP-TO-DATE
+> Task :feature:icloud:parseDebugLocalResources UP-TO-DATE
+> Task :feature:icloud:generateDebugRFile UP-TO-DATE
+> Task :feature:icloud:compileDebugKotlin UP-TO-DATE
+> Task :feature:icloud:javaPreCompileDebug UP-TO-DATE
+> Task :feature:icloud:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:icloud:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:packageDebugResources UP-TO-DATE
+> Task :feature:modelcouncil:parseDebugLocalResources UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugRFile UP-TO-DATE
+> Task :feature:task:generateDebugResources UP-TO-DATE
+> Task :feature:task:packageDebugResources UP-TO-DATE
+> Task :feature:task:parseDebugLocalResources UP-TO-DATE
+> Task :feature:task:generateDebugRFile UP-TO-DATE
+> Task :feature:task:compileDebugKotlin UP-TO-DATE
+> Task :feature:task:javaPreCompileDebug UP-TO-DATE
+> Task :feature:task:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:task:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:terminal:generateDebugResources UP-TO-DATE
+> Task :feature:terminal:packageDebugResources UP-TO-DATE
+> Task :feature:terminal:parseDebugLocalResources UP-TO-DATE
+> Task :feature:terminal:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:generateDebugResources UP-TO-DATE
+> Task :feature:workspace:packageDebugResources UP-TO-DATE
+> Task :feature:workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:workspace:compileDebugKotlin FAILED
+> Task :feature:workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:runtime:api:generateDebugResources UP-TO-DATE
+> Task :feature:runtime:api:packageDebugResources UP-TO-DATE
+> Task :feature:runtime:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:runtime:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:generateDebugResources UP-TO-DATE
+> Task :feature:tools:api:packageDebugResources UP-TO-DATE
+> Task :feature:tools:api:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:api:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:api:compileDebugKotlin UP-TO-DATE
+> Task :feature:tools:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:api:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:tools:api:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:runtime:api:javaPreCompileDebug UP-TO-DATE
+> Task :feature:terminal:javaPreCompileDebug UP-TO-DATE
+> Task :feature:modelcouncil:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel:generateDebugResources UP-TO-DATE
+> Task :feature:novel:packageDebugResources UP-TO-DATE
+> Task :feature:novel:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:packageDebugResources UP-TO-DATE
+> Task :feature:novel-workspace:parseDebugLocalResources UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugRFile UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugKotlin UP-TO-DATE
+> Task :feature:novel-workspace:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel-workspace:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:novel:compileDebugKotlin UP-TO-DATE
+> Task :feature:novel:javaPreCompileDebug UP-TO-DATE
+> Task :feature:novel:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:novel:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:subagent:generateDebugResources UP-TO-DATE
+> Task :feature:subagent:packageDebugResources UP-TO-DATE
+> Task :feature:subagent:parseDebugLocalResources UP-TO-DATE
+> Task :feature:subagent:generateDebugRFile UP-TO-DATE
+> Task :feature:subagent:javaPreCompileDebug UP-TO-DATE
+> Task :feature:system:generateDebugResources UP-TO-DATE
+> Task :feature:system:packageDebugResources UP-TO-DATE
+> Task :feature:system:parseDebugLocalResources UP-TO-DATE
+> Task :feature:system:generateDebugRFile UP-TO-DATE
+> Task :feature:system:compileDebugKotlin UP-TO-DATE
+> Task :feature:system:javaPreCompileDebug UP-TO-DATE
+> Task :feature:system:compileDebugJavaWithJavac NO-SOURCE
+> Task :feature:system:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :feature:board:impl:generateDebugResources UP-TO-DATE
+> Task :feature:board:impl:packageDebugResources UP-TO-DATE
+> Task :feature:board:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:board:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:board:impl:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:access:generateDebugResources UP-TO-DATE
+> Task :feature:tools:access:packageDebugResources UP-TO-DATE
+> Task :feature:tools:access:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:access:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:access:javaPreCompileDebug UP-TO-DATE
+> Task :feature:tools:impl:generateDebugResources UP-TO-DATE
+> Task :feature:tools:impl:packageDebugResources UP-TO-DATE
+> Task :feature:tools:impl:parseDebugLocalResources UP-TO-DATE
+> Task :feature:tools:impl:generateDebugRFile UP-TO-DATE
+> Task :feature:tools:impl:javaPreCompileDebug UP-TO-DATE
+> Task :ai:mapDebugSourceSetPaths UP-TO-DATE
+> Task :ai:compileDebugLibraryResources UP-TO-DATE
+> Task :ai:writeDebugAarMetadata UP-TO-DATE
+> Task :common:writeDebugAarMetadata UP-TO-DATE
+> Task :document:writeDebugAarMetadata UP-TO-DATE
+> Task :highlight:writeDebugAarMetadata UP-TO-DATE
+> Task :search:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-runtime-impl:writeDebugAarMetadata UP-TO-DATE
+> Task :core:agent-store-room:writeDebugAarMetadata UP-TO-DATE
+> Task :core:app-infra:writeDebugAarMetadata UP-TO-DATE
+> Task :core:jev:writeDebugAarMetadata UP-TO-DATE
+> Task :core:model:writeDebugAarMetadata UP-TO-DATE
+> Task :core:settings:writeDebugAarMetadata UP-TO-DATE
+> Task :core:usage:writeDebugAarMetadata UP-TO-DATE
+> Task :app:javaPreCompileFullDebug
+> Task :feature:icloud:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:modelcouncil:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:novel-workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:subagent:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:system:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:task:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:terminal:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:workspace:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:board:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:runtime:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:access:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:api:writeDebugAarMetadata UP-TO-DATE
+> Task :feature:tools:impl:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkFullDebugAarMetadata FAILED
+> Task :app:createFullDebugCompatibleScreenManifests
+> Task :ai:extractDeepLinksDebug UP-TO-DATE
+> Task :ai:processDebugManifest UP-TO-DATE
+> Task :app:extractDeepLinksFullDebug
+> Task :common:extractDeepLinksDebug UP-TO-DATE
+> Task :common:processDebugManifest UP-TO-DATE
+> Task :document:extractDeepLinksDebug UP-TO-DATE
+> Task :document:processDebugManifest UP-TO-DATE
+> Task :highlight:extractDeepLinksDebug UP-TO-DATE
+> Task :highlight:processDebugManifest UP-TO-DATE
+> Task :search:extractDeepLinksDebug UP-TO-DATE
+> Task :search:processDebugManifest UP-TO-DATE
+> Task :core:agent-runtime-impl:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugManifest UP-TO-DATE
+> Task :core:agent-store-room:extractDeepLinksDebug UP-TO-DATE
+> Task :core:agent-store-room:processDebugManifest UP-TO-DATE
+> Task :core:app-infra:extractDeepLinksDebug UP-TO-DATE
+> Task :core:app-infra:processDebugManifest UP-TO-DATE
+> Task :core:jev:extractDeepLinksDebug UP-TO-DATE
+> Task :core:jev:processDebugManifest UP-TO-DATE
+> Task :core:model:extractDeepLinksDebug UP-TO-DATE
+> Task :core:model:processDebugManifest UP-TO-DATE
+> Task :core:settings:extractDeepLinksDebug UP-TO-DATE
+> Task :core:settings:processDebugManifest UP-TO-DATE
+> Task :core:usage:extractDeepLinksDebug UP-TO-DATE
+> Task :core:usage:processDebugManifest UP-TO-DATE
+> Task :feature:icloud:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:icloud:processDebugManifest UP-TO-DATE
+> Task :feature:modelcouncil:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:modelcouncil:processDebugManifest UP-TO-DATE
+> Task :feature:novel:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel:processDebugManifest UP-TO-DATE
+> Task :feature:novel-workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugManifest UP-TO-DATE
+> Task :feature:subagent:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:subagent:processDebugManifest UP-TO-DATE
+> Task :feature:system:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:system:processDebugManifest UP-TO-DATE
+> Task :feature:task:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:task:processDebugManifest UP-TO-DATE
+> Task :feature:terminal:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:terminal:processDebugManifest UP-TO-DATE
+> Task :feature:workspace:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:workspace:processDebugManifest UP-TO-DATE
+> Task :feature:board:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:board:impl:processDebugManifest UP-TO-DATE
+> Task :feature:runtime:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:runtime:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:access:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:access:processDebugManifest UP-TO-DATE
+> Task :feature:tools:api:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugManifest UP-TO-DATE
+> Task :feature:tools:impl:extractDeepLinksDebug UP-TO-DATE
+> Task :feature:tools:impl:processDebugManifest UP-TO-DATE
+> Task :app:processFullDebugMainManifest FAILED
+> Task :common:mapDebugSourceSetPaths UP-TO-DATE
+> Task :common:compileDebugLibraryResources UP-TO-DATE
+> Task :document:mapDebugSourceSetPaths UP-TO-DATE
+> Task :document:compileDebugLibraryResources UP-TO-DATE
+> Task :highlight:mapDebugSourceSetPaths UP-TO-DATE
+> Task :highlight:compileDebugLibraryResources UP-TO-DATE
+> Task :search:mapDebugSourceSetPaths UP-TO-DATE
+> Task :search:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-runtime-impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugLibraryResources UP-TO-DATE
+> Task :core:agent-store-room:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:agent-store-room:compileDebugLibraryResources UP-TO-DATE
+> Task :core:app-infra:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:app-infra:compileDebugLibraryResources UP-TO-DATE
+> Task :core:jev:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:jev:compileDebugLibraryResources UP-TO-DATE
+> Task :core:model:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:model:compileDebugLibraryResources UP-TO-DATE
+> Task :core:settings:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:settings:compileDebugLibraryResources UP-TO-DATE
+> Task :core:usage:mapDebugSourceSetPaths UP-TO-DATE
+> Task :core:usage:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:icloud:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:icloud:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:modelcouncil:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:modelcouncil:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:novel-workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:subagent:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:subagent:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:system:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:system:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:task:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:task:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:terminal:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:terminal:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:workspace:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:workspace:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:board:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:board:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:runtime:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:runtime:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:access:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:access:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:api:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:api:compileDebugLibraryResources UP-TO-DATE
+> Task :feature:tools:impl:mapDebugSourceSetPaths UP-TO-DATE
+> Task :feature:tools:impl:compileDebugLibraryResources UP-TO-DATE
+> Task :app:preFullDebugUnitTestBuild
+> Task :ai:generateDebugAssets UP-TO-DATE
+> Task :app:javaPreCompileFullDebugUnitTest
+> Task :ai:mergeDebugAssets UP-TO-DATE
+> Task :app:generateFullDebugAssets UP-TO-DATE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :common:mergeDebugAssets UP-TO-DATE
+> Task :document:generateDebugAssets UP-TO-DATE
+> Task :document:mergeDebugAssets UP-TO-DATE
+> Task :highlight:generateDebugAssets UP-TO-DATE
+> Task :highlight:mergeDebugAssets UP-TO-DATE
+> Task :search:generateDebugAssets UP-TO-DATE
+> Task :search:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugAssets UP-TO-DATE
+> Task :core:agent-runtime-impl:mergeDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:generateDebugAssets UP-TO-DATE
+> Task :core:agent-store-room:mergeDebugAssets UP-TO-DATE
+> Task :core:app-infra:generateDebugAssets UP-TO-DATE
+> Task :core:app-infra:mergeDebugAssets UP-TO-DATE
+> Task :core:jev:generateDebugAssets UP-TO-DATE
+> Task :core:jev:mergeDebugAssets UP-TO-DATE
+> Task :core:model:generateDebugAssets UP-TO-DATE
+> Task :core:model:mergeDebugAssets UP-TO-DATE
+> Task :core:settings:generateDebugAssets UP-TO-DATE
+> Task :core:settings:mergeDebugAssets UP-TO-DATE
+> Task :core:usage:generateDebugAssets UP-TO-DATE
+> Task :core:usage:mergeDebugAssets UP-TO-DATE
+> Task :feature:icloud:generateDebugAssets UP-TO-DATE
+> Task :feature:icloud:mergeDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugAssets UP-TO-DATE
+> Task :feature:modelcouncil:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel:generateDebugAssets UP-TO-DATE
+> Task :feature:novel:mergeDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:novel-workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:subagent:generateDebugAssets UP-TO-DATE
+> Task :feature:subagent:mergeDebugAssets UP-TO-DATE
+> Task :feature:system:generateDebugAssets UP-TO-DATE
+> Task :feature:system:mergeDebugAssets UP-TO-DATE
+> Task :feature:task:generateDebugAssets UP-TO-DATE
+> Task :feature:task:mergeDebugAssets UP-TO-DATE
+> Task :feature:terminal:generateDebugAssets UP-TO-DATE
+> Task :feature:terminal:mergeDebugAssets UP-TO-DATE
+> Task :feature:workspace:generateDebugAssets UP-TO-DATE
+> Task :feature:workspace:mergeDebugAssets UP-TO-DATE
+> Task :feature:board:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:board:impl:mergeDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:generateDebugAssets UP-TO-DATE
+> Task :feature:runtime:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:access:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:access:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:api:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:api:mergeDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:generateDebugAssets UP-TO-DATE
+> Task :feature:tools:impl:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeFullDebugAssets FAILED
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :search:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :search:processDebugJavaRes UP-TO-DATE
+> Task :core:agent-runtime-impl:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:agent-runtime-impl:processDebugJavaRes UP-TO-DATE
+> Task :core:app-infra:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:app-infra:processDebugJavaRes UP-TO-DATE
+> Task :core:jev:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:jev:processDebugJavaRes UP-TO-DATE
+> Task :core:model:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:model:processDebugJavaRes UP-TO-DATE
+> Task :core:settings:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:settings:processDebugJavaRes UP-TO-DATE
+> Task :core:usage:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core:usage:processDebugJavaRes UP-TO-DATE
+> Task :feature:icloud:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:icloud:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel:processDebugJavaRes UP-TO-DATE
+> Task :feature:novel-workspace:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:novel-workspace:processDebugJavaRes UP-TO-DATE
+> Task :feature:system:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:system:processDebugJavaRes UP-TO-DATE
+> Task :feature:task:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:task:processDebugJavaRes UP-TO-DATE
+> Task :feature:tools:api:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :feature:tools:api:processDebugJavaRes UP-TO-DATE
+> Task :ai:preDebugUnitTestBuild UP-TO-DATE
+> Task :ai:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :ai:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :ai:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :ai:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :ai:testDebugUnitTest
+> Task :search:preDebugUnitTestBuild UP-TO-DATE
+> Task :search:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :search:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :search:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :search:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :search:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :search:testDebugUnitTest UP-TO-DATE
+> Task :document:preDebugUnitTestBuild
+> Task :document:generateDebugUnitTestStubRFile FAILED
+> Task :document:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:agent-runtime:compileTestKotlin FAILED
+> Task :core:agent-runtime:processTestResources NO-SOURCE
+> Task :core:agent-runtime-impl:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:agent-runtime-impl:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:agent-runtime-impl:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:agent-runtime-impl:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:agent-runtime-impl:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:agent-runtime-impl:testDebugUnitTest UP-TO-DATE
+> Task :core:agent-runtime-impl:test UP-TO-DATE
+> Task :core:agent-store-room:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:agent-store-room:generateDebugUnitTestStubRFile FAILED
+> Task :core:agent-store-room:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:settings:preDebugUnitTestBuild UP-TO-DATE
+> Task :core:settings:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :core:settings:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :core:settings:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :core:settings:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :core:settings:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :core:settings:testDebugUnitTest
+> Task :feature:novel:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:novel:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:novel:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:novel:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:novel:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:novel:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:novel:testDebugUnitTest UP-TO-DATE
+> Task :feature:novel-workspace:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:novel-workspace:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:novel-workspace:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:novel-workspace:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:novel-workspace:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:novel-workspace:testDebugUnitTest UP-TO-DATE
+> Task :feature:modelcouncil:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:modelcouncil:generateDebugUnitTestStubRFile FAILED
+> Task :feature:modelcouncil:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:terminal:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:terminal:generateDebugUnitTestStubRFile FAILED
+> Task :feature:terminal:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:tools:api:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:tools:api:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:tools:api:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:tools:api:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:tools:api:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:tools:api:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:tools:api:testDebugUnitTest UP-TO-DATE
+> Task :feature:tools:access:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:tools:access:generateDebugUnitTestStubRFile FAILED
+> Task :feature:tools:access:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:workspace:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:workspace:generateDebugUnitTestStubRFile FAILED
+> Task :feature:workspace:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:task:preDebugUnitTestBuild UP-TO-DATE
+> Task :feature:task:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :feature:task:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :feature:task:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :feature:task:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :feature:task:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :feature:task:testDebugUnitTest UP-TO-DATE
+> Task :feature:live:api:compileTestKotlin UP-TO-DATE
+> Task :feature:live:api:compileTestJava NO-SOURCE
+> Task :feature:live:api:processTestResources NO-SOURCE
+> Task :feature:live:api:testClasses UP-TO-DATE
+> Task :feature:live:api:test UP-TO-DATE
+
+FAILURE: Build completed with 16 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:generateFullDebugLocaleConfig'.
+> Could not resolve all files for configuration ':app:fullDebugRuntimeClasspath'.
+   > Could not resolve org.jetbrains.compose.ui:ui:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze:1.7.2 > dev.chrisbanes.haze:haze-android:1.7.2
+         project ':app' > io.github.dokar3:sonner:0.3.9 > io.github.dokar3:sonner-android:0.3.9
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.animation:animation:1.10.2.
+     Required by:
+         project ':app' > sh.calvin.reorderable:reorderable:3.1.0 > sh.calvin.reorderable:reorderable-android-debug:3.1.0
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5.
+     Required by:
+         project ':app' > androidx.activity:activity-compose:1.13.0 > androidx.lifecycle:lifecycle-runtime-compose:2.10.0 > androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+   > Could not resolve com.google.guava:guava:33.3.1-android.
+     Required by:
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement-api:23.2.0
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement:23.2.0 > com.google.android.gms:play-services-measurement-impl:23.2.0
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+   > Could not resolve org.jetbrains.compose.annotation-internal:annotation:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.collection-internal:collection:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.foundation:foundation-layout:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-graphics:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-text:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-util:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-unit:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-websockets-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.ktor:ktor-server-websockets:3.2.3
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.github.oshai:kotlin-logging-android-debug:7.0.14.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.github.oshai:kotlin-logging:7.0.14
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-core-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-core:3.2.3
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-sse-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-sse:3.2.3
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 34 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:processFullDebugNavigationResources'.
+> Could not resolve all files for configuration ':app:fullDebugRuntimeClasspath'.
+   > Could not resolve org.jetbrains.compose.ui:ui:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze:1.7.2 > dev.chrisbanes.haze:haze-android:1.7.2
+         project ':app' > io.github.dokar3:sonner:0.3.9 > io.github.dokar3:sonner-android:0.3.9
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.animation:animation:1.10.2.
+     Required by:
+         project ':app' > sh.calvin.reorderable:reorderable:3.1.0 > sh.calvin.reorderable:reorderable-android-debug:3.1.0
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5.
+     Required by:
+         project ':app' > androidx.activity:activity-compose:1.13.0 > androidx.lifecycle:lifecycle-runtime-compose:2.10.0 > androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+   > Could not resolve com.google.guava:guava:33.3.1-android.
+     Required by:
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement-api:23.2.0
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement:23.2.0 > com.google.android.gms:play-services-measurement-impl:23.2.0
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+   > Could not resolve org.jetbrains.compose.annotation-internal:annotation:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.collection-internal:collection:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.foundation:foundation-layout:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-graphics:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-text:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-util:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-unit:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-websockets-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.ktor:ktor-server-websockets:3.2.3
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.github.oshai:kotlin-logging-android-debug:7.0.14.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.github.oshai:kotlin-logging:7.0.14
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-core-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-core:3.2.3
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-sse-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-sse:3.2.3
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 34 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+3: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':document:compileDebugKotlin'.
+> Could not resolve all files for configuration ':document:debugCompileClasspath'.
+   > Failed to transform kotlinx-coroutines-android-1.9.0.jar (org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.environment=standard-jvm, org.gradle.jvm.version=8, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api, org.jetbrains.kotlin.platform.type=jvm}.
+      > Could not download kotlinx-coroutines-android-1.9.0.jar (org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0): No cached version available for offline mode
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+4: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':highlight:compileDebugKotlin'.
+> Could not resolve all files for configuration ':highlight:debugCompileClasspath'.
+   > Failed to transform wrapper-android-3.2.3.aar (wang.harlon.quickjs:wrapper-android:3.2.3) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api}.
+      > Could not download wrapper-android-3.2.3.aar (wang.harlon.quickjs:wrapper-android:3.2.3): No cached version available for offline mode
+   > Failed to transform ui-tooling-preview.aar (androidx.compose.ui:ui-tooling-preview-android:1.11.0) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.jvm.environment=android, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api, org.jetbrains.kotlin.platform.type=androidJvm}.
+      > Could not download ui-tooling-preview.aar (androidx.compose.ui:ui-tooling-preview-android:1.11.0): No cached version available for offline mode
+   > Failed to transform wrapper-java-3.2.3.jar (wang.harlon.quickjs:wrapper-java:3.2.3) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.jvm.version=8, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}.
+      > Could not download wrapper-java-3.2.3.jar (wang.harlon.quickjs:wrapper-java:3.2.3): No cached version available for offline mode
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+5: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':core:agent-store-room:kspDebugKotlin'.
+> Could not resolve all files for configuration ':core:agent-store-room:debugCompileClasspath'.
+   > Failed to transform room-runtime.aar (androidx.room:room-runtime-android:2.8.4) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.jvm.environment=android, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api, org.jetbrains.kotlin.platform.type=jvm}.
+      > Could not download room-runtime.aar (androidx.room:room-runtime-android:2.8.4): No cached version available for offline mode
+   > Failed to transform room-ktx-2.8.4.aar (androidx.room:room-ktx:2.8.4) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api}.
+      > Could not download room-ktx-2.8.4.aar (androidx.room:room-ktx:2.8.4): No cached version available for offline mode
+   > Failed to transform sqlite-framework.aar (androidx.sqlite:sqlite-framework-android:2.6.2) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.jvm.environment=android, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api, org.jetbrains.kotlin.platform.type=jvm}.
+      > Could not download sqlite-framework.aar (androidx.sqlite:sqlite-framework-android:2.6.2): No cached version available for offline mode
+   > Failed to transform sqlite.aar (androidx.sqlite:sqlite-android:2.6.2) to match attributes {artifactType=android-classes-jar, org.gradle.category=library, org.gradle.jvm.environment=android, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-api, org.jetbrains.kotlin.platform.type=jvm}.
+      > Could not download sqlite.aar (androidx.sqlite:sqlite-android:2.6.2): No cached version available for offline mode
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+6: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:workspace:compileDebugKotlin'.
+> Could not resolve all files for configuration ':feature:workspace:debugCompileClasspath'.
+   > Could not resolve androidx.documentfile:documentfile:1.0.1.
+     Required by:
+         project ':feature:workspace'
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+7: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:checkFullDebugAarMetadata'.
+> Could not resolve all files for configuration ':app:fullDebugRuntimeClasspath'.
+   > Could not resolve org.jetbrains.compose.ui:ui:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze:1.7.2 > dev.chrisbanes.haze:haze-android:1.7.2
+         project ':app' > io.github.dokar3:sonner:0.3.9 > io.github.dokar3:sonner-android:0.3.9
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.animation:animation:1.10.2.
+     Required by:
+         project ':app' > sh.calvin.reorderable:reorderable:3.1.0 > sh.calvin.reorderable:reorderable-android-debug:3.1.0
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5.
+     Required by:
+         project ':app' > androidx.activity:activity-compose:1.13.0 > androidx.lifecycle:lifecycle-runtime-compose:2.10.0 > androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+   > Could not resolve com.google.guava:guava:33.3.1-android.
+     Required by:
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement-api:23.2.0
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement:23.2.0 > com.google.android.gms:play-services-measurement-impl:23.2.0
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+   > Could not resolve org.jetbrains.compose.annotation-internal:annotation:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.collection-internal:collection:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.foundation:foundation-layout:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-graphics:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-text:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-util:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-unit:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-websockets-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.ktor:ktor-server-websockets:3.2.3
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.github.oshai:kotlin-logging-android-debug:7.0.14.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.github.oshai:kotlin-logging:7.0.14
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-core-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-core:3.2.3
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-sse-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-sse:3.2.3
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 34 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+8: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:processFullDebugMainManifest'.
+> Could not resolve all files for configuration ':app:fullDebugRuntimeClasspath'.
+   > Could not resolve org.jetbrains.compose.ui:ui:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze:1.7.2 > dev.chrisbanes.haze:haze-android:1.7.2
+         project ':app' > io.github.dokar3:sonner:0.3.9 > io.github.dokar3:sonner-android:0.3.9
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.animation:animation:1.10.2.
+     Required by:
+         project ':app' > sh.calvin.reorderable:reorderable:3.1.0 > sh.calvin.reorderable:reorderable-android-debug:3.1.0
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5.
+     Required by:
+         project ':app' > androidx.activity:activity-compose:1.13.0 > androidx.lifecycle:lifecycle-runtime-compose:2.10.0 > androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+   > Could not resolve com.google.guava:guava:33.3.1-android.
+     Required by:
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement-api:23.2.0
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement:23.2.0 > com.google.android.gms:play-services-measurement-impl:23.2.0
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+   > Could not resolve org.jetbrains.compose.annotation-internal:annotation:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.collection-internal:collection:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.foundation:foundation-layout:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-graphics:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-text:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-util:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-unit:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-websockets-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.ktor:ktor-server-websockets:3.2.3
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.github.oshai:kotlin-logging-android-debug:7.0.14.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.github.oshai:kotlin-logging:7.0.14
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-core-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-core:3.2.3
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-sse-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-sse:3.2.3
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 34 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+9: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:mergeFullDebugAssets'.
+> Could not resolve all files for configuration ':app:fullDebugRuntimeClasspath'.
+   > Could not resolve org.jetbrains.compose.ui:ui:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze:1.7.2 > dev.chrisbanes.haze:haze-android:1.7.2
+         project ':app' > io.github.dokar3:sonner:0.3.9 > io.github.dokar3:sonner-android:0.3.9
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.animation:animation:1.10.2.
+     Required by:
+         project ':app' > sh.calvin.reorderable:reorderable:3.1.0 > sh.calvin.reorderable:reorderable-android-debug:3.1.0
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.animation:animation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5.
+     Required by:
+         project ':app' > androidx.activity:activity-compose:1.13.0 > androidx.lifecycle:lifecycle-runtime-compose:2.10.0 > androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+      > No cached version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 available for offline mode.
+   > Could not resolve com.google.guava:guava:33.3.1-android.
+     Required by:
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement-api:23.2.0
+         project ':app' > com.google.firebase:firebase-analytics:23.2.0 > com.google.android.gms:play-services-measurement:23.2.0 > com.google.android.gms:play-services-measurement-impl:23.2.0
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+      > No cached version of com.google.guava:guava:33.3.1-android available for offline mode.
+   > Could not resolve org.jetbrains.compose.annotation-internal:annotation:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.annotation-internal:annotation:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.collection-internal:collection:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.collection-internal:collection:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.foundation:foundation-layout:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.foundation:foundation-layout:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-graphics:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-graphics:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-text:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-text:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-util:1.10.2.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.material:material-ripple:1.9.1
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.ui:ui-backhandler:1.9.1 > org.jetbrains.compose.ui:ui-backhandler-android-debug:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-util:1.10.2 available for offline mode.
+   > Could not resolve org.jetbrains.compose.ui:ui-unit:1.9.1.
+     Required by:
+         project ':app' > dev.chrisbanes.haze:haze-materials:1.7.2 > dev.chrisbanes.haze:haze-materials-android:1.7.2 > org.jetbrains.compose.material3:material3:1.9.0 > org.jetbrains.compose.animation:animation-core:1.9.1
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+      > No cached version of org.jetbrains.compose.ui:ui-unit:1.9.1 available for offline mode.
+   > Could not resolve org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+      > No cached version of org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.4.0 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-websockets-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.ktor:ktor-server-websockets:3.2.3
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-websockets-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.github.oshai:kotlin-logging-android-debug:7.0.14.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core:0.8.4 > io.modelcontextprotocol:kotlin-sdk-core-jvm:0.8.4 > io.github.oshai:kotlin-logging:7.0.14
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+      > No cached version of io.github.oshai:kotlin-logging-android-debug:7.0.14 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-core-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-core:3.2.3
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-core-jvm:3.2.3 available for offline mode.
+   > Could not resolve io.ktor:ktor-server-sse-jvm:3.2.3.
+     Required by:
+         project ':app' > io.modelcontextprotocol:kotlin-sdk:0.8.4 > io.modelcontextprotocol:kotlin-sdk-jvm:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server:0.8.4 > io.modelcontextprotocol:kotlin-sdk-server-jvm:0.8.4 > io.ktor:ktor-server-sse:3.2.3
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+      > No cached version of io.ktor:ktor-server-sse-jvm:3.2.3 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':app' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 34 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+10: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':document:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':document:debugUnitTestRuntimeClasspath'.
+   > Failed to transform emoji2-views-helper-1.3.0.aar (androidx.emoji2:emoji2-views-helper:1.3.0) to match attributes {artifactType=android-symbol-with-package-name, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Could not download emoji2-views-helper-1.3.0.aar (androidx.emoji2:emoji2-views-helper:1.3.0): No cached version available for offline mode
+   > Failed to transform emoji2-1.3.0.aar (androidx.emoji2:emoji2:1.3.0) to match attributes {artifactType=android-symbol-with-package-name, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Could not download emoji2-1.3.0.aar (androidx.emoji2:emoji2:1.3.0): No cached version available for offline mode
+   > Failed to transform lifecycle-process-2.6.2.aar (androidx.lifecycle:lifecycle-process:2.6.2) to match attributes {artifactType=android-symbol-with-package-name, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Could not download lifecycle-process-2.6.2.aar (androidx.lifecycle:lifecycle-process:2.6.2): No cached version available for offline mode
+   > Failed to transform profileinstaller-1.3.1.aar (androidx.profileinstaller:profileinstaller:1.3.1) to match attributes {artifactType=android-symbol-with-package-name, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Could not download profileinstaller-1.3.1.aar (androidx.profileinstaller:profileinstaller:1.3.1): No cached version available for offline mode
+   > Failed to transform startup-runtime-1.1.1.aar (androidx.startup:startup-runtime:1.1.1) to match attributes {artifactType=android-symbol-with-package-name, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Could not download startup-runtime-1.1.1.aar (androidx.startup:startup-runtime:1.1.1): No cached version available for offline mode
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+11: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':core:agent-runtime:compileTestKotlin'.
+> Could not resolve all files for configuration ':core:agent-runtime:testCompileClasspath'.
+   > Could not resolve io.kotest:kotest-runner-junit5:6.0.0.M4.
+     Required by:
+         project ':core:agent-runtime'
+      > No cached version of io.kotest:kotest-runner-junit5:6.0.0.M4 available for offline mode.
+      > No cached version of io.kotest:kotest-runner-junit5:6.0.0.M4 available for offline mode.
+      > No cached version of io.kotest:kotest-runner-junit5:6.0.0.M4 available for offline mode.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+12: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':core:agent-store-room:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':core:agent-store-room:debugUnitTestRuntimeClasspath'.
+   > Could not resolve androidx.annotation:annotation-experimental:1.5.0.
+     Required by:
+         project ':core:agent-store-room' > androidx.room:room-runtime:2.8.4 > androidx.room:room-runtime-android:2.8.4
+      > No cached version of androidx.annotation:annotation-experimental:1.5.0 available for offline mode.
+      > No cached version of androidx.annotation:annotation-experimental:1.5.0 available for offline mode.
+      > No cached version of androidx.annotation:annotation-experimental:1.5.0 available for offline mode.
+      > No cached version of androidx.annotation:annotation-experimental:1.5.0 available for offline mode.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+13: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:modelcouncil:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':feature:modelcouncil:debugUnitTestRuntimeClasspath'.
+   > Could not resolve androidx.documentfile:documentfile:1.0.1.
+     Required by:
+         project ':feature:modelcouncil' > project :feature:terminal > project :feature:workspace
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+   > Could not resolve androidx.activity:activity-ktx:1.12.4.
+     Required by:
+         project ':feature:modelcouncil' > project :feature:terminal > io.insert-koin:koin-android:4.2.1
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':feature:modelcouncil' > project :feature:terminal > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':feature:modelcouncil' > project :feature:terminal > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 12 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+14: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:terminal:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':feature:terminal:debugUnitTestRuntimeClasspath'.
+   > Could not resolve androidx.documentfile:documentfile:1.0.1.
+     Required by:
+         project ':feature:terminal' > project :feature:workspace
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+   > Could not resolve androidx.activity:activity-ktx:1.12.4.
+     Required by:
+         project ':feature:terminal' > io.insert-koin:koin-android:4.2.1
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+      > No cached version of androidx.activity:activity-ktx:1.12.4 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrency-jvm:2.1.0.
+     Required by:
+         project ':feature:terminal' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrency:2.1.0
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrency-jvm:2.1.0 available for offline mode.
+   > Could not resolve co.touchlab:stately-concurrent-collections-jvm:2.1.0.
+     Required by:
+         project ':feature:terminal' > io.insert-koin:koin-bom:4.2.1 > io.insert-koin:koin-core-jvm:4.2.1 > co.touchlab:stately-concurrent-collections:2.1.0
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+      > No cached version of co.touchlab:stately-concurrent-collections-jvm:2.1.0 available for offline mode.
+> There are 12 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+15: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:tools:access:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':feature:tools:access:debugUnitTestRuntimeClasspath'.
+   > Could not resolve androidx.documentfile:documentfile:1.0.1.
+     Required by:
+         project ':feature:tools:access' > project :feature:workspace
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+16: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:workspace:generateDebugUnitTestStubRFile'.
+> Could not resolve all files for configuration ':feature:workspace:debugUnitTestRuntimeClasspath'.
+   > Could not resolve androidx.documentfile:documentfile:1.0.1.
+     Required by:
+         project ':feature:workspace'
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+      > No cached version of androidx.documentfile:documentfile:1.0.1 available for offline mode.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 43s
+497 actionable tasks: 31 executed, 466 up-to-date

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevClientCodecTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:22.163Z" hostname="duguangdeMacBook-Pro.local" time="0.024">
+  <properties/>
+  <testcase name="vercelStatePartsSurviveEscapeHeavyState" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="decodeRejectsConfidenceOutOfRange" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="vercelDecodeToleratesMissingConfidenceAndUsage" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="decodeRejectsMissingAnswer" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="decodeRejectsNonFiniteNoul" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="vercelDecodeReadsTopLevelAnswers" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="vercelDecodeRejectsScoreOutOfRange" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="thirdPartyProvidersDecodeSystemoneAnswersAndSendNoExtraHeaders" classname="app.amber.core.jev.JevClientCodecTest" time="0.002"/>
+  <testcase name="vercelDecodeStillRejectsMissingAnswer" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="decodeRejectsUnknownChoiceOption" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="parseRetryAfterSecondsOnly" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="encodeProducesMapKeyedQuestions" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="vercelDecodeFallsBackToSelectedProbability" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="vercelDecodeReadsConfidenceFromProviderMetadata" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="endpointResolution" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="decodeRejectsNoulOutOfRange" classname="app.amber.core.jev.JevClientCodecTest" time="0.002"/>
+  <testcase name="defaultAndConnectionTestModelsPerProvider" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="decodeValidAnswersOfAllTypes" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="vercelCallSendsDecisionModelHeadersAndEndpoint" classname="app.amber.core.jev.JevClientCodecTest" time="0.002"/>
+  <testcase name="vercelEncodeProducesDecisionModelShape" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="settingKeepsModelPerProvider" classname="app.amber.core.jev.JevClientCodecTest" time="0.003"/>
+  <testcase name="decodeRejectsTypeMismatch" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <testcase name="thirdPartyProvidersUseSystemoneEnvelope" classname="app.amber.core.jev.JevClientCodecTest" time="0.001"/>
+  <testcase name="vercelDecodeRejectsMissingAnswers" classname="app.amber.core.jev.JevClientCodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

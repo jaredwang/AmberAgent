@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.ModelPickerSheetTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:14.343Z" hostname="duguangdeMBP.lan" time="0.114">
+  <properties/>
+  <testcase name="confirmAppliesBatchSelectionOnceWithCompleteFinalModels" classname="app.amber.feature.ui.pages.setting.ModelPickerSheetTest" time="0.114"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

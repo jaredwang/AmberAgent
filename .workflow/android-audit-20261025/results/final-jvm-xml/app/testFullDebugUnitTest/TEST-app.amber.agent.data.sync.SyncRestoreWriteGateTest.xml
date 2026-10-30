@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.sync.SyncRestoreWriteGateTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:08.675Z" hostname="duguangdeMBP.lan" time="0.031">
+  <properties/>
+  <testcase name="new writer waits for restore and lifecycle reports data commit" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.006"/>
+  <testcase name="orCancel preserves a legitimate nullable writer result" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.001"/>
+  <testcase name="new writer is admitted only after restore releases its lock" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.017"/>
+  <testcase name="writer carrying pre-restore epoch is dropped after commit" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.002"/>
+  <testcase name="pre-restore board owner is rejected after model work completes" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.004"/>
+  <testcase name="failed post-commit restore is reported as partial and stale writer is rejected" classname="app.amber.agent.data.sync.SyncRestoreWriteGateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

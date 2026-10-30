@@ -14,6 +14,7 @@ import app.amber.ai.ui.MessageChunk
 import app.amber.ai.ui.UIMessage
 import app.amber.ai.ui.UIMessageChoice
 import app.amber.ai.ui.UIMessagePart
+import app.amber.agent.data.workspace.ArtifactRepository
 import app.amber.core.ai.AILoggingManager
 import app.amber.core.ai.ChatGenerationRoundEngine
 import app.amber.core.ai.DefaultRunKernel
@@ -58,6 +59,7 @@ import app.amber.feature.runtime.DurableRuntimeTestBase
 import app.amber.feature.runtime.PermissionDecisionResolver
 import app.amber.feature.system.AgentPermissionBroker
 import app.amber.feature.tools.AgentToolSetFactory
+import app.amber.feature.workspace.WorkspaceManager
 import app.amber.review.ReflectionFixture
 import java.io.File
 import java.io.IOException
@@ -328,6 +330,38 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
     }
 
     @Test
+    fun `synthesis workspace artifact retains full body and references on generation and cached republish`() = runBlocking {
+        repository.upsertTopic(requireNotNull(repository.getHotTopic(TOPIC)).copy(
+            deepReadTemplateId = DeepReadSynthesisTemplate.BRIEF.wireId,
+        ))
+        val artifacts = ArtifactRepository(
+            database.artifactDao(), WorkspaceManager(context), database.messageNodeDao(), database.conversationDao(),
+        )
+        val gateway = ScriptedGateway(
+            Failure.IO,
+            synthesisReply = """{"title":"Portable article","lede":"Portable lede","points":["SYNTHESIS_BODY_UNIQUE","Remaining uncertainty"],"background":"Background evidence","impact":"Check original evidence"}""",
+        )
+        val kernel = recordingKernel(gateway)
+        val manager = manager(kernel, gateway.catalog, artifacts)
+
+        val generated = manager.run(TOPIC, TITLE, seedUrl = SOURCE, deferMissingStages = false).getOrThrow()
+        val published = artifacts.list().single()
+        val firstContent = requireNotNull(artifacts.readContent(published))
+
+        assertTrue(generated.isComplete())
+        assertTrue("The portable artifact must retain the article body", firstContent.contains("SYNTHESIS_BODY_UNIQUE"))
+        assertTrue("The portable artifact must retain source references", firstContent.contains(SOURCE))
+
+        artifacts.saveDeepRead(TOPIC, TITLE, "stale summary-only artifact")
+        manager.run(TOPIC, TITLE, seedUrl = SOURCE, deferMissingStages = false).getOrThrow()
+
+        val republished = requireNotNull(artifacts.readContent(artifacts.list().single()))
+        assertTrue(republished.contains("SYNTHESIS_BODY_UNIQUE"))
+        assertTrue(republished.contains(SOURCE))
+        assertEquals("Republishing a complete cached article must not call the provider again", 1, gateway.calls.size)
+    }
+
+    @Test
     fun `cancellation escapes the manager without a nonstream stage retry`() = runBlocking {
         val gateway = ScriptedGateway(Failure.CANCEL)
         val kernel = recordingKernel(gateway)
@@ -482,7 +516,11 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
         return RecordingKernel(DefaultRunKernel(context, AgentToolDispatcher(json, PermissionDecisionResolver()), engine))
     }
 
-    private fun manager(kernel: RunKernel, catalog: ProviderCatalog): DeepReadAgentRunManager {
+    private fun manager(
+        kernel: RunKernel,
+        catalog: ProviderCatalog,
+        artifactRepository: ArtifactRepository? = null,
+    ): DeepReadAgentRunManager {
         // Only unrelated platform services in LocalTools are unconstructed. Its actual DeepRead
         // time/catalog methods run with real dependencies; no generation/tool behavior is faked.
         val localTools = ReflectionFixture.allocate<LocalTools>()
@@ -495,7 +533,7 @@ class DeepReadGenerationFallbackTest : DurableRuntimeTestBase() {
             toolSetFactory = AgentToolSetFactory(localTools, context),
             sourcePrefetcher = DeepReadSourcePrefetcher(settingsStore, repository, prefetchClient),
             playbookRepository = DeepReadPlaybookRepository(context), researchHarness = DeepReadResearchHarness(),
-            appScope = scope, providerCatalog = catalog, restoreWriteGate = gate,
+            appScope = scope, providerCatalog = catalog, artifactRepository = artifactRepository, restoreWriteGate = gate,
         )
     }
 

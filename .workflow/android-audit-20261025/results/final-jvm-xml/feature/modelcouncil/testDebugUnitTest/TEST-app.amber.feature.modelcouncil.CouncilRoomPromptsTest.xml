@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:17.262Z" hostname="duguangdeMBP.lan" time="0.007">
+  <properties/>
+  <testcase name="exploreResponse includes prior message summary blocks" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="synthesize excludes streaming or failed guest messages" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="debateOpening asks for claim and evidence" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="hostSystemPrompt includes objective context mode and participants" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="summaryBlock respects limit" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="exploreOpening asks for breadth and does not reference others" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="debateFinalPosition includes own prior messages" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="invitedByHostPrompt merges mode opening and host instruction" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="synthesize includes only guest messages" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="guestSystemPrompt includes guest name role and mode guidance" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="followUpPrompt includes seed summary and reply metadata" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <testcase name="summaryBlock renders replyTo and continuesFrom refs" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="debateResponse references the target message author" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="summaryBlock renders cleanly without refs" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.001"/>
+  <testcase name="debateResponse without reference asks to revise position" classname="app.amber.feature.modelcouncil.CouncilRoomPromptsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

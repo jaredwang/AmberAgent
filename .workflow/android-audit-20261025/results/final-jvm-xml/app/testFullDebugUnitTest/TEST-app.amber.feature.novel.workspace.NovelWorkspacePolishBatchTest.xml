@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:42.656Z" hostname="duguangdeMBP.lan" time="0.783">
+  <properties/>
+  <testcase name="non-repairable plot staleness still refuses to start a polish batch" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.037"/>
+  <testcase name="polish write target rejects free paths and other canon paths in both approval modes" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.009"/>
+  <testcase name="facts-changing polish review stops without writing or rerolling the candidate" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.037"/>
+  <testcase name="narrated polish answer is filed host-side and keeps the chapter front matter" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.037"/>
+  <testcase name="polish batch pauses mid-turn and the old execution cannot commit after resume" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.082"/>
+  <testcase name="a reviewed candidate cannot overwrite a manuscript changed during review" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.05"/>
+  <testcase name="runBatch entry repairs a dangling polish pointer and resumes without re-polishing" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.074"/>
+  <testcase name="starting another polish batch cannot repair a pointer owned by an active batch" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.025"/>
+  <testcase name="unchanged reviewed chapter completes and projects reviewing and committing stages" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.042"/>
+  <testcase name="polish no-output round does not commit a stray plot pointer" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.051"/>
+  <testcase name="startPolishBatch self-heals a dangling polish commit instead of refusing" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.034"/>
+  <testcase name="polish batch fails after consecutive no-output turns instead of spinning" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.03"/>
+  <testcase name="polish batch stops when cancelled after a finished chapter" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.042"/>
+  <testcase name="polish batch commits 润色 then 剧情指针 per chapter and never leaves the plot stale" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.07"/>
+  <testcase name="retry refuses real story staleness after a failed batch without manufacturing a polish pointer" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.054"/>
+  <testcase name="polish chapter retries a transient provider failure exactly once" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.039"/>
+  <testcase name="workspace status reports actual plot staleness and unresolved edits" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.032"/>
+  <testcase name="unparseable polish review refuses to collect" classname="app.amber.feature.novel.workspace.NovelWorkspacePolishBatchTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

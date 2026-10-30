@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.baseline.JevMemoryCorpusBaselineTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.373Z" hostname="duguangdeMBP.lan" time="0.037">
+  <properties/>
+  <testcase name="fullChainRecallMatchesAnnotations" classname="app.amber.core.jev.baseline.JevMemoryCorpusBaselineTest" time="0.028"/>
+  <testcase name="worstCasePoolStaysWithinEnvelopeBudgets" classname="app.amber.core.jev.baseline.JevMemoryCorpusBaselineTest" time="0.004"/>
+  <testcase name="corpusVersionAndScaleAreFrozen" classname="app.amber.core.jev.baseline.JevMemoryCorpusBaselineTest" time="0.001"/>
+  <testcase name="baselineWithoutRerankerStaysNonEmpty" classname="app.amber.core.jev.baseline.JevMemoryCorpusBaselineTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -502,6 +502,7 @@ private fun SubAgentRunSheet(
     }
     val liveText by liveFlow.collectAsState()
     val liveParts by livePartsFlow.collectAsState()
+    val handleClickCitation = rememberClickCitationHandler(liveParts)
     val searchPresentation = rememberSearchPresentation(liveParts)
     val searchSources = searchPresentation.sources.takeIf { it.isNotEmpty }
     val snapshotRun = manager.snapshot(step.runId)
@@ -651,6 +652,7 @@ private fun SubAgentRunSheet(
                             modifier = Modifier.fillMaxWidth(),
                             style = MaterialTheme.typography.bodyMedium.copy(color = workspace.ink),
                             streaming = isRunning,
+                            onClickCitation = handleClickCitation,
                         )
                     }
                 }

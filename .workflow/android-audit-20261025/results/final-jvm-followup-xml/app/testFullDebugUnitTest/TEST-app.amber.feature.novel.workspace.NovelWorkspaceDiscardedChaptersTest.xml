@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:37.642Z" hostname="duguangdeMBP.lan" time="0.188">
+  <properties/>
+  <testcase name="removing middle chapter opens continuity gates and undo restores both paths" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.021"/>
+  <testcase name="discarded chapters stay on their source branch and legacy flat files belong only to main" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.028"/>
+  <testcase name="owner stale head and stale tree cannot remove or restore chapters" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.075"/>
+  <testcase name="restoration refuses any existing chapter with the original ordinal" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.016"/>
+  <testcase name="discard and restore after restart keep exact raw chapter and history" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.017"/>
+  <testcase name="destination write failure keeps the original chapter and continuity gate" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.009"/>
+  <testcase name="nested imported chapter keeps its relative source path through discard and restore" classname="app.amber.feature.novel.workspace.NovelWorkspaceDiscardedChaptersTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

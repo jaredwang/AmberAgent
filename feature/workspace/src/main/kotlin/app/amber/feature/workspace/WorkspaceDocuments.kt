@@ -109,7 +109,7 @@ internal class WorkspaceDocuments(
     ): WorkspaceEntry = withContext(Dispatchers.IO) {
         val normalized = requireFilePath(relativePath)
         val file = requireOrCreateFile(relativePath, mimeType)
-        val mode = if (append) "wa" else "w"
+        val mode = if (append) "wa" else "wt"
         contentResolver.openOutputStream(file.uri, mode)?.use {
             it.write(bytes)
         } ?: error("Unable to write file: $relativePath")
@@ -155,7 +155,17 @@ internal class WorkspaceDocuments(
         val renamed = if (sourceParent == targetParentPath) {
             val moved = source.renameTo(targetName)
             require(moved) { "Unable to rename $sourcePath to $targetPath" }
-            targetParent.findFile(targetName) ?: source
+            if (source.name != targetName) {
+                val actualName = source.name
+                val originalName = sourceNormalized.substringAfterLast('/')
+                val restored = source.renameTo(originalName) && source.name == originalName
+                error(
+                    "Workspace provider renamed '$sourcePath' to '$actualName' instead of '$targetName'. " +
+                        if (restored) "Original path was restored." else
+                            "Content remains at '${joinPath(sourceParent, source.name.orEmpty())}'."
+                )
+            }
+            source
         } else {
             val copied = copyDocument(source, targetParent, targetName)
             require(source.delete()) { "Copied but failed to delete original path: $sourcePath" }
@@ -253,7 +263,11 @@ internal class WorkspaceDocuments(
         val parent = requireOrCreateParent(relativePath)
         val name = normalized.substringAfterLast("/")
         parent.findFile(name)?.let { return it }
-        val created = parent.createFile(mimeType, name) ?: error("Unable to create $relativePath")
+        return createFileWithExactName(parent, name, mimeType)
+    }
+
+    private fun createFileWithExactName(parent: DocumentFile, name: String, mimeType: String): DocumentFile {
+        val created = parent.createFile(mimeType, name) ?: error("Unable to create workspace file: $name")
         if (created.name == name) return created
 
         val renamed = runCatching { created.renameTo(name) }.getOrDefault(false)
@@ -284,8 +298,7 @@ internal class WorkspaceDocuments(
             }
             return targetDir
         }
-        val target = targetParent.createFile(source.type ?: "application/octet-stream", targetName)
-            ?: error("Unable to create file $targetName")
+        val target = createFileWithExactName(targetParent, targetName, source.type ?: "application/octet-stream")
         val input = contentResolver.openInputStream(source.uri)
             ?: error("Unable to read ${source.name}")
         val output = contentResolver.openOutputStream(target.uri, "wt")

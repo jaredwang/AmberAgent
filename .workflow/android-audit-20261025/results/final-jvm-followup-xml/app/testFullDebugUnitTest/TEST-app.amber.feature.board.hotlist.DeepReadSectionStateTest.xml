@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadSectionStateTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.764Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="deliverableDraftRequiresSectionsReadyButNotVerification" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="sectionFailureMessageIgnoresVerificationState" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="withSectionStatusUpdatesIndividualStageAndKeepsCompleteFlagInSync" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="legacyCompleteCacheNoLongerRequiresVerification" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="withInferredSectionStatesMarksOnlyOverviewReadyForOverviewOnlyCache" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="sectionStatesRoundTripsThroughJson" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="withInferredSectionStatesRecoversCompleteLegacyCache" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="isCompleteRequiresAllSectionsReadyAndFinishFlag" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <testcase name="displayHeroFallsBackToVerifiedInlineImageWhenExplicitHeroMissing" classname="app.amber.feature.board.hotlist.DeepReadSectionStateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ConversationStoreTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:25.234Z" hostname="duguangdeMBP.lan" time="0.168">
+  <properties/>
+  <testcase name="append returns only after its window is durable without expanding the UI history" classname="app.amber.core.service.ConversationStoreTest" time="0.024"/>
+  <testcase name="full save from tail retains unloaded nodes while applying latest metadata" classname="app.amber.core.service.ConversationStoreTest" time="0.024"/>
+  <testcase name="concurrent initialization cannot overwrite the first accepted message" classname="app.amber.core.service.ConversationStoreTest" time="0.014"/>
+  <testcase name="tombstone prevents checkpoint and full save from resurrecting deleted history until undo" classname="app.amber.core.service.ConversationStoreTest" time="0.015"/>
+  <testcase name="generation reads full history with fresh window without publishing it to UI" classname="app.amber.core.service.ConversationStoreTest" time="0.025"/>
+  <testcase name="failed restore without data commit keeps loaded state and tombstone" classname="app.amber.core.service.ConversationStoreTest" time="0.014"/>
+  <testcase name="tail checkpoint preserves unloaded history and latest window edits" classname="app.amber.core.service.ConversationStoreTest" time="0.021"/>
+  <testcase name="committed restore invalidates the same subscriptions and rejects old writers" classname="app.amber.core.service.ConversationStoreTest" time="0.017"/>
+  <testcase name="idle timeout retains pending input and evicts only an unused empty session" classname="app.amber.core.service.ConversationStoreTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

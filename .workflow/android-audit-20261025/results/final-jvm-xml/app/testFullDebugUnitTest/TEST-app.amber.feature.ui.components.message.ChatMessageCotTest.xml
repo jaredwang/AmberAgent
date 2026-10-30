@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ChatMessageCotTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:56.312Z" hostname="duguangdeMBP.lan" time="0.035">
+  <properties/>
+  <testcase name="queued message keeps prior result but card reports pending receipt" classname="app.amber.feature.ui.components.message.ChatMessageCotTest" time="0.014"/>
+  <testcase name="followup send and interrupt share the original subagent card" classname="app.amber.feature.ui.components.message.ChatMessageCotTest" time="0.008"/>
+  <testcase name="blank reasoning markers do not split adjacent visible text" classname="app.amber.feature.ui.components.message.ChatMessageCotTest" time="0.006"/>
+  <testcase name="followup starts a distinct current turn" classname="app.amber.feature.ui.components.message.ChatMessageCotTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

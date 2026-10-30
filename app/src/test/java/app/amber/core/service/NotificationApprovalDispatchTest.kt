@@ -21,15 +21,50 @@ import kotlin.uuid.Uuid
 
 class NotificationApprovalDispatchTest {
     @Test
+    fun `approval waits for predecessor pause handoff without cancelling the run`() = runTest {
+        val session = session(backgroundScope)
+        val pauseCommitted = CompletableDeferred<Unit>()
+        var predecessorCancelled = false
+        var decisionRan = false
+        val previous = backgroundScope.launch {
+            try {
+                // A pending card is visible before the current handler finishes parking its run.
+                pauseCommitted.await()
+            } finally {
+                predecessorCancelled = !pauseCommitted.isCompleted
+            }
+        }
+        session.setJob(previous)
+        runCurrent()
+        val acceptance = async {
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) { persisted ->
+                decisionRan = true
+                persisted()
+            }
+        }
+        runCurrent()
+        assertFalse("approval must not cancel the still-parking run", predecessorCancelled)
+        assertFalse("decision must wait for the prior dispatch to settle", decisionRan)
+        assertFalse(acceptance.isCompleted)
+
+        pauseCommitted.complete(Unit)
+        runCurrent()
+        assertTrue(acceptance.await())
+        assertTrue(decisionRan)
+        assertFalse(previous.isCancelled)
+    }
+
+    @Test
     fun `acceptance waits for persistence then returns while owned generation continues`() = runTest {
         val session = session(backgroundScope)
-        val previous = backgroundScope.launch { awaitCancellation() }
+        val previous = backgroundScope.launch { }
         session.setJob(previous)
+        runCurrent()
         val persistence = CompletableDeferred<Unit>()
         var ownerInstalledBeforeDecision = false
         var continuationCancelled = false
         val acceptance = async {
-            session.dispatchNotificationApproval(backgroundScope, onError = { throw it }) { persisted ->
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) { persisted ->
                 ownerInstalledBeforeDecision = session.getJob() == currentCoroutineContext()[Job]
                 persistence.await()
                 persisted()
@@ -41,7 +76,8 @@ class NotificationApprovalDispatchTest {
             }
         }
         runCurrent()
-        assertTrue(previous.isCancelled)
+        assertTrue(previous.isCompleted)
+        assertFalse(previous.isCancelled)
         assertTrue(ownerInstalledBeforeDecision)
         assertFalse(acceptance.isCompleted)
 
@@ -58,11 +94,53 @@ class NotificationApprovalDispatchTest {
     }
 
     @Test
+    fun `stop during predecessor handoff rejects the queued approval`() = runTest {
+        val session = session(backgroundScope)
+        val previous = backgroundScope.launch { awaitCancellation() }
+        session.setJob(previous)
+        var decisionRan = false
+        val acceptance = async {
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) { persisted ->
+                decisionRan = true
+                persisted()
+            }
+        }
+        runCurrent()
+        previous.cancel()
+        runCurrent()
+        assertFalse(acceptance.await())
+        assertFalse(decisionRan)
+        assertNull(session.getJob())
+    }
+
+    @Test
+    fun `a successor operation cannot be replaced by a waiting approval`() = runTest {
+        val session = session(backgroundScope)
+        val previous = backgroundScope.launch { awaitCancellation() }
+        session.setJob(previous)
+        var decisionRan = false
+        val acceptance = async {
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) { persisted ->
+                decisionRan = true
+                persisted()
+            }
+        }
+        runCurrent()
+        val successor = backgroundScope.launch(start = CoroutineStart.LAZY) { awaitCancellation() }
+        session.setJob(successor)
+        successor.start()
+        runCurrent()
+        assertFalse(acceptance.await())
+        assertFalse(decisionRan)
+        assertTrue(session.getJob() === successor)
+    }
+
+    @Test
     fun `a later session operation cancels resumed generation without cancelling its acceptance caller`() = runTest {
         val session = session(backgroundScope)
         var continuationCancelled = false
         val acceptance = async {
-            session.dispatchNotificationApproval(backgroundScope, onError = { throw it }) { persisted ->
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) { persisted ->
                 persisted()
                 try {
                     awaitCancellation()
@@ -89,7 +167,7 @@ class NotificationApprovalDispatchTest {
         val errors = mutableListOf<Exception>()
         val failure = IllegalStateException("approval persistence failed")
         val acceptance = async {
-            session.dispatchNotificationApproval(backgroundScope, onError = { errors += it }) {
+            session.dispatchToolApproval(backgroundScope, onError = { errors += it }) {
                 throw failure
             }
         }
@@ -106,7 +184,7 @@ class NotificationApprovalDispatchTest {
         val errors = mutableListOf<Exception>()
         val failure = IllegalStateException("provider failed after approval")
         val acceptance = async {
-            session.dispatchNotificationApproval(backgroundScope, onError = { errors += it }) { persisted ->
+            session.dispatchToolApproval(backgroundScope, onError = { errors += it }) { persisted ->
                 persisted()
                 generation.await()
                 throw failure
@@ -127,7 +205,7 @@ class NotificationApprovalDispatchTest {
     fun `cancellation before persistence rejects rather than accepting a decision`() = runTest {
         val session = session(backgroundScope)
         val acceptance = async {
-            session.dispatchNotificationApproval(backgroundScope, onError = { throw it }) {
+            session.dispatchToolApproval(backgroundScope, onError = { throw it }) {
                 awaitCancellation()
             }
         }
@@ -144,7 +222,7 @@ class NotificationApprovalDispatchTest {
         val session = session(backgroundScope)
         var decisionRan = false
         val acceptance = async {
-            session.dispatchNotificationApproval(scope, onError = { throw it }) {
+            session.dispatchToolApproval(scope, onError = { throw it }) {
                 decisionRan = true
             }
         }

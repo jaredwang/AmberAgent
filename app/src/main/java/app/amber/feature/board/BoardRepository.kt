@@ -46,8 +46,8 @@ class BoardRepository(
         sinceMs: Long,
     ): BoardSignalEntity? = signalDao.findDuplicateByHash(contentHash, sourceType, sinceMs)
 
-    suspend fun getUnprocessedSignals(limit: Int = 200): List<BoardSignalEntity> =
-        signalDao.getUnprocessed(limit)
+    suspend fun getUnprocessedSignals(enabledSources: Set<String>, limit: Int = 200): List<BoardSignalEntity> =
+        signalDao.getUnprocessed(enabledSources.toList(), limit)
 
     suspend fun countUnprocessedSignals(): Int = signalDao.countUnprocessed()
 

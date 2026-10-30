@@ -78,13 +78,34 @@ class SettingsSecretMigrator(
                         return@edit
                     }
                 }
+                // Only absent domains may use defaults. Validate every present
+                // payload before redaction writes any candidate credentials.
+                val customHeadersJson = p[PreferencesKeys.AMBER_CUSTOM_HEADERS]
+                val customHeaders = customHeadersJson?.let {
+                    requireNotNull(it.decodeJsonOrNull<List<CustomHeader>>()) { "Unreadable custom header settings" }
+                } ?: emptyList()
+                val searchJson = p[PreferencesKeys.SEARCH_SERVICES]
+                val searchServices = searchJson?.let {
+                    requireNotNull(it.decodeSearchServicesDroppingLegacy()) { "Unreadable search service settings" }.services
+                } ?: emptyList()
+                val mcpJson = p[PreferencesKeys.MCP_SERVERS]
+                val mcpServers = mcpJson?.let {
+                    requireNotNull(it.decodeJsonOrNull<List<McpServerConfig>>()) { "Unreadable MCP settings" }
+                } ?: emptyList()
+                val webDavJson = p[PreferencesKeys.WEBDAV_CONFIG]
+                val webDav = webDavJson?.let {
+                    requireNotNull(it.decodeJsonOrNull<WebDavConfig>()) { "Unreadable WebDAV settings" }
+                } ?: WebDavConfig()
+                val s3Json = p[PreferencesKeys.S3_CONFIG]
+                val s3 = s3Json?.let {
+                    requireNotNull(it.decodeJsonOrNull<S3Config>()) { "Unreadable S3 settings" }
+                } ?: S3Config()
+
                 val redactedProviders = redactor.redactProviders(providers, existingRefs, out)
                 if (providersJson != null && JsonInstant.encodeToString(redactedProviders) != providersJson) {
                     changed = true
                 }
 
-                val customHeadersJson = p[PreferencesKeys.AMBER_CUSTOM_HEADERS]
-                val customHeaders = customHeadersJson?.decodeJsonOrNull<List<CustomHeader>>() ?: emptyList()
                 val redactedCustomHeaders = redactor.redactCustomHeaders(customHeaders, existingRefs, out)
                 if (
                     customHeadersJson != null &&
@@ -93,32 +114,21 @@ class SettingsSecretMigrator(
                     changed = true
                 }
 
-                val searchJson = p[PreferencesKeys.SEARCH_SERVICES]
-                val searchServices = searchJson
-                    ?.decodeSearchServicesDroppingLegacy()
-                    ?.services
-                    ?: emptyList()
                 val redactedSearch = redactor.redactSearchServices(searchServices, existingRefs, out)
                 if (searchJson != null && JsonInstant.encodeToString(redactedSearch) != searchJson) {
                     changed = true
                 }
 
-                val mcpJson = p[PreferencesKeys.MCP_SERVERS]
-                val mcpServers = mcpJson?.decodeJsonOrNull<List<McpServerConfig>>() ?: emptyList()
                 val redactedMcp = redactor.redactMcpServers(mcpServers, existingRefs, out)
                 if (mcpJson != null && JsonInstant.encodeToString(redactedMcp) != mcpJson) {
                     changed = true
                 }
 
-                val webDavJson = p[PreferencesKeys.WEBDAV_CONFIG]
-                val webDav = webDavJson?.decodeJsonOrNull<WebDavConfig>() ?: WebDavConfig()
                 val redactedWebDav = redactor.redactWebDav(webDav, existingRefs, out)
                 if (webDavJson != null && JsonInstant.encodeToString(redactedWebDav) != webDavJson) {
                     changed = true
                 }
 
-                val s3Json = p[PreferencesKeys.S3_CONFIG]
-                val s3 = s3Json?.decodeJsonOrNull<S3Config>() ?: S3Config()
                 val redactedS3 = redactor.redactS3(s3, existingRefs, out)
                 if (s3Json != null && JsonInstant.encodeToString(redactedS3) != s3Json) {
                     changed = true
@@ -381,7 +391,9 @@ class SettingsSecretMigrator(
                 val retainedEnabled = enabledBefore.filterNot { it in decoded.legacyServiceIds }
                 p[PreferencesKeys.SEARCH_SERVICES] = JsonInstant.encodeToString(decoded.services)
                 p[PreferencesKeys.SEARCH_SELECTED] = decoded.adjustedSelected(selectedBefore)
-                if (p[PreferencesKeys.SEARCH_ENABLED_SERVICE_IDS] != null) {
+                // Preserve the retired selection before its discriminator disappears;
+                // a missing key would otherwise migrate the surviving profile as enabled.
+                if (p[PreferencesKeys.SEARCH_ENABLED_SERVICE_IDS] != null || selectedBefore in decoded.legacyIndices) {
                     p[PreferencesKeys.SEARCH_ENABLED_SERVICE_IDS] = JsonInstant.encodeToString(retainedEnabled)
                 }
                 if (

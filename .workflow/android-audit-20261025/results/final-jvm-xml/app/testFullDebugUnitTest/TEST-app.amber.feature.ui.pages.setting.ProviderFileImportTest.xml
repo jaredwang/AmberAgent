@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.ProviderFileImportTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:14.530Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="oversizedInputIsRejectedDuringRead" classname="app.amber.feature.ui.pages.setting.ProviderFileImportTest" time="0.001"/>
+  <testcase name="invalidEntryRejectsWholeBatch" classname="app.amber.feature.ui.pages.setting.ProviderFileImportTest" time="0.001"/>
+  <testcase name="jsonBatchPreservesConfigurationWithFreshIds" classname="app.amber.feature.ui.pages.setting.ProviderFileImportTest" time="0.001"/>
+  <testcase name="markdownReadsJsonBlocksWithoutInterpretingProse" classname="app.amber.feature.ui.pages.setting.ProviderFileImportTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

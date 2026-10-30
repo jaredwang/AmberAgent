@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.474Z" hostname="duguangdeMBP.lan" time="0.113">
+  <properties/>
+  <testcase name="linkFollowedByBareDomainPunctuationCaseStaysIntact" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.02"/>
+  <testcase name="multipleExplicitLinksOnOneLineStayIntact" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.009"/>
+  <testcase name="domainInsideLinkLabelStaysIntact" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.009"/>
+  <testcase name="balancedParensInDestinationStayIntact" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.011"/>
+  <testcase name="urlInsideInlineCodeIsUntouched" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.016"/>
+  <testcase name="explicitLinkDestinationStaysIntact" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.013"/>
+  <testcase name="bareUrlAfterExplicitLinkOnSameLineStillLinkifies" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.011"/>
+  <testcase name="bareUrlWithPathStillLinkifies" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.011"/>
+  <testcase name="bareUrlStillLinkifies" classname="app.amber.feature.ui.components.richtext.MarkdownLinkifyPreprocessTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

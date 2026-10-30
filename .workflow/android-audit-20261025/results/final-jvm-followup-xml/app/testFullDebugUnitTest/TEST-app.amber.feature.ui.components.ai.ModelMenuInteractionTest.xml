@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:45.974Z" hostname="duguangdeMBP.lan" time="0.998">
+  <properties/>
+  <testcase name="reasoningSegment_selectionStateMachine_movesActiveAcrossTaps" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.044"/>
+  <testcase name="topModelMenu_openWithoutProvidersShowsEmptyState" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.039"/>
+  <testcase name="topModelMenu_reasoningFooterFiresCallbackWithTheSupportedLevel" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.043"/>
+  <testcase name="modelList_providerBadgeUsesExpansionFromUpdatedCurrentModel" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.249"/>
+  <testcase name="modelList_badgeFollowsProviderHeaderAfterSearchChangesGroupPositions" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.23"/>
+  <testcase name="modelList_initialScrollTargetsCurrentModelAfterCollapsedProvider" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.047"/>
+  <testcase name="reasoningSegment_perModelLevelSets_areCorrect" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.028"/>
+  <testcase name="reasoningSegment_rendersEveryLevelLabel" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.027"/>
+  <testcase name="modelList_providerBadgeTargetsHeaderWhenSearchFiltersOutFirstProvider" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.086"/>
+  <testcase name="modelList_keepsSearchAndModelRowVisibleAndSelectable" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.041"/>
+  <testcase name="modelList_badgeFollowsProviderHeaderAfterEarlierGroupIsCollapsed" classname="app.amber.feature.ui.components.ai.ModelMenuInteractionTest" time="0.163"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

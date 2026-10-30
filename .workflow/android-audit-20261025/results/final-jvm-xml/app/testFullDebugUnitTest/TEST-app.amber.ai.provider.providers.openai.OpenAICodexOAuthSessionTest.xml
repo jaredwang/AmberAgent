@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.openai.OpenAICodexOAuthSessionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:15.823Z" hostname="duguangdeMBP.lan" time="0.183">
+  <properties/>
+  <testcase name="late refresh cannot resurrect tokens after logout" classname="app.amber.ai.provider.providers.openai.OpenAICodexOAuthSessionTest" time="0.096"/>
+  <testcase name="late device authorization cannot replace a newer session" classname="app.amber.ai.provider.providers.openai.OpenAICodexOAuthSessionTest" time="0.041"/>
+  <testcase name="late refresh cannot replace a session installed by another client after logout" classname="app.amber.ai.provider.providers.openai.OpenAICodexOAuthSessionTest" time="0.046"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.529Z" hostname="duguangdeMBP.lan" time="0.065">
+  <properties/>
+  <testcase name="preservesGeometryAnimationWithDangerousTargetOnlyInAttributeText" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.056"/>
+  <testcase name="dropsAnimateElementsTargetingRuntimeDangerousAttributes" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.001"/>
+  <testcase name="keepsDeclarativeSvgAnimation" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.002"/>
+  <testcase name="dropsAnimateTargetHiddenBehindQuotedGtAndEntities" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.001"/>
+  <testcase name="allowsRasterBase64DataImages" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.0"/>
+  <testcase name="dropsDangerousAnimationTargetAfterDecoyAttributes" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.001"/>
+  <testcase name="rejectsOversizedWidget" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.0"/>
+  <testcase name="removesFontFaceBlocksWithoutCrashing" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.0"/>
+  <testcase name="removesDangerousScriptsEventsAndLinks" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.001"/>
+  <testcase name="stripsJsDrivenAnimationHooks" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.0"/>
+  <testcase name="rejectsSvgDataImagesSrcsetAndVendorSticky" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.0"/>
+  <testcase name="rejectsTooManyTagsAfterSanitizing" classname="app.amber.core.ai.generative.GenerativeWidgetSanitizerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

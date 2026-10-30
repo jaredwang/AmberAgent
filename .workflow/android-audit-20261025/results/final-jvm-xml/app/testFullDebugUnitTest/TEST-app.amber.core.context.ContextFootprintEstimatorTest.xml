@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.context.ContextFootprintEstimatorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:21.394Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="conversationCacheReusesOldMessagesAndUpdatesTextAndCompacts" classname="app.amber.core.context.ContextFootprintEstimatorTest" time="0.006"/>
+  <testcase name="reasoningCountsAsInputFootprint" classname="app.amber.core.context.ContextFootprintEstimatorTest" time="0.0"/>
+  <testcase name="fingerprintIgnoresUsageButTracksReasoningGrowth" classname="app.amber.core.context.ContextFootprintEstimatorTest" time="0.001"/>
+  <testcase name="toolOutputContributesToFootprint" classname="app.amber.core.context.ContextFootprintEstimatorTest" time="0.0"/>
+  <testcase name="estimateUsesLatestCumulativeHandoffOnly" classname="app.amber.core.context.ContextFootprintEstimatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

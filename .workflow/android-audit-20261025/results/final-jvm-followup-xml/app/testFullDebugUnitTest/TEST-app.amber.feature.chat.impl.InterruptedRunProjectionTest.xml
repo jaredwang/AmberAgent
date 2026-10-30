@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.chat.impl.InterruptedRunProjectionTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:30.689Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="marks half-streamed tool args as not executable" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.001"/>
+  <testcase name="restores pending approval lost in the snapshot window" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="projection is idempotent" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="does nothing when fallback tail is not an assistant message" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="appends stale suffix when persisted tail lags the checkpoint hash" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.001"/>
+  <testcase name="marks tail assistant message interrupted and stamps finishedAt" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="leaves executed and user-decided tools untouched" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="falls back to last node when checkpointed tail is missing from snapshot" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="preserves pending approval tools" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <testcase name="closes dangling reasoning parts" classname="app.amber.feature.chat.impl.InterruptedRunProjectionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

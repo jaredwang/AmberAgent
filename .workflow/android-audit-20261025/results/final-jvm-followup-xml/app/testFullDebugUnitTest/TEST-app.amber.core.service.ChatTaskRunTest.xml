@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.ChatTaskRunTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:24.894Z" hostname="duguangdeMBP.lan" time="0.013">
+  <properties/>
+  <testcase name="late old task cancellation cannot cancel the successor dispatch" classname="app.amber.core.service.ChatTaskRunTest" time="0.003"/>
+  <testcase name="failed generation retains its terminal status and cause" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="cancel before dispatch ever starts completes the launch handoff" classname="app.amber.core.service.ChatTaskRunTest" time="0.002"/>
+  <testcase name="observing cancelled does not finish before the run cleanup completes" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="cancel waits for actual run cleanup after stop returns and cancelled snapshot is visible" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="approval pause keeps waiting until that run actually completes" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="timeout cancels only the admitted run" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="cancelled snapshot reconciled to waiting external continues waiting after settlement" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="cancel before launch stops dispatch without claiming another run" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <testcase name="cancelled admission return closes the run whose handle was not delivered" classname="app.amber.core.service.ChatTaskRunTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.sessionhome.SessionHomeConversationStreamTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.528Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="paging stream keeps the emitted page and reports the error" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeConversationStreamTest" time="0.002"/>
+  <testcase name="paging construction error reports without emitting an empty replacement" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeConversationStreamTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

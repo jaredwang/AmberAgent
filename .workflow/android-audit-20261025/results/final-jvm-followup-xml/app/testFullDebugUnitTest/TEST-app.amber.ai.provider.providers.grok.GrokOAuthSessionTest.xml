@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:20.059Z" hostname="duguangdeMBP.lan" time="0.068">
+  <properties/>
+  <testcase name="old invalid grant during authorization cannot cancel pending new login" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.022"/>
+  <testcase name="old refresh started during authorization cannot overwrite successful new login" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.01"/>
+  <testcase name="browser fetch callback exchanges and refreshes with the registered client" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.011"/>
+  <testcase name="late invalid grant cannot clear a session created after logout" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.008"/>
+  <testcase name="late successful refresh cannot replace a session created after logout" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.009"/>
+  <testcase name="old invalid grant started during authorization cannot clear successful new login" classname="app.amber.ai.provider.providers.grok.GrokOAuthSessionTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

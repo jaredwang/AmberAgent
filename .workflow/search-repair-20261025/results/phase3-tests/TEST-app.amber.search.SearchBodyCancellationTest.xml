@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.search.SearchBodyCancellationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:13:59.741Z" hostname="duguangdeMBP.lan" time="0.13">
+  <properties/>
+  <testcase name="exaCancellationReachesCallDuringResponseBodyRead" classname="app.amber.search.SearchBodyCancellationTest" time="0.117"/>
+  <testcase name="zhipuCancellationReachesCallDuringResponseBodyRead" classname="app.amber.search.SearchBodyCancellationTest" time="0.007"/>
+  <testcase name="tavilyCancellationReachesCallDuringResponseBodyRead" classname="app.amber.search.SearchBodyCancellationTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

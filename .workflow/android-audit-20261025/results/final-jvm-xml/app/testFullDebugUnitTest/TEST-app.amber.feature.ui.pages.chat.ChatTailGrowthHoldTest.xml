@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatTailGrowthHoldTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:08.198Z" hostname="duguangdeMBP.lan" time="0.271">
+  <properties/>
+  <testcase name="tailResizeAcrossManyItemsWhileReadingAwayFromBottomDoesNotCrash" classname="app.amber.feature.ui.pages.chat.ChatTailGrowthHoldTest" time="0.271"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.utils.ContextImageExportTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:28.332Z" hostname="duguangdeMBP.lan" time="0.759">
+  <properties/>
+  <testcase name="image exports report failure when the gallery rejects insertion" classname="app.amber.core.utils.ContextImageExportTest" time="0.594"/>
+  <testcase name="image exports remove inserted gallery entries when closing output fails" classname="app.amber.core.utils.ContextImageExportTest" time="0.165"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

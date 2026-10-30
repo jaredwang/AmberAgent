@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.857Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="gemini result is rejected when provider configuration changed" classname="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" time="0.003"/>
+  <testcase name="login seeds only the first fetched model when no model is enabled" classname="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" time="0.001"/>
+  <testcase name="candidates from old credentials are not reused after provider changes" classname="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" time="0.0"/>
+  <testcase name="late codex result is rejected after oauth generation changes" classname="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" time="0.0"/>
+  <testcase name="login keeps existing enabled models while candidates carry the fetched catalog" classname="app.amber.feature.ui.pages.setting.ProviderModelCandidatesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

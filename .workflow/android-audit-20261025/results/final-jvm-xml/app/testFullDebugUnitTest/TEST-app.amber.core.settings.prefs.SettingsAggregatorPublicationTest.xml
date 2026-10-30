@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.prefs.SettingsAggregatorPublicationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:26.940Z" hostname="duguangdeMBP.lan" time="0.032">
+  <properties/>
+  <testcase name="acknowledged write publishes canonical settings before delayed domain notifications" classname="app.amber.core.settings.prefs.SettingsAggregatorPublicationTest" time="0.019"/>
+  <testcase name="queued older projection cannot overwrite a later acknowledged write" classname="app.amber.core.settings.prefs.SettingsAggregatorPublicationTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.ProviderConfigToolsTest" tests="37" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:21.994Z" hostname="duguangdeMBP.lan" time="0.57">
+  <properties/>
+  <testcase name="apply falls back to a unique substring match when no exact match exists" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.03"/>
+  <testcase name="set_model_slot ambiguous model_ref returns candidates and writes nothing" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.016"/>
+  <testcase name="status reports Codex OAuth as not signed in when its token store is empty" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.012"/>
+  <testcase name="refresh rejects a late catalog when the same provider secret changed" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.021"/>
+  <testcase name="set_model_slot model_id writes the slot" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.016"/>
+  <testcase name="apply renames provider and reports changed fields in iOS order" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.015"/>
+  <testcase name="apply resolves to ask approval even with plain auto-approve on" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.009"/>
+  <testcase name="apply name resolution prefers case-insensitive exact match over create_if_missing" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.021"/>
+  <testcase name="apply rejects non-https base_url without partial commit" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.012"/>
+  <testcase name="status reports brand only for openai-compatible and auth_mode for every provider" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.014"/>
+  <testcase name="registry metadata pins effect class risk and capability" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.011"/>
+  <testcase name="refresh rejects a late catalog when the same provider endpoint changed" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.018"/>
+  <testcase name="status reports no key and heals dangling chat model to auto" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.017"/>
+  <testcase name="apply rejects base_url with embedded userinfo" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.012"/>
+  <testcase name="refresh Gemini OAuth refuses before model catalog fetch when session is absent" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.018"/>
+  <testcase name="refresh reports provider-not-found when provider is deleted before the write" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.017"/>
+  <testcase name="apply rejects placeholder api keys" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.012"/>
+  <testcase name="status result json never contains apiKey field name" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.015"/>
+  <testcase name="apply create_if_missing creates openai-compatible provider" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.02"/>
+  <testcase name="apply denied by user writes nothing" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.016"/>
+  <testcase name="expired Codex access token with refresh credential remains usable" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.014"/>
+  <testcase name="refresh 401 reports invalid key and never clears existing models" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.019"/>
+  <testcase name="apply empty api_key clears the stored key" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.014"/>
+  <testcase name="set_model_slot rejects type mismatch" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.011"/>
+  <testcase name="status reports has_api_key from secret ref without leaking key value" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.017"/>
+  <testcase name="set_model_slot unique model_ref writes the slot" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.021"/>
+  <testcase name="status has_api_key false when stored ciphertext cannot be decrypted" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.012"/>
+  <testcase name="subagent tool sets never include provider config tools" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.014"/>
+  <testcase name="set_model_slot ignores disabled providers for model_ref" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.011"/>
+  <testcase name="apply ambiguous name with create_if_missing returns candidates and writes nothing" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.015"/>
+  <testcase name="minimal tool profile filters out provider config write tools" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.011"/>
+  <testcase name="tool search discovers provider config tools by chinese aliases" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.018"/>
+  <testcase name="refresh replace_chat replaces only chat models" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.013"/>
+  <testcase name="refresh merge keeps existing models and appends new ones" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.013"/>
+  <testcase name="apply writes key through SettingsAggregator into SecretStore" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.013"/>
+  <testcase name="queued apply preserves an unrelated settings change committed while it waited" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.017"/>
+  <testcase name="status does not treat selected Gemini OAuth mode as a usable session" classname="app.amber.core.ai.tools.ProviderConfigToolsTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

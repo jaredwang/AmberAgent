@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.486Z" hostname="duguangdeMBP.lan" time="0.06">
+  <properties/>
+  <testcase name="explicitPostKeepsItsMethodAndBody" classname="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" time="0.023"/>
+  <testcase name="defaultGetWithBodyIsRejectedBeforeItCanBecomePost" classname="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" time="0.008"/>
+  <testcase name="explicitGetWithEmptyBodyIsRejectedBeforeItCanBecomePost" classname="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" time="0.012"/>
+  <testcase name="ordinaryGetKeepsItsReadMethod" classname="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" time="0.01"/>
+  <testcase name="headWithBodyIsRejectedBeforeConnecting" classname="app.amber.feature.tools.WorkspaceArtifactHttpRequestTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

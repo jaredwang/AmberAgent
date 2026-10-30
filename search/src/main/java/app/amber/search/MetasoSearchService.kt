@@ -88,7 +88,8 @@ object MetasoSearchService : SearchService<SearchServiceOptions.MetasoOptions> {
                             SearchResultItem(
                                 title = webpage.title,
                                 url = webpage.link,
-                                text = webpage.snippet ?: ""
+                                text = webpage.snippet ?: "",
+                                publishedAt = webpage.date,
                             )
                         }
                     )
@@ -142,6 +143,6 @@ object MetasoSearchService : SearchService<SearchServiceOptions.MetasoOptions> {
         @SerialName("position")
         val position: Int,
         @SerialName("date")
-        val date: String,
+        val date: String? = null,
     )
 }

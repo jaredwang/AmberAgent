@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.ExternalActionEffectPolicyTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:25.901Z" hostname="duguangdeMBP.lan" time="0.182">
+  <properties/>
+  <testcase name="screenActionsCannotBeRecoveredAsReadOnlyObservations" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.066"/>
+  <testcase name="fileWriteRecoveryDistinguishesOverwriteFromAppend" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.098"/>
+  <testcase name="commandExecutionAndWorkspaceFlushCannotBeSilentlyRetried" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.0"/>
+  <testcase name="screenAndTerminalObservationsKeepTheirReadOnlyRecovery" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.008"/>
+  <testcase name="httpRecoveryUsesTheActualRequestMethod" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.002"/>
+  <testcase name="mcpExternalCallsDoNotDeriveReplaySafetyFromTheirNames" classname="app.amber.feature.tools.ExternalActionEffectPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

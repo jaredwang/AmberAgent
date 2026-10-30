@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveBubblePresenterTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:35.717Z" hostname="duguangdeMBP.lan" time="0.169">
+  <properties/>
+  <testcase name="disabled service loss and owner stop hide the window and stop resets expansion" classname="app.amber.feature.live.LiveBubblePresenterTest" time="0.126"/>
+  <testcase name="same service is idempotent and task bubble handoff destroys then recreates only the host" classname="app.amber.feature.live.LiveBubblePresenterTest" time="0.023"/>
+  <testcase name="a service reconnect remounts while last seen and expansion survive the presentation change" classname="app.amber.feature.live.LiveBubblePresenterTest" time="0.02"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.theme.ThemePackageManagerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:15.797Z" hostname="duguangdeMBP.lan" time="0.217">
+  <properties/>
+  <testcase name="default terracotta preset restores iOS paper colors without replacing reading preferences" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.012"/>
+  <testcase name="prepare apply export round-trips the current custom theme" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.025"/>
+  <testcase name="apply prepared merges the latest non-theme settings after package write pauses" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.02"/>
+  <testcase name="built-in themes cannot be overridden by an imported package" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.018"/>
+  <testcase name="stale prepared theme writer is rejected after restore" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.018"/>
+  <testcase name="apply failure rolls back to the previous working theme" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.015"/>
+  <testcase name="unknown tokens are preserved verbatim in the stored package json" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.014"/>
+  <testcase name="Pi preset applies its whole recipe and terracotta clears it again" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.02"/>
+  <testcase name="remove active package clears marker and preserves applied display settings" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.028"/>
+  <testcase name="discard during package write restores prior row and keeps replacement try-on" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.021"/>
+  <testcase name="discard try-on leaves settings and library unchanged" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.017"/>
+  <testcase name="prepared candidate requires matching package id and digest" classname="app.amber.feature.ui.theme.ThemePackageManagerTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

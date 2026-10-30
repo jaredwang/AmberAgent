@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.sync.provider.WebDavSyncProviderTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:27.725Z" hostname="duguangdeMBP.lan" time="0.602">
+  <properties/>
+  <testcase name="deleteSnapshot reports sidecar deletion failure after deleting archive" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.171"/>
+  <testcase name="listSnapshots uses href identity when displayname differs from the filename" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.031"/>
+  <testcase name="downloadSnapshot rejects corrupted archive with digest mismatch" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.025"/>
+  <testcase name="uploadSnapshot rolls back final-name archive when sidecar publish fails" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.061"/>
+  <testcase name="previewSnapshot reads sidecar without downloading archive" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.024"/>
+  <testcase name="deleteSnapshot preserves sidecar and propagates archive deletion failure" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.023"/>
+  <testcase name="deleteSnapshot removes archive and sidecar" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.021"/>
+  <testcase name="listSnapshots keeps a child returned before the collection itself" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.025"/>
+  <testcase name="downloadSnapshot verifies digest and archive header on intact archive" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.048"/>
+  <testcase name="uploadSnapshot with overwrite supersedes same-device snapshot" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.072"/>
+  <testcase name="uploadSnapshot writes temp names then publishes via move" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.056"/>
+  <testcase name="deleteSnapshot retry removes remaining sidecar when archive is already missing" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.022"/>
+  <testcase name="listSnapshots issues propfind with depth and basic auth and parses sidecars" classname="app.amber.core.sync.provider.WebDavSyncProviderTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

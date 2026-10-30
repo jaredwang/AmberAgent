@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.setting.ModelContextWindowInputTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.588Z" hostname="duguangdeMBP.lan" time="0.097">
+  <properties/>
+  <testcase name="typingOneMillionPreservesDigitsAndUpdatesModel" classname="app.amber.feature.ui.pages.setting.ModelContextWindowInputTest" time="0.097"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.tools.ToolSearchTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:45.424Z" hostname="duguangdeMBP.lan" time="0.005">
+  <properties/>
+  <testcase name="searchReturnsTopMatchesAndExpandedTools" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="subagentStartSchemaDoesNotExposeDisplayTitle" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="generateImageStaysResidentInLazyMode" classname="app.amber.feature.tools.ToolSearchTest" time="0.001"/>
+  <testcase name="searchCannotReturnToolsFilteredOutByProfileRegistry" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="searchIndexReflectsCurrentRegistryOnly" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="searchTraceIncludesCurrentProfile" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="searchCannotReturnLateOrchestrationToolsAfterFinalProfileFilter" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="searchReturnsCategoryCandidatesOnMiss" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="exposureCanRestorePendingHiddenToolForApprovalResume" classname="app.amber.feature.tools.ToolSearchTest" time="0.001"/>
+  <testcase name="exposureBypassesLazyModeForSmallCatalogs" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="modelCouncilCoreToolsStayResidentInLazyMode" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="exposureStartsWithResidentToolsThenExpandsSearchHits" classname="app.amber.feature.tools.ToolSearchTest" time="0.002"/>
+  <testcase name="toolsListOutputDoesNotExposeHiddenTools" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <testcase name="searchMatchesChineseAliasesForCommonCapabilities" classname="app.amber.feature.tools.ToolSearchTest" time="0.001"/>
+  <testcase name="searchResultPreservesPermissionMetadata" classname="app.amber.feature.tools.ToolSearchTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

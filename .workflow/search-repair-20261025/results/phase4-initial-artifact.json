@@ -1,0 +1,67 @@
+{
+  "apk": "/Users/arquiel/Downloads/AI/amberagent-Android/app/build/outputs/apk/full/debug/app-full-arm64-v8a-debug.apk",
+  "sha256": "5829e141ef512457030d2895efe97997a9a134abe62f3ecfc66c1193a18a5358",
+  "size": 111694205,
+  "mtime": 1792941826.1125898,
+  "metadata": {
+    "version": 3,
+    "artifactType": {
+      "type": "APK",
+      "kind": "Directory"
+    },
+    "applicationId": "app.amber.agent.graphite",
+    "variantName": "fullDebug",
+    "elements": [
+      {
+        "type": "UNIVERSAL",
+        "filters": [],
+        "attributes": [],
+        "versionCode": 396,
+        "versionName": "2.6.8",
+        "outputFile": "app-full-universal-debug.apk"
+      },
+      {
+        "type": "ONE_OF_MANY",
+        "filters": [
+          {
+            "filterType": "ABI",
+            "value": "arm64-v8a"
+          }
+        ],
+        "attributes": [],
+        "versionCode": 396,
+        "versionName": "2.6.8",
+        "outputFile": "app-full-arm64-v8a-debug.apk"
+      }
+    ],
+    "elementType": "File",
+    "minSdkVersionForDexing": 26
+  },
+  "source_sha256": {
+    "app/src/main/java/app/amber/core/ai/RequestLoggingInterceptor.kt": "d3fd6275894a242b835e6cdc6ea036ac49763fc375d584dd697f15575922f7c7",
+    "app/src/main/java/app/amber/core/di/DataSourceModule.kt": "82cb67841a2655d385a8496ec89aec0cc7252afc26db241906a1be4901dcc5a3",
+    "core/settings/src/main/kotlin/app/amber/core/settings/prefs/SearchPrefs.kt": "0ec3a2179dceef38722b5142190d6e2f5a3e084be451155872cdefd6a43cb545",
+    "core/settings/src/main/kotlin/app/amber/core/settings/prefs/SettingsAggregator.kt": "e773e41c005f581d6352a2d402aabc99cb43df52c7208b0d6afacc8abd31d148",
+    "core/settings/src/main/kotlin/app/amber/core/settings/secret/SettingsSecretMigrator.kt": "30fe02ed001a40473dada542078821facedf639cee35898c66ee722556dfba8b",
+    "app/src/main/java/app/amber/core/ai/tools/SearchAggregator.kt": "8fd4f611ac063d660a6d4264ff0b086c07af62091ba440994b4de3a49d0c7c2b",
+    "app/src/main/java/app/amber/core/ai/tools/SearchOrchestrator.kt": "15952f9d410ffc8ada1067a224678915db2c52b4d8675a2cdf569cc7929630b2",
+    "app/src/main/java/app/amber/core/ai/tools/SearchTools.kt": "0ec9333cfcc6229f45aa90179d240f6f33cba246855041a01d8964589eb8f815",
+    "app/src/main/java/app/amber/feature/miniapp/MiniAppSearchBridge.kt": "e3a681ab1cb764d5f521186476117a0abfc1af969297e69fa8d3ddbd5ed8c9ee",
+    "app/src/main/java/app/amber/feature/board/hotlist/deepread/DeepReadSourcePrefetcher.kt": "246a067371596d4fa29eb47e3075f81b4225acd5a4105036d313039f7fd27e23",
+    "app/src/main/java/app/amber/feature/ui/components/message/ChatMessageSubAgentStep.kt": "03e069fd881ac72dfc05b8ae38edc70ca769ea815dca58d89872afe64ce485a5",
+    "search/build.gradle.kts": "0c6b38ed227392db4bc019c3e3d2e10fd197601dc02bca18bea08a44cd2b0974",
+    "search/src/main/java/app/amber/search/SearchService.kt": "3904136446da6e27632fd7b330c7a8bf59c176ea9a60bd5f3a984286da9de173",
+    "search/src/main/java/app/amber/search/BraveSearchService.kt": "f4064bcf873657634192a40c10b76e335f0a62dcc34b0b1208a118e23d8dbba5",
+    "search/src/main/java/app/amber/search/ExaSearchService.kt": "ec50968964b902682f71e34c2dbeb94095bce05461c07a8b26766622e82bac35",
+    "search/src/main/java/app/amber/search/FirecrawlSearchService.kt": "2ec92d0523470b62058d2d7cd8debe87d3182c4a56d3175adb8e085d26423dcb",
+    "search/src/main/java/app/amber/search/JinaSearchService.kt": "c753b441c88348eacc7aa068a222b29730f21a2bf4763730a8593f34e98dc9ae",
+    "search/src/main/java/app/amber/search/MetasoSearchService.kt": "31482bf4ff76a3543384a5960d998a664c0a6beda1f8d4f2624ae0e27092964b",
+    "search/src/main/java/app/amber/search/PerplexitySearchService.kt": "c6d141aba3179400365733de8ff824afbd08b5e7a444452504925825917596fe",
+    "search/src/main/java/app/amber/search/SearXNGService.kt": "cb90fca4bec08e3d3cf30c255eb70cbfe3f1cd310434f072de60c093137339cf",
+    "search/src/main/java/app/amber/search/TavilySearchService.kt": "327f2548b996f44be9c6a4a17add8d640de16f5ea3d25b37ef91426f3c575d71",
+    "search/src/main/java/app/amber/search/ZhipuSearchService.kt": "73542be2b8e9607a49e6ac966c6f32c940ac4ef937f831c1b8c31979585f0a79",
+    "search/src/main/java/app/amber/search/BingSearchService.kt": "4494c2068f74593848ddb312f70ccbd14b4d3b513b0205582fe2971c5a6d4ac0",
+    "search/src/main/java/app/amber/search/FreeSearchAggregator.kt": "f972c444f49a2a8a12495c8a94437caca36b51d1561b5857958dfc0968afc7e8"
+  },
+  "source_newer_than_apk": []
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.373Z" hostname="duguangdeMBP.lan" time="0.015">
+  <properties/>
+  <testcase name="successful room is opened after placeholder and retains its row" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.003"/>
+  <testcase name="restore invalidates queued creation before any placeholder is inserted" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.003"/>
+  <testcase name="restored snapshot is never removed by old placeholder cleanup" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.003"/>
+  <testcase name="cancellation waits for placeholder cleanup and remains cancelled" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.001"/>
+  <testcase name="structured room error removes placeholder once" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.002"/>
+  <testcase name="room exception cleans placeholder and propagates original failure" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.001"/>
+  <testcase name="restore starting after cleanup check preserves the room error" classname="app.amber.feature.ui.pages.sessionhome.HomeCouncilRoomCreationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

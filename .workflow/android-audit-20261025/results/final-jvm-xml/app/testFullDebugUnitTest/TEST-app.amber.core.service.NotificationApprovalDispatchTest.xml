@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.NotificationApprovalDispatchTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:26.815Z" hostname="duguangdeMBP.lan" time="0.02">
+  <properties/>
+  <testcase name="cancelled scope before lazy job starts still settles the acceptance" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.003"/>
+  <testcase name="a successor operation cannot be replaced by a waiting approval" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.002"/>
+  <testcase name="generation failure after persistence does not retract an accepted answer" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.002"/>
+  <testcase name="a later session operation cancels resumed generation without cancelling its acceptance caller" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.001"/>
+  <testcase name="approval waits for predecessor pause handoff without cancelling the run" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.002"/>
+  <testcase name="decision failure reports rejection and preserves the actual error" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.002"/>
+  <testcase name="stop during predecessor handoff rejects the queued approval" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.003"/>
+  <testcase name="cancellation before persistence rejects rather than accepting a decision" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.002"/>
+  <testcase name="acceptance waits for persistence then returns while owned generation continues" classname="app.amber.core.service.NotificationApprovalDispatchTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

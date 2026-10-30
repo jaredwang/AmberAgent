@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.HostDraftComposerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:08.621Z" hostname="duguangdeMBP.lan" time="0.166">
+  <properties/>
+  <testcase name="retainedComposerLoadsDraftOnReturnAndReplacesUnmodifiedEarlierDraft" classname="app.amber.feature.ui.pages.chat.HostDraftComposerTest" time="0.058"/>
+  <testcase name="handTypingDuringSuspendedReadCannotBeOverwritten" classname="app.amber.feature.ui.pages.chat.HostDraftComposerTest" time="0.03"/>
+  <testcase name="handEnteredTextWinsOverHostDraft" classname="app.amber.feature.ui.pages.chat.HostDraftComposerTest" time="0.029"/>
+  <testcase name="acceptedSendConsumesCapturedIdAndDoesNotReloadItBeforeClear" classname="app.amber.feature.ui.pages.chat.HostDraftComposerTest" time="0.049"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

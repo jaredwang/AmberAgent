@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:54.652Z" hostname="duguangdeMBP.lan" time="0.053">
+  <properties/>
+  <testcase name="smoothedCornerMeetsArcTangentiallyAndLeavesEdgeWithZeroCurvature" classname="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" time="0.01"/>
+  <testcase name="assembledCapsuleFitsItsExactVisualBounds" classname="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" time="0.019"/>
+  <testcase name="roundedRectFitsItsBoundsAndCutsTheVertex" classname="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" time="0.009"/>
+  <testcase name="crampedCornerFallsBackToCircularWithoutOverrunningTheEdge" classname="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" time="0.007"/>
+  <testcase name="capsuleFlankStartsFlatAndMatchesNoseArcCurvature" classname="app.amber.feature.ui.components.ds.AmberContinuousShapeTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

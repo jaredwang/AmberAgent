@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.service.AiAuxiliaryMetadataRaceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.537Z" hostname="duguangdeMBP.lan" time="0.08">
+  <properties/>
+  <testcase name="titleResultWaitingForAWriterPreservesTheSuccessorTailAndSuggestions" classname="app.amber.core.service.AiAuxiliaryMetadataRaceTest" time="0.056"/>
+  <testcase name="suggestionResultWaitingForAWriterPreservesTheSuccessorTailAndTitle" classname="app.amber.core.service.AiAuxiliaryMetadataRaceTest" time="0.024"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

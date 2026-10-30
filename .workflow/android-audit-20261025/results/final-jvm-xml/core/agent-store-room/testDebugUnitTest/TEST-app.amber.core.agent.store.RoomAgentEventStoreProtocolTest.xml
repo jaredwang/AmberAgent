@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T14:39:47.964Z" hostname="duguangdeMBP.lan" time="6.019">
+  <properties/>
+  <testcase name="unknown run reports UnknownRun" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="5.535"/>
+  <testcase name="explicit appendEvent stays idempotent on runId and seq" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.062"/>
+  <testcase name="legacy awaiting_permission rows parse as waiting_user and stay recoverable" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.075"/>
+  <testcase name="allocated seqs are monotonic and continue past explicit writes" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.034"/>
+  <testcase name="legal transition lands and terminal sets finishedAt" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.022"/>
+  <testcase name="unparseable persisted state is fail-closed" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.025"/>
+  <testcase name="terminal is write-once including recovery interrupt" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.032"/>
+  <testcase name="illegal transition is rejected without touching the row" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.038"/>
+  <testcase name="stale expectation is rejected and changes nothing" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.07"/>
+  <testcase name="markInterrupted settles a live run" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.065"/>
+  <testcase name="appendRun is create-only and cannot resurrect a finished run" classname="app.amber.core.agent.store.RoomAgentEventStoreProtocolTest" time="0.059"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

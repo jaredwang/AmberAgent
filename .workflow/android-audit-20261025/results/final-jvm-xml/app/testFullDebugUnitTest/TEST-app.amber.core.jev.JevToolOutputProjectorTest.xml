@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevToolOutputProjectorTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.220Z" hostname="duguangdeMBP.lan" time="0.031">
+  <properties/>
+  <testcase name="mustKeepMarkers" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.0"/>
+  <testcase name="shadowReturnsWithoutWaitingForJev" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.004"/>
+  <testcase name="activeHidesIrrelevantKeepsRelevantAndMustKeep" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.004"/>
+  <testcase name="splitBlocksKeepsFencedCodeIntact" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.001"/>
+  <testcase name="shortOutputUntouched" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.001"/>
+  <testcase name="oversizeBundleIsKeptWithoutJudging" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.003"/>
+  <testcase name="executionToolOutputIsNotProjectedIntoAnUnusableRereadPromise" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.002"/>
+  <testcase name="bundleBlocksFlagsMustKeep" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.0"/>
+  <testcase name="errorSignalIsKeptPerBlockWhileIrrelevantHidden" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.003"/>
+  <testcase name="sameToolSameArgsRereadKeepsFullText" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.005"/>
+  <testcase name="toolLevelFailureSignalSkipsProjectionEntirely" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.002"/>
+  <testcase name="offModeNeverCallsNetwork" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.002"/>
+  <testcase name="shadowLeavesMessagesUnchanged" classname="app.amber.core.jev.JevToolOutputProjectorTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

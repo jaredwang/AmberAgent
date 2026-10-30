@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.MemoryToolsTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:19.725Z" hostname="duguangdeMBP.lan" time="0.022">
+  <properties/>
+  <testcase name="memoryDeleteToolWithoutRevisionIsRejected" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.009"/>
+  <testcase name="editWithRevisionPassesTheRevisionToTheCasCallback" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.004"/>
+  <testcase name="deleteWithRevisionPassesTheRevisionToTheCasCallback" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.001"/>
+  <testcase name="memoryToolCreateRecordsAuditAfterSuccessfulCreate" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.001"/>
+  <testcase name="memoryListUsesDefaultAndMaximumLimitsAndTruncatesContent" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.004"/>
+  <testcase name="memoryToolEditWithoutRevisionIsRejected" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.0"/>
+  <testcase name="memoryWriteCreateRecordsAuditAfterSuccessfulCreate" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.001"/>
+  <testcase name="staleRevisionDeleteReturnsConflict" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.002"/>
+  <testcase name="staleRevisionEditReturnsConflictWithExpectedAndActual" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.0"/>
+  <testcase name="memoryToolDeleteWithoutRevisionIsRejected" classname="app.amber.core.ai.tools.MemoryToolsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

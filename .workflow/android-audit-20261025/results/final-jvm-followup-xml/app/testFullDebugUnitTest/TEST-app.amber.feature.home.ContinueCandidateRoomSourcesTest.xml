@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.home.ContinueCandidateRoomSourcesTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:30.970Z" hostname="duguangdeMBP.lan" time="0.202">
+  <properties/>
+  <testcase name="interrupted council room is a FAILED_RESUMABLE candidate routed to the room" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.018"/>
+  <testcase name="dismiss record hides candidate until expiry then restores" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.017"/>
+  <testcase name="deep read Continue preserves its source URL" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.013"/>
+  <testcase name="council candidate disappears when conversation is deleted" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.013"/>
+  <testcase name="draft disappears after send (deleted) or when its conversation is deleted" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.014"/>
+  <testcase name="running deep read reports the active stage instead of durable section count" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="idle council room is WAITING_USER and terminal room never appears" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="mini app runner projects never opened and newer versions then clears after run" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.02"/>
+  <testcase name="queued or blocked deep read does not masquerade as actively running" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="pinned incomplete deep read remains a candidate after expiry" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="complete expired or deleted deep reads never appear" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.011"/>
+  <testcase name="incomplete deep read with progress is a FAILED_RESUMABLE candidate" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="recent image query returns conversation and tool anchors without message payload" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.012"/>
+  <testcase name="mini app draft with existing conversation is a DRAFT candidate routed to chat" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.013"/>
+  <testcase name="stopped deep read with stale writing output is resumable but not running" classname="app.amber.feature.home.ContinueCandidateRoomSourcesTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

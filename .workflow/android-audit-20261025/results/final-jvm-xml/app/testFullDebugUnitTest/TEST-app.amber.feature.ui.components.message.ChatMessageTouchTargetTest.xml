@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:56.778Z" hostname="duguangdeMBP.lan" time="0.439">
+  <properties/>
+  <testcase name="chainOfThoughtCollapseControlExposes48DpClickTarget" classname="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" time="0.075"/>
+  <testcase name="agentToolCallCapsuleKeepsCompactVisualAndExposes48DpClickTarget" classname="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" time="0.056"/>
+  <testcase name="chainOfThoughtStepExposes48DpClickTargetAndExpandsContent" classname="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" time="0.065"/>
+  <testcase name="framedThinkingStepInMixedBlockWrapsLabelAndKeepsTouchTarget" classname="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" time="0.062"/>
+  <testcase name="realReasoningStepPreviewCollapsesOnTapAndAutoClosesAfterFinishedAt" classname="app.amber.feature.ui.components.message.ChatMessageTouchTargetTest" time="0.181"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatConfigurationHintTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:57.214Z" hostname="duguangdeMBP.lan" time="0.074">
+  <properties/>
+  <testcase name="narrowScreenWithLargeTextKeepsReasonAndRepairActionSeparate" classname="app.amber.feature.ui.pages.chat.ChatConfigurationHintTest" time="0.035"/>
+  <testcase name="missingModelOffersModelSelection" classname="app.amber.feature.ui.pages.chat.ChatConfigurationHintTest" time="0.039"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

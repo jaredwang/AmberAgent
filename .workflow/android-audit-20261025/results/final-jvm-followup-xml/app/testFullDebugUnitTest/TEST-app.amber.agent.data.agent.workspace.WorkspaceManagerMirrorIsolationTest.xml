@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:12.952Z" hostname="duguangdeMBP.lan" time="0.181">
+  <properties/>
+  <testcase name="cancelledLeaseOwnerReleasesOnceAndAllowsTheNextTerminal" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.02"/>
+  <testcase name="movingSafDirectoryRejectsAnExistingPrivateMirrorDestinationBeforeChangingSaf" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.022"/>
+  <testcase name="publicDocumentCommandsKeepBoundedReadEditAppendAndSearchContracts" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.022"/>
+  <testcase name="movingSafDirectoryRelocatesPrivateTerminalOutputWithoutRecreatingItsOldPath" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.023"/>
+  <testcase name="activeTerminalMirrorRejectsSafMutationsBeforeTheyCanBeAcknowledged" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.032"/>
+  <testcase name="switchingOrClearingWorkspaceCannotReuseThePreviousMirror" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.021"/>
+  <testcase name="refreshPreservesMirrorOnlyFilesAndActiveLeaseRejectsRefreshAndFlush" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.015"/>
+  <testcase name="idleSafMutationsSurviveTheStaleMirrorFlushWhenClearingWorkspace" classname="app.amber.agent.data.agent.workspace.WorkspaceManagerMirrorIsolationTest" time="0.026"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

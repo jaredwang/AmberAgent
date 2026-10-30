@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.812Z" hostname="duguangdeMBP.lan" time="0.009">
+  <properties/>
+  <testcase name="progressNotificationDeduplicatesEqualSnapshots" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.002"/>
+  <testcase name="runningProgressNotificationSkipsTerminalAndIdleSnapshots" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.006"/>
+  <testcase name="workerModeDoesNotDeferMissingStagesBackToAppScope" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="progressSnapshotHandlesEmptyAndPhaseFloors" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="progressSnapshotSectionRetryKeepsReadyStageContribution" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="retryableDeepReadWorkerFailuresStopAfterAttemptLimit" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.001"/>
+  <testcase name="progressSnapshotFinishesAtNinetyFourBeforeCompletion" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="workerRouteParsesBlankValidAndInvalidStage" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="transientDeepReadWorkerFailuresAreRetryable" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="progressSnapshotVerificationRunningWinsOverSectionState" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="sectionRetryMarksOnlyTargetSectionRunningWithoutCollectingWholeArticle" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="effectiveForceOnlyAppliesToFirstWorkerAttempt" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <testcase name="progressSnapshotWeightsWritingStages" classname="app.amber.feature.board.hotlist.DeepReadBackgroundReliabilityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

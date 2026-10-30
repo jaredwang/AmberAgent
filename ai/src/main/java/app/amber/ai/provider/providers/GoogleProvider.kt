@@ -43,6 +43,7 @@ import app.amber.ai.util.json
 import app.amber.ai.util.mergeCustomBody
 import app.amber.ai.util.stringSafe
 import app.amber.ai.util.toHeaders
+import app.amber.ai.provider.providers.openai.withCancellableCall
 import app.amber.common.http.await
 import app.amber.common.http.jsonArrayOrNull
 import okhttp3.HttpUrl
@@ -263,12 +264,15 @@ class GoogleProvider(
             }
         }
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+        val bodyStr = withCancellableCall {
+            awaitResponse(client.newCall(request)).use { response ->
+                if (!response.isSuccessful) {
+                    throw Exception("Failed to get response: ${response.code} ${response.body?.string()}")
+                }
+                response.body?.string().orEmpty()
+            }
         }
-
-        val bodyJson = json.parseToJsonElement(response.body?.string().orEmpty()).jsonObject
+        val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
         contentAdapter.decodeCompletion(bodyJson, params.model.modelId)
     }
 
@@ -459,12 +463,14 @@ class GoogleProvider(
                 .build()
         )
 
-        val response = client.newCall(request).await()
-        if (!response.isSuccessful) {
-            error("Failed to generate image: ${response.code} ${response.body.string()}")
+        val bodyStr = withCancellableCall {
+            awaitResponse(client.newCall(request)).use { response ->
+                if (!response.isSuccessful) {
+                    error("Failed to generate image: ${response.code} ${response.body.string()}")
+                }
+                response.body.string()
+            }
         }
-
-        val bodyStr = response.body.string()
         val bodyJson = json.parseToJsonElement(bodyStr).jsonObject
 
         val predictions = bodyJson["predictions"]?.jsonArray ?: error("No predictions in response")

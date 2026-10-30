@@ -180,6 +180,7 @@ class MiniAppHttpClient(
             urlGuard.check(request.url.toString())
             val response = client.newCall(request).execute()
             if (response.code !in 300..399) return response
+            val preserveMethod = response.code == 307 || response.code == 308
             val location = response.header("location")
             response.close()
             if (redirectIndex == maxRedirects || location.isNullOrBlank()) {
@@ -187,7 +188,10 @@ class MiniAppHttpClient(
             }
             val next = request.url.resolve(location) ?: throw MiniAppValidationException("Invalid redirect")
             urlGuard.check(next.toString())
-            request = request.newBuilder().url(next).get().build()
+            request = request.newBuilder()
+                .url(next)
+                .apply { if (!preserveMethod) get() }
+                .build()
         }
         throw MiniAppValidationException("Too many redirects")
     }

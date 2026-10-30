@@ -25,7 +25,8 @@ internal class CouncilRoomAutoRun(
     private val failActiveRoom: suspend (Uuid, String) -> Unit,
     private val autoAssembleSeats: suspend (Uuid, String, Settings) -> Unit,
     private val hasModeOverride: suspend (Uuid) -> Boolean,
-    private val awaitUserAnswer: suspend (Uuid) -> String?,
+    private val applyDetectedMode: suspend (Uuid, CouncilRoomMode) -> Unit,
+    private val askUser: suspend (Uuid, CouncilMessage) -> String?,
 ) {
     /**
      * The deliberation loop. For each of the configured rounds, every active guest
@@ -47,6 +48,7 @@ internal class CouncilRoomAutoRun(
         var settings = settingsFlow.value
         val initial = peekRoom(conversationId) ?: return
         val totalRounds = initial.maxRounds.coerceIn(1, MAX_ROUNDS_CAP)
+        var lastConsumedUserMessageId = initial.messages.firstOrNull { it.authorId == COUNCIL_ROOM_USER_ID }?.id
 
         // FULL mode: gather external facts BEFORE any deliberation. The research
         // summary lands in room.context (the "背景" field every member/host/
@@ -88,30 +90,13 @@ internal class CouncilRoomAutoRun(
         val totalBudgetMs = maxOf(seeded.totalTimeoutMs.coerceAtLeast(10_000L), serialFloorMs)
         var deadlineMs = System.currentTimeMillis() + totalBudgetMs
 
-        // Interjection watermark = the topic message; anything the user sends AFTER
-        // this is a mid-run interjection handled between turns.
-        val startWatermark = seeded.messages
-            .filter { it.authorId == COUNCIL_ROOM_USER_ID }
-            .maxOfOrNull { it.createdAtMs } ?: 0L
-        var interjectionWatermark = startWatermark
-
         // Auto-detect the discussion mode from the topic — unless the user already
         // picked one via the dropdown (recorded in the manager's mode override). Done on
         // the post-research room so detection can use the gathered facts too.
         val userPickedMode = hasModeOverride(conversationId)
         if (!userPickedMode) {
             planner.classifyMode(seeded, settings)?.let { detected ->
-                mutateRoomOrNull(conversationId) { room ->
-                    if (room.mode == detected) {
-                        room
-                    } else {
-                        room.copy(
-                            mode = detected,
-                            status = statusForMode(detected),
-                            updatedAtMs = nowMs(),
-                        )
-                    }
-                }
+                applyDetectedMode(conversationId, detected)
             }
         }
 
@@ -124,6 +109,9 @@ internal class CouncilRoomAutoRun(
                 host.generateHostOpening(openingRoom, hostModelId, settings)
             }
         }
+        val setupSteeringStartedAt = System.currentTimeMillis()
+        lastConsumedUserMessageId = handleInterjections(conversationId, settings, lastConsumedUserMessageId)
+        deadlineMs += System.currentTimeMillis() - setupSteeringStartedAt
 
         for (round in 1..totalRounds) {
             settings = settingsFlow.value
@@ -172,7 +160,7 @@ internal class CouncilRoomAutoRun(
                 // no @ → the host produces a redirect the next members will see.
                 // User-driven segment: pause the budget while it runs.
                 val interjectionStartedAt = System.currentTimeMillis()
-                interjectionWatermark = handleInterjections(conversationId, settings, interjectionWatermark)
+                lastConsumedUserMessageId = handleInterjections(conversationId, settings, lastConsumedUserMessageId)
                 deadlineMs += System.currentTimeMillis() - interjectionStartedAt
             }
 
@@ -200,26 +188,19 @@ internal class CouncilRoomAutoRun(
                     if (question != null) {
                         val askRoom = peekRoom(conversationId) ?: return
                         val host = askRoom.host ?: return
-                        mutateRoomOrNull(conversationId) { r ->
-                            r.copy(
-                                messages = r.messages + CouncilMessage(
-                                    id = msgId(),
-                                    authorId = host.id,
-                                    authorName = host.name,
-                                    role = host.role,
-                                    round = round,
-                                    mode = r.mode,
-                                    text = question,
-                                    createdAtMs = nowMs(),
-                                    status = CouncilMessageStatus.COMPLETED,
-                                    kind = CouncilMessageKind.ASK_USER,
-                                ),
-                                status = CouncilRoomStatus.INTERRUPTED,
-                                updatedAtMs = nowMs(),
-                            )
-                        } ?: return
                         val waitStartedAt = System.currentTimeMillis()
-                        awaitUserAnswer(conversationId)
+                        askUser(conversationId, CouncilMessage(
+                            id = msgId(),
+                            authorId = host.id,
+                            authorName = host.name,
+                            role = host.role,
+                            round = round,
+                            mode = askRoom.mode,
+                            text = question,
+                            createdAtMs = nowMs(),
+                            status = CouncilMessageStatus.COMPLETED,
+                            kind = CouncilMessageKind.ASK_USER,
+                        ))
                         // User think-time must not consume the deliberation budget.
                         deadlineMs += System.currentTimeMillis() - waitStartedAt
                     }
@@ -230,7 +211,7 @@ internal class CouncilRoomAutoRun(
         // Drain any final interjection before synthesizing. User-driven segment:
         // pause the budget while it runs.
         val drainStartedAt = System.currentTimeMillis()
-        handleInterjections(conversationId, settings, interjectionWatermark)
+        handleInterjections(conversationId, settings, lastConsumedUserMessageId)
         deadlineMs += System.currentTimeMillis() - drainStartedAt
 
         // Last budget check before committing to synthesis.
@@ -293,33 +274,36 @@ internal class CouncilRoomAutoRun(
     }
 
     /**
-     * Process user messages that arrived since the watermark (mid-run interjections).
+     * Process user messages after the consumed message (including setup-time input).
      * @-mentioned members reply directly to the user message (public); an
      * un-targeted message goes to the host, who emits a redirect the subsequent
-     * members will see. Advances the watermark per message. Everything stays
+     * members will see. Advances the cursor per message. Everything stays
      * public — no private side-channels. Called between turns by the auto-run loop.
      */
     private suspend fun handleInterjections(
         conversationId: Uuid,
         settings: Settings,
-        initialWatermark: Long,
-    ): Long {
-        var watermark = initialWatermark
+        lastConsumedMessageId: String?,
+    ): String? {
+        var cursor = lastConsumedMessageId
         while (true) {
-            val room = peekRoom(conversationId) ?: return watermark
-            if (room.status.terminal) return watermark
-            val pending = room.messages
-                .filter { it.authorId == COUNCIL_ROOM_USER_ID && it.createdAtMs > watermark }
-                .minByOrNull { it.createdAtMs }
-                ?: return watermark
+            val room = peekRoom(conversationId) ?: return cursor
+            if (room.status.terminal) return cursor
+            val consumedIndex = room.messages.indexOfFirst { it.id == cursor }
+            val pending = room.messages.drop(consumedIndex + 1)
+                .firstOrNull { it.authorId == COUNCIL_ROOM_USER_ID }
+                ?: return cursor
             // Consume it up front so a failure below can't re-process it forever.
-            watermark = pending.createdAtMs
+            cursor = pending.id
+            // Accepted answers already guide subsequent prompts; they do not
+            // request a second host/guest turn as an ordinary interjection does.
+            if (room.messages.any { it.id == pending.replyToMessageId && it.kind == CouncilMessageKind.ASK_USER }) continue
 
             val mentioned = mentionedGuests(room, pending.text)
             if (mentioned.isNotEmpty()) {
                 for (guest in mentioned) {
-                    val current = peekRoom(conversationId) ?: return watermark
-                    if (current.status.terminal) return watermark
+                    val current = peekRoom(conversationId) ?: return cursor
+                    if (current.status.terminal) return cursor
                     if (current.participantById(guest.id)?.status == CouncilParticipantStatus.DISMISSED) continue
                     executor.generateGuestTurn(
                         room = current,
@@ -332,8 +316,8 @@ internal class CouncilRoomAutoRun(
                     )
                 }
             } else {
-                val current = peekRoom(conversationId) ?: return watermark
-                if (current.status.terminal) return watermark
+                val current = peekRoom(conversationId) ?: return cursor
+                if (current.status.terminal) return cursor
                 val hostModelId = resolveHostModelId(current, settings) ?: continue
                 host.generateHostSteer(current, pending, hostModelId, settings)
             }

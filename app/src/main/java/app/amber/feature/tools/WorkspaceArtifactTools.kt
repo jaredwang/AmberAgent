@@ -424,6 +424,12 @@ class WorkspaceArtifactTools(
         val url = input.requiredString("url")
         val method = (input.string("method") ?: "GET").uppercase(Locale.ROOT)
         require(method in setOf("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD")) { "Unsupported HTTP method: $method" }
+        val requestBody = input.string("body")
+        // HttpURLConnection changes GET with doOutput into POST, which would
+        // send a mutation under the read-only method approved by the policy.
+        require(requestBody == null || method !in setOf("GET", "HEAD")) {
+            "$method requests do not support a body; use an explicit write method"
+        }
         requireHttpUrl(url)
         if (!url.isPrivateNetworkTarget() && url.resolvesToPrivateNetworkTarget()) {
             error("URL resolves to a private network target; request the private target explicitly for approval")
@@ -433,7 +439,7 @@ class WorkspaceArtifactTools(
         input.jsonObject["headers"]?.jsonObject?.forEach { (name, value) ->
             connection.setRequestProperty(name, value.toString().trim('"'))
         }
-        input.string("body")?.let { body ->
+        requestBody?.let { body ->
             connection.doOutput = true
             connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
         }

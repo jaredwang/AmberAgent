@@ -5,10 +5,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import app.amber.ai.provider.ProviderCatalog
 import app.amber.ai.provider.TextGenerationParams
 import app.amber.ai.ui.UIMessage
 import app.amber.feature.board.BoardRepository
+import app.amber.feature.board.BoardSignalSourceType
 import app.amber.feature.board.boardRequestBodies
 import app.amber.feature.board.boardRequestHeaders
 import app.amber.feature.board.collector.AppUsageCollector
@@ -49,6 +52,8 @@ class DailyReviewAgent(
     private val appUsageCollector: AppUsageCollector,
     private val restoreWriteGate: SyncRestoreWriteGate,
 ) {
+    private val generationMutex = Mutex()
+
     suspend fun run(
         boardDate: String,
         phase: String,
@@ -57,7 +62,7 @@ class DailyReviewAgent(
         val epoch = currentCoroutineContext()[SyncRestoreWriteEpoch]
             ?: SyncRestoreWriteEpoch(restoreWriteGate.currentEpoch())
         return withContext(epoch) {
-            runInternal(boardDate, phase, locale)
+            generationMutex.withLock { runInternal(boardDate, phase, locale) }
         }
     }
 
@@ -66,20 +71,27 @@ class DailyReviewAgent(
         phase: String,
         locale: Locale,
     ): DailyReviewRunResult {
+        val existing = boardRepository.getDailyReview(boardDate)
+        if (existing != null && (existing.phase == PHASE_EVENING || existing.phase == phase)) {
+            return DailyReviewRunResult.Success(existing.phase)
+        }
         val settings = settingsStore.settingsFlow.value
         val now = System.currentTimeMillis()
 
         // 1. Collect data sources
         val appUsage = appUsageCollector.collectToday(now)
         val completedItems = boardRepository.getCompletedItems(boardDate)
-        val recentChats = collectRecentChatSummaries(locale)
+        val recentChats = if (BoardSignalSourceType.CHAT_HISTORY in settings.agentRuntime.todayBoard.enabledSources) {
+            collectRecentChatSummaries(locale)
+        } else {
+            emptyList()
+        }
 
         if (appUsage.isEmpty() && completedItems.isEmpty() && recentChats.isEmpty()) {
             return DailyReviewRunResult.Empty
         }
 
         // 2. Build prompt
-        val existing = boardRepository.getDailyReview(boardDate)
         val prompt = buildPrompt(phase, appUsage, completedItems, recentChats, existing?.content, locale)
 
         // 3. Call LLM

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelWorkspaceGhostwriteWorkerRecoveryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:37.890Z" hostname="duguangdeMBP.lan" time="0.038">
+  <properties/>
+  <testcase name="worker repairs final polished chapter pointer before completing without another provider call" classname="app.amber.feature.novel.workspace.NovelWorkspaceGhostwriteWorkerRecoveryTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

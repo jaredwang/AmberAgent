@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.task.AgentTaskRecoveryManagerTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.160Z" hostname="duguangdeMBP.lan" time="0.0">
+  <properties/>
+  <testcase name="cronPlanStaysScheduledAfterRestart" classname="app.amber.feature.task.AgentTaskRecoveryManagerTest" time="0.0"/>
+  <testcase name="runningTerminalBecomesInterruptedAfterRestart" classname="app.amber.feature.task.AgentTaskRecoveryManagerTest" time="0.0"/>
+  <testcase name="failedRetryableTaskBecomesRetryable" classname="app.amber.feature.task.AgentTaskRecoveryManagerTest" time="0.0"/>
+  <testcase name="completedTaskWithOutputBecomesOutputOnly" classname="app.amber.feature.task.AgentTaskRecoveryManagerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:33.859Z" hostname="duguangdeMBP.lan" time="0.033">
+  <properties/>
+  <testcase name="finalCleanupDropsOldPayloadAndPreservesTheOriginalCancellation" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.007"/>
+  <testcase name="aShortPausedStreamHasADurableSnapshotAfterTwoSeconds" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.003"/>
+  <testcase name="largeUnicodeOutputIsSavedBeforeTheNextStreamEvent" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.003"/>
+  <testcase name="providerFailureKeepsPartialTextAndCompletionHasAStableOutputIdentity" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.004"/>
+  <testcase name="stoppingBeforeTheSnapshotIntervalStillSavesEveryReceivedDelta" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.003"/>
+  <testcase name="completedCallbackFromAnOldTurnIsNotDeliveredAfterRestore" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.004"/>
+  <testcase name="queuedSnapshotCannotWriteAfterRestoreWhileWaitingForIo" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.004"/>
+  <testcase name="auditAndUnattendedTurnsDoNotCreateAuthorChatRecovery" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.003"/>
+  <testcase name="failureCallbackCanImmediatelyDisplayItsDurablePartialOutput" classname="app.amber.feature.novel.workspace.NovelTurnOutputCaptureTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

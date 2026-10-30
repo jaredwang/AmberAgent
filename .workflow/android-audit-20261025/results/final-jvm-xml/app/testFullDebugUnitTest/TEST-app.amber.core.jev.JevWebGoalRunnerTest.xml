@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevWebGoalRunnerTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.275Z" hostname="duguangdeMBP.lan" time="0.075">
+  <properties/>
+  <testcase name="decisionIncludesTheAlreadyObservedBodyEvidence" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.012"/>
+  <testcase name="offModeDisabledWithoutNetwork" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.004"/>
+  <testcase name="switchingActiveToShadowBetweenStepsStopsDispatch" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.008"/>
+  <testcase name="typeCannotChooseANonEditableButton" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.003"/>
+  <testcase name="shadowModeProducesTraceOnly" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.003"/>
+  <testcase name="unrelatedFingerprintChangeDoesNotByItselfRejectDone" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.002"/>
+  <testcase name="successfulUnchangedScrollingStopsAtNoProgressBudget" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.006"/>
+  <testcase name="selectedNavigationActionWithUnclearSafetyHandsBack" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.005"/>
+  <testcase name="suppliedSearchTextCanBeTypedIntoAnEditableTarget" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.003"/>
+  <testcase name="stepsExhaustedAfterBound" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.002"/>
+  <testcase name="doneWithoutVerificationHandsBack" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.001"/>
+  <testcase name="doneDoesNotCompleteAfterNavigationDuringDecision" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.004"/>
+  <testcase name="doneHonorsHumanHandoffThatAppearedDuringDecision" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.004"/>
+  <testcase name="riskyClickTargetsHandBackEvenWhenJevRanksThemHighest" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.004"/>
+  <testcase name="shadowAndDryRunDoneOnlyProduceTrace" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.003"/>
+  <testcase name="ordinaryInputButtonCanNavigateAfterSelectedSafetyPasses" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.004"/>
+  <testcase name="requiresHumanStopsImmediately" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.002"/>
+  <testcase name="unknownReceiptStopsWithoutReplay" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.003"/>
+  <testcase name="doneWithVerifiedCheckCompletes" classname="app.amber.core.jev.JevWebGoalRunnerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

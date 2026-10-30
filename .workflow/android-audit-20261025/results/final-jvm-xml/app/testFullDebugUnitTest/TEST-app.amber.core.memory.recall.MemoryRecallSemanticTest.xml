@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.recall.MemoryRecallSemanticTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:23.032Z" hostname="duguangdeMBP.lan" time="0.009">
+  <properties/>
+  <testcase name="pinnedSelectedByRerankConsumesOnlyOneRecallSlot" classname="app.amber.core.memory.recall.MemoryRecallSemanticTest" time="0.004"/>
+  <testcase name="noRerankerKeepsOriginalPath" classname="app.amber.core.memory.recall.MemoryRecallSemanticTest" time="0.001"/>
+  <testcase name="notAppliedFallsBackToBaselineAndTouchesBaselineSelection" classname="app.amber.core.memory.recall.MemoryRecallSemanticTest" time="0.001"/>
+  <testcase name="pinnedSurvivesEvenWhenDroppedByRerank" classname="app.amber.core.memory.recall.MemoryRecallSemanticTest" time="0.001"/>
+  <testcase name="activeRerankReordersAndSurfacesZeroLexicalRecord" classname="app.amber.core.memory.recall.MemoryRecallSemanticTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

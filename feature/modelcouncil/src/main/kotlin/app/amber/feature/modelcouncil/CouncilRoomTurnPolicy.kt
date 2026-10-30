@@ -69,7 +69,16 @@ internal object CouncilRoomTurnPolicy {
             // Not reached mid-loop (synthesis is handled separately), but keep total.
             CouncilRoomMode.SYNTHESIZE -> CouncilRoomPrompts.exploreOpening(room, guest)
         }
-        return appendSteeringNote(room, base + userAttachmentContext(room))
+        return appendSteeringNote(room, base + userAttachmentContext(room) + userClarificationContext(room))
+    }
+
+    /** Accepted host-question answers remain constraints after newer host turns. */
+    fun userClarificationContext(room: CouncilRoom): String {
+        val questionIds = room.messages.filter { it.kind == CouncilMessageKind.ASK_USER }.map { it.id }.toSet()
+        val answers = room.messages.filter { it.authorId == COUNCIL_ROOM_USER_ID && it.replyToMessageId in questionIds }
+        if (answers.isEmpty()) return ""
+        return "\n\nUser clarifications (preserve these constraints):\n" +
+            answers.joinToString("\n") { it.text }.take(MAX_CONTEXT_CHARS)
     }
 
     /**

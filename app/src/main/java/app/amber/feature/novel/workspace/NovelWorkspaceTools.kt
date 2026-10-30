@@ -232,6 +232,7 @@ class NovelWorkspaceToolSession(
                 if (polishTargetPath != null && path != polishTargetPath) {
                     return@toolWrite textResult("润色轮只能修改 $polishTargetPath；不能改动其他章节、资料、计划或草稿。")
                 }
+                NovelWorkspacePaths.validateFile(path)
                 when {
                     isOtherBranchPath(path) -> {
                         textResult("无法写入其他分支：$path。当前轮次只能修改 branches/$branchSlug/。")

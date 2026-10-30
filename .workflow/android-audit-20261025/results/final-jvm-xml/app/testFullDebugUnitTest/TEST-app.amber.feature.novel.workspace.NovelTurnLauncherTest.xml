@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novel.workspace.NovelTurnLauncherTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:37.719Z" hostname="duguangdeMBP.lan" time="0.016">
+  <properties/>
+  <testcase name="terminal first waits for handler settle without cancelling the run" classname="app.amber.feature.novel.workspace.NovelTurnLauncherTest" time="0.012"/>
+  <testcase name="terminal runner outcome before handler is delivered as a failed turn" classname="app.amber.feature.novel.workspace.NovelTurnLauncherTest" time="0.002"/>
+  <testcase name="queued events from before restore are cancelled before delivery" classname="app.amber.feature.novel.workspace.NovelTurnLauncherTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

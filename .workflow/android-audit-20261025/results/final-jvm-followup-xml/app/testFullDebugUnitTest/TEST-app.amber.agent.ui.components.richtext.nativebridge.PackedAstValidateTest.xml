@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:19.741Z" hostname="duguangdeMBP.lan" time="0.044">
+  <properties/>
+  <testcase name="validate_header_only_8_bytes_returns_false" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_empty_array_returns_false" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_all_32_golden_blobs_return_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.043"/>
+  <testcase name="validate_valid_golden_02_headings_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.001"/>
+  <testcase name="validate_minimal_root_only_blob_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_minimal_blob_with_children_returns_true" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_wrong_magic_returns_false" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_oversized_varint_5byte_returns_false_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_blob_truncated_to_9_bytes_returns_false_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_huge_childCount_varint_returns_false_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_truncated_minimal_blob_returns_false_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <testcase name="validate_blob_truncated_by_3_bytes_returns_false_not_throw" classname="app.amber.agent.ui.components.richtext.nativebridge.PackedAstValidateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

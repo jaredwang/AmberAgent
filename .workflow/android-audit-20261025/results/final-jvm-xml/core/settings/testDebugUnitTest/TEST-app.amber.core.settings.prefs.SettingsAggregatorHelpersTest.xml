@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:14.603Z" hostname="duguangdeMBP.lan" time="0.053">
+  <properties/>
+  <testcase name="backfill v1 only adds the svg routing message" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.04"/>
+  <testcase name="display consistency fixes removed switches without changing hidden settings" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.0"/>
+  <testcase name="backfill seeds image models and global routing quick messages" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.0"/>
+  <testcase name="consistency lifts only the legacy widget code budget" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.001"/>
+  <testcase name="consistency keeps auto sentinel model selections untouched" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.0"/>
+  <testcase name="cross domain consistency filters direct enabled references" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.003"/>
+  <testcase name="consistency preserves an explicitly empty enabled search selection" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.001"/>
+  <testcase name="consistency normalizes provider base url trailing slashes" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.002"/>
+  <testcase name="consistency keeps model selections that still exist" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.001"/>
+  <testcase name="compose maps direct Amber runtime fields from ChatPrefs and ExtensionPrefs" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.0"/>
+  <testcase name="legacy selection keeps the chosen profile and canonical Amber owner" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.002"/>
+  <testcase name="backfill and consistency are idempotent" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.001"/>
+  <testcase name="consistency resets dangling model selections to auto" classname="app.amber.core.settings.prefs.SettingsAggregatorHelpersTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

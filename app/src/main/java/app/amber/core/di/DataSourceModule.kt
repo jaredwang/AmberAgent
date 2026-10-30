@@ -28,6 +28,7 @@ import app.amber.agent.BuildConfig
 import app.amber.agent.R
 import app.amber.core.ai.AIRequestInterceptor
 import app.amber.core.ai.RequestLoggingInterceptor
+import app.amber.core.ai.sensitiveHttpHeaders
 import app.amber.core.ai.tools.LocalTools
 import app.amber.core.localization.OAuthDisplayLocalizer
 import app.amber.feature.miniapp.MiniAppAiBridge
@@ -631,13 +632,7 @@ val dataSourceModule = module {
                 if (BuildConfig.DEBUG) {
                     addInterceptor(HttpLoggingInterceptor().apply {
                         level = HttpLoggingInterceptor.Level.HEADERS
-                        redactHeader("Authorization")
-                        redactHeader("Proxy-Authorization")
-                        redactHeader("Cookie")
-                        redactHeader("Set-Cookie")
-                        redactHeader("x-api-key")
-                        redactHeader("api-key")
-                        redactHeader("x-goog-api-key")
+                        sensitiveHttpHeaders.forEach(::redactHeader)
                     })
                 }
             }

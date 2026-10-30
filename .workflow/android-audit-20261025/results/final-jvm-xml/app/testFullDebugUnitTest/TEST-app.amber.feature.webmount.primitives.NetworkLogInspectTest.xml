@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.webmount.primitives.NetworkLogInspectTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:16.335Z" hostname="duguangdeMBP.lan" time="0.004">
+  <properties/>
+  <testcase name="inspectRedactsQueryValuesAndKeepsOpaqueTemplateId" classname="app.amber.feature.webmount.primitives.NetworkLogInspectTest" time="0.004"/>
+  <testcase name="inspectRefusesObviousMutatingGetTemplates" classname="app.amber.feature.webmount.primitives.NetworkLogInspectTest" time="0.0"/>
+  <testcase name="inspectMarksCrossOriginAndPostAsNotReplayable" classname="app.amber.feature.webmount.primitives.NetworkLogInspectTest" time="0.0"/>
+  <testcase name="redactedUrlRemovesQueryValuesAndFragment" classname="app.amber.feature.webmount.primitives.NetworkLogInspectTest" time="0.0"/>
+  <testcase name="snapshotRedactsBodiesAndResponsePayloads" classname="app.amber.feature.webmount.primitives.NetworkLogInspectTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

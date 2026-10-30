@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.subagent.SubAgentValidatorTest" tests="27" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.144Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="dynamicRoleRejectsUnavailableExplicitTool" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.001"/>
+  <testcase name="rosterModeAssignsNameWhenDynamicNameMissing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.001"/>
+  <testcase name="taskSpecDefaultsOptionalPlanningFields" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicHistoryProfileDoesNotIncludeFullReadTools" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="taskSpecParsesHistoryShardFields" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleToolProfileNoneAllowsNoTools" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="rosterModeDynamicRoleAllowsNonLatinDisplayName" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="smartModeKeepsSpecificChineseDisplayName" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="smartModeAssignsEnglishNameWhenNameMissing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleDefaultsMissingDescriptionAndSystemPrompt" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleAllowsEmptyToolsWhenProfileHasNoAvailableTools" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="rosterModeReplacesGenericEnglishNameInsteadOfFailing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="smartModeReplacesGenericNameInsteadOfFailing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="smartModeRejectsBuiltInSubagentId" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.001"/>
+  <testcase name="smartModeReplacesChineseGenericNameInsteadOfFailing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="customSubagentAndSubagentIdAreMutuallyExclusive" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleAcceptsExtendedBudgetWhenSettingAllowsIt" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleAllowsScopedChineseTemporaryDescription" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="taskSpecRejectsRawToolResultDumpContext" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="taskSpecRejectsOversizedContext" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="rosterModeReplacesGenericChineseNameInsteadOfFailing" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleCapsBudgetHintsToRuntimeLimits" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleToolAllowlistCannotEscapeProfile" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleDefaultsToAvailableReadOnlyTools" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="dynamicRoleToolProfileNarrowsToWebRead" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="rosterModeAllowsBuiltInSubagentId" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <testcase name="smartModeSavedCustomRoleIsReducedToReadOnlyDynamicTools" classname="app.amber.feature.subagent.SubAgentValidatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

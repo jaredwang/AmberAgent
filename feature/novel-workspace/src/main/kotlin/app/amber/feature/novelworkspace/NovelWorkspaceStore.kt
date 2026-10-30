@@ -66,7 +66,7 @@ class NovelWorkspaceStore(val rootDirectory: File) {
 
     /** Atomic write (temp + fsync + rename); parent directories are created. */
     fun write(path: String, content: String) = NovelWorkspaceRestoreBoundary.write {
-        NovelWorkspacePaths.validate(path)
+        NovelWorkspacePaths.validateFile(path)
         val file = resolve(path)
         if (NovelWorkspaceChapterHistory.isChapterPath(path)) {
             if (file.isFile) NovelWorkspaceChapterHistory.capture(rootDirectory, file.readText(Charsets.UTF_8))

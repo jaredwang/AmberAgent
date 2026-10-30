@@ -1,10 +1,14 @@
 package app.amber.feature.ui.pages.setting
 
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.ArrowRight
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.ChevronRight
+import com.composables.icons.lucide.EllipsisVertical
+import com.composables.icons.lucide.Package
 import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
-import com.composables.icons.lucide.X
+import com.dokar.sonner.TextToastAction
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,15 +20,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.FilledIconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -33,30 +38,30 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastFilter
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
-import app.amber.ai.provider.Modality
 import app.amber.ai.provider.Model
-import app.amber.ai.provider.ModelAbility
 import app.amber.ai.provider.ModelType
 import app.amber.ai.provider.OpenAIAuthMode
 import app.amber.ai.provider.ProviderCatalog
@@ -65,22 +70,31 @@ import app.amber.ai.provider.providers.isCodexOAuthReviewModel
 import app.amber.ai.registry.ModelRegistry
 import app.amber.agent.R
 import app.amber.feature.ui.components.ds.pressable
-import app.amber.feature.ui.components.ds.amberCanvas
+import app.amber.feature.ui.context.LocalToaster
 import app.amber.feature.ui.hooks.useEditState
 import app.amber.feature.ui.pages.setting.components.ProviderCapFlags
 import app.amber.feature.ui.pages.setting.components.ProviderCard
+import app.amber.feature.ui.pages.setting.components.ProviderCommandButton
+import app.amber.feature.ui.pages.setting.components.ProviderEmptyState
+import app.amber.feature.ui.pages.setting.components.ProviderFootnote
 import app.amber.feature.ui.pages.setting.components.ProviderGhostButton
-import app.amber.feature.ui.pages.setting.components.ProviderHairline
+import app.amber.feature.ui.pages.setting.components.ProviderGroupSegment
+import app.amber.feature.ui.pages.setting.components.ProviderIconButton
+import app.amber.feature.ui.pages.setting.components.ProviderListRow
+import app.amber.feature.ui.pages.setting.components.ProviderRowDivider
+import app.amber.feature.ui.pages.setting.components.ProviderSearchField
 import app.amber.feature.ui.pages.setting.components.ProviderSectionLabel
 import app.amber.feature.ui.pages.setting.components.ProviderSheetGrabber
+import app.amber.feature.ui.pages.setting.components.ProviderSheetHeader
 import app.amber.feature.ui.pages.setting.components.ProviderSplitBar
-import app.amber.feature.ui.pages.setting.components.ProviderSquareTag
-import app.amber.feature.ui.pages.setting.components.ProviderTerminalFilter
+import app.amber.feature.ui.pages.setting.components.ProviderStatusChip
+import app.amber.feature.ui.pages.setting.components.ProviderTile
+import app.amber.feature.ui.pages.setting.components.ProviderTone
+import app.amber.feature.ui.pages.setting.components.providerCapFlags
+import app.amber.feature.ui.pages.setting.components.providerDangerColor
 import app.amber.feature.ui.pages.setting.components.providerSlugLabel
-import app.amber.feature.ui.pages.setting.components.toContextLabel
 import app.amber.feature.ui.theme.LocalAmberTokens
 import app.amber.feature.ui.theme.LocalAmberType
-import app.amber.core.utils.plus
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -94,8 +108,10 @@ internal fun SettingProviderModelPage(
     modelListRefreshKey: Int = 0,
     currentModelId: Uuid? = null,
     onSetCurrent: (Model) -> Unit = {},
+    onRestoreModel: ((Model, Int) -> Unit)? = null,
 ) {
     ModelList(
+        onRestoreModel = onRestoreModel,
         providerSetting = provider,
         onUpdateProvider = onEdit,
         fetchedCandidates = fetchedCandidates,
@@ -107,6 +123,7 @@ internal fun SettingProviderModelPage(
 
 @Composable
 private fun ModelList(
+    onRestoreModel: ((Model, Int) -> Unit)?,
     providerSetting: ProviderSetting,
     onUpdateProvider: (ProviderSetting) -> Unit,
     fetchedCandidates: ProviderModelCandidates?,
@@ -201,7 +218,35 @@ private fun ModelList(
         }
     }
     val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
+    val context = LocalContext.current
+    val toaster = LocalToaster.current
+    val undoLabel = stringResource(R.string.history_page_undo)
+    // The undo action fires after later edits may have landed; always re-insert into the latest provider.
+    val latestProvider by rememberUpdatedState(providerSetting)
+    val latestOnUpdateProvider by rememberUpdatedState(onUpdateProvider)
+    val latestOnRestoreModel by rememberUpdatedState(onRestoreModel)
+    fun deleteWithUndo(model: Model) {
+        val index = providerSetting.models.indexOfFirst { it.id == model.id }
+        onUpdateProvider(providerSetting.delModel(model))
+        toaster.show(
+            message = context.getString(R.string.provider_model_deleted, model.modelId),
+            action = TextToastAction(undoLabel) {
+                val restore = latestOnRestoreModel
+                if (restore != null) {
+                    restore(model, index)
+                } else {
+                    val current = latestProvider
+                    if (current.models.none { it.id == model.id }) {
+                        val restored = current.models.toMutableList().apply {
+                            add(index.coerceIn(0, size), model)
+                        }
+                        latestOnUpdateProvider(current.copyProvider(models = restored))
+                    }
+                }
+            },
+        )
+    }
+    val fabExpanded by remember { derivedStateOf { lazyListState.firstVisibleItemIndex == 0 } }
 
     Box(
         modifier = Modifier
@@ -210,57 +255,55 @@ private fun ModelList(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp) + PaddingValues(bottom = 88.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 96.dp),
             horizontalAlignment = Alignment.Start,
             state = lazyListState
         ) {
+            // Exactly one item precedes the models: keeps modelItemOffset = 1 valid for reorder.
             item("enabled_models_label") {
-                ProviderSectionLabel(
-                    stringResource(R.string.setting_provider_page_enabled_models),
-                    count = providerSetting.models.size,
-                )
+                ProviderSectionLabel(stringResource(R.string.setting_provider_page_enabled_models))
             }
             if (providerSetting.models.isEmpty()) {
-                item {
-                    ProviderCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(18.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.setting_provider_page_no_models),
-                                style = type.body.copy(fontWeight = FontWeight.SemiBold),
-                                color = t.ink2,
-                            )
-                            Text(
-                                text = stringResource(R.string.setting_provider_page_add_models_hint),
-                                style = type.secondary,
-                                color = t.ink3,
+                item("models_empty") {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        ProviderCard(modifier = Modifier.fillMaxWidth()) {
+                            ProviderEmptyState(
+                                icon = Lucide.Package,
+                                title = stringResource(R.string.provider_model_empty_title),
+                                body = stringResource(R.string.provider_model_empty_body),
                             )
                         }
+                        ProviderCommandButton(
+                            text = stringResource(R.string.provider_model_fetch_available),
+                            imageVector = Lucide.RefreshCw,
+                            onClick = {
+                                if (loadState is ModelListLoadState.Failed) fetchAttempt += 1
+                                showPicker = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                        )
                     }
                 }
             } else {
-                items(displayModels, key = { it.id }) { item ->
+                val lastIndex = displayModels.lastIndex
+                itemsIndexed(displayModels, key = { _, model -> model.id }) { index, item ->
                     ReorderableItem(
                         state = reorderableLazyListState,
                         key = item.id
                     ) { isDragging ->
-                        Column {
+                        ProviderGroupSegment(
+                            first = index == 0,
+                            last = index == lastIndex,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            if (index > 0) ProviderRowDivider(inset = 62.dp)
                             ProviderModelRow(
                                 model = item,
                                 isCurrent = item.type == ModelType.CHAT && item.id == currentModelId,
                                 onSetCurrent = { onSetCurrent(item) },
-                                onDelete = {
-                                    onUpdateProvider(providerSetting.delModel(item))
-                                },
+                                onDelete = { deleteWithUndo(item) },
                                 onOpenEditor = { editState.open(item.copy()) },
                                 modifier = Modifier
                                     .longPressDraggableHandle(
@@ -278,6 +321,9 @@ private fun ModelList(
                             )
                         }
                     }
+                }
+                item("models_hint") {
+                    ProviderFootnote(stringResource(R.string.provider_model_hint_gestures))
                 }
             }
             when (loadState) {
@@ -299,18 +345,18 @@ private fun ModelList(
             }
         }
 
-        Column(
+        ExtendedFloatingActionButton(
+            text = { Text(stringResource(R.string.setting_provider_page_add_model), color = t.accentInk, style = LocalAmberType.current.body.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold)) },
+            icon = { Icon(Lucide.Plus, contentDescription = null) },
+            onClick = { showPicker = true },
+            expanded = fabExpanded,
+            shape = RoundedCornerShape(18.dp),
+            containerColor = t.accent,
+            contentColor = t.accentInk,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(t.surface),
-        ) {
-            ProviderHairline()
-            ProviderAddModelButton(
-                onClick = { showPicker = true },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+        )
     }
 
     if (showPicker) {
@@ -324,6 +370,7 @@ private fun ModelList(
                 blankState.open(Model())
             },
             onDismiss = { showPicker = false },
+            onRefetch = { fetchAttempt += 1 },
         )
     }
 
@@ -351,48 +398,6 @@ private fun ModelList(
                 slug = providerSetting.providerSlugLabel(),
                 onConfirm = { blankState.confirm() },
                 onDismiss = { blankState.dismiss() },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProviderAddModelButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val t = LocalAmberTokens.current
-    val type = LocalAmberType.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .pressable(onClick = onClick)
-            .padding(horizontal = 18.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(36.dp)
-                .clip(androidx.compose.foundation.shape.CircleShape)
-                .background(t.accent)
-                .padding(horizontal = 18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                imageVector = Lucide.Plus,
-                contentDescription = null,
-                tint = t.accentInk,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = stringResource(R.string.setting_provider_page_add_model),
-                style = type.body.copy(fontWeight = FontWeight.Medium),
-                color = t.accentInk,
-                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
@@ -459,24 +464,24 @@ private fun ModelListStatusRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
             text = message,
-            style = type.meta.copy(fontSize = 11.sp),
+            style = type.secondary.copy(fontSize = 12.5.sp, lineHeight = 19.sp),
             color = t.ink3,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         if (onRetry != null) {
-            ProviderGhostButton(
+            ProviderCommandButton(
                 text = stringResource(R.string.setting_provider_page_models_retry),
                 onClick = onRetry,
-                accent = false,
-                modifier = Modifier.width(72.dp),
+                plain = true,
+                modifier = Modifier.width(88.dp),
             )
         }
     }
@@ -508,7 +513,7 @@ private fun Model.withRegistryMetadata(): Model = copy(
     contextWindowTokens = ModelRegistry.MODEL_CONTEXT_WINDOW.getData(modelId),
 )
 
-/* v5 ledger: flat model row inside SwipeToDismissBox (swipe delete + long-press drag kept) */
+/* Model row inside a card slice: swipe left past the threshold deletes (undo lives in the caller's toast). */
 @Composable
 internal fun ProviderModelRow(
     model: Model,
@@ -519,46 +524,39 @@ internal fun ProviderModelRow(
     onOpenEditor: () -> Unit,
 ) {
     val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
-    val scope = rememberCoroutineScope()
+    LaunchedEffect(swipeToDismissBoxState.currentValue) {
+        if (swipeToDismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            onDelete()
+            swipeToDismissBoxState.snapTo(SwipeToDismissBoxValue.Settled)
+        }
+    }
 
     SwipeToDismissBox(
         state = swipeToDismissBoxState,
         backgroundContent = {
+            // 2026-09-13 fix: only compose the delete zone while actually swiping, so it is
+            // never visible / hit-testable at rest.
             if (swipeToDismissBoxState.dismissDirection != SwipeToDismissBoxValue.Settled) {
-                val t = LocalAmberTokens.current
+                val type = LocalAmberType.current
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(providerDangerColor())
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                swipeToDismissBoxState.reset()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Lucide.X,
-                            contentDescription = stringResource(R.string.cancel),
-                            tint = t.ink3,
-                        )
-                    }
-                    FilledIconButton(
-                        onClick = {
-                            scope.launch {
-                                onDelete()
-                                swipeToDismissBoxState.reset()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Lucide.Trash2,
-                            contentDescription = stringResource(R.string.chat_page_delete)
-                        )
-                    }
+                    Icon(
+                        Lucide.Trash2,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.delete),
+                        style = type.body.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color.White,
+                    )
                 }
             }
         },
@@ -568,73 +566,89 @@ internal fun ProviderModelRow(
     ) {
         val t = LocalAmberTokens.current
         val type = LocalAmberType.current
-        val contextLabel = model.contextWindowTokens.toContextLabel()
-        val openEditor = onOpenEditor
-        // The moving foreground must cover the swipe actions while keeping the canvas texture.
-        Column(modifier = Modifier.fillMaxWidth().amberCanvas()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 64.dp)
-                    .pressable(onClick = openEditor)
-                    .padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
+        var menuOpen by remember { mutableStateOf(false) }
+        // Opaque surface so the moving foreground covers the delete zone.
+        ProviderListRow(
+            title = model.modelId,
+            titleMono = true,
+            minHeight = 66.dp,
+            onClick = onOpenEditor,
+            modifier = Modifier.background(t.surface),
+            leading = {
+                ProviderTile(text = model.modelId.toModelMonogram(), tint = t.accent)
+            },
+            titleTrailing = if (isCurrent) {
+                {
                     Text(
-                        text = model.modelId,
-                        style = type.meta.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-                        color = t.ink,
+                        text = stringResource(R.string.setting_provider_page_model_current),
+                        style = type.meta.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold),
+                        color = if (t.isDark) Color(0xFF6CC489) else Color(0xFF2F8A4C),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    ProviderCapFlags(
-                        flags = model.capFlags(),
-                        accentFirst = false,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF3DA35D).copy(alpha = 0.14f))
+                            .padding(horizontal = 6.dp, vertical = 1.dp),
                     )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(9.dp),
-                ) {
-                    if (contextLabel.isNotBlank()) {
-                        Text(
-                            text = contextLabel,
-                            style = type.meta.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold),
-                            color = t.ink2,
-                            maxLines = 1,
-                        )
-                    }
-                    if (model.type == ModelType.CHAT) {
-                        ProviderSquareTag(
-                            text = if (isCurrent) {
-                                "✓ ${stringResource(R.string.setting_provider_page_model_current)}"
-                            } else {
-                                stringResource(R.string.setting_provider_page_model_set_current)
-                            },
-                            selected = isCurrent,
-                            solid = false,
-                            onClick = if (isCurrent) null else onSetCurrent,
-                        )
-                    }
-                    Icon(
-                        imageVector = Lucide.ArrowRight,
-                        contentDescription = stringResource(R.string.setting_provider_page_edit_model),
+            } else {
+                null
+            },
+            subtitle = { ProviderCapFlags(model.providerCapFlags()) },
+            trailing = {
+                Box {
+                    ProviderIconButton(
+                        imageVector = Lucide.EllipsisVertical,
+                        contentDescription = stringResource(R.string.more_options),
+                        onClick = { menuOpen = true },
+                        size = 40.dp,
                         tint = t.ink3,
-                        modifier = Modifier.size(18.dp),
                     )
+                    DropdownMenu(
+                        expanded = menuOpen,
+                        onDismissRequest = { menuOpen = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.edit)) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenEditor()
+                            },
+                        )
+                        if (model.type == ModelType.CHAT && !isCurrent) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.setting_provider_page_model_set_current)) },
+                                onClick = {
+                                    menuOpen = false
+                                    onSetCurrent()
+                                },
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(R.string.delete),
+                                    color = providerDangerColor(),
+                                )
+                            },
+                            onClick = {
+                                menuOpen = false
+                                onDelete()
+                            },
+                        )
+                    }
                 }
-            }
-            ProviderHairline()
-        }
+            },
+        )
     }
 }
 
-/* v5 ledger: available-models sheet — staged draft selection, confirm applies the diff */
+/* Two-letter tile text from the model id: "deepseek-v4-pro" -> "DE", "gpt" -> "GP". */
+private fun String.toModelMonogram(): String {
+    val head = trim().substringAfterLast('/').substringBefore('-').ifBlank { trim() }
+    return head.filter { it.isLetterOrDigit() }.take(2).uppercase().ifBlank { "AI" }
+}
+
+/* Add-model sheet: staged draft selection, confirm applies the diff */
 @Composable
 internal fun ModelPickerSheet(
     models: List<Model>,
@@ -643,6 +657,7 @@ internal fun ModelPickerSheet(
     onApplyModels: (List<Model>) -> Unit,
     onCreateBlank: () -> Unit,
     onDismiss: () -> Unit,
+    onRefetch: (() -> Unit)? = null,
 ) {
     val t = LocalAmberTokens.current
     val type = LocalAmberType.current
@@ -675,82 +690,58 @@ internal fun ModelPickerSheet(
                 .fillMaxWidth()
                 .fillMaxHeight(0.92f),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 18.dp, end = 18.dp, top = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    ) {
-                        Text("//", style = type.eyebrow, color = t.accent)
-                        Text(parentProvider.providerSlugLabel(), style = type.eyebrow, color = t.ink3)
+            ProviderSheetHeader(
+                title = stringResource(R.string.setting_provider_page_add_model),
+                trailing = if (onRefetch != null) {
+                    {
+                        ProviderStatusChip(
+                            text = stringResource(R.string.provider_model_refetch),
+                            tone = ProviderTone.Accent,
+                            icon = Lucide.RefreshCw,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(999.dp))
+                                .pressable(onClick = onRefetch),
+                        )
                     }
-                    Text(
-                        text = stringResource(R.string.setting_provider_page_avaliable_models),
-                        style = type.sessionTitle,
-                        color = t.ink,
-                        maxLines = 1,
-                    )
-                }
-                ProviderGhostButton(
-                    text = if (allSelected) {
-                        "✓ ${stringResource(R.string.setting_provider_page_deselect_models)}"
-                    } else {
-                        "+ ${stringResource(R.string.setting_provider_page_select_all, filteredModels.size)}"
-                    },
-                    onClick = {
-                        val filteredIds = filteredModels.map { it.modelId }.toSet()
-                        draftIds = if (allSelected) draftIds - filteredIds else draftIds + filteredIds
-                    },
-                )
-                ProviderGhostButton(
-                    text = stringResource(R.string.setting_provider_page_add_new_model),
-                    imageVector = Lucide.Plus,
-                    onClick = onCreateBlank,
-                )
-            }
+                } else {
+                    null
+                },
+            )
 
-            ProviderTerminalFilter(
+            ProviderSearchField(
                 value = filterText,
                 onValueChange = { filterText = it },
-                placeholder = stringResource(R.string.setting_provider_page_model_filter_placeholder),
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                placeholder = stringResource(R.string.provider_model_filter_hint, models.size),
+                containerColor = t.surface2,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(t.surface2)
-                    .padding(horizontal = 18.dp, vertical = 7.dp),
+                    .padding(start = 20.dp, end = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    stringResource(R.string.setting_provider_page_model_id),
-                    style = type.meta.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
-                    color = t.ink4,
+                    text = stringResource(
+                        R.string.setting_provider_page_selected_count,
+                        pickedCount,
+                        models.size,
+                    ),
+                    style = type.secondary,
+                    color = t.ink3,
                     modifier = Modifier.weight(1f),
                 )
-                Text(
-                    stringResource(R.string.setting_provider_page_model_context_window),
-                    style = type.meta.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
-                    color = t.ink4,
-                    modifier = Modifier.size(width = 48.dp, height = 14.dp),
-                    maxLines = 1,
-                )
-                Text(
-                    stringResource(R.string.setting_provider_page_actions),
-                    style = type.meta.copy(fontSize = 9.5.sp, fontWeight = FontWeight.SemiBold),
-                    color = t.ink4,
-                    modifier = Modifier.size(width = 76.dp, height = 14.dp),
-                    maxLines = 1,
+                ProviderGhostButton(
+                    text = if (allSelected) {
+                        stringResource(R.string.setting_provider_page_deselect_models)
+                    } else {
+                        stringResource(R.string.setting_provider_page_select_all, filteredModels.size)
+                    },
+                    onClick = {
+                        val filteredIds = filteredModels.map { it.modelId }.toSet()
+                        draftIds = if (allSelected) draftIds - filteredIds else draftIds + filteredIds
+                    },
                 )
             }
 
@@ -760,25 +751,27 @@ internal fun ModelPickerSheet(
                     .weight(1f),
             ) {
                 if (filteredModels.isEmpty()) {
-                    item {
+                    item("no_matches") {
                         Text(
                             text = stringResource(R.string.model_list_no_matches),
-                            style = type.meta.copy(fontSize = 12.sp),
-                            color = t.ink4,
+                            style = type.secondary,
+                            color = t.ink3,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 36.dp),
                         )
                     }
                 }
-                items(filteredModels) { model ->
+                itemsIndexed(filteredModels) { index, model ->
                     val on = model.modelId in draftIds
                     val modelMeta = remember(model) { model.withRegistryMetadata() }
                     Column {
+                        if (index > 0) ProviderRowDivider(inset = 20.dp)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 48.dp)
+                                .heightIn(min = 60.dp)
                                 .pressable(onClick = {
                                     draftIds = if (on) {
                                         draftIds - model.modelId
@@ -786,63 +779,62 @@ internal fun ModelPickerSheet(
                                         draftIds + model.modelId
                                     }
                                 })
-                                .padding(horizontal = 18.dp, vertical = 10.dp),
+                                .padding(horizontal = 20.dp, vertical = 9.dp),
                             verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             Column(
                                 modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 Text(
                                     text = model.modelId,
                                     style = type.meta.copy(
-                                        fontSize = 12.sp,
+                                        fontSize = 13.5.sp,
                                         fontWeight = FontWeight.SemiBold,
                                     ),
                                     color = if (on) t.accent else t.ink,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
-                                ProviderCapFlags(modelMeta.capFlags())
+                                ProviderCapFlags(modelMeta.providerCapFlags())
                             }
-                            Text(
-                                text = model.contextWindowTokens.toContextLabel(),
-                                style = type.meta.copy(fontSize = 11.sp),
-                                color = t.ink4,
-                                modifier = Modifier.width(48.dp),
-                                maxLines = 1,
-                            )
-                            Box(
-                                modifier = Modifier.size(width = 76.dp, height = 28.dp),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                ProviderSquareTag(
-                                    text = if (on) {
-                                        "✓ ${stringResource(R.string.setting_provider_page_model_added)}"
-                                    } else {
-                                        "+ ${stringResource(R.string.add)}"
-                                    },
-                                    selected = on,
-                                    solid = true,
-                                    onClick = null,
+                            if (on) {
+                                ProviderStatusChip(
+                                    text = stringResource(R.string.setting_provider_page_model_added),
+                                    tone = ProviderTone.Neutral,
+                                    icon = Lucide.Check,
+                                )
+                            } else {
+                                ProviderStatusChip(
+                                    text = stringResource(R.string.add),
+                                    tone = ProviderTone.Accent,
+                                    icon = Lucide.Plus,
                                 )
                             }
                         }
-                        ProviderHairline()
+                    }
+                }
+                item("manual_input") {
+                    Column {
+                        ProviderRowDivider(inset = 20.dp)
+                        ProviderListRow(
+                            title = stringResource(R.string.provider_model_manual_input),
+                            onClick = onCreateBlank,
+                            modifier = Modifier.padding(horizontal = 6.dp),
+                            trailing = {
+                                Icon(
+                                    Lucide.ChevronRight,
+                                    contentDescription = null,
+                                    tint = t.ink4,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                            },
+                        )
                     }
                 }
             }
 
-            Text(
-                text = stringResource(
-                    R.string.setting_provider_page_selected_count,
-                    pickedCount,
-                    models.size,
-                ),
-                style = type.meta.copy(fontSize = 11.sp),
-                color = t.ink4,
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
-            )
             ProviderSplitBar(
                 cancelText = stringResource(R.string.cancel),
                 onCancel = onDismiss,
@@ -864,29 +856,4 @@ internal fun ModelPickerSheet(
             )
         }
     }
-}
-
-private fun Model.capFlags(): List<String> {
-    val flags = buildList {
-        add(
-            when (type) {
-                ModelType.CHAT -> "chat"
-                ModelType.IMAGE -> "image"
-                ModelType.EMBEDDING -> "embed"
-            }
-        )
-        if (inputModalities.contains(Modality.TEXT) && outputModalities.contains(Modality.TEXT)) {
-            add("t2t")
-        }
-        if (abilities.contains(ModelAbility.TOOL)) {
-            add("tools")
-        }
-        if (inputModalities.contains(Modality.IMAGE) || outputModalities.contains(Modality.IMAGE)) {
-            add("vision")
-        }
-        if (abilities.contains(ModelAbility.REASONING)) {
-            add("think")
-        }
-    }
-    return flags.distinct().take(5)
 }

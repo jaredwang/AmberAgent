@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.AgentLiveStatusNotifierTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.385Z" hostname="duguangdeMBP.lan" time="0.092">
+  <properties/>
+  <testcase name="inline reply action allows Android to attach RemoteInput" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.05"/>
+  <testcase name="saved approval action keeps its original tool and token when another question is posted" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.011"/>
+  <testcase name="saved stop action keeps its original run when a successor notification is posted" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.009"/>
+  <testcase name="hide sensitive also removes command from unlocked title" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.008"/>
+  <testcase name="raw terminal command stays private while unlocked details remain visible" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.007"/>
+  <testcase name="approval actions remain immutable and share the one time decision token" classname="app.amber.feature.runtime.AgentLiveStatusNotifierTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

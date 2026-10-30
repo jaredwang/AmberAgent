@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.zcode.ZCodeUrlStoreTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:15.726Z" hostname="duguangdeMBP.lan" time="0.02">
+  <properties/>
+  <testcase name="normalizes http(s) links and rejects userinfo and invalid ports" classname="app.amber.feature.ui.pages.zcode.ZCodeUrlStoreTest" time="0.002"/>
+  <testcase name="record session is conditional on the currently selected URL" classname="app.amber.feature.ui.pages.zcode.ZCodeUrlStoreTest" time="0.009"/>
+  <testcase name="save keeps opt in and clears old session when URL changes" classname="app.amber.feature.ui.pages.zcode.ZCodeUrlStoreTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

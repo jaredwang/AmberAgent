@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.GoogleThinkingRequestTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.217Z" hostname="duguangdeMBP.lan" time="0.031">
+  <properties/>
+  <testcase name="completeMapsProOffToItsLowestSupportedLevel" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.003"/>
+  <testcase name="legalNeighboringModelOptionsKeepTheirValues" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.012"/>
+  <testcase name="streamMapsOriginalProMediumToSupportedLevel" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.003"/>
+  <testcase name="completeCapsFlashBudgetAtItsPublishedMaximum" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.002"/>
+  <testcase name="automaticAndCodeAssistOffKeepDynamicThinkingConfiguration" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.0"/>
+  <testcase name="streamCapsFlashBudgetAtItsPublishedMaximum" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.003"/>
+  <testcase name="streamMapsProOffToItsLowestSupportedLevel" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.003"/>
+  <testcase name="completeMapsOriginalProMediumToSupportedLevel" classname="app.amber.ai.provider.providers.GoogleThinkingRequestTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

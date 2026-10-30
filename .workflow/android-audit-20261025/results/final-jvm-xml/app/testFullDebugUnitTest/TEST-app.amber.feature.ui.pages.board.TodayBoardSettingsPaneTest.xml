@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.board.TodayBoardSettingsPaneTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:07.455Z" hostname="duguangdeMBP.lan" time="0.184">
+  <properties/>
+  <testcase name="focusEditorKeepsAddToggleAndDeleteBoundToTheirOriginalRule" classname="app.amber.feature.ui.pages.board.TodayBoardSettingsPaneTest" time="0.137"/>
+  <testcase name="rootRowsOpenTheirActualSettingsPanes" classname="app.amber.feature.ui.pages.board.TodayBoardSettingsPaneTest" time="0.047"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

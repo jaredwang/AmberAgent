@@ -1,0 +1,105 @@
+
+> Configure project :app
+Variant `novelBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedRelease` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadNonMinifiedBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `novelBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+Variant `deepreadBenchmarkBaseline` is disabled. If this is not intentional, please check your gradle configuration for beforeVariants blocks. For more information on variant filters checkout the docs at https://developer.android.com/build/build-variants#filter-variants.
+
+This warning can be disabled setting the following property:
+baselineProfile {
+    warnings {
+        disabledVariants = false
+    }
+}
+
+> Task :ai:preBuild UP-TO-DATE
+> Task :ai:preDebugBuild UP-TO-DATE
+> Task :ai:generateDebugBuildConfig UP-TO-DATE
+> Task :ai:generateDebugResources UP-TO-DATE
+> Task :ai:packageDebugResources UP-TO-DATE
+> Task :ai:processDebugNavigationResources UP-TO-DATE
+> Task :ai:parseDebugLocalResources UP-TO-DATE
+> Task :ai:generateDebugRFile UP-TO-DATE
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac NO-SOURCE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:compileDebugKotlin UP-TO-DATE
+> Task :ai:javaPreCompileDebug UP-TO-DATE
+> Task :ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :ai:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :ai:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :ai:preDebugUnitTestBuild UP-TO-DATE
+> Task :ai:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :ai:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :ai:processDebugJavaRes UP-TO-DATE
+> Task :common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :ai:compileDebugUnitTestKotlin
+> Task :ai:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :ai:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :ai:testDebugUnitTest
+
+BUILD SUCCESSFUL in 2s
+27 actionable tasks: 2 executed, 25 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.4.1/userguide/configuration_cache_enabling.html

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-17T17:44:38.608Z" hostname="duguangdeMacBook-Pro.local" time="0.383">
+  <properties/>
+  <testcase name="default listener keeps redirect behavior without enabling browser fetch" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.037"/>
+  <testcase name="parses successful callback and returns success html" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.002"/>
+  <testcase name="cancelling awaitCallback closes an already accepted client socket" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.12"/>
+  <testcase name="rejects oversized request line" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.003"/>
+  <testcase name="returns provider error and escapes it in failure html" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.001"/>
+  <testcase name="accounts app preflight allows private network GET without consuming callback" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.002"/>
+  <testcase name="accepted client that never finishes headers times out" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.102"/>
+  <testcase name="closing server unblocks awaitCallback" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.107"/>
+  <testcase name="rejects malformed request" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.002"/>
+  <testcase name="untrusted origin cannot consume accounts app callback" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.001"/>
+  <testcase name="accepts a provider-specific callback path" classname="app.amber.common.oauth.LoopbackOAuthCallbackServerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.ui.MessageTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:03.206Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="limitContext with normal size should return last N messages" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with negative size should return original list" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with tool call at start should include corresponding user message" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with size greater than list size should return original list" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="isValidToUpload should keep tool-only message valid" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with single message should return that message" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with empty list should return empty list" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="handleMessageChunk finishes reasoning when text delta starts" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="isValidToUpload should be false for blank reasoning with empty text" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with size 0 should return original list" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="isValidToUpload should be true for non-empty text" classname="app.amber.ai.ui.MessageTest" time="0.001"/>
+  <testcase name="isValidToUpload should be true for non-empty reasoning with empty text" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <testcase name="limitContext with executed tool at start should include corresponding tool call" classname="app.amber.ai.ui.MessageTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

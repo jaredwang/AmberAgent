@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.ai.tools.ThemePackToolsTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:20.912Z" hostname="duguangdeMBP.lan" time="0.289">
+  <properties/>
+  <testcase name="discard clears candidate without persistence" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.095"/>
+  <testcase name="prepare is memory only and explicit apply persists" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.09"/>
+  <testcase name="portable theme continues latest draft and updates one saved recipe" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.057"/>
+  <testcase name="builtin edit creates one copy and invalid refinement retains the preview" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.02"/>
+  <testcase name="theme import allows reversible preview actions and requires apply confirmation" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.013"/>
+  <testcase name="apply and discard reject missing candidate binding" classname="app.amber.core.ai.tools.ThemePackToolsTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

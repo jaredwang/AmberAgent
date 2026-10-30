@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:53.988Z" hostname="duguangdeMBP.lan" time="0.637">
+  <properties/>
+  <testcase name="overviewShowsReadableStageResultsWithoutDumpingTheFullTranscript" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.073"/>
+  <testcase name="hideAllButtonDoesNotExpandTheRail" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.084"/>
+  <testcase name="verticalSwipesExpandAndCollapseButNeverHideAll" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.25"/>
+  <testcase name="lastTaskRemainsDuringExitThenLeavesTheComposition" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.056"/>
+  <testcase name="horizontalSwipeStillScrollsTasksWithoutExpandingOrOpeningOne" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.084"/>
+  <testcase name="expansionInterpolatesHeightAndTheGridRemainsInteractive" classname="app.amber.feature.ui.components.ai.SubAgentDockInteractionTest" time="0.09"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

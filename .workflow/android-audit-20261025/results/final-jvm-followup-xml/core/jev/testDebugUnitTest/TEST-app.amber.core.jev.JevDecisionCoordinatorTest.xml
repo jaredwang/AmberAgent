@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.jev.JevDecisionCoordinatorTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-18T01:03:21.644Z" hostname="duguangdeMacBook-Pro.local" time="0.506">
+  <properties/>
+  <testcase name="threeConsecutiveTransientFailuresEnterCooldown" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.142"/>
+  <testcase name="rateLimitWithoutRetryAfterFails" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.003"/>
+  <testcase name="transientFailureRetriesOnceThenSucceeds" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.013"/>
+  <testcase name="queuedRequestDoesNotSendAfterCredentialOrScopeChange" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.009"/>
+  <testcase name="vercelConnectionTestDefaultsModelAndHitsDecisionEndpoint" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.004"/>
+  <testcase name="cacheIsPartitionedByApiModeAndEndpoint" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.01"/>
+  <testcase name="perRunBudgetExhaustsAfterLimit" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.289"/>
+  <testcase name="deadlineExpiryFailsWithTimeout" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.005"/>
+  <testcase name="lateSuccessCannotRepopulateCacheAfterCredentialOrScopeChange" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.004"/>
+  <testcase name="offModeShortCircuitsWithoutNetworkOrMetrics" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.001"/>
+  <testcase name="lateTransientResponseCannotStartCooldownAfterCredentialOrScopeChange" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.001"/>
+  <testcase name="authErrorPausesUntilConnectionTestResets" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.005"/>
+  <testcase name="missingScopeSkips" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.002"/>
+  <testcase name="decodeFailureIsTerminalWithoutRetry" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.002"/>
+  <testcase name="successIsEvaluatedAndCached" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.001"/>
+  <testcase name="lateConnectionTestCannotClearCurrentKeyAuthenticationPause" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.002"/>
+  <testcase name="lateUnauthorizedResponseFromOldKeyDoesNotPauseNewKey" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.002"/>
+  <testcase name="vercelModeWithoutModelSkipsNoModel" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.001"/>
+  <testcase name="oversizedStateSkipsWithoutNetwork" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.002"/>
+  <testcase name="retryDoesNotSendAfterCredentialOrScopeChange" classname="app.amber.core.jev.JevDecisionCoordinatorTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

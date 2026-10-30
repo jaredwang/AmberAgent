@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.miniapp.MiniAppSandboxTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.798Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="respectsGrantDeny" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.001"/>
+  <testcase name="respectsGlobalCapabilitySwitches" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.001"/>
+  <testcase name="v3AppCapabilitiesDefaultOpen" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.0"/>
+  <testcase name="requiresDeclaredPermission" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.0"/>
+  <testcase name="v3PlatformCapabilitiesCanBeEnabledExplicitly" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.0"/>
+  <testcase name="v3SensitiveCapabilitiesDefaultClosed" classname="app.amber.feature.miniapp.MiniAppSandboxTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

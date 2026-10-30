@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.memory.MemoryImportExportTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:22.930Z" hostname="duguangdeMBP.lan" time="0.071">
+  <properties/>
+  <testcase name="exportWithoutTopicsWritesIndexWithEmptySection" classname="app.amber.core.memory.MemoryImportExportTest" time="0.029"/>
+  <testcase name="exportWritesIndexAndTopicDocsAndCleansStaleOnes" classname="app.amber.core.memory.MemoryImportExportTest" time="0.022"/>
+  <testcase name="importRemapsSupersessionAfterAllRowsExistAndDropsMissingForeignReferences" classname="app.amber.core.memory.MemoryImportExportTest" time="0.008"/>
+  <testcase name="importRemapsTopicMembersToFreshIds" classname="app.amber.core.memory.MemoryImportExportTest" time="0.006"/>
+  <testcase name="lineageConflictPreservesConcurrentEditAndDoesNotCountThatRowAsImported" classname="app.amber.core.memory.MemoryImportExportTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

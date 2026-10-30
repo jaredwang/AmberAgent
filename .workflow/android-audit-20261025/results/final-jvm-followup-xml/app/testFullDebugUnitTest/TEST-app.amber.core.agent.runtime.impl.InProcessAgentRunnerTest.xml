@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:20.169Z" hostname="duguangdeMBP.lan" time="0.509">
+  <properties/>
+  <testcase name="launch with unknown descriptor returns failure" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.002"/>
+  <testcase name="failed runtime recovery rejects actual runner admission without invoking handler" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.009"/>
+  <testcase name="actual runner cannot write until runtime recovery and chat projection both finish" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.003"/>
+  <testcase name="relaunch under the same runId reuses the snapshot flow and resets to running" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.157"/>
+  <testcase name="handler-parked run survives handler return and the snapshot realigns to the pause" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.056"/>
+  <testcase name="observe returns snapshot for existing run" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.002"/>
+  <testcase name="failed run snapshot has no artifact" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.054"/>
+  <testcase name="completed run snapshot carries the handler artifact" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.057"/>
+  <testcase name="launch and fail transitions to failed with reason" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.055"/>
+  <testcase name="completed runs are not reported as unfinished after cleanup" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.055"/>
+  <testcase name="independent JS cleanup failure leaves actual recovered runner admitted" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.005"/>
+  <testcase name="launch and complete transitions running to completed" classname="app.amber.core.agent.runtime.impl.InProcessAgentRunnerTest" time="0.054"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.subagent.ThreadGraphManagerTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:51.149Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="startNodeUsesGenerationUpdateTimestampForFollowupRecovery" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.001"/>
+  <testcase name="parentChainAllowsGrandchildAndRejectsGreatGrandchild" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.001"/>
+  <testcase name="followupMessageMovesQueuedDeliveredPersisted" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.003"/>
+  <testcase name="restorePayloadReturnsCompletedResultWithFinalAnswer" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.001"/>
+  <testcase name="unknownThreadReturnsNull" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="restorePayloadReconcilesStaleRunningThreadToInterrupted" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="drainQueuedClaimsEachMessageOnlyOnce" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="sendMessageQueuedWhenIdleAndPersistedAfterResult" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.001"/>
+  <testcase name="prepareStartUsesPersistedParentAndRoot" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="finishNodeInterruptedKeepsThreadAndTerminalReason" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="listByRootRunFindsCascadeTargets" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.0"/>
+  <testcase name="cancelPersistedMarksStaleThreadCancelled" classname="app.amber.feature.subagent.ThreadGraphManagerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

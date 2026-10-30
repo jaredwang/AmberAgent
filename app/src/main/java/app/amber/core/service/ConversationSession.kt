@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import app.amber.core.model.Conversation
 import java.util.concurrent.atomic.AtomicInteger
@@ -102,6 +103,22 @@ class ConversationSession(
 
     fun setTimelineLoadState(state: ConversationTimelineLoadState) {
         _timelineLoadState.value = state
+    }
+
+    internal fun refreshTimelineNodeCount() {
+        _timelineLoadState.update { loadState ->
+            if (!loadState.initialized) return@update loadState
+            val loadedNodeCount = state.value.messageNodes.size
+            loadState.copy(
+                loadedNodeCount = loadedNodeCount,
+                totalNodeCount = if (loadState.isFullyLoaded) {
+                    loadedNodeCount
+                } else {
+                    maxOf(loadState.totalNodeCount, loadState.oldestLoadedIndex + loadedNodeCount)
+                },
+                isFullyLoaded = loadState.isFullyLoaded && loadState.oldestLoadedIndex == 0,
+            )
+        }
     }
 
     /**

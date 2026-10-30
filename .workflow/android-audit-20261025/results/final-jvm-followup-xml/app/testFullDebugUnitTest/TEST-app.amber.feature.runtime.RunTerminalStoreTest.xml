@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.RunTerminalStoreTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:41.292Z" hostname="duguangdeMBP.lan" time="0.16">
+  <properties/>
+  <testcase name="beginOnTerminalRowDoesNotReopenIt" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.011"/>
+  <testcase name="waitingUserRunSurvivesRestartAndResumesSameRunId" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="daoFinishIfLiveRefusesCompletedOverAnomalousOpenLimitRows" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="outputLimitAndGuardStoppedAreTerminalAndNeverMapToCompleted" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.011"/>
+  <testcase name="beginPauseResumeFinishLifecycle" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="outcomeUnknownIsAnUnfinishedPause" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="unfinishedListsOnlyNonTerminalRuns" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="beginResumesLivePausedRowAndClearsPauseMetadata" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="terminalForFlowEndMapsNewKernelTerminals" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="stepLimitIsTerminalAndNeverMapsToCompleted" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="activeForConversationReturnsNullAfterTerminal" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="pauseAfterFinishDoesNotResurrectRow" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="persistedWaitingUserCancellationIsConversationScoped" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="persistedWaitingUserCanBeCancelledAfterOwnershipRelease" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <testcase name="terminalForFlowEndDecisions" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.009"/>
+  <testcase name="terminalStateIsWriteOnce" classname="app.amber.feature.runtime.RunTerminalStoreTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

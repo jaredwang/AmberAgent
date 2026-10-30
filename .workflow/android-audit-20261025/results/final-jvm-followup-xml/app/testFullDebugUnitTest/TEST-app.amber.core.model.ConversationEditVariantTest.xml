@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.core.model.ConversationEditVariantTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:23.720Z" hostname="duguangdeMBP.lan" time="0.001">
+  <properties/>
+  <testcase name="editUnknownMessageIsNoOp" classname="app.amber.core.model.ConversationEditVariantTest" time="0.001"/>
+  <testcase name="switchingInvalidVariantFailsFast" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <testcase name="editAddsNewVariantSelectsItAndPreservesOriginal" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <testcase name="editWhileGeneratingIsBlockedWithExplicitMessage" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <testcase name="variantSwitchWhileGeneratingIsBlockedWithExplicitMessage" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <testcase name="switchingToSameVariantIsNoOp" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <testcase name="switchingUserVariantSyncsDownstreamBranch" classname="app.amber.core.model.ConversationEditVariantTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

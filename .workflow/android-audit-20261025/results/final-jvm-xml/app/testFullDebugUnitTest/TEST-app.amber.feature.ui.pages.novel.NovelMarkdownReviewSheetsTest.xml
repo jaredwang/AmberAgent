@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.novel.NovelMarkdownReviewSheetsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:10.627Z" hostname="duguangdeMBP.lan" time="0.6">
+  <properties/>
+  <testcase name="editingProposalBodyPreservesOriginalPlanHeaderBeforeApproval" classname="app.amber.feature.ui.pages.novel.NovelMarkdownReviewSheetsTest" time="0.178"/>
+  <testcase name="proposalKeepsFullTextEditsAndAllowsDismissWhileLocked" classname="app.amber.feature.ui.pages.novel.NovelMarkdownReviewSheetsTest" time="0.294"/>
+  <testcase name="changingFileClearsPreviousPreviewAndDisablesApprovalUntilItsReadCompletes" classname="app.amber.feature.ui.pages.novel.NovelMarkdownReviewSheetsTest" time="0.128"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

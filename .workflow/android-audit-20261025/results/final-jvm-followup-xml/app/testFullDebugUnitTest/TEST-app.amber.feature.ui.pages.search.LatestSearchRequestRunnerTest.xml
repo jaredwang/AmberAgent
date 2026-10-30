@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.search.LatestSearchRequestRunnerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:14:02.145Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="a non cooperative old query cannot commit after a newer query" classname="app.amber.feature.ui.pages.search.LatestSearchRequestRunnerTest" time="0.004"/>
+  <testcase name="submitting a new query cancels the pending debounce" classname="app.amber.feature.ui.pages.search.LatestSearchRequestRunnerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

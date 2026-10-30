@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.ai.provider.providers.grok.GrokOAuthTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:02.595Z" hostname="duguangdeMBP.lan" time="0.017">
+  <properties/>
+  <testcase name="parserAcceptsModelsEnvelopeAndFallbackIsNonEmpty" classname="app.amber.ai.provider.providers.grok.GrokOAuthTest" time="0.004"/>
+  <testcase name="statusDistinguishesMissingAndRefreshableExpiredToken" classname="app.amber.ai.provider.providers.grok.GrokOAuthTest" time="0.004"/>
+  <testcase name="authorizationUsesRegisteredPublicClientWithPkce" classname="app.amber.ai.provider.providers.grok.GrokOAuthTest" time="0.003"/>
+  <testcase name="authorizationPreservesEncodedStateAndNonce" classname="app.amber.ai.provider.providers.grok.GrokOAuthTest" time="0.001"/>
+  <testcase name="parserAcceptsOpenAiDataModelsAndSkipsMalformedEntries" classname="app.amber.ai.provider.providers.grok.GrokOAuthTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

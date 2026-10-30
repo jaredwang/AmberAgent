@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.681Z" hostname="duguangdeMBP.lan" time="0.003">
+  <properties/>
+  <testcase name="containsEvidenceRequiresCriticalTokensInSameLocalWindow" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.002"/>
+  <testcase name="containsEvidenceRejectsDecimalPercentCollapsedByCompactText" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="containsEvidenceRejectsLowOverlapHallucinatedTail" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="containsEvidenceRequiresCriticalNumberAndUnitTokensToMatch" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="containsEvidenceNormalizesCommonModelSeparators" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="scrapeRecordingOnlyAllowsRequestedUrl" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.001"/>
+  <testcase name="containsEvidenceToleratesPunctuationAndPartialChunkMatches" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="manualMarkIncludesShortMetadataEvidence" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="containsEvidenceDoesNotMatchAcrossSeparateSegmentsForSameUrl" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <testcase name="searchRecordingOnlyAllowsStructuredResultUrls" classname="app.amber.feature.board.hotlist.DeepReadEvidenceRegistryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

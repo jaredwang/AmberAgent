@@ -12,7 +12,9 @@ import app.amber.agent.data.db.entity.MemoryCandidateEntity
 import app.amber.agent.data.db.entity.MemoryEntity
 import app.amber.agent.data.db.entity.MemoryEventEntity
 import app.amber.core.memory.export.MemoryImportExportManager
+import app.amber.core.memory.export.MemoryFrontmatterCodec
 import app.amber.core.memory.model.MemoryKind
+import app.amber.core.memory.model.MemoryRecord
 import app.amber.core.memory.model.MemoryScope
 import app.amber.core.memory.store.MemoryRepository
 import org.junit.Assert.assertEquals
@@ -25,6 +27,66 @@ import org.junit.rules.TemporaryFolder
 class MemoryImportExportTest {
     @get:Rule
     val temp = TemporaryFolder()
+
+    @Test
+    fun importRemapsSupersessionAfterAllRowsExistAndDropsMissingForeignReferences() = runBlocking {
+        val repository = MemoryRepository(
+            ExportFakeMemoryDao(listOf(exportEntity(41, "Unrelated destination record", MemoryKind.USER))),
+            ExportFakeCandidateDao(), ExportFakeEventDao(),
+        )
+        val manager = MemoryImportExportManager(repository)
+        val root = temp.newFolder("lineage-import")
+        val memories = File(root, "memories/user").apply { mkdirs() }
+        File(root, "manifest.json").writeText("{}")
+        val codec = MemoryFrontmatterCodec()
+        fun record(id: Int, content: String) = MemoryRecord(
+            id = id, content = content, scope = MemoryScope.LONG_TERM,
+            kind = MemoryKind.USER, assistantId = MemoryRepository.LONG_TERM_MEMORY_ID,
+        )
+        // The replacement is read before its source, which arrives later from archive/.
+        File(memories, "replacement.mem.md").writeText(codec.encode(
+            record(42, "New imported preference").copy(supersedesIds = listOf(41, 999)),
+        ))
+        val archived = File(root, "archive/user").apply { mkdirs() }
+        File(archived, "old.mem.md").writeText(codec.encode(record(41, "Old imported preference").copy(archived = true)))
+
+        val result = manager.importFrom(root)
+
+        val records = repository.getAllRecords()
+        val importedOld = records.single { it.content == "Old imported preference" }
+        val replacement = records.single { it.content == "New imported preference" }
+        assertEquals(2, result.importedCount)
+        assertEquals(listOf(importedOld.id), replacement.supersedesIds)
+        assertTrue(importedOld.id != 41)
+        assertTrue(records.single { it.id == 41 }.supersedesIds.isEmpty())
+
+        manager.importFrom(root)
+        assertEquals(3, repository.getAllRecords().size)
+        assertEquals(listOf(importedOld.id), repository.getAllRecords().single { it.id == replacement.id }.supersedesIds)
+    }
+
+    @Test
+    fun lineageConflictPreservesConcurrentEditAndDoesNotCountThatRowAsImported() = runBlocking {
+        val dao = ExportFakeMemoryDao().apply { concurrentEditOnLineageWrite = "Concurrent author edit" }
+        val repository = MemoryRepository(dao, ExportFakeCandidateDao(), ExportFakeEventDao())
+        val root = temp.newFolder("lineage-conflict")
+        val directory = File(root, "memories/user").apply { mkdirs() }
+        File(root, "manifest.json").writeText("{}")
+        val codec = MemoryFrontmatterCodec()
+        fun record(id: Int, content: String) = MemoryRecord(
+            id = id, content = content, scope = MemoryScope.LONG_TERM,
+            kind = MemoryKind.USER, assistantId = MemoryRepository.LONG_TERM_MEMORY_ID,
+        )
+        File(directory, "old.mem.md").writeText(codec.encode(record(41, "Original imported fact")))
+        File(directory, "new.mem.md").writeText(codec.encode(record(42, "Replacement imported fact").copy(supersedesIds = listOf(41))))
+
+        val result = MemoryImportExportManager(repository).importFrom(root)
+
+        assertEquals(1, result.importedCount)
+        assertEquals(1, result.skippedCount)
+        val edited = repository.getAllRecords().single { it.content == "Concurrent author edit" }
+        assertTrue(edited.supersedesIds.isEmpty())
+    }
 
     @Test
     fun exportWritesIndexAndTopicDocsAndCleansStaleOnes() = runBlocking {
@@ -174,6 +236,7 @@ private class ExportFakeMemoryDao(
 ) : MemoryDAO {
     private val memories = initial.toMutableList()
     private var nextId = (initial.maxOfOrNull { it.id } ?: 0) + 1
+    var concurrentEditOnLineageWrite: String? = null
 
     override fun getMemoriesOfAssistantFlow(assistantId: String): Flow<List<MemoryEntity>> =
         flowOf(memories.filter { it.assistantId == assistantId })
@@ -245,6 +308,11 @@ private class ExportFakeMemoryDao(
         if (index < 0) return 0
         val current = memories[index]
         if (current.revision != expectedRevision) return 0
+        concurrentEditOnLineageWrite?.takeIf { supersedesIdsJson != current.supersedesIdsJson }?.let { edited ->
+            memories[index] = current.copy(content = edited, revision = current.revision + 1)
+            concurrentEditOnLineageWrite = null
+            return 0
+        }
         memories[index] = current.copy(
             assistantId = assistantId,
             content = content,

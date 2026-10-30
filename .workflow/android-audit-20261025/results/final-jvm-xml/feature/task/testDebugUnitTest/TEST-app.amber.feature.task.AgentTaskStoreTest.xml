@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.task.AgentTaskStoreTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:47.347Z" hostname="duguangdeMBP.lan" time="0.574">
+  <properties/>
+  <testcase name="reload recovers running task and persists recovered state" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.047"/>
+  <testcase name="scheduler completion clears previous error and code" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.032"/>
+  <testcase name="late council progress cannot replace completed or cancelled task" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.08"/>
+  <testcase name="write failure leaves memory and flow at previous snapshot" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.047"/>
+  <testcase name="failed register does not expose a task that was never saved" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.026"/>
+  <testcase name="reads and writes wait for asynchronous startup recovery" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.055"/>
+  <testcase name="scheduler terminal update ignores stale task spec" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.082"/>
+  <testcase name="corrupt snapshot remains untouched and does not hide valid tasks" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.068"/>
+  <testcase name="ordinary explicit followup can still move terminal task back to running" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.018"/>
+  <testcase name="failed cancel callback finishing after successor start cannot overwrite successor error" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.022"/>
+  <testcase name="register atomically persists and reloads snapshot" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.038"/>
+  <testcase name="successful retry clears old error and code in memory and on disk" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.029"/>
+  <testcase name="cancel callback finishing after successor start cannot cancel successor snapshot" classname="app.amber.feature.task.AgentTaskStoreTest" time="0.028"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

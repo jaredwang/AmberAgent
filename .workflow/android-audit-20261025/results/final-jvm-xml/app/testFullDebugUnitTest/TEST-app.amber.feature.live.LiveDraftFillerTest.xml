@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveDraftFillerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:35.942Z" hostname="duguangdeMBP.lan" time="0.05">
+  <properties/>
+  <testcase name="missing target and unknown verified result copy without retries or a new deny entry" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.008"/>
+  <testcase name="missing service uses the same clipboard path and an empty card does no platform work" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.008"/>
+  <testcase name="a readback mismatch copies and denies only that package for later attempts" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.006"/>
+  <testcase name="expired confirmation and a changed draft or package never reuse overwrite consent" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.008"/>
+  <testcase name="existing text needs a fresh confirmation and the exact five second boundary writes once" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.008"/>
+  <testcase name="stale card copies with rejected status and never writes" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.006"/>
+  <testcase name="fresh title mismatch copies without writing even while the tick still considers the card fresh" classname="app.amber.feature.live.LiveDraftFillerTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

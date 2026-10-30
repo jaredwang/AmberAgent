@@ -13,6 +13,9 @@ interface ConversationAccess {
         checkDeletedFiles: Boolean = true,
     )
 
+    /** Transform current state atomically; [update] may be retried and must have no external side effects. */
+    fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation)
+
     suspend fun saveConversation(conversationId: Uuid, conversation: Conversation)
     fun addError(error: Throwable, conversationId: Uuid? = null, title: String? = null)
 }

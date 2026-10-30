@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.hotlist.HotListSafeFetcherTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:29.865Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="timeoutWithoutCacheReturnsEmptyStaleSnapshot" classname="app.amber.feature.board.hotlist.HotListSafeFetcherTest" time="0.003"/>
+  <testcase name="failureFallsBackToStaleCache" classname="app.amber.feature.board.hotlist.HotListSafeFetcherTest" time="0.001"/>
+  <testcase name="successfulFetchSavesAndReturnsFreshSnapshot" classname="app.amber.feature.board.hotlist.HotListSafeFetcherTest" time="0.0"/>
+  <testcase name="emptyFetchFallsBackToStaleCache" classname="app.amber.feature.board.hotlist.HotListSafeFetcherTest" time="0.001"/>
+  <testcase name="httpFailureWithoutCacheReturnsEmptyStaleSnapshot" classname="app.amber.feature.board.hotlist.HotListSafeFetcherTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

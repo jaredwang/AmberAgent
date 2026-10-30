@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.sessionhome.SessionHomeContinueStreamTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:14.172Z" hostname="duguangdeMBP.lan" time="0.006">
+  <properties/>
+  <testcase name="continue source error keeps cards and reports independently" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeContinueStreamTest" time="0.003"/>
+  <testcase name="continue source construction error does not replace previous cards" classname="app.amber.feature.ui.pages.sessionhome.SessionHomeContinueStreamTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

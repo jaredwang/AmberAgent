@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.runtime.ExecutionPolicyDenialLedgerTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:40.768Z" hostname="duguangdeMBP.lan" time="0.012">
+  <properties/>
+  <testcase name="policyDeniedExecutionMirrorsTheUserDenialShape" classname="app.amber.feature.runtime.ExecutionPolicyDenialLedgerTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

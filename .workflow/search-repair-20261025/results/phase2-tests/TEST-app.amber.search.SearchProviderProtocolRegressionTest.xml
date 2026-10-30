@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.search.SearchProviderProtocolRegressionTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:02:04.639Z" hostname="duguangdeMBP.lan" time="0.049">
+  <properties/>
+  <testcase name="firecrawlNewsRequestDoesNotLoseNewsBehindFullWebArray" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.004"/>
+  <testcase name="exaPublicationDateReachesStandardResult" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.003"/>
+  <testcase name="zhipuPublicationDateReachesStandardResult" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.002"/>
+  <testcase name="firecrawlKeepsRequestedSourceOrderAndCapsCombinedResults" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.0"/>
+  <testcase name="currentSearXngResponseDoesNotRequireRemovedResultCount" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.001"/>
+  <testcase name="tavilyRecencyDaysOverridesExplicitDateAndRelativeTimeRange" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.005"/>
+  <testcase name="legacySearXngResponseWithCountStillDecodes" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.0"/>
+  <testcase name="tavilyForwardsExplicitRecencyDateBoundaryToHttpRequest" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.002"/>
+  <testcase name="metasoDateReachesStandardResultAndMayBeAbsent" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.004"/>
+  <testcase name="jinaPublishedTimeReachesStandardResultAndMayBeNull" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.001"/>
+  <testcase name="zhipuRejectsOverlengthOriginalQueryBeforeMakingRequest" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.002"/>
+  <testcase name="perplexityDateReachesStandardResultWithoutUsingLastUpdatedAsPublication" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.006"/>
+  <testcase name="jinaSearchDateSupportsDateOnlyResultsAndPreservesPublishedTimePriority" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.001"/>
+  <testcase name="tavilyExplicitDateOverridesTimeRangeAndAnyDoesNotReachNativeEnum" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.003"/>
+  <testcase name="searXngDateReachesStandardResultWithoutInventingMissingDate" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.005"/>
+  <testcase name="tavilyForwardsNativeTimeRangeToHttpRequest" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.002"/>
+  <testcase name="tavilyNewsPublicationDateReachesStandardResult" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.0"/>
+  <testcase name="bravePageAgeReachesStandardResultWithoutParsingRelativeAgeOrFetchDate" classname="app.amber.search.SearchProviderProtocolRegressionTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

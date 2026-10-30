@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.search.SearchResultIdentityTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:07:19.377Z" hostname="duguangdeMBP.lan" time="0.335">
+  <properties/>
+  <testcase name="freeSearchKeepsDistinctWikipediaPagesWhosePathsDifferInCase" classname="app.amber.search.SearchResultIdentityTest" time="0.169"/>
+  <testcase name="freeSearchMergeKeepsQueryCaseAndTrailingSlashes" classname="app.amber.search.SearchResultIdentityTest" time="0.001"/>
+  <testcase name="bingSearchPageReportsVerificationWhenThereAreNoResults" classname="app.amber.search.SearchResultIdentityTest" time="0.142"/>
+  <testcase name="freeBingKeepsResultsAboutCaptcha" classname="app.amber.search.SearchResultIdentityTest" time="0.013"/>
+  <testcase name="bingSearchPageReportsEmptyResultsWithoutCallingItVerification" classname="app.amber.search.SearchResultIdentityTest" time="0.001"/>
+  <testcase name="freeSearchMergeNormalizesHostVariantsAndTrailingPathSlashes" classname="app.amber.search.SearchResultIdentityTest" time="0.001"/>
+  <testcase name="bingSearchPageReturnsResultsAboutCaptcha" classname="app.amber.search.SearchResultIdentityTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

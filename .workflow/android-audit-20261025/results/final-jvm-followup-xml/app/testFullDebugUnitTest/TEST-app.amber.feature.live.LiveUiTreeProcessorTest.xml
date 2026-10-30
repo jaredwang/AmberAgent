@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.live.LiveUiTreeProcessorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:32.395Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="shouldAnalyzeSkipsUnchangedHashUnlessForced" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="stableHashIgnoresClockButKeepsAmounts" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.001"/>
+  <testcase name="sanitizeTextRedactsSensitiveValues" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="sanitizeUiTreeRedactsTextAndDescriptionFields" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="windowCandidateScorePrefersContentRichWindow" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.001"/>
+  <testcase name="windowCandidateFiltersDividerOwnAppSystemAndLowContentWindows" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="compactAnalysisItemsDropsFillerAndLimitsOutput" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="compressContentTextKeepsConversationAndDropsChrome" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <testcase name="shouldAnalyzeWaitsForStabilityAndThrottleWindow" classname="app.amber.feature.live.LiveUiTreeProcessorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -129,4 +129,50 @@ class NovelWorkspaceEffectiveMaterialsTest {
         assertFalse(foreshadow.contains("固定世界内容"))
         assertFalse(foreshadow.contains("固定决定内容"))
     }
+
+    @Test
+    fun `disabled smart node kinds cannot enter through plan matches or relation traversal`() {
+        val store = store()
+        store.write("setting/characters/主角.md", material("hero", "主角", "保留人物内容"))
+        store.write("setting/characters/旁观者.md", material("observer", "旁观者", "决定关联人物内容"))
+        store.write("setting/characters/证人.md", material("witness", "证人", "伏笔关联人物内容"))
+        store.write("setting/log/决定.md", """
+            ---
+            id: decision
+            materialKind: decisionLog
+            title: 决定
+            relations:
+              - {with: 旁观者, type: 涉及}
+            ---
+            禁用决定内容
+        """.trimIndent())
+        store.write("branches/主线/plot/foreshadowing/伏笔.md", """
+            ---
+            id: foreshadow
+            kind: foreshadowing
+            title: 伏笔
+            relations:
+              - {with: 证人, type: 涉及}
+            ---
+            禁用伏笔内容
+        """.trimIndent())
+        store.write("branches/主线/plan/this-chapter.md", "主角依照决定调查伏笔。")
+        val disabledKinds = NovelWorkspaceInjectionFlags(plot = false, foreshadowing = false, decisions = false)
+
+        val brief = NovelWorkspaceContextAssembler.assemble(store, "主线", flags = disabledKinds)
+
+        assertTrue(brief.contains("保留人物内容"))
+        assertFalse(brief.contains("禁用决定内容"))
+        assertFalse(brief.contains("禁用伏笔内容"))
+        assertFalse(brief.contains("决定关联人物内容"))
+        assertFalse(brief.contains("伏笔关联人物内容"))
+
+        val enabled = NovelWorkspaceContextAssembler.assemble(
+            store, "主线", flags = disabledKinds.copy(foreshadowing = true, decisions = true),
+        )
+        assertTrue(enabled.contains("禁用决定内容"))
+        assertTrue(enabled.contains("禁用伏笔内容"))
+        assertTrue(enabled.contains("决定关联人物内容"))
+        assertTrue(enabled.contains("伏笔关联人物内容"))
+    }
 }

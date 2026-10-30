@@ -349,11 +349,14 @@ class ChatService(
     override fun updateConversation(conversationId: Uuid, conversation: Conversation, checkDeletedFiles: Boolean) =
         conversationStore.updateConversation(conversationId, conversation, checkDeletedFiles)
 
-    fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) =
+    override fun updateConversationState(conversationId: Uuid, update: (Conversation) -> Conversation) =
         conversationStore.updateConversationState(conversationId, update)
 
     override suspend fun saveConversation(conversationId: Uuid, conversation: Conversation) =
         conversationStore.saveConversation(conversationId, conversation)
+
+    suspend fun updateConversationTitle(conversationId: Uuid, title: String) =
+        conversationStore.updateTitle(conversationId, title)
 
     suspend fun togglePinnedStatus(conversationId: Uuid) = conversationStore.togglePinnedStatus(conversationId)
 

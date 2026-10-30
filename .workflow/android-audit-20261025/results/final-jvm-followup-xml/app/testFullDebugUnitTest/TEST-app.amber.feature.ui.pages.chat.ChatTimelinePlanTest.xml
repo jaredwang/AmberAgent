@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:13:58.017Z" hostname="duguangdeMBP.lan" time="0.015">
+  <properties/>
+  <testcase name="virtualItemCacheEvictsMarkdownPlansByContentBudget" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.006"/>
+  <testcase name="streamingTailStaysSingleWhenLoadingFinishes" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.004"/>
+  <testcase name="planMapsHistoryMessagesPendingAndStableTail" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.002"/>
+  <testcase name="staticHistoryVirtualizesAssistantTailMessages" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.001"/>
+  <testcase name="planKeepsSameTailEntryShapeWhenLoadingEnds" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.0"/>
+  <testcase name="planKeepsProtectedHiddenTailAssistantAsMessageWithoutAddingDuplicatePlaceholder" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.0"/>
+  <testcase name="virtualItemCacheReusesStableNodePlans" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.001"/>
+  <testcase name="nextStreamingTailDoesNotPromotePreviousStaticTail" classname="app.amber.feature.ui.pages.chat.ChatTimelinePlanTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

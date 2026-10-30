@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:51.290Z" hostname="duguangdeMBP.lan" time="0.128">
+  <properties/>
+  <testcase name="oldSnapshotCannotFailResumedExecutionOrPausedJob" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.022"/>
+  <testcase name="corruptRecordsAreVisibleRetainedAndCannotBecomeOwners" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.023"/>
+  <testcase name="dismissingAnOldFailureCannotDeleteARetriedBatch" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.026"/>
+  <testcase name="navigationResolvesExactJobAndRejectsMissingOrMismatchedIdentity" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.01"/>
+  <testcase name="committedTargetIsCompletedInsteadOfGeneratedAgain" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.022"/>
+  <testcase name="unfinishedWorkKeepsItsDurableOwner" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.01"/>
+  <testcase name="missingWorkBecomesRetryableWithoutChangingCursor" classname="app.amber.feature.novelworkspace.NovelWorkspaceJobRecoveryTest" time="0.014"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

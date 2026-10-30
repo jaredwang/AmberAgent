@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" tests="30" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:05:56.748Z" hostname="duguangdeMBP.lan" time="9.743">
+  <properties/>
+  <testcase name="configOnlyRestoreFromFullBackupPreservesLocalNovel" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="1.266"/>
+  <testcase name="legacyBackupWithoutLiveCardsPreservesLocalCards" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.738"/>
+  <testcase name="standardBackupRoundTripsOwnedArtifactContent" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.239"/>
+  <testcase name="emptyFullBackupMarksNovelDatasetAndClearsLocalNovelOnEverythingRestore" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.22"/>
+  <testcase name="savedLiveCardsRoundTripAndConfigurationRestorePreservesLocalCards" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.862"/>
+  <testcase name="failedFileReplacementLeavesExistingDatabaseUntouched" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.164"/>
+  <testcase name="fullRestoreAcceptsLegacySecretsWithoutGrokEndpointBackupField" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.223"/>
+  <testcase name="startupRecoveryKeepsCommittedFilesAndDatabaseAndRebuildsDerivedFts" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.067"/>
+  <testcase name="failedUnfinishedForkDoesNotDeleteItsCopyAdoptedByARealArchiveRestore" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.281"/>
+  <testcase name="mixedPreservationKeepsLocalAndImportedChatImageFilesWithoutOverwritingLocalCollisions" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.4"/>
+  <testcase name="startupRecoveryAdoptsCommittedNativeNovelSnapshotThroughExistingBridge" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.089"/>
+  <testcase name="legacyFullBackupWithoutNovelMarkerIgnoresNativeEntriesAndPreservesLocalNovel" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.287"/>
+  <testcase name="restoredArtifactBodyOverridesOldSafContentWithoutWritingIntoTheUserWorkspace" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.22"/>
+  <testcase name="committedNonNovelJournalCannotAdoptPlannedNovelSnapshotWhenSettingsDecodeFails" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.262"/>
+  <testcase name="pendingFileRestorePreservesRootsNotYetBackedUpIncludingMissingInitialState" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.25"/>
+  <testcase name="preserveConversationsKeepsManagedUploadsTogether" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.191"/>
+  <testcase name="fullRestoreRoundTripsGrokTokenAndEndpointBackup" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.188"/>
+  <testcase name="startupRecoveryRollsBackUncommittedFilesWithoutAnotherArchiveRestore" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.081"/>
+  <testcase name="partialCommitKeepsJournalAndImportedDataUntilReverifiedRetry" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.326"/>
+  <testcase name="fullBackupCarriesArtifactBodiesWithoutOtherWorkspaceFiles" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.19"/>
+  <testcase name="nativeJournalRollbackBeforeConfigurationRestorePreservesAutomaticMigrationPolicy" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.167"/>
+  <testcase name="failedApplyConsumesVerificationAndReverifyCanCompleteFullRestore" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.227"/>
+  <testcase name="fullBackupRoundTripsNativeNovelFilesAndReplacesOnlyItsExactRoot" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.225"/>
+  <testcase name="standardBackupExcludesNativeNovelAndEverythingRestorePreservesLocalNovel" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.218"/>
+  <testcase name="declaredLiveCardsDatasetWithoutTableRejectsRestoreBeforeChangingLocalCards" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.208"/>
+  <testcase name="interruptedFileRestoreRollsBackNestedNovelRootBeforeStandardRestore" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.219"/>
+  <testcase name="failedSettingsDecodeOrMissingTableLeavesNoPlaintextStageDirectories" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.594"/>
+  <testcase name="artifactOwnedBodyRollsBackWithDatabaseAndSurvivesSettingsOnlyAndLegacyRestores" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.779"/>
+  <testcase name="committedNativeJournalRecoveryBeforeConfigurationRestoreRecordsSnapshotAdoption" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.328"/>
+  <testcase name="artifactRestoreRejectsFilesOutsideRegistryOwnership" classname="app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest" time="0.23"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[java.io.IOException: Second attachment failed after archive restore
+	at app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest$failedUnfinishedForkDoesNotDeleteItsCopyAdoptedByARealArchiveRestore$1$1$1.read(SyncArchiveManagerIntegrationTest.kt:258)
+	at app.amber.agent.data.sync.SyncArchiveManagerIntegrationTest$failedUnfinishedForkDoesNotDeleteItsCopyAdoptedByARealArchiveRestore$1$1$1.read(SyncArchiveManagerIntegrationTest.kt:252)
+	at app.amber.core.files.FilesManager.copyToWithinLimit(FilesManager.kt:279)
+	at app.amber.core.files.FilesManager.createChatFilesByContentsBlocking(FilesManager.kt:204)
+	at app.amber.core.files.FilesManager.access$createChatFilesByContentsBlocking(FilesManager.kt:44)
+	at app.amber.core.files.FilesManager$createChatFilesByContents$2.invokeSuspend(FilesManager.kt:175)
+	at app.amber.core.files.FilesManager$createChatFilesByContents$2.invoke(FilesManager.kt)
+	at app.amber.core.files.FilesManager$createChatFilesByContents$2.invoke(FilesManager.kt)
+	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndspatched(Undispatched.kt:66)
+	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatchedOrReturn(Undispatched.kt:43)
+	at kotlinx.coroutines.BuildersKt__Builders_commonKt.withContext(Builders.common.kt:165)
+	at kotlinx.coroutines.BuildersKt.withContext(Unknown Source)
+	at app.amber.core.files.FilesManager.createChatFilesByContents(FilesManager.kt:174)
+	at app.amber.core.service.ConversationEditor.copyWithForkedFileUrl(ConversationEditor.kt:197)
+	at app.amber.core.service.ConversationEditor.access$copyWithForkedFileUrl(ConversationEditor.kt:20)
+	at app.amber.core.service.ConversationEditor$forkConversationAtMessage$2.invokeSuspend(ConversationEditor.kt:74)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.UndispatchedCoroutine.afterResume(CoroutineContext.kt:266)
+	at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:101)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:47)
+	at kotlinx.coroutines.UndispatchedCoroutine.afterResume(CoroutineContext.kt:266)
+	at kotlinx.coroutines.AbstractCoroutine.resumeWith(AbstractCoroutine.kt:101)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:47)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+]]></system-err>
+</testsuite>

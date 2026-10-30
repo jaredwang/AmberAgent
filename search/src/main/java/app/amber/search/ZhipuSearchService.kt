@@ -24,6 +24,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
 object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
+    const val MAX_QUERY_LENGTH = 70
+
     override val name: String = "Zhipu"
 
     @Composable
@@ -58,6 +60,9 @@ object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
     ): Result<SearchResult> = withContext(Dispatchers.IO) {
         runCatching {
             val query = params["query"]?.jsonPrimitive?.content ?: error("query is required")
+            require(query.length <= MAX_QUERY_LENGTH) {
+                "Zhipu search query must not exceed $MAX_QUERY_LENGTH characters"
+            }
 
             val body = buildJsonObject {
                 put("search_query", JsonPrimitive(query))
@@ -71,10 +76,12 @@ object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
                 .addHeader("Authorization", "Bearer ${serviceOptions.apiKey}")
                 .build()
 
-            val response = httpClient.newCall(request).execute()
-            if (response.isSuccessful) {
+            httpClient.newCall(request).await().use { response ->
+                if (!response.isSuccessful) {
+                    error("Zhipu response failed #${response.code}: ${response.body?.string()}")
+                }
                 val bodyRaw = response.body?.string() ?: error("Failed to get response body")
-                val response = runCatching {
+                val payload = runCatching {
                     json.decodeFromString<ZhipuDto>(bodyRaw)
                 }.onFailure {
                     error("Failed to decode Zhipu response (${bodyRaw.length} chars): ${it.message}")
@@ -82,16 +89,15 @@ object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
 
                 return@withContext Result.success(
                     SearchResult(
-                        items = response.searchResult.map {
+                        items = payload.searchResult.map {
                             SearchResultItem(
                                 title = it.title,
                                 url = it.link,
                                 text = it.content,
+                                publishedAt = it.publishedDate,
                             )
                         }
                     ))
-            } else {
-                error("Zhipu response failed #${response.code}: ${response.body?.string()}")
             }
         }
     }
@@ -112,6 +118,8 @@ object ZhipuSearchService : SearchService<SearchServiceOptions.ZhipuOptions> {
 
     @Serializable
     data class ZhipuSearchResultDto(
+        @SerialName("publish_date")
+        val publishedDate: String? = null,
         @SerialName("content")
         val content: String,
         @SerialName("icon")

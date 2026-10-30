@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-25T15:32:50.575Z" hostname="duguangdeMBP.lan" time="0.052">
+  <properties/>
+  <testcase name="nested imported chapter captures old new and deleted text" classname="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" time="0.016"/>
+  <testcase name="each committed chapter version survives later writes and stays outside exchange" classname="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" time="0.021"/>
+  <testcase name="opening legacy history seeds only current available text" classname="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" time="0.007"/>
+  <testcase name="selected version read rejects changed blob bytes" classname="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" time="0.003"/>
+  <testcase name="history failure leaves chapter write and deletion untouched" classname="app.amber.feature.novelworkspace.NovelWorkspaceChapterHistoryTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:58.691Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="burst_then_starve_yields_bounded_rate_swing" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.002"/>
+  <testcase name="target_speed_grows_with_backlog_then_caps" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_trailing_whitespace_lands_immediately" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_keeps_surrogate_pairs_whole" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_is_latin_word_with_leading_whitespace" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="count_units_matches_segmentation" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="target_speed_floor_binds_on_small_backlog" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="speed_step_is_continuous_in_dt" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_attaches_fullwidth_punctuation_to_previous_cjk_char" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_splits_mixed_cjk_and_latin" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_is_single_cjk_character" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="drain_mode_targets_faster_than_streaming" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="release_unit_caps_long_latin_run" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="speed_step_approaches_target_gradually" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <testcase name="zero_backlog_targets_zero" classname="app.amber.feature.ui.components.richtext.StreamingDisplayBufferTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

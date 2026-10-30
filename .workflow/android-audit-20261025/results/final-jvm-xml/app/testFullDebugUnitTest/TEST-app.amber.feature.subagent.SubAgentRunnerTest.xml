@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.subagent.SubAgentRunnerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:47.775Z" hostname="duguangdeMBP.lan" time="0.008">
+  <properties/>
+  <testcase name="firstRunAndReportRetryShareTheIsolatedGenerationSnapshot" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.003"/>
+  <testcase name="narrowedParentPolicyReachesTheChildSession" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.001"/>
+  <testcase name="approvalRequestedDuringReportRetryKeepsTheSubagentPaused" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.002"/>
+  <testcase name="streamsSearchToolPartsForRenderTimePresentation" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.001"/>
+  <testcase name="pureTextRunFallsBackWhenReportToolArgumentsFailAfterVisibleText" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.001"/>
+  <testcase name="toolEnabledRunDoesNotFallbackOnReportToolArgumentError" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.0"/>
+  <testcase name="ordinaryGenerationErrorIsNotTreatedAsCompletedEvenWithVisibleText" classname="app.amber.feature.subagent.SubAgentRunnerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

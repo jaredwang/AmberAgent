@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:06:32.765Z" hostname="duguangdeMBP.lan" time="0.002">
+  <properties/>
+  <testcase name="dropsLongStreamingTestConversation" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.001"/>
+  <testcase name="keepsExplicitActionableWorkContext" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <testcase name="dropsLowValueGarbledTestConversation" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <testcase name="dropsWeakKeywordEvenWithDeepConversation" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <testcase name="keepsShortMeetingDecisionFollowUp" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <testcase name="dropsOrdinarySmallTalk" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.001"/>
+  <testcase name="doesNotTreatPrInsidePromptOrProviderAsPrKeyword" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <testcase name="keepsShortExplicitBugFix" classname="app.amber.feature.board.collector.ChatHistoryBoardSignalHeuristicsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -4,6 +4,8 @@ import app.amber.core.settings.Settings
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,11 +44,16 @@ class JevWebGoalRunnerTest {
         }
     }
 
-    private class ScriptedTransport(private val script: MutableList<String>, val safetyProbability: Double = 0.99) : JevTransport {
+    private class ScriptedTransport(
+        private val script: MutableList<String>,
+        val safetyProbability: Double = 0.99,
+        private val onRequest: (JevHttpRequest) -> Unit = {},
+    ) : JevTransport {
         var calls = 0
 
         override suspend fun execute(request: JevHttpRequest): JevTransportResponse {
             calls++
+            onRequest(request)
             if (request.body.contains("\"safe_action\"")) {
                 return JevTransportResponse.Http(200, """{"answers":{"safe_action":{"type":"noul","noul":$safetyProbability}}}""".toByteArray(), null)
             }
@@ -96,6 +103,81 @@ class JevWebGoalRunnerTest {
         assertEquals("completed", outcome.status)
         assertEquals(0, driver.performed)
         assertEquals(1, transport.calls)
+    }
+
+    @Test
+    fun decisionIncludesTheAlreadyObservedBodyEvidence() = runTest {
+        val visibleText = "Search results are ready: the requested article is displayed."
+        val driver = FakeDriver().apply {
+            state = JsonObject(state + ("visible_text_sample" to kotlinx.serialization.json.JsonPrimitive(visibleText)))
+        }
+        var sentState: JsonObject? = null
+        val transport = ScriptedTransport(mutableListOf(response("done", 0.9)), onRequest = { request ->
+            sentState = kotlinx.serialization.json.Json.parseToJsonElement(request.body)
+                .jsonObject.getValue("state").jsonObject
+        })
+
+        val outcome = JevWebGoalRunner(runtime(transport, JevMode.ACTIVE)).run(
+            driver, "find the requested article", emptyList(), dryRun = false, runKey = "body-evidence",
+        )
+
+        assertEquals(visibleText, sentState?.get("page")?.jsonObject?.get("visible_text_sample")?.jsonPrimitive?.content)
+        assertEquals("completed", outcome.status)
+        assertEquals(0, driver.performed)
+    }
+
+    @Test
+    fun doneDoesNotCompleteAfterNavigationDuringDecision() = runTest {
+        val driver = FakeDriver()
+        val transport = ScriptedTransport(mutableListOf(response("done", 0.99)), onRequest = {
+            driver.state = JsonObject(driver.state + ("url" to kotlinx.serialization.json.JsonPrimitive("https://example.com/error")))
+        })
+
+        val outcome = JevWebGoalRunner(runtime(transport, JevMode.ACTIVE)).run(
+            driver, "open the article", emptyList(), dryRun = false, runKey = "navigated-done",
+        )
+
+        assertEquals("handback", outcome.status)
+        assertEquals("https://example.com/error", outcome.lastState?.get("url")?.jsonPrimitive?.content)
+        assertEquals(0, driver.performed)
+    }
+
+    @Test
+    fun doneHonorsHumanHandoffThatAppearedDuringDecision() = runTest {
+        val driver = FakeDriver()
+        val transport = ScriptedTransport(mutableListOf(response("done", 0.99)), onRequest = {
+            driver.state = buildJsonObject {
+                driver.state.forEach { (key, value) -> put(key, value) }
+                put("requires_human", true)
+                put("resume_condition", "resolve_js_dialog:2")
+            }
+        })
+
+        val outcome = JevWebGoalRunner(runtime(transport, JevMode.ACTIVE)).run(
+            driver, "open the article", emptyList(), dryRun = false, runKey = "dialog-done",
+        )
+
+        assertEquals("needs_user_action", outcome.status)
+        assertEquals("resolve_js_dialog:2", outcome.reason)
+        assertEquals(0, driver.performed)
+    }
+
+    @Test
+    fun unrelatedFingerprintChangeDoesNotByItselfRejectDone() = runTest {
+        val driver = FakeDriver().apply {
+            state = JsonObject(state + ("semantic_fingerprint" to kotlinx.serialization.json.JsonPrimitive("before")))
+        }
+        val transport = ScriptedTransport(mutableListOf(response("done", 0.99)), onRequest = {
+            driver.state = JsonObject(driver.state + ("semantic_fingerprint" to kotlinx.serialization.json.JsonPrimitive("after")))
+        })
+
+        val outcome = JevWebGoalRunner(runtime(transport, JevMode.ACTIVE)).run(
+            driver, "open the article", emptyList(), dryRun = false, runKey = "unrelated-signal-done",
+        )
+
+        assertEquals("completed", outcome.status)
+        assertEquals(1, transport.calls)
+        assertEquals(0, driver.performed)
     }
 
     @Test

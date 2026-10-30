@@ -494,6 +494,51 @@ class SettingsSecretMigrationTest {
     }
 
     @Test
+    fun `malformed custom headers preserve migration input and secret references`() = runBlocking {
+        assertMalformedDomainPreserved(PreferencesKeys.AMBER_CUSTOM_HEADERS)
+    }
+
+    @Test
+    fun `malformed MCP settings preserve migration input and secret references`() = runBlocking {
+        assertMalformedDomainPreserved(PreferencesKeys.MCP_SERVERS)
+    }
+
+    @Test
+    fun `malformed search settings preserve migration input and secret references`() = runBlocking {
+        assertMalformedDomainPreserved(PreferencesKeys.SEARCH_SERVICES)
+    }
+
+    @Test
+    fun `malformed WebDAV settings preserve migration input and secret references`() = runBlocking {
+        assertMalformedDomainPreserved(PreferencesKeys.WEBDAV_CONFIG)
+    }
+
+    @Test
+    fun `malformed S3 settings preserve migration input and secret references`() = runBlocking {
+        assertMalformedDomainPreserved(PreferencesKeys.S3_CONFIG)
+    }
+
+    private suspend fun assertMalformedDomainPreserved(key: Preferences.Key<String>) {
+        val malformed = "{unreadable"
+        val descriptor = SecretDescriptor("mcp", "existing-server", "authorization")
+        val reference = SecretReference(descriptor.scope, descriptor.ownerId, descriptor.fieldName, SecretRedactor.MASK_STRING)
+        store.update(descriptor, "existing-credential")
+        dataStore.edit {
+            it[key] = malformed
+            redactor.writeRefs(it, mapOf(descriptor.key to reference))
+        }
+
+        val result = migrator.migrateIfNeeded()
+
+        assertEquals("Migration must fail without treating malformed data as absent", SettingsSecretMigrator.MIGRATION_FAILED, result)
+        val persisted = dataStore.data.first()
+        assertEquals(malformed, persisted[key])
+        assertEquals(reference, redactor.readRefs(persisted)[descriptor.key])
+        assertEquals("existing-credential", store.read(descriptor))
+        assertEquals(0, store.migrationVersion())
+    }
+
+    @Test
     fun `malformed refs block retired search cleanup without deleting its secret`() = runBlocking {
         val legacyId = kotlin.uuid.Uuid.random()
         val legacySecret = SecretDescriptor("search", legacyId.toString(), "apiKey")
