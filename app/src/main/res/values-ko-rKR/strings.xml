@@ -3541,6 +3541,7 @@
   <string name="setting_jev_connection_ok">연결 성공(%1$s, %2$dms)</string>
   <string name="setting_jev_connection_key_missing">먼저 API 키를 설정하세요</string>
   <string name="setting_jev_connection_model_required">먼저 모델을 설정하세요. Vercel 모드에는 게이트웨이 모델 id가 필요합니다</string>
+  <string name="setting_jev_connection_http_451">HTTP 451(현재 네트워크 또는 지역에서 직접 연결할 수 없습니다. 프록시를 확인하거나 호출 모드를 Vercel로 전환하세요)</string>
   <string name="setting_jev_connection_failed">실패: %1$s</string>
   <string name="setting_jev_shadow_notice">테스트 모드에서도 데이터를 전송합니다. 아래 허용된 범위로 제한됩니다.</string>
   <string name="setting_jev_purposes_section">용도 모드</string>

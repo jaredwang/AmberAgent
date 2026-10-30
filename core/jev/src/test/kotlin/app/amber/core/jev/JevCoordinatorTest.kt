@@ -13,10 +13,22 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
+import okio.Buffer
+import okio.BufferedSource
+import okio.Timeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.reflect.KClass
 
 class JevClientCodecTest {
 
@@ -398,6 +410,86 @@ class JevClientCodecTest {
     fun parseRetryAfterSecondsOnly() {
         assertEquals(2_000L, "2".parseRetryAfterMs())
         assertNull("Wed, 21 Oct 2015 07:28:00 GMT".parseRetryAfterMs())
+    }
+
+    @Test
+    fun sanitizeApiKeyStripsNewlinesBearerQuotesAndControlChars() {
+        val cleanKey = "ext" + "1".repeat(32) + "2".repeat(6) + "heck"
+        // 复现 "Unexpected char 0x0a at 42 in Authorization value"：
+        // "Bearer " (7 字符) + 前 35 字符 = index 42 处的 '\n' (0x0a)，掩码为 ext…heck。
+        val wrappedAt42 = "ext" + "1".repeat(32) + "\n" + "2".repeat(6) + "heck"
+        assertEquals(42, ("Bearer " + wrappedAt42).indexOf('\n'))
+        assertEquals(cleanKey, sanitizeJevApiKey(wrappedAt42))
+        assertEquals(
+            cleanKey,
+            sanitizeJevApiKey("  \"Authorization: Bearer \r\n$wrappedAt42\t${0x200B.toChar()}${0xFEFF.toChar()}\"  "),
+        )
+        assertEquals(cleanKey, sanitizeJevApiKey("'bearer   ext" + "1".repeat(32) + "\r\n" + "2".repeat(6) + "heck'"))
+    }
+
+    @Test
+    fun okHttpTransportSanitizesMultilineAndBearerKeyInAuthorizationHeader() = runTest {
+        val capturedRequests = mutableListOf<Request>()
+        val transport = OkHttpJevTransport(callFactory = { request ->
+            capturedRequests += request
+            object : Call {
+                override fun request(): Request = request
+                override fun enqueue(responseCallback: Callback) {
+                    val bodyBytes = """{"answers":{"q1":{"type":"noul","noul":0.9}}}""".toByteArray(Charsets.UTF_8)
+                    responseCallback.onResponse(
+                        this,
+                        Response.Builder()
+                            .request(request)
+                            .protocol(Protocol.HTTP_1_1)
+                            .code(200)
+                            .message("OK")
+                            .body(object : ResponseBody() {
+                                override fun contentType(): MediaType? = null
+                                override fun contentLength(): Long = bodyBytes.size.toLong()
+                                override fun source(): BufferedSource = Buffer().write(bodyBytes)
+                            })
+                            .build(),
+                    )
+                }
+                override fun execute(): Response = error("enqueue only")
+                override fun cancel() = Unit
+                override fun isExecuted(): Boolean = true
+                override fun isCanceled(): Boolean = false
+                override fun timeout(): Timeout = Timeout.NONE
+                override fun clone(): Call = error("unused")
+                override fun <T : Any> tag(type: KClass<T>): T? = null
+                override fun <T> tag(type: Class<out T>): T? = null
+                override fun <T : Any> tag(type: KClass<T>, computeIfAbsent: () -> T): T = computeIfAbsent()
+                override fun <T : Any> tag(type: Class<T>, computeIfAbsent: () -> T): T = computeIfAbsent()
+            }
+        })
+        val cleanKey = "ext" + "a".repeat(32) + "b".repeat(6) + "heck"
+        val dirtyKeyAt42 = "ext" + "a".repeat(32) + "\n" + "b".repeat(6) + "heck"
+        assertEquals(42, ("Bearer " + dirtyKeyAt42).indexOf('\n'))
+
+        val first = transport.execute(
+            JevHttpRequest(
+                url = JevLimits.ENDPOINT,
+                apiKey = dirtyKeyAt42,
+                body = "{}",
+                timeoutMs = 1_200,
+                headers = mapOf("ai-model-id" to "typesafe-ai/\r\njev-1.14.0"),
+            ),
+        )
+        assertTrue(first is JevTransportResponse.Http && first.code == 200)
+        assertEquals("Bearer $cleanKey", capturedRequests.last().header("Authorization"))
+        assertEquals("typesafe-ai/jev-1.14.0", capturedRequests.last().header("ai-model-id"))
+
+        val second = transport.execute(
+            JevHttpRequest(
+                url = JevLimits.ENDPOINT,
+                apiKey = "Bearer \"ext" + "a".repeat(32) + "\r\n" + "b".repeat(6) + "heck\"",
+                body = "{}",
+                timeoutMs = 1_200,
+            ),
+        )
+        assertTrue(second is JevTransportResponse.Http && second.code == 200)
+        assertEquals("Bearer $cleanKey", capturedRequests.last().header("Authorization"))
     }
 }
 
@@ -877,6 +969,64 @@ class JevDecisionCoordinatorTest {
         val request = transport.requests.single()
         assertTrue(request.url.endsWith("/decision-model"))
         assertEquals("typesafe-ai/jev-1.14.0", request.headers["ai-model-id"])
+    }
+
+    @Test
+    fun coordinatorSanitizesStoredMultilineKeyInDecideAndConnectionTest() = runTest {
+        val cleanKey = "ext" + "x".repeat(32) + "y".repeat(6) + "heck"
+        val dirtyStoredKey = "Bearer ext" + "x".repeat(32) + "\n" + "y".repeat(6) + "\r\nheck"
+        val transport = FakeTransport { noulSuccess("q1" to 0.9, "prime" to 0.99) }
+        val coordinator = coordinator(transport, key = dirtyStoredKey)
+
+        val decision = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, "run-1", taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(decision is JevDecision.Evaluated)
+        assertEquals(cleanKey, transport.requests.last().apiKey)
+
+        val testResult = coordinator.connectionTest()
+        assertTrue(testResult.ok)
+        assertEquals(cleanKey, transport.requests.last().apiKey)
+    }
+
+    @Test
+    fun http451PausesUntilCredentialOrScopeChanged() = runTest {
+        val transport = FakeTransport { httpError(451) }
+        val coordinator = coordinator(transport)
+
+        val first = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(first is JevDecision.Failed && first.reason == JevFailureReason.CLIENT_ERROR)
+        assertTrue(coordinator.statusSnapshot().authPaused)
+
+        // 暂停期间后台请求直接跳过，不再打网络也不扣预算
+        val second = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(second is JevDecision.Skipped && second.reason == JevSkipReason.AUTH_PAUSED)
+        assertEquals(1, transport.requests.size)
+
+        // 用户切换 apiMode / 更新 Key 触发 onCredentialOrScopeChanged() 后恢复
+        coordinator.onCredentialOrScopeChanged()
+        assertFalse(coordinator.statusSnapshot().authPaused)
+        transport.responder = { noulSuccess("q1" to 0.9) }
+        val third = coordinator.decide(
+            JevPurpose.MEMORY_RECALL, activeConfig, null, taskState,
+            noulQuestions("q1"), setOf(JevDataScope.PERSONAL_MEMORY),
+        )
+        assertTrue(third is JevDecision.Evaluated)
+        assertEquals(2, transport.requests.size)
+
+        // 连接测试遇到 HTTP 451 同样记录 httpCode=451 并触发暂停
+        transport.responder = { httpError(451) }
+        val failedTest = coordinator.connectionTest()
+        assertFalse(failedTest.ok)
+        assertEquals(451, failedTest.httpCode)
+        assertTrue(coordinator.statusSnapshot().authPaused)
     }
 }
 

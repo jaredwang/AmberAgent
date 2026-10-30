@@ -35,7 +35,7 @@ class JevRuntime(
             allowedScopes = setting.dataScopes,
             // 每个方言的模型字段独立（model=typesafe 固定版本，vercelModel=网关 decision 模型 id，
             // perplexityModel / liquidModel=各自模型 id）互不串味；空值回落该方言的缺省 id。
-            model = setting.modelFor(setting.apiMode)?.takeIf { it.isNotBlank() }
+            model = sanitizeJevHeaderValue(setting.modelFor(setting.apiMode)).takeIf { it.isNotEmpty() }
                 ?: jevDefaultModelFor(setting.apiMode),
             policyVersion = policy.policyVersion,
             apiMode = setting.apiMode,

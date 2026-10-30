@@ -101,14 +101,15 @@ class JevDecisionCoordinator(
         if (state.toString().toByteArray(Charsets.UTF_8).size > JevLimits.MAX_STATE_BYTES) {
             return skipped(purpose, config, JevSkipReason.STATE_TOO_LARGE)
         }
-        val apiKey = apiKeyProvider()
-        if (apiKey.isNullOrBlank()) return skipped(purpose, config, JevSkipReason.NO_KEY)
-        if (config.model.isBlank()) return skipped(purpose, config, JevSkipReason.NO_MODEL)
+        val apiKey = sanitizeJevApiKey(apiKeyProvider())
+        if (apiKey.isEmpty()) return skipped(purpose, config, JevSkipReason.NO_KEY)
+        val cleanModel = sanitizeJevHeaderValue(config.model)
+        if (cleanModel.isEmpty()) return skipped(purpose, config, JevSkipReason.NO_MODEL)
         if (authPaused) return skipped(purpose, config, JevSkipReason.AUTH_PAUSED)
         if (clock() < cooldownUntil) return skipped(purpose, config, JevSkipReason.COOLDOWN)
 
         val body = try {
-            client.encodeRequestBody(config.model, state, questions, config.apiMode, assets)
+            client.encodeRequestBody(cleanModel, state, questions, config.apiMode, assets)
         } catch (e: IllegalArgumentException) {
             // 能力不匹配（图片/Box）或参考标记缺失：确定性错误，回退原路径。
             return failed(purpose, config, JevDecision.Failed(JevFailureReason.CLIENT_ERROR, e.message), clock(), 0)
@@ -199,7 +200,7 @@ class JevDecisionCoordinator(
                 val remaining = deadline - clock()
                 val result = try {
                     withTimeout(remaining.coerceAtLeast(1)) {
-                        client.call(config.apiMode, config.endpoint, config.model, apiKey, state, questions, assets)
+                        client.call(config.apiMode, config.endpoint, cleanModel, apiKey, state, questions, assets)
                     }
                 } catch (e: TimeoutCancellationException) {
                     JevCallResult.Transport("deadline")
@@ -249,6 +250,17 @@ class JevDecisionCoordinator(
                                 authPaused = true
                             }
                             lastFailure = JevDecision.Failed(JevFailureReason.AUTH, result.bodySnippet)
+                            break
+                        }
+                        result.code == JevConnectionTestResult.HTTP_UNAVAILABLE_FOR_LEGAL_REASONS -> {
+                            // HTTP 451（地区/网络受限）：暂停后续后台请求，待用户切换模式、修改 Key 或连接测试成功时解除。
+                            synchronized(this) {
+                                if (requestRevision != configurationRevision) {
+                                    return skipped(purpose, config, JevSkipReason.CONFIGURATION_CHANGED)
+                                }
+                                authPaused = true
+                            }
+                            lastFailure = JevDecision.Failed(JevFailureReason.CLIENT_ERROR, result.bodySnippet)
                             break
                         }
                         result.code == 429 -> {
@@ -321,9 +333,9 @@ class JevDecisionCoordinator(
         model: String? = null,
     ): JevConnectionTestResult {
         val requestRevision = configurationRevision
-        val apiKey = apiKeyProvider()
-        if (apiKey.isNullOrBlank()) return JevConnectionTestResult(keyMissing = true)
-        val testModel = model?.takeIf { it.isNotBlank() } ?: jevConnectionTestModelFor(apiMode)
+        val apiKey = sanitizeJevApiKey(apiKeyProvider())
+        if (apiKey.isEmpty()) return JevConnectionTestResult(keyMissing = true)
+        val testModel = sanitizeJevHeaderValue(model).takeIf { it.isNotEmpty() } ?: jevConnectionTestModelFor(apiMode)
         val question = JevQuestion.Noul(
             instructions = "Is 7 a prime number? Answer strictly from arithmetic.",
         )
@@ -372,9 +384,19 @@ class JevDecisionCoordinator(
                     }
                 }
             }
-            is JevCallResult.HttpError -> JevConnectionTestResult(
-                error = "HTTP ${result.code}${result.bodySnippet?.take(80)?.let { ": $it" } ?: ""}",
-            )
+            is JevCallResult.HttpError -> {
+                if (result.code == 401 || result.code == JevConnectionTestResult.HTTP_UNAVAILABLE_FOR_LEGAL_REASONS) {
+                    synchronized(this) {
+                        if (requestRevision == configurationRevision) {
+                            authPaused = true
+                        }
+                    }
+                }
+                JevConnectionTestResult(
+                    error = "HTTP ${result.code}${result.bodySnippet?.take(80)?.let { ": $it" } ?: ""}",
+                    httpCode = result.code,
+                )
+            }
             is JevCallResult.Transport -> JevConnectionTestResult(error = result.message)
             is JevCallResult.Decode -> JevConnectionTestResult(error = "invalid response: ${result.message}")
         }
@@ -438,9 +460,13 @@ data class JevConnectionTestResult(
     val model: String? = null,
     val latencyMs: Long = 0,
     val error: String? = null,
+    val httpCode: Int? = null,
 ) {
     companion object {
         /** VERCEL 模式未配置网关模型 id 时的错误码（UI 据此显示专用文案）。 */
         const val ERROR_MODEL_REQUIRED = "model_required"
+
+        /** HTTP 451（Unavailable For Legal Reasons）：网络/地区受限。 */
+        const val HTTP_UNAVAILABLE_FOR_LEGAL_REASONS = 451
     }
 }

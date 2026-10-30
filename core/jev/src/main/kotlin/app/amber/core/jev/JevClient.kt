@@ -406,8 +406,10 @@ class JevClient(
         questions: Map<String, JevQuestion>,
         assets: Map<String, JevImageAsset> = emptyMap(),
     ): JevCallResult {
+        val cleanModel = sanitizeJevHeaderValue(model)
+        val cleanApiKey = sanitizeJevApiKey(apiKey)
         val body = try {
-            encodeRequestBody(model, state, questions, apiMode, assets)
+            encodeRequestBody(cleanModel, state, questions, apiMode, assets)
         } catch (e: IllegalArgumentException) {
             // 能力不匹配 / 参考标记缺失都是确定性错误，不重试。
             return JevCallResult.Decode(e.message ?: "invalid request")
@@ -424,7 +426,7 @@ class JevClient(
             transport.execute(
                 JevHttpRequest(
                     url = endpoint,
-                    apiKey = apiKey,
+                    apiKey = cleanApiKey,
                     body = body,
                     timeoutMs = jevDeadlineMs(apiMode),
                     headers = when (apiMode) {
@@ -440,7 +442,7 @@ class JevClient(
                         // Vercel AI Gateway decision-model 协议头（与 @ai-sdk/gateway 一致）：
                         // 模型 id 与 spec 版本走 header，body 不再携带 model。
                         JevApiMode.VERCEL -> mapOf(
-                            "ai-model-id" to model,
+                            "ai-model-id" to cleanModel,
                             "ai-gateway-protocol-version" to "0.0.1",
                             "ai-gateway-auth-method" to "api-key",
                             "ai-decision-model-specification-version" to "4",
@@ -500,10 +502,18 @@ class OkHttpJevTransport(
 
     override suspend fun execute(request: JevHttpRequest): JevTransportResponse =
         withContext(Dispatchers.IO) {
+            val cleanApiKey = sanitizeJevApiKey(request.apiKey)
             val httpRequest = Request.Builder()
                 .url(request.url)
-                .header("Authorization", "Bearer ${request.apiKey}")
-                .apply { request.headers.forEach { (name, value) -> header(name, value) } }
+                .header("Authorization", "Bearer $cleanApiKey")
+                .apply {
+                    request.headers.forEach { (name, value) ->
+                        val cleanName = sanitizeJevHeaderValue(name)
+                        if (cleanName.isNotEmpty()) {
+                            header(cleanName, sanitizeJevHeaderValue(value))
+                        }
+                    }
+                }
                 // 标记为 Jev 请求：请求日志拦截器据此豁免 body 落盘，
                 // 与方言/自定义 baseUrl 无关（typesafe 域名判断会漏 VERCEL）。
                 .tag(JevHttpRequest::class.java, request)

@@ -259,11 +259,78 @@ object JevLimits {
     const val COOLDOWN_MS = 60_000L
 }
 
+private val JEV_ZERO_WIDTH_CHARS = charArrayOf(
+    0x200B.toChar(), // ZERO WIDTH SPACE
+    0x200C.toChar(), // ZERO WIDTH NON-JOINER
+    0x200D.toChar(), // ZERO WIDTH JOINER
+    0xFEFF.toChar(), // ZERO WIDTH NO-BREAK SPACE (BOM)
+    0x2060.toChar(), // WORD JOINER
+)
+
+private fun Char.isJevIgnorableOrControl(): Boolean =
+    isWhitespace() || code <= 0x1f || code == 0x7f || this in JEV_ZERO_WIDTH_CHARS
+
+/**
+ * 清洗 Jev API Key：
+ * 1. 先去除零宽字符、首尾空白与控制字符，并剥离首尾成对引号（`"`、`'`）；
+ * 2. 若包含 `Authorization:` 或 `Bearer ` 前缀（忽略大小写），自动剥离并再次去首尾成对引号；
+ * 3. 移除内部所有换行（`\r`、`\n`）、制表符、空白字符、ASCII 控制字符（`<= 0x1f` 或 `0x7f`）及零宽字符。
+ */
+fun sanitizeJevApiKey(raw: String?): String {
+    if (raw.isNullOrEmpty()) return ""
+    var current = buildString(raw.length) {
+        for (ch in raw) {
+            if (ch !in JEV_ZERO_WIDTH_CHARS) append(ch)
+        }
+    }.trim { it.isJevIgnorableOrControl() }
+
+    fun stripQuotes(input: String): String {
+        var s = input.trim { it.isJevIgnorableOrControl() }
+        while (s.length >= 2 && ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith('\'') && s.endsWith('\'')))) {
+            s = s.substring(1, s.length - 1).trim { it.isJevIgnorableOrControl() }
+        }
+        return s
+    }
+
+    current = stripQuotes(current)
+    if (current.startsWith("Authorization:", ignoreCase = true)) {
+        current = stripQuotes(current.substring("Authorization:".length))
+    }
+    if (current.startsWith("Bearer", ignoreCase = true) &&
+        (current.length == 6 || current[6].isJevIgnorableOrControl())
+    ) {
+        current = stripQuotes(current.substring("Bearer".length))
+    }
+
+    return buildString(current.length) {
+        for (ch in current) {
+            if (!ch.isJevIgnorableOrControl()) {
+                append(ch)
+            }
+        }
+    }
+}
+
+/**
+ * 清洗模型名、Base URL 及 HTTP Header 名/值：
+ * 移除所有换行（`\r`、`\n`）、制表符、ASCII 控制字符（`<= 0x1f` 或 `0x7f`）及零宽字符，并去除首尾空白。
+ */
+fun sanitizeJevHeaderValue(raw: String?): String {
+    if (raw.isNullOrEmpty()) return ""
+    return buildString(raw.length) {
+        for (ch in raw) {
+            if (ch.code > 0x1f && ch.code != 0x7f && ch !in JEV_ZERO_WIDTH_CHARS) {
+                append(ch)
+            }
+        }
+    }.trim()
+}
+
 /** 解析本次调用的完整 URL；VERCEL 模式对 base 去尾斜杠后追加 /decision-model。 */
 fun jevEndpointFor(apiMode: JevApiMode, baseUrl: String?): String = when (apiMode) {
     JevApiMode.TYPESAFE -> JevLimits.ENDPOINT
     JevApiMode.VERCEL ->
-        (baseUrl?.trim()?.trimEnd('/')?.takeIf { it.isNotEmpty() }
+        (sanitizeJevHeaderValue(baseUrl).trimEnd('/').takeIf { it.isNotEmpty() }
             ?: JevLimits.VERCEL_DEFAULT_BASE_URL) + "/decision-model"
     JevApiMode.PERPLEXITY -> JevLimits.PERPLEXITY_ENDPOINT
     JevApiMode.LIQUID -> JevLimits.LIQUID_ENDPOINT
