@@ -55,6 +55,8 @@ import app.amber.core.jev.JevPurpose
 import app.amber.core.jev.JevSetting
 import app.amber.core.jev.jevConnectionTestModelFor
 import app.amber.core.jev.jevDefaultModelFor
+import app.amber.core.jev.sanitizeJevApiKey
+import app.amber.core.jev.sanitizeJevHeaderValue
 import app.amber.core.settings.secret.SecretStore
 import app.amber.core.di.JevApiKeyDescriptor
 import app.amber.core.utils.plus
@@ -77,7 +79,7 @@ private sealed interface ConnectionUi {
 }
 
 private fun maskKey(key: String): String? =
-    key.trim().takeIf { it.isNotEmpty() }?.let { plain ->
+    sanitizeJevApiKey(key).takeIf { it.isNotEmpty() }?.let { plain ->
         if (plain.length <= 8) "••••" else plain.take(3) + "…" + plain.takeLast(4)
     }
 
@@ -256,6 +258,11 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                                             keyMissing -> stringResource(R.string.setting_jev_connection_key_missing)
                                             budgetExhausted -> stringResource(R.string.setting_jev_connection_budget)
                                             error == JevConnectionTestResult.ERROR_MODEL_REQUIRED -> stringResource(R.string.setting_jev_connection_model_required)
+                                            httpCode == JevConnectionTestResult.HTTP_UNAVAILABLE_FOR_LEGAL_REASONS ||
+                                                error?.startsWith("HTTP 451") == true -> stringResource(
+                                                R.string.setting_jev_connection_failed,
+                                                stringResource(R.string.setting_jev_connection_http_451),
+                                            )
                                             else -> stringResource(
                                                 R.string.setting_jev_connection_failed,
                                                 error ?: "",
@@ -583,10 +590,10 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val trimmed = keyInput.trim()
-                            if (trimmed.isNotEmpty()) {
-                                secretStore.update(JevApiKeyDescriptor, trimmed)
-                                val mask = maskKey(trimmed)
+                            val sanitized = sanitizeJevApiKey(keyInput)
+                            if (sanitized.isNotEmpty()) {
+                                secretStore.update(JevApiKeyDescriptor, sanitized)
+                                val mask = maskKey(sanitized)
                                 updateJev { it.copy(apiKeyMask = mask) }
                                 coordinator.onCredentialOrScopeChanged()
                                 connection = null
@@ -639,9 +646,9 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val trimmed = baseUrlInput.trim()
+                            val sanitized = sanitizeJevHeaderValue(baseUrlInput)
                             // 显式填缺省值与留空同义：存 null 保持"跟随缺省"语义
-                            val newValue = trimmed
+                            val newValue = sanitized
                                 .takeIf { it.isNotEmpty() && it != JevLimits.VERCEL_DEFAULT_BASE_URL }
                             if (newValue != jev.baseUrl) {
                                 updateJev { it.copy(baseUrl = newValue) }
@@ -722,7 +729,7 @@ fun SettingJevPage(vm: SettingVM = koinViewModel()) {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val newValue = modelInput.trim().ifEmpty { null }
+                            val newValue = sanitizeJevHeaderValue(modelInput).ifEmpty { null }
                             updateJev { current -> current.withModel(jev.apiMode, newValue) }
                             coordinator.onCredentialOrScopeChanged()
                             connection = null

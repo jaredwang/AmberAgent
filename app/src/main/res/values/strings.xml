@@ -3592,6 +3592,7 @@ My task:</string>
   <string name="setting_jev_connection_ok">Connected (%1$s, %2$d ms)</string>
   <string name="setting_jev_connection_key_missing">Set an API key first</string>
   <string name="setting_jev_connection_model_required">Set a model first — Vercel mode needs a gateway model id</string>
+  <string name="setting_jev_connection_http_451">HTTP 451 (Direct connection is unavailable in your current network or region; check your proxy or switch API mode to Vercel)</string>
   <string name="setting_jev_connection_failed">Failed: %1$s</string>
   <string name="setting_jev_shadow_notice">Test mode still sends data — limited to the scopes allowed below.</string>
   <string name="setting_jev_purposes_section">Purposes</string>

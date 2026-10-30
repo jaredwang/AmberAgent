@@ -3541,6 +3541,7 @@
   <string name="setting_jev_connection_ok">Соединение успешно (%1$s, %2$d мс)</string>
   <string name="setting_jev_connection_key_missing">Сначала задайте API-ключ</string>
   <string name="setting_jev_connection_model_required">Сначала задайте модель — для режима Vercel нужен id модели шлюза</string>
+  <string name="setting_jev_connection_http_451">HTTP 451 (прямое подключение недоступно в вашей сети или регионе; проверьте прокси или переключите режим API на Vercel)</string>
   <string name="setting_jev_connection_failed">Ошибка: %1$s</string>
   <string name="setting_jev_shadow_notice">В тестовом режиме данные всё равно отправляются — только в рамках разрешённых ниже областей.</string>
   <string name="setting_jev_purposes_section">Режимы по назначению</string>

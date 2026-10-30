@@ -3571,6 +3571,7 @@
   <string name="setting_jev_connection_ok">連線成功（%1$s，%2$d 毫秒）</string>
   <string name="setting_jev_connection_key_missing">請先設定 API Key</string>
   <string name="setting_jev_connection_model_required">請先設定模型——Vercel 模式需要閘道模型 id</string>
+  <string name="setting_jev_connection_http_451">HTTP 451（目前網路或地區無法直連該服務，請檢查代理或切換呼叫模式為 Vercel）</string>
   <string name="setting_jev_connection_failed">失敗：%1$s</string>
   <string name="setting_jev_shadow_notice">測試模式同樣外發資料，僅限下方允許的範圍。</string>
   <string name="setting_jev_purposes_section">用途模式</string>

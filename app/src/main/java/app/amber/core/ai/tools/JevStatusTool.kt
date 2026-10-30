@@ -17,6 +17,7 @@ import app.amber.core.jev.JevLimits
 import app.amber.core.jev.JevPurpose
 import app.amber.core.jev.jevDefaultModelFor
 import app.amber.core.jev.jevEndpointFor
+import app.amber.core.jev.sanitizeJevHeaderValue
 import app.amber.core.settings.Settings
 
 /**
@@ -66,7 +67,7 @@ fun createJevStatusTool(
             put("enabled", jev.enabled)
             put("api_mode", jev.apiMode.name.lowercase())
             put("endpoint", jevEndpointFor(jev.apiMode, jev.baseUrl))
-            val effectiveModel = jev.modelFor(jev.apiMode)?.takeIf { it.isNotBlank() }
+            val effectiveModel = sanitizeJevHeaderValue(jev.modelFor(jev.apiMode)).takeIf { it.isNotEmpty() }
                 ?: jevDefaultModelFor(jev.apiMode)
             put("model", effectiveModel)
             put("api_key_configured", jev.apiKeyMask != null)
