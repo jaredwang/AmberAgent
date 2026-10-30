@@ -75,6 +75,25 @@ class AmberAccessibilityService : AccessibilityService(), AccessibilityControlle
 
     override fun captureScreenSnapshot(): ScreenSnapshot? = nativeScreen.captureScreenSnapshot()
 
+    override fun returnToHostApp(hostPackageName: String): Boolean {
+        val targetPkg = hostPackageName.ifBlank { packageName }
+        if (targetPkg.isBlank()) return false
+        return runCatching {
+            val intent = if (targetPkg == packageName) {
+                android.content.Intent(this, app.amber.agent.RouteActivity::class.java)
+            } else {
+                packageManager.getLaunchIntentForPackage(targetPkg)
+            } ?: return@runCatching false
+            intent.addFlags(
+                android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
+                    android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+            )
+            startActivity(intent)
+            true
+        }.getOrDefault(false)
+    }
+
     override fun performScreenAction(snapshot: ScreenSnapshot, action: ScreenAction): ScreenActionReceipt =
         nativeScreen.performScreenAction(snapshot, action)
 

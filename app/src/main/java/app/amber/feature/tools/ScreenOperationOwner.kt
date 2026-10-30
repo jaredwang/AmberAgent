@@ -7,11 +7,18 @@ import kotlinx.serialization.json.put
 import app.amber.ai.ui.UIMessagePart
 import app.amber.feature.runtime.AgentToolActivityStore
 import app.amber.core.automation.AccessibilityController
+import app.amber.core.automation.PhoneAutomationTakeoverController
+import app.amber.core.automation.PhoneTakeoverPhase
 import app.amber.core.automation.getActiveAccessibilityController
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 
 /** Owns one screen operation, run stop markers and the matching activity settlement. */
-internal class ScreenOperationOwner(private val activityStore: AgentToolActivityStore) {
+internal class ScreenOperationOwner(
+    private val activityStore: AgentToolActivityStore,
+    private val takeoverController: PhoneAutomationTakeoverController? = null,
+) {
     private val screenOwner = Mutex()
 
     /**
@@ -49,7 +56,45 @@ internal class ScreenOperationOwner(private val activityStore: AgentToolActivity
                 runtime = runtime,
             )
             return try {
-                val result = block()
+                val result = if (toolName != "screen_run_goal" && takeoverController != null) {
+                    val controller = getActiveAccessibilityController()
+                    val phase = takeoverController.state.value.phase
+                    if (phase == PhoneTakeoverPhase.PAUSING ||
+                        phase == PhoneTakeoverPhase.PAUSED ||
+                        phase == PhoneTakeoverPhase.RESUMING
+                    ) {
+                        val resumed = takeoverController.awaitResumeIfPaused(
+                            currentSnapshotId = takeoverController.state.value.pausedAtSnapshotId,
+                            controller = controller,
+                        )
+                        if (!resumed) {
+                            return textJson {
+                                put("success", false)
+                                put("status", "needs_user_action")
+                                put("reason", "user_takeover_paused")
+                            }
+                        }
+                        if (takeoverController.state.value.phase == PhoneTakeoverPhase.RESUMING && controller != null) {
+                            val fresh = withContext(Dispatchers.Main.immediate) {
+                                controller.captureScreenSnapshot()
+                            }
+                            if (fresh != null) {
+                                takeoverController.confirmResumedWithFreshSnapshot(fresh)
+                            }
+                        }
+                    }
+                    if (takeoverController.state.value.isPausedOrPausing) {
+                        textJson {
+                            put("success", false)
+                            put("status", "needs_user_action")
+                            put("reason", "user_takeover_paused")
+                        }
+                    } else {
+                        block()
+                    }
+                } else {
+                    block()
+                }
                 activityStore.complete(toolCallId, result.previewText())
                 result
             } catch (error: Throwable) {

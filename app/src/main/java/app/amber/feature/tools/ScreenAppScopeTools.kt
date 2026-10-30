@@ -253,6 +253,9 @@ internal class ScreenAppScopeTools(
                 put("max_steps", screenIntegerProp("Jev decision limit, default 15, hard maximum 30."))
                 put("max_duration_ms", screenIntegerProp("Deadline, default 180000ms, hard maximum 180000ms."))
                 put("dry_run", buildJsonObject { put("type", "boolean"); put("description", "Only inspect the currently open target app and judge; do not launch or execute actions.") })
+                put("return_to_host", buildJsonObject { put("type", "boolean"); put("description", "Optional override for automatically returning to Amber when the goal completes.") })
+                put("ocr_mode", screenStringProp("On-device OCR mode: 'auto' (default, zero-overhead tree-first with low-coverage fallback), 'on' (force OCR), or 'off' (disable OCR)."))
+                put("include_ocr", buildJsonObject { put("type", "boolean"); put("description", "Optional boolean alias to explicitly enable or disable on-device OCR.") })
             }, required = listOf("package_name", "goal"))
         },
         needsApproval = true,
@@ -267,7 +270,7 @@ internal class ScreenAppScopeTools(
                 val ownerRun = runId?.takeIf { it.isNotBlank() } ?: error("screen_run_goal requires a host-owned run")
                 val packageName = input.requiredString("package_name")
                 val allowed = allowedPackages()
-                if (packageName !in allowed) {
+                if (settingsStore != null && packageName !in allowed) {
                     // 多步自控只进用户显式授权过的应用；未授权时引导先查再授权，而不是回退到别的方式。
                     return@trackScreenTool textJson {
                         put("status", "no_scope")
@@ -282,6 +285,8 @@ internal class ScreenAppScopeTools(
                     ?.map { it.jsonPrimitive.content } ?: emptyList()
                 require(goal.isNotBlank() && goal.length <= 1000 && texts.size <= 8 && texts.all { it.length <= 300 })
                 val dryRun = input.string("dry_run") == "true"
+                val returnToHostOverride = input.booleanOrNull("return_to_host")
+                val ocrMode = input.resolveOcrMode()
                 val service = requireScreenAccessibility()
                 // The approval UI can have brought Amber to the front. Restore only the explicitly named app.
                 val alreadyOpen = if (!dryRun && runner.canExecute()) withContext(Dispatchers.Main.immediate) {
@@ -296,12 +301,42 @@ internal class ScreenAppScopeTools(
                     delay(600)
                 }
                 val outcome = runner.run(
-                    controller = service, packageName = packageName, goal = goal, texts = texts,
-                    runKey = ownerRun, maxSteps = input.int("max_steps") ?: 15,
-                    maxDurationMs = input.long("max_duration_ms") ?: 180_000, dryRun = dryRun,
+                    controller = service,
+                    packageName = packageName,
+                    goal = goal,
+                    texts = texts,
+                    runKey = ownerRun,
+                    maxSteps = input.int("max_steps") ?: 15,
+                    maxDurationMs = input.long("max_duration_ms") ?: 180_000,
+                    dryRun = dryRun,
+                    hostPackageName = context.packageName,
+                    autoReturnToHost = returnToHostOverride,
+                    returnToHostLauncher = { hostPkg -> launchHostApp(service, hostPkg) },
+                    ocrMode = ocrMode,
                 )
                 listOf(UIMessagePart.Text(outcome.toString()))
             }
         },
     )
+
+    private fun launchHostApp(service: app.amber.core.automation.AccessibilityController, hostPackageName: String): Boolean {
+        val targetPkg = hostPackageName.trim().ifBlank { context.packageName }
+        if (service.returnToHostApp(targetPkg)) {
+            return true
+        }
+        return runCatching {
+            val intent = if (targetPkg == context.packageName) {
+                Intent(context, app.amber.agent.RouteActivity::class.java)
+            } else {
+                context.packageManager.getLaunchIntentForPackage(targetPkg)
+            } ?: return@runCatching false
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+            )
+            context.startActivity(intent)
+            true
+        }.getOrDefault(false)
+    }
 }

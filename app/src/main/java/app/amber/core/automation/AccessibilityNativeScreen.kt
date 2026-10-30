@@ -17,7 +17,9 @@ internal class AccessibilityNativeScreen(private val service: AccessibilityServi
      * obtained here is recycled before this method returns.
      */
     fun captureScreenSnapshot(): ScreenSnapshot? = withActiveRoot { root, windowId, packageName ->
-        buildScreenSnapshot(root, windowId, packageName)
+        buildScreenSnapshot(root, windowId, packageName)?.also { snapshot ->
+            ScreenSnapshotInvalidationRegistry.markFreshCapture(snapshot.id)
+        }
     }
 
     /**
@@ -29,6 +31,12 @@ internal class AccessibilityNativeScreen(private val service: AccessibilityServi
         snapshot: ScreenSnapshot,
         action: ScreenAction,
     ): ScreenActionReceipt {
+        if (ScreenSnapshotInvalidationRegistry.isInvalidated(snapshot.id)) {
+            return staleScreenReceipt(
+                ScreenSnapshotInvalidationRegistry.invalidationReason(snapshot.id)
+                    ?: "returned_to_host_snapshot_invalidated"
+            )
+        }
         val expected = snapshot.nodes.firstOrNull { it.ref == action.ref }
             ?: return rejectedScreenReceipt("unknown_ref")
         if (snapshot.packageName.isBlank() || action.ref.isBlank()) {
