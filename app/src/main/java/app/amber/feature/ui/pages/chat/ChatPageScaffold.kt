@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.Job
@@ -95,6 +97,10 @@ internal fun ChatPageScaffold(
     val chatProvidersForMenu = setting.providers.filter { provider ->
         provider.enabled && provider.models.any { it.type == ModelType.CHAT }
     }
+    val chatModelIdForMenu = setting.chatModelId
+    val currentProviderIdForMenu = chatProvidersForMenu.firstOrNull { provider ->
+        provider.models.any { it.id == chatModelIdForMenu }
+    }?.id
     val currentReasoningLevelForMenu = currentChatModel?.let { model ->
         setting.rememberedReasoningLevelsByModelId[model.id.toString()]
             ?: if (setting.reasoningLevel == ReasoningLevel.AUTO) {
@@ -160,6 +166,9 @@ internal fun ChatPageScaffold(
 
     // Graphite TopModelMenu: header 下方卷帘下拉的开合状态（顶栏触发器 + 内容区 overlay 共享）
     var modelMenuOpen by remember { mutableStateOf(false) }
+    // 菜单挂在 Scaffold 之上（遮罩必须盖住 bottomBar 输入区），但面板仍要从 header 正下方
+    // 展开，所以记下 Scaffold 测出的顶栏高度（content 的 innerPadding.top）。
+    var headerInset by remember { mutableStateOf(0.dp) }
     // Header island: recap panel, shelf panel, and timeline jumps they trigger.
     var recapOpen by remember(conversation.id) { mutableStateOf(false) }
     var shelfOpen by remember(conversation.id) { mutableStateOf(false) }
@@ -330,6 +339,10 @@ internal fun ChatPageScaffold(
                 },
                 containerColor = Color.Transparent,
             ) { innerPadding ->
+                val topInset = innerPadding.calculateTopPadding()
+                if (headerInset != topInset) {
+                    SideEffect { headerInset = topInset }
+                }
                 Box(modifier = Modifier.fillMaxSize()) {
                     ChatPageTimelineHost(
                         timelineReady = timelineReady,
@@ -372,52 +385,6 @@ internal fun ChatPageScaffold(
                         onOpenQueue = { queuePanelOpen = true },
                     )
 
-                    // Graphite TopModelMenu —— 从 header 正下方 (innerPadding.top) 卷帘展开、覆盖内容区
-                    // 的服务商/模型手风琴下拉（替代旧 ModalBottomSheet）。
-                    val chatModelIdForMenu = setting.chatModelId
-                    val currentProviderIdForMenu = chatProvidersForMenu.firstOrNull { p ->
-                        p.models.any { it.id == chatModelIdForMenu }
-                    }?.id
-                    TopModelMenu(
-                        open = modelMenuOpen,
-                        providers = chatProvidersForMenu,
-                        modelType = ModelType.CHAT,
-                        currentProviderId = currentProviderIdForMenu,
-                        currentModelId = chatModelIdForMenu,
-                        onSelect = { model ->
-                            vm.setChatModel(model = model)
-                            modelMenuOpen = false
-                        },
-                        onClose = { modelMenuOpen = false },
-                        reasoningLevel = currentReasoningLevelForMenu,
-                        onUpdateReasoningLevel = { level ->
-                            currentChatModel?.let { model ->
-                                vm.updateSettings(
-                                    setting.copy(
-                                        reasoningLevel = level,
-                                        rememberedReasoningLevelsByModelId =
-                                            setting.rememberedReasoningLevelsByModelId +
-                                                (model.id.toString() to level),
-                                    )
-                                )
-                            }
-                        },
-                        modifier = Modifier.padding(
-                            top = innerPadding.calculateTopPadding(),
-                            bottom = innerPadding.calculateBottomPadding(),
-                        ),
-                        header = if (conversation.messageNodes.isNotEmpty()) {
-                            {
-                                ChatModelMenuUsageHeader(
-                                    conversationFlow = vm.conversation,
-                                    contextCompacts = contextCompacts,
-                                    currentChatModel = currentChatModel,
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                    )
                     ChatRecapPanelHost(
                         conversationFlow = vm.conversation,
                         recapStateFlow = vm.recapState,
@@ -487,6 +454,47 @@ internal fun ChatPageScaffold(
                     }
                 }  // end outer Box (fillMaxSize)
             }
+
+            // Graphite TopModelMenu —— 挂在 Scaffold 之上：Scaffold 的 content 位于 bottomBar
+            // 之下，遮罩放进 content 就永远盖不住输入区（真机只能在菜单里点模型才关得掉）。
+            // 遮罩铺满 header 以下的整屏（含输入区），面板仍从 header 正下方卷帘展开。
+            TopModelMenu(
+                open = modelMenuOpen,
+                providers = chatProvidersForMenu,
+                modelType = ModelType.CHAT,
+                currentProviderId = currentProviderIdForMenu,
+                currentModelId = chatModelIdForMenu,
+                onSelect = { model ->
+                    vm.setChatModel(model = model)
+                    modelMenuOpen = false
+                },
+                onClose = { modelMenuOpen = false },
+                reasoningLevel = currentReasoningLevelForMenu,
+                onUpdateReasoningLevel = { level ->
+                    currentChatModel?.let { model ->
+                        vm.updateSettings(
+                            setting.copy(
+                                reasoningLevel = level,
+                                rememberedReasoningLevelsByModelId =
+                                    setting.rememberedReasoningLevelsByModelId +
+                                        (model.id.toString() to level),
+                            )
+                        )
+                    }
+                },
+                modifier = Modifier.padding(top = headerInset),
+                header = if (conversation.messageNodes.isNotEmpty()) {
+                    {
+                        ChatModelMenuUsageHeader(
+                            conversationFlow = vm.conversation,
+                            contextCompacts = contextCompacts,
+                            currentChatModel = currentChatModel,
+                        )
+                    }
+                } else {
+                    null
+                },
+            )
 
             if (sandboxOverlayOpen && sandboxActivity != null) {
                 SandboxActivitySheet(
