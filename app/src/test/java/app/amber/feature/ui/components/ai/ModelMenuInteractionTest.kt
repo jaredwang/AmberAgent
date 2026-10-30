@@ -1,7 +1,15 @@
 package app.amber.feature.ui.components.ai
 
 import android.app.Application
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.OnBackPressedDispatcher
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -10,16 +18,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import app.amber.ai.core.ReasoningLevel
@@ -166,6 +182,355 @@ class ModelMenuInteractionTest {
 
         compose.onNodeWithText("No available AI providers, please add in settings")
             .assertIsDisplayed()
+    }
+
+    // ── Dismiss geometry, driven by real touch coordinates ─────────────────────────────
+    // 真机反馈：菜单打开后只有「点模型」能关掉，点输入区/底部空白没反应。根因是 overlay 放在
+    // Scaffold 的 content slot 里，被 bottomBar 高度截断；同时面板自身空白处会穿透到遮罩。
+    // 下面这些用例用坐标注入触摸（而不是 semantics performClick），覆盖这两条。
+
+    private fun dismissProvider(vararg modelIds: String) = ProviderSetting.OpenAI(
+        name = "Dismiss provider",
+        models = modelIds.map { id ->
+            Model(modelId = id, displayName = id, type = ModelType.CHAT)
+        },
+    )
+
+    @Test
+    fun topModelMenu_touchOnLowerScrimClosesAndDoesNotReachThePageBelow() {
+        val provider = dismissProvider("dismiss-model")
+        var closed = 0
+        var pageTaps = 0
+        compose.setContent {
+            var open by remember { mutableStateOf(true) }
+            Box(Modifier.fillMaxSize().clickable { pageTaps += 1 }) {
+                TopModelMenu(
+                    open = open,
+                    providers = listOf(provider),
+                    modelType = ModelType.CHAT,
+                    currentProviderId = provider.id,
+                    currentModelId = provider.models.first().id,
+                    onSelect = {},
+                    onClose = {
+                        closed += 1
+                        open = false
+                    },
+                )
+            }
+        }
+
+        // 面板只有 ~110dp 高，屏幕底部 8dp 处是遮罩（真机上这段对应输入区所在的下半屏）。
+        compose.onRoot().performTouchInput { click(Offset(centerX, height - 8.dp.toPx())) }
+        compose.waitForIdle()
+
+        assertEquals("scrim below the panel must dismiss the menu", 1, closed)
+        assertEquals("the dismissing tap must not reach the page behind", 0, pageTaps)
+        // 关闭后必须仍在页面上：底层页面重新可点（不是被残留 overlay 或导航吞掉）。
+        compose.onRoot().performTouchInput { click(center) }
+        compose.waitForIdle()
+        assertEquals("page must stay interactive after dismissing", 1, pageTaps)
+    }
+
+    @Test
+    fun topModelMenu_touchOnPanelBlankAreaKeepsItOpen() {
+        val provider = dismissProvider("blank-model")
+        var closed = 0
+        compose.setContent {
+            TopModelMenu(
+                open = true,
+                providers = listOf(provider),
+                modelType = ModelType.CHAT,
+                currentProviderId = provider.id,
+                currentModelId = provider.models.first().id,
+                onSelect = {},
+                onClose = { closed += 1 },
+                // 复刻真实 header（上下文用量）与内边距：没有 pointerInput/clickable。
+                header = {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .testTag("model-menu-blank-header"),
+                    )
+                },
+            )
+        }
+
+        compose.onNodeWithTag("model-menu-blank-header").performTouchInput { click(center) }
+        compose.waitForIdle()
+
+        assertEquals("blank area inside the panel must not dismiss", 0, closed)
+    }
+
+    @Test
+    fun topModelMenu_longListKeepsBottomScrimTappableAndFooterVisible() {
+        // 真机遗漏：真实服务商长列表 + 推理 footer 会把面板撑满 header 以下整屏，
+        // 面板下沿之外没有可点的外部遮罩。面板须按可用高度收口、始终留 48dp。
+        val provider = longListProvider()
+        var closed = 0
+        var pageTaps = 0
+        compose.setContent {
+            var open by remember { mutableStateOf(true) }
+            Box(Modifier.fillMaxSize().clickable { pageTaps += 1 }) {
+                TopModelMenu(
+                    open = open,
+                    providers = listOf(provider),
+                    modelType = ModelType.CHAT,
+                    currentProviderId = provider.id,
+                    currentModelId = provider.models.first().id,
+                    onSelect = {},
+                    onClose = {
+                        closed += 1
+                        open = false
+                    },
+                    reasoningLevel = ReasoningLevel.HIGH,
+                    onUpdateReasoningLevel = {},
+                )
+            }
+        }
+
+        compose.onNodeWithText("Thinking level").assertIsDisplayed()
+        compose.onRoot().performTouchInput { click(Offset(centerX, height - 8.dp.toPx())) }
+        compose.waitForIdle()
+
+        assertEquals("the reserved scrim below a long panel must dismiss", 1, closed)
+        assertEquals("that tap must not reach the page behind", 0, pageTaps)
+        compose.onRoot().performTouchInput { click(center) }
+        compose.waitForIdle()
+        assertEquals("page must stay interactive after dismissing", 1, pageTaps)
+    }
+
+    @Test
+    fun topModelMenu_longListScrollKeepsFooterAndDoesNotDismiss() {
+        val provider = longListProvider()
+        var closed = 0
+        compose.setContent {
+            TopModelMenu(
+                open = true,
+                providers = listOf(provider),
+                modelType = ModelType.CHAT,
+                currentProviderId = provider.id,
+                currentModelId = provider.models.first().id,
+                onSelect = {},
+                onClose = { closed += 1 },
+                reasoningLevel = ReasoningLevel.HIGH,
+                onUpdateReasoningLevel = {},
+            )
+        }
+
+        compose.onNodeWithText("claude-0").assertIsDisplayed()
+        verticalList().performTouchInput { swipeUp() }
+        compose.waitForIdle()
+
+        assertEquals("scrolling a long list must not dismiss", 0, closed)
+        // footer 不参与滚动，始终留在面板底部可见。
+        compose.onNodeWithText("Thinking level").assertIsDisplayed()
+        compose.onNodeWithText("claude-0").assertIsNotDisplayed()
+    }
+
+    @Test
+    fun topModelMenu_shortAvailableHeightStillLeavesBottomScrimAndFooter() {
+        // 键盘打开/短屏时可用高度远小于 560dp：面板必须收在可用高度内并留 48dp 遮罩，
+        // footer 仍可见（这里用 top inset 把可用高度压到 ~170dp 模拟）。
+        val provider = longListProvider()
+        var closed = 0
+        compose.setContent {
+            TopModelMenu(
+                open = true,
+                providers = listOf(provider),
+                modelType = ModelType.CHAT,
+                currentProviderId = provider.id,
+                currentModelId = provider.models.first().id,
+                onSelect = {},
+                onClose = { closed += 1 },
+                reasoningLevel = ReasoningLevel.HIGH,
+                onUpdateReasoningLevel = {},
+                modifier = Modifier.padding(top = 300.dp),
+            )
+        }
+
+        compose.onNodeWithText("Thinking level").assertIsDisplayed()
+        compose.onRoot().performTouchInput { click(Offset(centerX, height - 8.dp.toPx())) }
+        compose.waitForIdle()
+
+        assertEquals("short panels must keep the bottom scrim tappable", 1, closed)
+    }
+
+    @Test
+    fun topModelMenu_shortHeightWithUsageHeaderStillReachesAndSelectsAModel() {
+        // 真机折叠屏 + 键盘：header 以下只剩 ~180dp，固定 usage header + 固定思考等级 footer
+        // 会把 provider/model 列表挤成 0 高（真机 XML 里连一行模型都没有）。
+        // 这里在同样的短高度下带真实 header + long models + reasoning footer，必须能滚到并选中模型。
+        val provider = longListProvider()
+        var selected: Model? = null
+        var closed = 0
+        compose.setContent {
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val topInset = (maxHeight - 180.dp).coerceAtLeast(0.dp)
+                TopModelMenu(
+                    open = true,
+                    providers = listOf(provider),
+                    modelType = ModelType.CHAT,
+                    currentProviderId = provider.id,
+                    currentModelId = provider.models.first().id,
+                    onSelect = { selected = it },
+                    onClose = { closed += 1 },
+                    reasoningLevel = ReasoningLevel.HIGH,
+                    onUpdateReasoningLevel = {},
+                    header = {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .testTag("model-menu-usage-header"),
+                        )
+                    },
+                    modifier = Modifier.padding(top = topInset),
+                )
+            }
+        }
+
+        // footer 仍固定可见；header 在短高度下不再是不可滚动的固定块。
+        compose.onNodeWithText("Thinking level").assertIsDisplayed()
+        compose.onNodeWithTag("model-menu-usage-header").assertIsDisplayed()
+
+        // 真实交互：把 header 滑走后模型行可见，点击后回调到选中。
+        repeat(3) {
+            verticalList().performTouchInput {
+                swipeUp(
+                    startY = bottom - 2.dp.toPx(),
+                    endY = top + 2.dp.toPx(),
+                    durationMillis = 800,
+                )
+            }
+            compose.waitForIdle()
+        }
+        compose.waitForIdle()
+        compose.onNodeWithText("claude-0").assertIsDisplayed().performClick()
+
+        assertEquals(provider.models.first().id, selected?.id)
+        assertEquals("selecting a model must not dismiss through the panel", 0, closed)
+    }
+
+    private fun longListProvider() = ProviderSetting.OpenAI(
+        name = "Long dismiss provider",
+        models = listOf(
+            Model(
+                modelId = "claude-sonnet-4.5",
+                displayName = "claude-0",
+                type = ModelType.CHAT,
+                abilities = listOf(ModelAbility.REASONING),
+            ),
+        ) + List(39) { index ->
+            Model(
+                modelId = "long-$index",
+                displayName = "long-$index",
+                type = ModelType.CHAT,
+            )
+        },
+    )
+
+    @Test
+    fun topModelMenu_closedDoesNotInterceptPageTouches() {
+        var pageTaps = 0
+        compose.setContent {
+            Box(Modifier.fillMaxSize().clickable { pageTaps += 1 }) {
+                TopModelMenu(
+                    open = false,
+                    providers = emptyList(),
+                    modelType = ModelType.CHAT,
+                    currentProviderId = null,
+                    currentModelId = null,
+                    onSelect = {},
+                    onClose = {},
+                )
+            }
+        }
+
+        compose.onRoot().performTouchInput { click(center) }
+        compose.waitForIdle()
+
+        assertEquals(1, pageTaps)
+    }
+
+    @Test
+    fun topModelMenu_providerAccordionAndModelSelectionStillWork() {
+        val provider = dismissProvider("selectable-model")
+        var selected: Model? = null
+        compose.setContent {
+            TopModelMenu(
+                open = true,
+                providers = listOf(provider),
+                modelType = ModelType.CHAT,
+                currentProviderId = provider.id,
+                currentModelId = null,
+                onSelect = { selected = it },
+                onClose = {},
+            )
+        }
+
+        compose.onNodeWithText("selectable-model").assertIsDisplayed()
+        compose.onNodeWithText("Dismiss provider").performClick()
+        compose.onNodeWithText("selectable-model").assertDoesNotExist()
+        compose.onNodeWithText("Dismiss provider").performClick()
+        compose.onNodeWithText("selectable-model").assertIsDisplayed().performClick()
+
+        assertEquals(provider.models.first().id, selected?.id)
+    }
+
+    @Test
+    fun topModelMenu_scrollingInsideThePanelDoesNotDismiss() {
+        val provider = ProviderSetting.OpenAI(
+            name = "Long dismiss provider",
+            models = List(30) { index ->
+                Model(
+                    modelId = "long-$index",
+                    displayName = "long-$index",
+                    type = ModelType.CHAT,
+                )
+            },
+        )
+        var closed = 0
+        compose.setContent {
+            TopModelMenu(
+                open = true,
+                providers = listOf(provider),
+                modelType = ModelType.CHAT,
+                currentProviderId = provider.id,
+                currentModelId = null,
+                onSelect = {},
+                onClose = { closed += 1 },
+            )
+        }
+
+        compose.onNodeWithText("long-0").assertIsDisplayed()
+        verticalList().performTouchInput { swipeUp() }
+        compose.waitForIdle()
+
+        assertEquals("scrolling the panel must not dismiss", 0, closed)
+        compose.onNodeWithText("long-0").assertIsNotDisplayed()
+    }
+
+    @Test
+    fun topModelMenu_backPressDismissesWhileOpen() {
+        var closed = 0
+        var dispatcher: OnBackPressedDispatcher? = null
+        compose.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            TopModelMenu(
+                open = true,
+                providers = emptyList(),
+                modelType = ModelType.CHAT,
+                currentProviderId = null,
+                currentModelId = null,
+                onSelect = {},
+                onClose = { closed += 1 },
+            )
+        }
+
+        compose.runOnIdle { dispatcher?.onBackPressed() }
+
+        assertEquals(1, closed)
     }
 
     @Test
