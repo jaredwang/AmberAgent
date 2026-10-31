@@ -229,6 +229,58 @@ class ScreenToolReceiptPresentationTest {
     }
 
     @Test
+    fun `standalone four-digit OTP sample is masked in receipts`() {
+        val content = parseJson(
+            """
+            {
+              "status": "ok",
+              "ocr_mode": "auto",
+              "ocr_triggered": true,
+              "ocr_block_count": 1,
+              "ocr_source": "bitmap_ocr",
+              "ocr_outcome": "recognized",
+              "ocr_blocks": [{"text": "8492", "sensitive": true}]
+            }
+            """.trimIndent()
+        )
+
+        val receipt = ScreenToolReceiptParser.parse(
+            toolName = "screen_read_ui",
+            arguments = parseJson("""{}"""),
+            content = content,
+        )
+        val sample = requireNotNull(receipt?.ocrSummary).sampleTexts.single()
+        assertTrue(sample.contains("******"))
+        assertFalse(sample.contains("8492"))
+    }
+
+    @Test
+    fun `standalone five-digit OTP sample is masked in receipts`() {
+        val content = parseJson(
+            """
+            {
+              "status": "ok",
+              "ocr_mode": "auto",
+              "ocr_triggered": true,
+              "ocr_block_count": 1,
+              "ocr_source": "bitmap_ocr",
+              "ocr_outcome": "recognized",
+              "ocr_blocks": [{"text": "38491", "sensitive": true}]
+            }
+            """.trimIndent()
+        )
+
+        val receipt = ScreenToolReceiptParser.parse(
+            toolName = "screen_read_ui",
+            arguments = parseJson("""{}"""),
+            content = content,
+        )
+        val sample = requireNotNull(receipt?.ocrSummary).sampleTexts.single()
+        assertTrue(sample.contains("******"))
+        assertFalse(sample.contains("38491"))
+    }
+
+    @Test
     fun `accessibility-only OCR fallback is not presented as bitmap OCR`() {
         val content = parseJson(
             """

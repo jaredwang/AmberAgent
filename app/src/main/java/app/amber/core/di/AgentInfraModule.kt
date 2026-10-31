@@ -25,6 +25,8 @@ import app.amber.feature.tools.SystemAccessTools
 import app.amber.feature.tools.TerminalTools
 import app.amber.feature.webview.WebViewOperationStore
 import app.amber.core.automation.ScreenCaptureManager
+import org.koin.core.module.dsl.onClose
+import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
 /**
@@ -100,6 +102,10 @@ val agentInfraModule = module {
             context = get(),
             screenCaptureManager = get(),
         )
+    } withOptions {
+        // Koin does not close AutoCloseable on its own; this is the production
+        // release path for the cached ML Kit recognizer.
+        onClose { engine -> engine?.close() }
     }
 
     single { ScreenAutomationTools(get(), get(), get(), get(), get(), get(), getOrNull()) }

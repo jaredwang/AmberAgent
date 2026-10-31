@@ -390,6 +390,291 @@ class ScreenOcrFallbackTest {
     }
 
     @Test
+    fun mixedBitmapAndAccessibilityResultsGetUniqueIdsAndKeepSources() = runTest {
+        val shared = RawOcrRegion("共用文本", 100, 100, 300, 160)
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(
+                    listOf(
+                        shared,
+                        RawOcrRegion("位图独有", 100, 200, 300, 260),
+                    ),
+                )
+            },
+            accessibility = { _, _, _ ->
+                listOf(
+                    shared,
+                    RawOcrRegion("无障碍独有", 100, 300, 300, 360),
+                )
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(3, observation.blocks.size)
+        assertEquals(observation.blocks.size, observation.blocks.map { it.id }.toSet().size)
+        assertEquals(1, observation.blocks.count { it.text == "共用文本" })
+        assertEquals(ScreenOcrSource.BITMAP_OCR, observation.blocks.single { it.text == "共用文本" }.source)
+        assertEquals(1, observation.blocks.count { it.source == ScreenOcrSource.EXTENDED_ACCESSIBILITY })
+        assertTrue(observation.blocks.all { it.id.startsWith("ocr_") })
+        assertEquals(ScreenOcrOutcome.RECOGNIZED, observation.outcome)
+    }
+
+    @Test
+    fun combinedBlockCountIsCappedAtSixtyFourWithUniqueIds() = runTest {
+        val many = (0 until 80).map { index ->
+            RawOcrRegion("共测-$index", 10, index * 10, 200, index * 10 + 8)
+        }
+        val engine = engine(
+            recognizer = { BitmapOcrResult(many) },
+            accessibility = { _, _, _ -> many },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(64, observation.blocks.size)
+        assertEquals(64, observation.blocks.map { it.id }.toSet().size)
+        assertTrue(observation.blocks.all { it.source == ScreenOcrSource.BITMAP_OCR })
+    }
+
+    @Test
+    fun bitmapRegionsWithInvalidBoundsDoNotCountAsRecognized() = runTest {
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(listOf(RawOcrRegion("无效位图文本", 500, 100, 500, 160)))
+            },
+            accessibility = { _, _, _ ->
+                listOf(RawOcrRegion("有效无障碍文本", 100, 100, 400, 160))
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(ScreenOcrOutcome.DEGRADED, observation.outcome)
+        assertEquals(ScreenOcrSource.EXTENDED_ACCESSIBILITY, observation.source)
+        assertTrue(observation.blocks.none { it.source == ScreenOcrSource.BITMAP_OCR })
+        assertTrue(observation.diagnostics.contains("ocr_no_text"))
+    }
+
+    @Test
+    fun standaloneFiveDigitOtpIsRedactedWithoutKeyword() = runTest {
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(listOf(RawOcrRegion("38491", 280, 100, 380, 160)))
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        val value = observation.blocks.single()
+        assertEquals("38491", value.text)
+        assertTrue(value.isSensitive)
+        assertEquals("******", value.redactedText)
+        assertFalse(observation.redactedText().contains("38491"))
+    }
+
+    @Test
+    fun splitOtpLabelAndStandaloneFourDigitValueAreBothRedacted() = runTest {
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("验证码", 100, 100, 260, 160),
+                        RawOcrRegion("8492", 280, 100, 380, 160),
+                    ),
+                )
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        val label = observation.blocks.single { it.text == "验证码" }
+        val value = observation.blocks.single { it.text == "8492" }
+        assertTrue(label.isSensitive)
+        assertTrue(value.isSensitive)
+        assertEquals("******", value.redactedText)
+        assertFalse(observation.redactedText().contains("8492"))
+        assertTrue(observation.redactedText().contains("******"))
+    }
+
+    @Test
+    fun ocrOverPasswordLabeledNodeIsMaskedWithoutSecretKeywords() = runTest {
+        val snapshot = ScreenSnapshot(
+            id = "password-label-screen",
+            packageName = "com.example.app",
+            windowId = 1,
+            nodes = listOf(
+                sampleNode(
+                    "pw",
+                    label = "密码",
+                    editable = true,
+                    left = 100,
+                    top = 300,
+                    right = 500,
+                    bottom = 360,
+                ),
+            ),
+        )
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(listOf(RawOcrRegion("hunter2", 120, 310, 400, 350)))
+            },
+        )
+
+        val observation = engine.observe(snapshot = snapshot, mode = ScreenOcrMode.ON)
+
+        val block = observation.blocks.single()
+        assertTrue(block.isSensitive)
+        assertEquals(SensitiveScreenTextClassifier.MASKED_SENSITIVE_TEXT, block.redactedText)
+        assertFalse(observation.redactedText().contains("hunter2"))
+        assertFalse(SensitiveScreenTextClassifier.isSensitive("hunter2"))
+    }
+
+    @Test
+    fun ocrTextOverPasswordNodeBoundsIsMaskedWithoutKeywords() = runTest {
+        val snapshot = ScreenSnapshot(
+            id = "password-screen",
+            packageName = "com.example.app",
+            windowId = 1,
+            nodes = listOf(
+                sampleNode(
+                    "pw",
+                    label = "[password]",
+                    editable = true,
+                    left = 100,
+                    top = 300,
+                    right = 500,
+                    bottom = 360,
+                ),
+            ),
+        )
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(listOf(RawOcrRegion("hunter2", 120, 310, 400, 350)))
+            },
+        )
+
+        val observation = engine.observe(snapshot = snapshot, mode = ScreenOcrMode.AUTO)
+
+        val block = observation.blocks.single()
+        assertTrue(block.isSensitive)
+        assertEquals(SensitiveScreenTextClassifier.MASKED_SENSITIVE_TEXT, block.redactedText)
+        assertFalse(observation.redactedText().contains("hunter2"))
+    }
+
+    @Test
+    fun tokenLikeValueNextToSensitiveLabelIsMasked() = runTest {
+        val engine = engine(
+            recognizer = {
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("动态码", 100, 100, 260, 160),
+                        RawOcrRegion("A1B2C3", 280, 100, 420, 160),
+                    ),
+                )
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        val token = observation.blocks.single { it.text == "A1B2C3" }
+        assertTrue(token.isSensitive)
+        assertEquals(SensitiveScreenTextClassifier.MASKED_SENSITIVE_TEXT, token.redactedText)
+        assertFalse(observation.redactedText().contains("A1B2C3"))
+    }
+
+    @Test
+    fun jevResultAndRequestRedactStandaloneOtpAndPasswordBlocks() = runTest {
+        val ocrEngine = engine(
+            recognizer = {
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("验证码", 100, 100, 260, 160),
+                        RawOcrRegion("8492", 280, 100, 380, 160),
+                        RawOcrRegion("38491", 280, 180, 380, 240),
+                        RawOcrRegion("hunter2", 120, 310, 400, 350),
+                    ),
+                )
+            },
+        )
+        var capturedRequestJson = ""
+        val transport = JevTransport { req: JevHttpRequest ->
+            capturedRequestJson = req.body
+            JevTransportResponse.Http(
+                code = 200,
+                body = """{"model":"jev-test","answers":{
+                    "action":{"type":"choice","choice":"done","confidence":0.95},
+                    "done":{"type":"noul","noul":0.96}
+                }}""".toByteArray(),
+                retryAfterHeader = null,
+            )
+        }
+        val runtime = JevRuntime(
+            coordinator = JevDecisionCoordinator(
+                client = JevClient(transport),
+                apiKeyProvider = { "test-key" },
+                usageStore = JevUsageStore.IN_MEMORY,
+                clock = { 1_000_000L },
+            ),
+            settingsProvider = {
+                Settings(
+                    jev = JevSetting(
+                        enabled = true,
+                        purposes = mapOf(JevPurpose.SCREEN_AUTOMATION to JevMode.ACTIVE),
+                        dataScopes = setOf(JevDataScope.SCREEN_CONTENT, JevDataScope.TASK_TEXT),
+                    )
+                )
+            },
+        )
+        val runner = JevScreenGoalRunner(
+            runtime = runtime,
+            mainDispatcher = StandardTestDispatcher(testScheduler),
+            settle = {},
+            ocrEngine = ocrEngine,
+        )
+        val snapshot = ScreenSnapshot(
+            id = "secret-screen",
+            packageName = "com.example.canvas",
+            windowId = 1,
+            nodes = listOf(
+                sampleNode("0/0", label = "", className = "android.webkit.WebView"),
+                sampleNode("pw", label = "[password]", editable = true, left = 100, top = 300, right = 500, bottom = 360),
+            ),
+        )
+        val controller = object : AccessibilityController {
+            override fun captureScreenSnapshot(): ScreenSnapshot = snapshot
+            override suspend fun tap(x: Float, y: Float, durationMillis: Long) = true
+            override suspend fun longPress(x: Float, y: Float, durationMillis: Long) = true
+            override suspend fun swipe(fromX: Float, fromY: Float, toX: Float, toY: Float, durationMillis: Long) = true
+            override fun setFocusedText(text: String) = true
+            override fun dumpUiTree(maxNodes: Int) = ""
+            override fun findTextNodes(query: String, maxNodes: Int) = emptyList<AccessibilityTextMatch>()
+            override fun back() = true
+            override fun home() = true
+        }
+
+        val result = runner.run(
+            controller = controller,
+            packageName = "com.example.canvas",
+            goal = "确认页面",
+            texts = emptyList(),
+            runKey = "ocr-secret-run",
+            ocrMode = ScreenOcrMode.AUTO,
+        )
+
+        val resultJson = result.toString()
+        assertFalse(resultJson.contains("8492"))
+        assertFalse(resultJson.contains("38491"))
+        assertFalse(resultJson.contains("hunter2"))
+        assertFalse(capturedRequestJson.contains("8492"))
+        assertFalse(capturedRequestJson.contains("38491"))
+        assertFalse(capturedRequestJson.contains("hunter2"))
+        assertFalse(result["visible_text"]!!.jsonPrimitive.content.contains("8492"))
+        assertFalse(result["visible_text"]!!.jsonPrimitive.content.contains("38491"))
+        assertFalse(result["visible_text"]!!.jsonPrimitive.content.contains("hunter2"))
+    }
+
+    @Test
     fun jevScreenGoalRunnerAttachesStructuredOcrAndNormalizedCoordsOnLowCoverage() = runTest {
         var ocrCalls = 0
         val ocrEngine = engine(

@@ -12,7 +12,6 @@ import app.amber.core.automation.ScreenOcrObservation
 import app.amber.core.automation.ScreenSnapshot
 import app.amber.core.automation.ScreenSnapshotInvalidationRegistry
 import app.amber.core.automation.ScreenTreeCoverageAnalyzer
-import app.amber.core.automation.SensitiveScreenTextClassifier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -507,7 +506,7 @@ class JevScreenGoalRunner(
                 .distinct()
             val ocrLines = if (ocrObservation?.triggered == true) {
                 ocrObservation.blocks
-                    .map { SensitiveScreenTextClassifier.redactIfSensitive(it.text) }
+                    .map { it.redactedText }
                     .filter { it.isNotBlank() && it !in treeLines }
                     .distinct()
             } else {
@@ -572,7 +571,7 @@ class JevScreenGoalRunner(
                         add(buildJsonObject {
                             put("id", block.id)
                             put("source", block.source.wireName())
-                            put("text", SensitiveScreenTextClassifier.redactIfSensitive(block.text))
+                            put("text", block.redactedText)
                             put("confidence", block.confidence.toDouble())
                             put("sensitive", block.isSensitive)
                             put("bounds", buildJsonObject {

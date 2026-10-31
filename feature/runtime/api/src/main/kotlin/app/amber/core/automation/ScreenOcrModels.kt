@@ -113,11 +113,16 @@ object ScreenOcrCapabilities {
  * Jev runner) applies the exact same rules.
  */
 object SensitiveScreenTextClassifier {
+    const val MASKED_SENSITIVE_TEXT: String = "[已隐藏敏感内容]"
+
     private val SENSITIVE_KEYWORDS = Regex(
         "密码|验证码|校验码|动态码|安全码|支付密码|银行卡|身份证|cvv|pin|password|passcode|otp|verification\\s*code|security\\s*code|secret|token",
         RegexOption.IGNORE_CASE,
     )
     private val OTP_OR_CARD_DIGITS = Regex("\\b\\d{6,19}\\b")
+    private val STANDALONE_DIGITS_4_TO_8 = Regex("^\\d{4,8}$")
+    private val SECRET_TOKEN = Regex("^[A-Za-z0-9@#$%^&*._-]{4,16}$")
+    private val DIGIT_RUN_4_TO_19 = Regex("\\d{4,19}")
     private val KEY_VALUE_SECRET = Regex(
         "((?:密码|验证码|校验码|动态码|安全码|支付密码|银行卡|身份证|cvv|pin|password|passcode|otp|verification\\s*code|security\\s*code|secret|token)\\s*(?:[:=：]|\\s+)\\s*)([^\\s\"',;，；]+)",
         RegexOption.IGNORE_CASE,
@@ -126,8 +131,29 @@ object SensitiveScreenTextClassifier {
     fun isSensitive(text: String): Boolean {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return false
-        if (trimmed == "[password]" || trimmed == "[已隐藏敏感内容]") return true
+        if (trimmed == "[password]" || trimmed == MASKED_SENSITIVE_TEXT) return true
         return SENSITIVE_KEYWORDS.containsMatchIn(trimmed) || OTP_OR_CARD_DIGITS.containsMatchIn(trimmed)
+    }
+
+    /**
+     * Conservative OTP candidate: a block that is only 4-8 digits, with no
+     * surrounding label in the same string. "验证码" and "8492" often arrive as
+     * two ML Kit blocks, and a 4/5 digit code has no keyword of its own.
+     *
+     * This over-redacts short standalone numbers (years, prices, counts) rather
+     * than leak an OTP. It does not identify every secret: a password such as
+     * `hunter2` still needs password/sensitive node bounds or a nearby label.
+     */
+    fun isStandaloneNumericSecret(text: String): Boolean =
+        STANDALONE_DIGITS_4_TO_8.matches(text.trim())
+
+    /** Token-like (single word, contains digits) blocks near a sensitive label. */
+    fun looksLikeSecretToken(text: String): Boolean {
+        val trimmed = text.trim()
+        return trimmed.isNotEmpty() &&
+            SECRET_TOKEN.matches(trimmed) &&
+            trimmed.any { it.isDigit() } &&
+            !isSensitive(trimmed)
     }
 
     fun redactIfSensitive(text: String): String {
@@ -148,6 +174,21 @@ object SensitiveScreenTextClassifier {
             }
         }
         return redacted
+    }
+
+    /**
+     * Model/receipt-facing redaction for one OCR block.
+     *
+     * - [maskEntirely]: drop the whole block (password field bounds / contextual secret).
+     * - standalone 4-8 digit block: mask the digits (no keyword required).
+     * - keyword/6+ digit block: keep the label, mask the value ([redactIfSensitive]).
+     */
+    fun redactForDisplay(text: String, maskEntirely: Boolean = false): String {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return ""
+        if (maskEntirely) return MASKED_SENSITIVE_TEXT
+        if (isStandaloneNumericSecret(trimmed)) return DIGIT_RUN_4_TO_19.replace(trimmed) { "******" }
+        return redactIfSensitive(trimmed)
     }
 }
 
@@ -213,6 +254,11 @@ data class ScreenOcrBlock(
     val normalizedBounds: NormalizedScreenBounds,
     val isSensitive: Boolean = false,
     val source: ScreenOcrSource = ScreenOcrSource.BITMAP_OCR,
+    /**
+     * Model/receipt-facing text. Sensitive blocks are already redacted here so no
+     * consumer has to remember a second call; [text] stays raw for in-engine matching.
+     */
+    val redactedText: String = SensitiveScreenTextClassifier.redactForDisplay(text),
 ) {
     val centerX: Float get() = (left + right) / 2f
     val centerY: Float get() = (top + bottom) / 2f
@@ -411,22 +457,24 @@ data class ScreenOcrObservation(
      * OTP codes / passwords / card numbers never leak while bounds stay usable.
      */
     fun redactedText(maxChars: Int = 4_000): String =
-        buildList {
-            blocks.forEach { block ->
-                val text = SensitiveScreenTextClassifier.redactIfSensitive(block.text)
-                if (text.isNotEmpty()) add(text)
-            }
-        }.distinct().joinToString("\n").take(maxChars)
+        blocks
+            .map { it.redactedText.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .joinToString("\n")
+            .take(maxChars)
 }
 
 /**
  * Pluggable on-device OCR engine abstraction used by [ScreenAutomationTools] and [JevScreenGoalRunner].
  */
-interface ScreenOcrEngine {
+interface ScreenOcrEngine : AutoCloseable {
     suspend fun observe(
         snapshot: ScreenSnapshot?,
         uiTreeDump: String = "",
         mode: ScreenOcrMode = ScreenOcrMode.AUTO,
         forceReason: String? = null,
     ): ScreenOcrObservation
+
+    override fun close() = Unit
 }

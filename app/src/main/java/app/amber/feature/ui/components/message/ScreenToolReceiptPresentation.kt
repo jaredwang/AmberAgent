@@ -494,7 +494,7 @@ object ScreenToolReceiptParser {
             ?.mapNotNull { it.jsonObjectOrNull?.string("text") }
             ?.filter { it.isNotBlank() }
             ?.take(6)
-            ?.map(SensitiveScreenTextClassifier::redactIfSensitive)
+            ?.map { text -> SensitiveScreenTextClassifier.redactForDisplay(text) }
             .orEmpty()
 
         return ScreenReceiptOcrSummary(

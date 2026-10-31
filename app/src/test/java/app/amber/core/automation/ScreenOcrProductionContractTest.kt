@@ -69,5 +69,18 @@ class ScreenOcrProductionContractTest {
 
         assertTrue(SensitiveScreenTextClassifier.isSensitive("OTP 123456"))
         assertFalse(SensitiveScreenTextClassifier.isSensitive("确认订单"))
+
+        // Keywords do not identify every secret. A password with no keyword still
+        // needs tree password/sensitive bounds (see ScreenOcrFallbackTest).
+        assertFalse(SensitiveScreenTextClassifier.isSensitive("hunter2"))
+        assertTrue(SensitiveScreenTextClassifier.isStandaloneNumericSecret("8492"))
+        assertTrue(SensitiveScreenTextClassifier.isStandaloneNumericSecret("38491"))
+        assertEquals("******", SensitiveScreenTextClassifier.redactForDisplay("8492"))
+        assertEquals("******", SensitiveScreenTextClassifier.redactForDisplay("38491"))
+        assertEquals(
+            SensitiveScreenTextClassifier.MASKED_SENSITIVE_TEXT,
+            SensitiveScreenTextClassifier.redactForDisplay("hunter2", maskEntirely = true),
+        )
+        assertEquals("hunter2", SensitiveScreenTextClassifier.redactForDisplay("hunter2"))
     }
 }

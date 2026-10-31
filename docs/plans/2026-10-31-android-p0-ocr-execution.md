@@ -167,3 +167,84 @@ P0 现状：**代码与 JVM/构建验证完成，真机验证未完成**，不�
 - `app/src/test/java/app/amber/core/automation/ScreenOcrFallbackTest.kt`
 - `app/src/test/java/app/amber/core/automation/ScreenOcrProductionContractTest.kt`（新增）
 - `app/src/test/java/app/amber/feature/ui/components/message/ScreenToolReceiptPresentationTest.kt`
+
+---
+
+## 8. P0 代码验收返工（2026-11-01，Grok 4.6）
+
+接续 DeepSeek 半成品，未覆盖/撤销其未提交改动。四个验收问题均已闭合；仍不进入 P1，真机验证仍留到最后统一进行。
+
+### 8.1 截图新鲜度（禁止 `lastResult`）
+
+- 生产路径改为 `captureFreshBitmap`：只在 `hasActiveSession` 时请求新帧 `ScreenCaptureManager.capture()`，绝不解码 `lastResult`，无会话不隐式弹授权。
+- 无障碍截图取消直接抛出，不再 `runCatching` 吞掉后继续 MediaProjection。
+- MediaProjection：调用方取消传播；provider 内部 `CancellationException` 且调用方仍活跃时降级为 unavailable。
+
+测试：`ScreenOcrCapturePolicyTest`（10）覆盖无会话不请求、活跃会话只取新帧、失败/取消安全、无障碍取消不落到投影、生产引擎注入陈旧 `lastResult` 仍报 `screenshot_unavailable`。
+
+### 8.2 块合并 / 去重 / 限量 / 来源
+
+- `buildBlocks` 一次合并 bitmap + extended，bitmap 优先去重，总量 cap 64，ID 在合并后分配，保留 `source`。
+- `hasBitmapText` 依据最终有效块；非法 bounds 全部过滤，不能标 `RECOGNIZED`。
+
+测试：`ScreenOcrFallbackTest` 混合结果唯一 ID、64 上限、非法 bounds → `DEGRADED` + `ocr_no_text`。
+
+### 8.3 Task 取消与 recognizer 生命周期
+
+- `Task.awaitOutcome()` 增加 `addOnCanceledListener`（DIRECT_EXECUTOR），cancelled 恢复为 `recognition_cancelled`，不再在 `NonCancellable` 里永久等待。
+- `close()` 推迟到 in-flight `process` 全部结束后才关 client；`ScreenOcrEngine` 成为 `AutoCloseable`。
+- `AgentInfraModule` 用 Koin `withOptions { onClose { engine?.close() } }` 接到实际释放；单测证明 callback 会跑，且生产 module 已注册 onClose。
+
+测试：`MlKitScreenTextRecognizerTest`（4）、`OcrRecognizerKoinCloseLifecycleTest`（2）、既有 bitmap 识别期间不回收 / 取消后回收。
+
+### 8.4 脱敏
+
+- 树节点 `[password]` 与任意敏感 label 的 bounds 相交 OCR 块整块掩码（密码字段上的无关键字 secret）。
+- 独立 4–8 位数字按 OTP 候选隐藏；邻接敏感标签的 token 上下文脱敏。
+- 工具 / Jev 请求与结果 / 回执一律走 `redactedText`。关键字**不能**识别所有秘密：`hunter2` 无 bounds 时保持原文，有 password/敏感 bounds 才掩码。
+
+测试：4/5 位 OTP、password 节点、`密码` 标签相交、`A1B2C3` 邻接动态码、Jev 请求/结果/回执/工具 telemetry 均无 `8492`/`38491`/`hunter2`。
+
+### 8.5 返工验证
+
+```bash
+./gradlew :app:compileFullDebugKotlin
+# BUILD SUCCESSFUL
+
+./gradlew :app:testFullDebugUnitTest \
+  --tests "app.amber.core.automation.*" \
+  --tests "app.amber.core.jev.*" \
+  --tests "app.amber.feature.tools.*" \
+  --tests "app.amber.feature.ui.components.message.ScreenToolReceiptPresentationTest" \
+  --tests "app.amber.core.di.OcrRecognizerKoinCloseLifecycleTest"
+# 240 tests, 0 failures, 0 skipped
+# 日志 /tmp/p0-ocr-unit-tests.log
+
+./gradlew :app:minifyFullReleaseWithR8 -PuploadCrashlyticsMapping=false
+# BUILD SUCCESSFUL；无 Missing class
+# mapping.txt：MlKitScreenTextRecognizer 保留，com.google.mlkit.vision.text 1165 处
+```
+
+R8 仍用临时 `app/src/full/google-services.json`（占位 client `app.amber.agent`），跑完已删除，工作区无残留。未生成 release APK。未安装/启动真机。
+
+既有失败：`AntigravityOAuthSessionTest` 两例并发失败仍属基线 `9f5e4e0f1`，本轮未改。
+
+### 8.6 返工新增/修改文件
+
+- `app/src/main/java/app/amber/core/automation/ScreenOcrService.kt`
+- `app/src/main/java/app/amber/core/di/AgentInfraModule.kt`
+- `app/src/main/java/app/amber/core/jev/JevScreenGoalRunner.kt`
+- `app/src/main/java/app/amber/feature/tools/ScreenPrimitiveTools.kt`
+- `app/src/main/java/app/amber/feature/tools/ScreenOcrTelemetry.kt`（新增）
+- `app/src/main/java/app/amber/feature/ui/components/message/ScreenToolReceiptPresentation.kt`
+- `feature/runtime/api/src/main/kotlin/app/amber/core/automation/ScreenOcrModels.kt`
+- `app/src/test/java/app/amber/core/automation/ScreenOcrFallbackTest.kt`
+- `app/src/test/java/app/amber/core/automation/ScreenOcrCapturePolicyTest.kt`（新增）
+- `app/src/test/java/app/amber/core/automation/MlKitScreenTextRecognizerTest.kt`（新增）
+- `app/src/test/java/app/amber/core/automation/ScreenOcrProductionContractTest.kt`
+- `app/src/test/java/app/amber/core/di/OcrRecognizerKoinCloseLifecycleTest.kt`（新增）
+- `app/src/test/java/app/amber/feature/tools/ScreenOcrTelemetryTest.kt`（新增）
+- `app/src/test/java/app/amber/feature/ui/components/message/ScreenToolReceiptPresentationTest.kt`
+- `docs/plans/2026-10-31-android-p0-ocr-execution.md`
+
+三个原始未跟踪文档仍不提交：`2026-10-26-chat-history-performance-phase2.md`、`2026-10-31-android-selected-parity-handoff.md`、`2026-10-31-ios-android-feature-diff.md`。
