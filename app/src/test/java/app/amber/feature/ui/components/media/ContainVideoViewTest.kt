@@ -47,4 +47,14 @@ class ContainVideoViewTest {
         assertEquals(1080, view.measuredWidth)
         assertEquals(607, view.measuredHeight)
     }
+
+    @Test
+    fun releasePlaybackClearsListenersAndIsIdempotent() {
+        val view = ContainVideoView(RuntimeEnvironment.getApplication())
+        view.setOnPreparedListener { }
+        view.setOnErrorListener { _, _, _ -> true }
+        view.setOnCompletionListener { }
+        view.releasePlayback()
+        view.releasePlayback()
+    }
 }

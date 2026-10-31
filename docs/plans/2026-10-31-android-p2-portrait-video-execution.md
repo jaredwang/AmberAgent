@@ -2,7 +2,7 @@
 
 > 本文件是 P2 竖屏视频专用记录，不修改 `2026-10-31-android-selected-parity-handoff.md`。
 > 本轮只做 handoff §7。不做 per-App 记忆、不安装/启动/操作真机。
-> 完成后停等主代理独立代码验收；未通过继续返工。真机横竖视频/关闭/退后台仍待最后统一验证。
+> `cb52fa0ba` 独立代码验收未通过（§10）；返工后停等重验。真机横竖视频/关闭/退后台/手动恢复仍待最后统一验证。
 
 ## 1. 基线
 
@@ -47,56 +47,67 @@
 
 生产接线：`MediaPlayer.getVideoWidth/Height` + 视频轨 `MediaFormat`（缺省 0）。`ContainVideoView.onMeasure` 用同一套 contain-fit，外层 Compose `Surface` 也按 fitted 像素设宽高，避免只改 Surface、View 内部仍被铺满拉伸。
 
-## 4. 生命周期
+## 4. 生命周期与控制
 
-`VideoPlaybackStartGate`：
+每个 `VideoView` 实例对应一个 `VideoPlaybackSession`（`remember(url, retryNonce)`）。`release()` 幂等，失败 / 关闭 / retry / URL / `onRelease` / `onDispose` 都走它。release 之后 `dispatchPrepared` / `dispatchVideoSizeChanged` **不再调用**读播放器的 lambda，也不 `start()`。新 view 必须 new session，旧 session 作废不影响新实例。
 
-- `onPrepared` 仅当 `generation` 匹配且 `startAllowed` 为 true 才 `start()`。
-- `ON_STOP`：`pause()` + `startAllowed=false`，迟到的 prepared 不会后台出声。
-- `ON_START`：只恢复允许位，**不**自动 resume（与改前一致）。
-- URL 变化 / retry / `onDispose`：`invalidate()` 使旧 generation 的回调失效；先摘 listener 再 `stopPlayback()`。
-- `key(url, retryNonce)` 包住 `AndroidView`，重组不留旧 player。
+`ContainVideoView.releasePlayback()`：摘掉 bound `MediaPlayer` 的 size listener、VideoView prepared/error/completion、`setMediaController(null)`，再 `stopPlayback()`。
 
-## 5. 失败路径：前后对照
+前后台：
 
-- **改前：** 失败后仅「用其他应用打开」，无 Dialog 内重试。
-- **改后：** 保留外部打开；最小补齐 `R.string.retry`，递增 `retryNonce` 重建 `VideoView`（未加新文案 key，未加 media3）。
+- 前台 prepared：自动 `start()`（点击芯片即播）。
+- `ON_STOP`：`pause()`，playing=false。**不**在 `ON_START` 自动 `start()`，避免退后台回来偷偷出声。
+- prepared 在 STOP 期间落定：不 start；回到前台用户点播放条恢复。
+- 播放条：Compose play/pause，48.dp 从可用高度里扣掉，竖屏/极矮槽内仍可达。外层全屏 clickable 只关 scrim；播放器面板与控制条 `consumeClicks`，点视频/按钮不关弹层。
 
-点击才播放、关闭释放、后台暂停均保留。
+## 5. 失败与控制：前后对照
+
+| | 原始 Dialog | `cb52fa0ba` | 本返工 |
+| --- | --- | --- | --- |
+| 控制条 | 无 MediaController、无 Compose 播放/暂停 | 仍无 | Compose 播放/暂停/恢复 |
+| 失败 | 仅外部打开 | 外部打开 + `R.string.retry` | 同左 |
+| `ON_START` | 不 resume | 只 `allowed=true`，prepared-in-background 无法再播 | 不自动 resume；前台点播放 |
+| release | stopPlayback | onRelease 不清 session | 每 view session.release + 清 size listener |
+
+未加 media3。新增 `chat_video_play` / `chat_video_pause` 六套 locale。
 
 ## 6. 关键文件
 
 生产：
 
 - `app/src/main/java/app/amber/feature/ui/components/media/VideoDisplaySize.kt`
-- `app/src/main/java/app/amber/feature/ui/components/media/VideoPlaybackStartGate.kt`
+- `app/src/main/java/app/amber/feature/ui/components/media/VideoPlaybackSession.kt`（替换已删的 `VideoPlaybackStartGate`）
 - `app/src/main/java/app/amber/feature/ui/components/media/ContainVideoView.kt`
 - `app/src/main/java/app/amber/feature/ui/components/media/VideoPlaybackDialog.kt`
-- `app/src/main/java/app/amber/feature/ui/components/message/ChatMessageMessagePartsBlock.kt`（芯片未改；Dialog 改为调用上面的 composable）
+- `app/src/main/java/app/amber/feature/ui/components/message/ChatMessageMessagePartsBlock.kt`（芯片未改）
+- 六套 `strings.xml`（`chat_video_play` / `chat_video_pause`）
 
 测试：
 
 - `app/src/test/java/app/amber/feature/ui/components/media/VideoDisplaySizeTest.kt`
-- `app/src/test/java/app/amber/feature/ui/components/media/VideoPlaybackStartGateTest.kt`
+- `app/src/test/java/app/amber/feature/ui/components/media/VideoPlaybackSessionTest.kt`
 - `app/src/test/java/app/amber/feature/ui/components/media/ContainVideoViewTest.kt`
 
 无新依赖、无 Room / 设置迁移、无 media3。
 
 ## 7. 测试命令与结果
 
+首轮 `cb52fa0ba`（比例 27 项通过，控制/release 未过，见 §10）。返工后：
+
 ```bash
 ./gradlew :app:testFullDebugUnitTest --offline \
   --tests 'app.amber.feature.ui.components.media.VideoDisplaySizeTest' \
-  --tests 'app.amber.feature.ui.components.media.VideoPlaybackStartGateTest' \
+  --tests 'app.amber.feature.ui.components.media.VideoPlaybackSessionTest' \
   --tests 'app.amber.feature.ui.components.media.ContainVideoViewTest'
-# 3 suites / 27 tests / 0 failures / 0 errors / 0 skipped
-# /tmp/amber-p2-video-tests.log  BUILD SUCCESSFUL
+# 3 suites / 36 tests / 0 failures / 0 errors / 0 skipped
+# VideoDisplaySize 20 + Session 12 + ContainVideoView 4
+# /tmp/amber-p2-video-rework-tests.log  BUILD SUCCESSFUL
 
 ./gradlew :app:compileFullDebugKotlin --offline
-# /tmp/amber-p2-video-compile.log  BUILD SUCCESSFUL
+# /tmp/amber-p2-video-rework-compile.log  BUILD SUCCESSFUL
 ```
 
-覆盖：横/竖/方形；0 / 负 / 异常 / `Int.MAX_VALUE`；90/270/-90/450 旋转；player 已交换轴不再二次旋转；insets+padding 后竖屏高度不超过可用槽；`ContainVideoView` 在 EXACTLY 约束下 contain-fit；STOP / invalidate / 旧 generation 不 start。
+比例测试保留。Session 覆盖：前台 prepared 自动 start；STOP 后 prepared 不 start；`ON_START` 不自动 start、用户 play 才恢复；release 后迟到 prepared/size **零次**读播放器、不 start；旧 session error 不污染新 url/retry；queued post 在 release 之后 Ignored。
 
 未跑 `:app:assembleFullDebug`，未安装真机（本轮 Paseo 明确禁止）。
 
@@ -104,13 +115,23 @@
 
 本轮不安装、不启动、不操作真机。统一 APK 时至少验：
 
-1. **竖屏视频**：弹层按 9:16（或真实比例）完整显示，无固定 16:9 大黑框，无裁切、无拉伸，高度不超过含系统 insets / 横屏 / 小窗后的 Dialog 可用区；失败重试与外部打开仍可点到。
-2. **横屏视频**：比例正常，完整显示。
-3. **方形视频**：完整显示，不拉成长条。
-4. **关闭**：关 Dialog 后无继续出声。
-5. **退后台**：`ON_STOP` 暂停，无后台出声；回到前台不偷偷自动 resume。
-6. **时间线**：返回后滚动位置不被抢走；芯片 44.dp 占位不跳。
+1. **竖屏视频**：弹层按真实比例完整显示，无固定 16:9 大黑框，无裁切、无拉伸；播放/暂停条在 insets/横屏/小窗内可点。
+2. **横屏 / 方形**：完整显示。
+3. **关闭**：关 Dialog 后无继续出声。
+4. **退后台**：`ON_STOP` 暂停无出声；回到前台**不**自动出声；点播放可恢复。
+5. **prepared 在后台落定**：回前台画面停住，点播放才出声。
+6. **点播放器/控制条不关弹层**；点 scrim 关闭。
+7. **时间线**：返回后滚动位置不被抢走；芯片 44.dp 占位不跳。
 
 ## 9. 停等验收
 
-P2 竖屏视频施工完成（独立提交），停等主代理代码验收。未通过继续返工。本轮不进入 perApp，不操作真机。
+P2 竖屏视频返工完成（独立提交），停等主代理重验。未通过继续返工。本轮不进入 perApp，不操作真机。
+
+## 10. 首轮代码验收未通过（`cb52fa0ba`）
+
+主代理复跑比例三套 27 项通过（`/tmp/amber-video-review.log`），fit 无阻塞。未过：
+
+1. 无 MediaController / Compose 控制；`ON_START` 不 start 也无手动 resume，prepared-after-STOP 只能关开。
+2. `onRelease` 未作废 session，failed 卸掉 AndroidView 后迟到 prepared 仍可能读已释放的 MediaPlayer。
+
+本返工针对这两项。比例测试保留。

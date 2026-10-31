@@ -185,9 +185,21 @@ fun videoDialogAvailablePx(
 }
 
 /**
+ * Height reserved for the play/pause bar. Never exceeds [availableHeight], so
+ * an extremely short dialog still keeps the control reachable.
+ */
+fun videoControlHeightPx(availableHeight: Int, preferredPx: Int): Int {
+    if (availableHeight <= 0 || preferredPx <= 0) return 0
+    return preferredPx.coerceAtMost(availableHeight)
+}
+
+/**
  * Player box for a dialog: contain-fit the (rotation-aware) content into the
  * inset-padded window. Portrait video is limited by available height, so
  * `availableWidth * (h/w)` cannot push the surface past the dialog.
+ *
+ * [controlHeightPx] is reserved below the player so the control bar stays
+ * inside the same slot. Existing callers pass 0 and get the previous box.
  */
 fun fitPlayerInDialog(
     metrics: VideoTrackMetrics,
@@ -198,6 +210,7 @@ fun fitPlayerInDialog(
     insetRight: Int = 0,
     insetBottom: Int = 0,
     extraPaddingPx: Int = 0,
+    controlHeightPx: Int = 0,
 ): VideoPxSize {
     val available = videoDialogAvailablePx(
         windowWidth = windowWidth,
@@ -208,6 +221,12 @@ fun fitPlayerInDialog(
         insetBottom = insetBottom,
         extraPaddingPx = extraPaddingPx,
     )
+    val reserved = videoControlHeightPx(available.height, controlHeightPx)
     val content = displaySizeFromPlayerMetrics(metrics)
-    return containFitVideo(content.width, content.height, available.width, available.height)
+    return containFitVideo(
+        content.width,
+        content.height,
+        available.width,
+        (available.height - reserved).coerceAtLeast(0),
+    )
 }

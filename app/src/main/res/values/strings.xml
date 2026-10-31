@@ -3656,6 +3656,8 @@ My task:</string>
   <string name="setting_jev_scope_screen_content_desc">Accessibility node text and summaries for screen-goal judging</string>
   <string name="chat_video_playback_failed">Cannot play this video</string>
   <string name="chat_video_open_external">Open with another app</string>
+  <string name="chat_video_play">Play</string>
+  <string name="chat_video_pause">Pause</string>
   <string name="setting_jev_scope_screen_screenshots">Screen screenshots (experimental)</string>
   <string name="setting_jev_scope_screen_screenshots_desc">Send the current screen image with a judgement request. Off by default; text-only when disabled.</string>
   <string name="setting_jev_status_section">Status and usage</string>

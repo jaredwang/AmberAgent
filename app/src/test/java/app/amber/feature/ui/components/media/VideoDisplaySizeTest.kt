@@ -209,6 +209,34 @@ class VideoDisplaySizeTest {
         assertFits(fitted, 400 - 40 - 16, 300 - 16)
     }
 
+    @Test
+    fun portraitWithControlBarStaysWithinShortSlot() {
+        val availableHeight = 800
+        val control = 48
+        val fitted = fitPlayerInDialog(
+            metrics = VideoTrackMetrics(1080, 1920),
+            windowWidth = 1080,
+            windowHeight = availableHeight,
+            controlHeightPx = control,
+        )
+        assertFits(fitted, 1080, availableHeight - control)
+        assertTrue(fitted.height + control <= availableHeight)
+        assertEquals(48, videoControlHeightPx(availableHeight, 48))
+    }
+
+    @Test
+    fun extremeShortSlotKeepsControlReachable() {
+        assertEquals(40, videoControlHeightPx(40, 48))
+        val fitted = fitPlayerInDialog(
+            metrics = VideoTrackMetrics(1080, 1920),
+            windowWidth = 1080,
+            windowHeight = 40,
+            controlHeightPx = 48,
+        )
+        assertEquals(0, fitted.height)
+        assertTrue(fitted.height + videoControlHeightPx(40, 48) <= 40)
+    }
+
     private fun assertFits(size: VideoPxSize, availableWidth: Int, availableHeight: Int) {
         assertTrue(size.width in 0..availableWidth)
         assertTrue(size.height in 0..availableHeight)

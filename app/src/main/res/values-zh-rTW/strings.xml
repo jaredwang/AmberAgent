@@ -3635,6 +3635,8 @@
   <string name="setting_jev_scope_screen_content_desc">無障礙節點文字與摘要，用於螢幕目標判斷</string>
   <string name="chat_video_playback_failed">無法播放該影片</string>
   <string name="chat_video_open_external">用其他應用程式開啟</string>
+  <string name="chat_video_play">播放</string>
+  <string name="chat_video_pause">暫停</string>
   <string name="setting_jev_scope_screen_screenshots">手機螢幕截圖（實驗）</string>
   <string name="setting_jev_scope_screen_screenshots_desc">判斷時附帶目前螢幕影像。預設關閉；關閉後只傳文字。</string>
   <string name="setting_jev_status_section">狀態與開銷</string>

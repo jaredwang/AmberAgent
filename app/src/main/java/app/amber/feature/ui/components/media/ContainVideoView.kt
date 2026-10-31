@@ -17,6 +17,7 @@ import android.widget.VideoView
 internal class ContainVideoView(context: Context) : VideoView(context) {
     private var contentWidth = 0
     private var contentHeight = 0
+    private var boundPlayer: MediaPlayer? = null
 
     fun setContentSize(width: Int, height: Int) {
         if (width == contentWidth && height == contentHeight) return
@@ -38,6 +39,25 @@ internal class ContainVideoView(context: Context) : VideoView(context) {
         val size = displaySizeFromPlayerMetrics(next)
         setContentSize(size.width, size.height)
         return next
+    }
+
+    fun bindPreparedPlayer(player: MediaPlayer) {
+        boundPlayer?.setOnVideoSizeChangedListener(null)
+        boundPlayer = player
+    }
+
+    /**
+     * Drop listeners, controller, and the bound [MediaPlayer] before
+     * [stopPlayback]. Safe to call more than once.
+     */
+    fun releasePlayback() {
+        boundPlayer?.setOnVideoSizeChangedListener(null)
+        boundPlayer = null
+        setOnPreparedListener(null)
+        setOnErrorListener(null)
+        setOnCompletionListener(null)
+        setMediaController(null)
+        runCatching { stopPlayback() }
     }
 }
 

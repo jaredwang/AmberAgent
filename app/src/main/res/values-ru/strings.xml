@@ -3608,6 +3608,8 @@
   <string name="setting_jev_scope_screen_content_desc">Текст и сводки узлов доступности для оценки целей на экране</string>
   <string name="chat_video_playback_failed">Не удалось воспроизвести видео</string>
   <string name="chat_video_open_external">Открыть в другом приложении</string>
+  <string name="chat_video_play">Воспроизвести</string>
+  <string name="chat_video_pause">Пауза</string>
   <string name="setting_jev_scope_screen_screenshots">Снимок экрана (эксперимент)</string>
   <string name="setting_jev_scope_screen_screenshots_desc">Отправлять изображение экрана вместе с запросом оценки. По умолчанию выключено; иначе только текст.</string>
   <string name="setting_jev_status_section">Статус и расход</string>

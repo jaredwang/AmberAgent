@@ -3608,6 +3608,8 @@
   <string name="setting_jev_scope_screen_content_desc">화면 목표 판단에 사용되는 접근성 노드 텍스트와 요약</string>
   <string name="chat_video_playback_failed">이 동영상을 재생할 수 없습니다</string>
   <string name="chat_video_open_external">다른 앱으로 열기</string>
+  <string name="chat_video_play">재생</string>
+  <string name="chat_video_pause">일시중지</string>
   <string name="setting_jev_scope_screen_screenshots">화면 스크린샷(실험)</string>
   <string name="setting_jev_scope_screen_screenshots_desc">판단 시 현재 화면 이미지를 함께 보냅니다. 기본값은 꺼짐이며, 끄면 텍스트만 전송합니다.</string>
   <string name="setting_jev_status_section">상태 및 사용량</string>
