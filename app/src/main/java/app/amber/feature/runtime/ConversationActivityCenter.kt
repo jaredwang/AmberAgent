@@ -82,51 +82,74 @@ class ConversationActivityCenter(
         terminals.markActivitySeen(runId, conversationId, versionMs)
 
     /**
-     * While [conversationId] is the open chat, consume its activity as seen.
+     * While [conversationId] is the open chat, consume its pending run versions.
      *
-     * If [rememberOpenedNotice] ran for this conversation, the first snapshot
-     * is only marked at that runId+version; a newer first snapshot stays unread.
-     * Later emissions while the page stays open are marked — the user is looking
-     * at the chat.
+     * Direct open: the first snapshot marks every candidate on this conversation
+     * (the user is looking at the current state). Navigation via
+     * [rememberOpenedNotice] marks only the clicked runId+version on that first
+     * snapshot; a newer first-frame version of the clicked run stays unread so
+     * a seen-flow replay cannot clear the race. Sibling unread runs on the same
+     * conversation are still consumed — an already-seen higher-priority run
+     * does not starve a new or lower-priority event. Later emissions while the
+     * page stays open mark unread candidates except that protected identity.
      */
     suspend fun consumeWhileOpen(conversationId: String) {
         val pending = pendingOpen.remove(conversationId)
         var sawFirst = false
-        var initialRunId: String? = null
-        var initialVersionMs: Long? = null
-        candidateFlow()
-            .map { candidates ->
-                candidates
-                    .filter { it.conversationId == conversationId }
-                    .minWithOrNull(conversationActivityComparator)
-            }
-            .collect { candidate ->
-                if (!sawFirst) {
-                    sawFirst = true
-                    if (pending != null) {
-                        terminals.markActivitySeen(pending.first, conversationId, pending.second)
-                    } else if (candidate != null) {
+        var protectedRunId: String? = null
+        var protectedVersionMs: Long? = null
+        try {
+            candidateFlow()
+                .map { candidates -> candidates.filter { it.conversationId == conversationId } }
+                .collect { candidates ->
+                    if (!sawFirst) {
+                        sawFirst = true
+                        if (pending != null) {
+                            terminals.markActivitySeen(pending.first, conversationId, pending.second)
+                            val firstFrameVersion = candidates.find { it.runId == pending.first }?.versionMs
+                            if (firstFrameVersion != null && firstFrameVersion != pending.second) {
+                                protectedRunId = pending.first
+                                protectedVersionMs = firstFrameVersion
+                            }
+                            for (candidate in candidates) {
+                                if (!candidate.unread) continue
+                                if (candidate.runId == pending.first) continue
+                                terminals.markActivitySeen(
+                                    candidate.runId,
+                                    candidate.conversationId,
+                                    candidate.versionMs,
+                                )
+                            }
+                        } else {
+                            for (candidate in candidates) {
+                                terminals.markActivitySeen(
+                                    candidate.runId,
+                                    candidate.conversationId,
+                                    candidate.versionMs,
+                                )
+                            }
+                        }
+                        return@collect
+                    }
+                    for (candidate in candidates) {
+                        if (!candidate.unread) continue
+                        if (candidate.runId == protectedRunId &&
+                            candidate.versionMs == protectedVersionMs
+                        ) {
+                            continue
+                        }
                         terminals.markActivitySeen(
                             candidate.runId,
                             candidate.conversationId,
                             candidate.versionMs,
                         )
                     }
-                    initialRunId = candidate?.runId
-                    initialVersionMs = candidate?.versionMs
-                    return@collect
                 }
-                if (candidate?.runId == initialRunId && candidate?.versionMs == initialVersionMs) {
-                    return@collect
-                }
-                if (candidate != null) {
-                    terminals.markActivitySeen(
-                        candidate.runId,
-                        candidate.conversationId,
-                        candidate.versionMs,
-                    )
-                }
+        } finally {
+            if (!sawFirst && pending != null) {
+                pendingOpen.putIfAbsent(conversationId, pending)
             }
+        }
     }
 
     private fun candidateFlow(): Flow<List<ConversationActivityCandidate>> = flow {
@@ -264,12 +287,18 @@ internal fun mergeConversationActivityCandidates(
 internal fun isConversationActivityUnread(
     kind: ConversationActivityKind,
     runId: String,
+    conversationId: String,
     versionMs: Long,
     seenByRunId: Map<String, ConversationActivitySeen>,
     baselineMs: Long,
 ): Boolean {
     val seen = seenByRunId[runId]
-    if (seen != null && seen.versionMs >= versionMs) return false
+    if (seen != null &&
+        seen.conversationId == conversationId &&
+        seen.versionMs >= versionMs
+    ) {
+        return false
+    }
     return when (kind) {
         ConversationActivityKind.RUNNING,
         ConversationActivityKind.AWAITING_USER,
@@ -289,6 +318,7 @@ internal fun applyConversationActivityReadState(
         unread = isConversationActivityUnread(
             kind = candidate.kind,
             runId = candidate.runId,
+            conversationId = candidate.conversationId,
             versionMs = candidate.versionMs,
             seenByRunId = seenByRunId,
             baselineMs = baselineMs,

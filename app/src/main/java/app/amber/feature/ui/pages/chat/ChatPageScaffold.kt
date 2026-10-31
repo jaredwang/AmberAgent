@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.Job
@@ -209,8 +210,12 @@ internal fun ChatPageScaffold(
     val otherActivity by otherActivityFlow.collectAsStateWithLifecycle(
         initialValue = emptyList(),
     )
-    LaunchedEffect(activityCenter, conversation.id) {
-        activityCenter.consumeWhileOpen(conversation.id.toString())
+    val activityLifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(activityCenter, conversation.id, activityLifecycleOwner) {
+        activityCenter.consumeWhileResumed(
+            activityLifecycleOwner.lifecycle,
+            conversation.id.toString(),
+        )
     }
     LaunchedEffect(jumpToLiveKey) {
         if (jumpToLiveKey > 0) {
@@ -447,13 +452,14 @@ internal fun ChatPageScaffold(
                             bottom = innerPadding.calculateBottomPadding(),
                         ),
                         onOpen = { notice ->
+                            val target = activityNoticeNavigationTarget(
+                                notice.conversationId,
+                                conversation.id,
+                            ) ?: return@ChatActivityPanelHost
                             activityOpen = false
                             activityCenter.rememberOpenedNotice(notice)
                             activityScope.launch { activityCenter.markSeen(notice) }
-                            val target = runCatching { Uuid.parse(notice.conversationId) }.getOrNull()
-                            if (target != null && target != conversation.id) {
-                                navigateToChatPage(navController, chatId = target)
-                            }
+                            navigateToChatPage(navController, chatId = target)
                         },
                     )
 

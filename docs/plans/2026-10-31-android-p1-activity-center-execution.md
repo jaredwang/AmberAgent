@@ -7,6 +7,7 @@
 
 - 工作分支：`codex/android-p0-ocr`
 - 父提交：`b9682dd55 fix(ocr): P0 OCR 截图新鲜度、块去重、取消与脱敏返工`（主代理代码验收通过，真机仍待统一验证）
+- 原 P1 提交：`d07a05f98 feat(android): P1 跨对话活动中心四态投影与已读水位`（独立验收不通过，见 §9 返工）
 - 三个既有未跟踪文档保持不提交。
 
 ## 2. 状态映射（显式）
@@ -43,24 +44,27 @@
 
 - `RUNNING` / `AWAITING_USER`：未被该 run 的 `versionMs` 覆盖则未读（含升级前就在等的 WAITING_USER）。
 - `FAILED` / `COMPLETED`：仅当 `versionMs > baseline` 且未见过才提醒，升级时历史终态不会轰炸。
-- `markActivitySeen`：先 `UPDATE ... WHERE run_id=? AND version_ms < ?`，再 `INSERT OR IGNORE`，冲突后再 UPDATE 一次，避免新旧版本交叉写入。
-- 错配 `runId` 只可能写入另一行，清不掉目标 run 的提醒。
+- `markActivitySeen`：DAO `@Transaction` 内先 `UPDATE ... WHERE run_id=? AND conversation_id=? AND version_ms < ? AND EXISTS (run_terminal 同归属且 COALESCE(finished_at_ms, updated_at_ms) >= versionMs)`，再 `INSERT OR IGNORE ... SELECT` 自匹配的 `run_terminal` 行，冲突后再 UPDATE 一次。
+- 真实 run 不存在、conversation 错配、future version 一律拒绝，不生成任意 run 水位。registry-only RUNNING（尚未 `begin`）不能靠宽松写入绕过 owner 校验。
+- 未读匹配同时校验 `runId + conversationId`；错配 conversation 的 seen 行清不掉本对话提醒。
 - 同对话新 run 或同 run 更高 version 可再次提醒。
 - 进程重启读同一 Room 行，已读仍有效。
 
 collect 启动：`notices()` / `consumeWhileOpen()` 都先 `ensureActivityBaseline(now)` 再 combine。基线 `INSERT OR IGNORE`，后到的 collect 复用原时间戳。baseline 写入之后才出现的终态 `versionMs > baseline`，不会被 seed 吞掉。
 
-导航已读：
+打开消费：
 
-- 点击面板：`rememberOpenedNotice`（进程内）+ `markSeen(点击的 runId+version)` + 导航。
-- 目标页 `LaunchedEffect` 调 `consumeWhileOpen`：若有 pending，首帧只标点击版本；首帧快照（含更新的 version）记为 initial，**自身 markSeen 引起的 Flow 重放不得把未看到的新 version 标掉**。
-- 直达打开（无 pending）：首帧即标已见（用户正在看这条对话）。
-- 停留期间 candidate 相对首帧发生变化（新事件）才继续 markSeen。
+- 点击面板：仅当 `activityNoticeNavigationTarget` 解析出合法且非当前对话的 Uuid 后，才 `rememberOpenedNotice` + `markSeen` + `navigateToChatPage`。Uuid 解析失败不清提醒。
+- 目标页 `LaunchedEffect` 调 `consumeWhileResumed`（`repeatOnLifecycle(RESUMED)`）。退后台取消 collect；恢复后新开一次 `consumeWhileOpen`，按可见首帧消费。
+- `consumeWhileOpen` 看该对话全部 candidate，不是只盯 min-priority 一条。已读高优先级不能饿死同对话新 run / 低优先级事件。
+- 导航 pending：首帧只标点击的 runId+version；该 run 首帧若已是更新 version，记为保护身份，**自身 markSeen 引起的 Flow 重放不得把未看到的新 version 标掉**。同对话其他未读 sibling 仍消费。
+- 直达打开（无 pending）：首帧标该对话全部 candidate。
+- 停留期间未读新事件（新 run、同 run 高于保护身份的 version）继续 markSeen。collect 在首帧前被取消则把 pending 放回。
 
 ## 4. 生产路径（UI gate → domain/CAS → 持久化）
 
 1. `AgentInfraModule`：`ConversationActivityCenter(registry, terminals=RunTerminalStore)`，标题仍走 `ConversationRepository`。
-2. `ChatPageScaffold`：`notices(excluding = conversation.id)`；点击 `rememberOpenedNotice` + `markSeen` + `navigateToChatPage`；`LaunchedEffect(conversation.id)` 调 `consumeWhileOpen`。
+2. `ChatPageScaffold`：`notices(excluding = conversation.id)`；点击先 `activityNoticeNavigationTarget`，合法目标才 `rememberOpenedNotice` + `markSeen` + `navigateToChatPage`；`LaunchedEffect` 调 `consumeWhileResumed`（`RESUMED` 前台可见才 `consumeWhileOpen`）。
 3. `ChatActivityPanelHost` / `ChatActivityPanelContent` 按 kind 换图标和文案（Radio / Clock / CircleAlert / CircleCheck），不再写死「正在运行」。
 4. 独立 48dp `ChatActivityButton`、与产物架 / 活动岛 / 回顾互斥、时间线滚动位置均未改。
 5. 空列表 / loading fallback 保留；标题查询失败回落 id 前 8 位；`CancellationException` 继续上抛。
@@ -77,31 +81,39 @@ collect 启动：`notices()` / `consumeWhileOpen()` 都先 `ensureActivityBaseli
 
 ## 6. 测试命令与结果
 
-定点 JVM（Robolectric SDK 34）：
+定点 JVM（Robolectric SDK 34）。原提交 `d07a05f98` 为 51 项全通过。返工后：
 
 ```bash
+./gradlew :app:testFullDebugUnitTest --offline \
+  --tests '*ConversationActivityCenterTest.review*' \
+  --tests '*ConversationActivityWatermarkStoreTest.review*'
+# 2 tests, 0 failures
+# 日志 /tmp/amber-p1-review-regressions.log
+
 ./gradlew :app:testFullDebugUnitTest --offline \
   --tests "app.amber.feature.runtime.ConversationActivityCenterTest" \
   --tests "app.amber.feature.runtime.ConversationActivityWatermarkStoreTest" \
   --tests "app.amber.feature.runtime.RunTerminalStoreTest" \
-  --tests "app.amber.agent.data.sync.SyncArchiveTableCoverageTest"
-# 51 tests, 0 failures, 0 errors, 0 skipped
-# 日志 /tmp/amber-p1-activity-center-tests.log
+  --tests "app.amber.agent.data.sync.SyncArchiveTableCoverageTest" \
+  --tests "app.amber.feature.ui.pages.chat.ConversationActivityConsumeTest"
+# 65 tests, 0 failures, 0 errors, 0 skipped
+# 日志 /tmp/amber-p1-rework-tests.log
 ```
 
 分类：
 
-- `ConversationActivityCenterTest` **24**：四态/异常终态映射、OUTCOME_UNKNOWN、CANCELLED 隐藏、优先级、去重最新、active→terminal 无重复无空窗、当前对话排除、标题空白/查询失败/取消、历史基线、新终态、打开目标只清对应 run、错配 runId、CAS 旧 version 不盖新、新 run 再提醒、直达已读、导航不标未看到的更新 version、打开后新事件已见。
-- `ConversationActivityWatermarkStoreTest` **8**：Room 查询不含 CANCELLED、基线写一次且重启有效、CAS 前进/拒绝回退、错配 runId 分列、持久化水位重启后仍已读且新 run 再提醒、升级不轰炸历史完成、升级前 WAITING_USER 仍提示、registry+Room 合并仍一条 RUNNING。
+- `ConversationActivityCenterTest` **30**：原 24 + 主代理 `reviewOpenConversationConsumesNewRunBehindAlreadySeenHigherPriorityRun` + 错配 conversation 未读、直达首帧多 run、导航后新 run、导航后同 run 更新、退后台停止/恢复首帧。
+- `ConversationActivityWatermarkStoreTest` **13**：原 8（CAS/错配 run 改为真实 begin/pause/finish fixtures，断言未降）+ 主代理 `reviewWrongConversationCannotMarkExistingRunSeen` + 缺失 run、future version、registry-only 无 begin、并发 CAS。
 - `RunTerminalStoreTest` **16**：既有 P1-03 状态机，确认接口扩展未破坏。
-- `SyncArchiveTableCoverageTest` **3**：schema v22 表与 SYNC_TABLES 对齐。
+- `SyncArchiveTableCoverageTest` **3**：schema v22 表与 SYNC_TABLES 对齐（本轮未改表形，无 v23）。
+- `ConversationActivityConsumeTest` **3**：非法 Uuid / 当前对话不导航、Scaffold 接线 `consumeWhileResumed`+`activityNoticeNavigationTarget`、`RESUMED` 前台才 collect。
 
 编译：
 
 ```bash
 ./gradlew :app:compileFullDebugKotlin --offline
 # BUILD SUCCESSFUL
-# 日志 /tmp/amber-p1-compile-fulldebug.log
+# 日志 /tmp/amber-p1-rework-compile.log
 ```
 
 本地化：`python3 scripts/check_android_localization.py`。本轮新增的 `chat_activity_kind_{waiting,failed,completed}` 与更新后的 empty/button 文案六套 locale 均在。脚本仍 FAIL 的是既有缺口（ja/ko/ru 缺 `chat_shelf_kind_html` / `live_update_*` 等、zh 缺 grok oauth waiting），不是本轮引入，未顺手修补。
@@ -123,7 +135,19 @@ collect 启动：`notices()` / `consumeWhileOpen()` 都先 `ensureActivityBaseli
 - `ConversationActivitySeenEntity.kt` / `ConversationActivityBaselineEntity.kt`
 - `AppDatabase.kt` + `MIGRATION_21_22` + schema `22.json`
 - `AgentInfraModule.kt` / `DataSourceModule.kt` / `SyncArchiveManager.kt`
-- `ChatPageScaffold.kt` / `ChatPagePanels.kt` / `ChatTopBarPanels.kt`
+- `ChatPageScaffold.kt` / `ChatPagePanels.kt` / `ChatTopBarPanels.kt` / `ConversationActivityConsume.kt`
 - 六套 `strings.xml`
-- `ConversationActivityCenterTest.kt` / `ConversationActivityWatermarkStoreTest.kt`
+- `ConversationActivityCenterTest.kt` / `ConversationActivityWatermarkStoreTest.kt` / `ConversationActivityConsumeTest.kt`
 - `AppDatabaseMigrationTest.kt`（androidTest，真机未跑）
+
+## 9. 独立验收返工（相对 `d07a05f98`）
+
+主代理独立复跑原 51 项全通过后补了两条真实回归，均失败。本轮只返工 P1，不进 P2，不操作真机。两条 review 断言保留未降。
+
+缺陷与修复：
+
+1. `consumeWhileOpen` 原先对全部 candidate 取 min-priority 且只盯一条，已读 waiting@50 会挡住同对话新 done@90；首帧 identity 相同直接 return。现改为消费当前对话全部 pending run 版本；导航保护只跳过「点击 run 的首帧更新 version」，不能靠单纯 `.filter unread` 让 seen 重放清掉该保护身份。
+2. `markActivitySeen` 原先不校验 run 归属，错 conversation + 真实 runId 仍写 seen，`isConversationActivityUnread` 只按 runId 误清其他对话。现于 DAO 用 SQL 条件 UPDATE/INSERT + `@Transaction` 校验 `run_id + conversation_id` 及 version 上界；缺失/错配/future 拒绝；未读匹配也按 conversation。旧 CAS/错配测试改为真实 begin/finish fixtures。
+3. `ChatPageScaffold` 原先裸 `LaunchedEffect` 退后台仍 collect。现 `repeatOnLifecycle(RESUMED)`；点击 markSeen 只在合法导航目标下调用。
+
+schema 仍为 v22，未改表形，无新 migration。三个未跟踪用户文档未提交。未 push / 未开 PR。

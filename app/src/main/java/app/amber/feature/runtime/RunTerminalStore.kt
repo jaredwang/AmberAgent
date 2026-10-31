@@ -164,6 +164,12 @@ interface RunTerminalStore {
     /**
      * CAS watermark for the version the user actually opened. Returns true when
      * a row was inserted or moved forward.
+     *
+     * The durable owner must exist: [runId] belongs to [conversationId] and
+     * [versionMs] is at most that run's `finishedAtMs ?: updatedAtMs`. Missing
+     * runs, mismatched conversations, and future versions are rejected and
+     * mint no watermark. Registry-only RUNNING (no `begin` row yet) cannot
+     * bypass this check.
      */
     suspend fun markActivitySeen(runId: String, conversationId: String, versionMs: Long): Boolean
 }
@@ -268,16 +274,7 @@ class RoomRunTerminalStore(
         conversationId: String,
         versionMs: Long,
     ): Boolean = withDurableWrite {
-        if (dao.updateActivitySeenIfNewer(runId, conversationId, versionMs) > 0) return@withDurableWrite true
-        val inserted = dao.insertActivitySeenIgnore(
-            ConversationActivitySeenEntity(
-                runId = runId,
-                conversationId = conversationId,
-                versionMs = versionMs,
-            ),
-        )
-        if (inserted != -1L) return@withDurableWrite true
-        dao.updateActivitySeenIfNewer(runId, conversationId, versionMs) > 0
+        dao.markActivitySeenOwned(runId, conversationId, versionMs)
     }
 
     private suspend fun <T> withDurableWrite(block: suspend () -> T): T {

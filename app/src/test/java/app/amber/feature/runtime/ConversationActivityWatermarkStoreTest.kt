@@ -1,11 +1,15 @@
 package app.amber.feature.runtime
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -14,6 +18,16 @@ import org.junit.Test
  * Robolectric / in-memory DB; device migration stays for the unified last round.
  */
 class ConversationActivityWatermarkStoreTest : DurableRuntimeTestBase() {
+
+    @Test
+    fun reviewWrongConversationCannotMarkExistingRunSeen() = runBlocking {
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { 50L })
+        store.begin("real-run", "real-conversation", "a")
+        store.pause("real-run", RunTerminalState.WAITING_USER, PauseReason.TOOL_APPROVAL)
+        assertFalse(store.markActivitySeen("real-run", "wrong-conversation", 50L))
+        val center = ConversationActivityCenter(RunOwnershipRegistry(), store, now = { 10L }) { "title" }
+        assertEquals("real-run", center.notices(excluding = null).first().single().runId)
+    }
 
     @Test
     fun observeActivityOmitsCancelledAndKeepsAttentionStates() = runBlocking {
@@ -58,7 +72,11 @@ class ConversationActivityWatermarkStoreTest : DurableRuntimeTestBase() {
 
     @Test
     fun markSeenCasMovesForwardAndRejectsOlderVersion() = runBlocking {
-        val store = RoomRunTerminalStore(dao = database.runTerminalDao())
+        var now = 50L
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { now })
+        store.begin("run_1", "conv_1", "a")
+        now = 80L
+        store.finish("run_1", RunTerminalState.COMPLETED)
         assertTrue(store.markActivitySeen("run_1", "conv_1", 50))
         assertFalse(store.markActivitySeen("run_1", "conv_1", 40))
         assertEquals(50L, database.runTerminalDao().getActivitySeen("run_1")!!.versionMs)
@@ -69,11 +87,61 @@ class ConversationActivityWatermarkStoreTest : DurableRuntimeTestBase() {
 
     @Test
     fun mismatchedRunIdLeavesOtherWatermarkUntouched() = runBlocking {
-        val store = RoomRunTerminalStore(dao = database.runTerminalDao())
+        var now = 50L
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { now })
+        store.begin("run_real", "conv_1", "a")
+        store.finish("run_real", RunTerminalState.COMPLETED)
+        now = 99L
+        store.begin("run_other", "conv_1", "a")
+        store.finish("run_other", RunTerminalState.COMPLETED)
         assertTrue(store.markActivitySeen("run_real", "conv_1", 50))
         assertTrue(store.markActivitySeen("run_other", "conv_1", 99))
         assertEquals(50L, database.runTerminalDao().getActivitySeen("run_real")!!.versionMs)
         assertEquals(99L, database.runTerminalDao().getActivitySeen("run_other")!!.versionMs)
+    }
+
+    @Test
+    fun markSeenRejectsMissingRunAndDoesNotMintWatermark() = runBlocking {
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { 50L })
+        assertFalse(store.markActivitySeen("ghost-run", "conv_1", 50L))
+        assertNull(database.runTerminalDao().getActivitySeen("ghost-run"))
+    }
+
+    @Test
+    fun markSeenRejectsFutureVersionAboveDurableRun() = runBlocking {
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { 50L })
+        store.begin("run_1", "conv_1", "a")
+        store.pause("run_1", RunTerminalState.WAITING_USER, PauseReason.TOOL_APPROVAL)
+        assertFalse(store.markActivitySeen("run_1", "conv_1", 9_999L))
+        assertNull(database.runTerminalDao().getActivitySeen("run_1"))
+        assertTrue(store.markActivitySeen("run_1", "conv_1", 50L))
+        assertEquals(50L, database.runTerminalDao().getActivitySeen("run_1")!!.versionMs)
+    }
+
+    @Test
+    fun markSeenRejectsRegistryOnlyRunningWithoutBegin() = runBlocking {
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { 50L })
+        val registry = RunOwnershipRegistry()
+        registry.register("a", "conv_1", "run_live", Job())
+        assertFalse(store.markActivitySeen("run_live", "conv_1", 50L))
+        assertNull(database.runTerminalDao().getActivitySeen("run_live"))
+    }
+
+    @Test
+    fun markSeenConcurrentCasKeepsHighestOwnedVersion() = runBlocking {
+        var now = 50L
+        val store = RoomRunTerminalStore(dao = database.runTerminalDao(), now = { now })
+        store.begin("run_cas", "conv_cas", "a")
+        now = 80L
+        store.finish("run_cas", RunTerminalState.COMPLETED)
+        coroutineScope {
+            val first = async(Dispatchers.IO) { store.markActivitySeen("run_cas", "conv_cas", 60L) }
+            val second = async(Dispatchers.IO) { store.markActivitySeen("run_cas", "conv_cas", 80L) }
+            first.await()
+            second.await()
+        }
+        assertEquals(80L, database.runTerminalDao().getActivitySeen("run_cas")!!.versionMs)
+        assertEquals("conv_cas", database.runTerminalDao().getActivitySeen("run_cas")!!.conversationId)
     }
 
     @Test

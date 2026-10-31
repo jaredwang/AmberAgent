@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,6 +18,20 @@ import org.junit.Test
  * watermarks, current-conversation exclusion, title fallback, cancel.
  */
 class ConversationActivityCenterTest {
+
+    @Test
+    fun reviewOpenConversationConsumesNewRunBehindAlreadySeenHigherPriorityRun() = runTest {
+        val store = FakeRunTerminalStore()
+        val waiting = terminal("waiting", "conv-1", RunTerminalState.WAITING_USER, 50)
+        store.setTerminals(waiting)
+        val center = center(store = store, now = { 10 }) { "t" }
+        val job = backgroundScope.launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        store.setTerminals(waiting, terminal("done", "conv-1", RunTerminalState.COMPLETED, 90))
+        testScheduler.runCurrent()
+        assertTrue("new completed run in open chat must be seen", store.seenRows().any { it.runId == "done" })
+        job.cancel()
+    }
 
     @Test
     fun registryProjectionTracksRegisterAndUnregister() = runTest {
@@ -263,6 +278,23 @@ class ConversationActivityCenterTest {
     }
 
     @Test
+    fun seenForWrongConversationDoesNotClearUnread() {
+        val seen = mapOf(
+            "run-1" to ConversationActivitySeen("run-1", "other-conv", 50),
+        )
+        assertTrue(
+            isConversationActivityUnread(
+                kind = ConversationActivityKind.COMPLETED,
+                runId = "run-1",
+                conversationId = "conv-1",
+                versionMs = 50,
+                seenByRunId = seen,
+                baselineMs = 0,
+            ),
+        )
+    }
+
+    @Test
     fun consumeWhileOpenDirectOpenMarksFirstSnapshot() = runTest {
         val store = FakeRunTerminalStore()
         store.setTerminals(terminal("run-1", "conv-1", RunTerminalState.COMPLETED, 50))
@@ -308,6 +340,92 @@ class ConversationActivityCenterTest {
         testScheduler.runCurrent()
         assertEquals(90L, store.seenRows().single().versionMs)
         job.cancel()
+    }
+
+    @Test
+    fun consumeWhileOpenDirectOpenMarksEveryPendingRunOnFirstSnapshot() = runTest {
+        val store = FakeRunTerminalStore()
+        store.setTerminals(
+            terminal("waiting", "conv-1", RunTerminalState.WAITING_USER, 50),
+            terminal("done", "conv-1", RunTerminalState.COMPLETED, 90),
+        )
+        val center = center(store = store, now = { 10 }) { "t" }
+        val job = launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        assertEquals(setOf("waiting", "done"), store.seenRows().map { it.runId }.toSet())
+        job.cancel()
+    }
+
+    @Test
+    fun consumeWhileOpenNavigationConsumesNewRunAfterFirstFrame() = runTest {
+        val store = FakeRunTerminalStore()
+        store.setTerminals(terminal("run-1", "conv-1", RunTerminalState.COMPLETED, 80))
+        val center = center(store = store, now = { 10 }) { "t" }
+        center.rememberOpenedNotice(
+            ConversationActivityNotice(
+                conversationId = "conv-1",
+                runId = "run-1",
+                title = "t",
+                kind = ConversationActivityKind.COMPLETED,
+                sinceMs = 50,
+                versionMs = 50,
+            ),
+        )
+        val job = launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        assertEquals(50L, store.seenRows().single { it.runId == "run-1" }.versionMs)
+        store.setTerminals(
+            terminal("run-1", "conv-1", RunTerminalState.COMPLETED, 80),
+            terminal("run-2", "conv-1", RunTerminalState.FAILED, 100),
+        )
+        testScheduler.runCurrent()
+        assertEquals(50L, store.seenRows().single { it.runId == "run-1" }.versionMs)
+        assertTrue(store.seenRows().any { it.runId == "run-2" && it.versionMs == 100L })
+        job.cancel()
+    }
+
+    @Test
+    fun consumeWhileOpenNavigationConsumesLaterVersionOfSameRun() = runTest {
+        val store = FakeRunTerminalStore()
+        store.setTerminals(terminal("run-1", "conv-1", RunTerminalState.COMPLETED, 80))
+        val center = center(store = store, now = { 10 }) { "t" }
+        center.rememberOpenedNotice(
+            ConversationActivityNotice(
+                conversationId = "conv-1",
+                runId = "run-1",
+                title = "t",
+                kind = ConversationActivityKind.COMPLETED,
+                sinceMs = 50,
+                versionMs = 50,
+            ),
+        )
+        val job = launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        assertEquals(50L, store.seenRows().single().versionMs)
+        store.setTerminals(terminal("run-1", "conv-1", RunTerminalState.FAILED, 120))
+        testScheduler.runCurrent()
+        assertEquals(120L, store.seenRows().single().versionMs)
+        job.cancel()
+    }
+
+    @Test
+    fun consumeWhileOpenStopsAfterCancelAndResumeFirstFrameMarksVisibleEvents() = runTest {
+        val store = FakeRunTerminalStore()
+        val waiting = terminal("waiting", "conv-1", RunTerminalState.WAITING_USER, 50)
+        store.setTerminals(waiting)
+        val center = center(store = store, now = { 10 }) { "t" }
+        val first = launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        assertTrue(store.seenRows().any { it.runId == "waiting" })
+        first.cancel()
+        testScheduler.runCurrent()
+        store.setTerminals(waiting, terminal("done", "conv-1", RunTerminalState.COMPLETED, 90))
+        testScheduler.runCurrent()
+        assertFalse(store.seenRows().any { it.runId == "done" })
+        val resumed = launch { center.consumeWhileOpen("conv-1") }
+        testScheduler.runCurrent()
+        assertTrue(store.seenRows().any { it.runId == "done" && it.versionMs == 90L })
+        resumed.cancel()
     }
 
     @Test
@@ -396,11 +514,15 @@ private class FakeRunTerminalStore : RunTerminalStore {
         conversationId: String,
         versionMs: Long,
     ): Boolean {
+        val owner = terminals.value.find { it.runId == runId } ?: return false
+        if (owner.conversationId != conversationId) return false
+        if (versionMs > owner.activityVersionMs) return false
         val existing = seen.value.find { it.runId == runId }
         if (existing == null) {
             seen.value = seen.value + ConversationActivitySeen(runId, conversationId, versionMs)
             return true
         }
+        if (existing.conversationId != conversationId) return false
         if (existing.versionMs < versionMs) {
             seen.value = seen.value.map { row ->
                 if (row.runId == runId) {
