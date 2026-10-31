@@ -248,3 +248,12 @@ R8 仍用临时 `app/src/full/google-services.json`（占位 client `app.amber.a
 - `docs/plans/2026-10-31-android-p0-ocr-execution.md`
 
 三个原始未跟踪文档仍不提交：`2026-10-26-chat-history-performance-phase2.md`、`2026-10-31-android-selected-parity-handoff.md`、`2026-10-31-ios-android-feature-diff.md`。
+
+---
+
+## 9. 主代理代码验收（2026-11-01）
+
+- 提交 `b9682dd551fba3286605b86ac9ce1d6f8fdc206b` 代码验收通过。
+- 主代理独立核对 4 项验收缺口，并复跑相同范围：240 tests / 0 failures / 0 errors / 0 skipped（日志 `/tmp/amber-p0-rereview-tests.log`）。
+- **真机仍未验证。** 本轮继续禁止安装、启动、操作真机；OCR 真机与 Room/migration 真机统一留到选定差异补全的最后一轮。
+- P0 因此只关闭代码验收，不视为整项完成。后续施工进入 handoff 第 5 节 P1，不再改 OCR 生产路径。
