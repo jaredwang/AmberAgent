@@ -602,6 +602,11 @@
   <string name="setting_agent_screen_scope_title">App control allow-list</string>
   <string name="setting_agent_screen_scope_empty">No app authorized yet; the agent must ask before it can drive an app.</string>
   <string name="setting_agent_screen_scope_remove">Revoke</string>
+  <string name="setting_agent_screen_experience_title">Phone control success memory</string>
+  <string name="setting_agent_screen_experience_desc">Stores accepted success steps per app as planning hints on a fresh screenshot. Coordinates, old node refs, and typed secrets are not saved.</string>
+  <string name="setting_agent_screen_experience_clear">Clear</string>
+  <string name="setting_agent_screen_experience_clear_confirm_title">Clear success memory?</string>
+  <string name="setting_agent_screen_experience_clear_confirm">Later tasks will not read saved paths. An in-progress task that finishes later cannot write the old memory back.</string>
   <string name="setting_page_agent_tool_loop_steps">Tool loop limit</string>
   <string name="setting_page_agent_tool_loop_steps_desc">Maximum tool rounds in one reply.</string>
   <string name="setting_page_agent_tool_loop_steps_value">%1$d steps</string>

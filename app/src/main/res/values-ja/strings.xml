@@ -1189,6 +1189,11 @@
   <string name="setting_agent_screen_scope_title">端末操作の許可アプリ</string>
   <string name="setting_agent_screen_scope_empty">許可したアプリはまだありません。操作には事前の許可が必要です。</string>
   <string name="setting_agent_screen_scope_remove">取り消す</string>
+  <string name="setting_agent_screen_experience_title">端末操作の成功記憶</string>
+  <string name="setting_agent_screen_experience_desc">承認済みの成功手順をアプリごとに保存し、新しいスクリーンショット上の計画ヒントにだけ使います。座標・旧ノード・入力原文は保存しません。</string>
+  <string name="setting_agent_screen_experience_clear">消去</string>
+  <string name="setting_agent_screen_experience_clear_confirm_title">成功記憶を消去しますか？</string>
+  <string name="setting_agent_screen_experience_clear_confirm">以降のタスクは保存済み経路を読みません。実行中のタスクが後から成功しても、古い記憶は書き戻りません。</string>
   <string name="chat_message_council_expand">展開</string>
   <string name="chat_message_council_failure">失敗: %1$s</string>
   <string name="chat_message_council_no_output">（出力なし）</string>

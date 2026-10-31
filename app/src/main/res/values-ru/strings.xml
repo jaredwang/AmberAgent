@@ -1189,6 +1189,11 @@
   <string name="setting_agent_screen_scope_title">Приложения с доступом к управлению</string>
   <string name="setting_agent_screen_scope_empty">Пока нет разрешённых приложений: для управления нужно сначала выдать доступ.</string>
   <string name="setting_agent_screen_scope_remove">Отозвать</string>
+  <string name="setting_agent_screen_experience_title">Память успешных действий</string>
+  <string name="setting_agent_screen_experience_desc">Сохраняет принятые успешные шаги по приложениям и использует их только как подсказки на новом снимке. Координаты, старые узлы и введённый текст не сохраняются.</string>
+  <string name="setting_agent_screen_experience_clear">Очистить</string>
+  <string name="setting_agent_screen_experience_clear_confirm_title">Очистить память успеха?</string>
+  <string name="setting_agent_screen_experience_clear_confirm">Следующие задачи не будут читать сохранённые пути. Текущая задача, завершившись позже, не запишет старую память обратно.</string>
   <string name="chat_message_council_expand">Развернуть</string>
   <string name="chat_message_council_failure">Ошибка: %1$s</string>
   <string name="chat_message_council_no_output">(Нет вывода)</string>

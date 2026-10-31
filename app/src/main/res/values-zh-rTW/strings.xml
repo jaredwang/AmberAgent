@@ -1226,6 +1226,11 @@
   <string name="setting_agent_screen_scope_title">手機自控授權應用</string>
   <string name="setting_agent_screen_scope_empty">尚未授權任何應用；Agent 必須先申請才能操作。</string>
   <string name="setting_agent_screen_scope_remove">撤銷</string>
+  <string name="setting_agent_screen_experience_title">手機自控成功經驗</string>
+  <string name="setting_agent_screen_experience_desc">依應用保存已驗收的成功步驟，只在新快照上提示規劃。不保存座標、舊節點或輸入原文。</string>
+  <string name="setting_agent_screen_experience_clear">清除</string>
+  <string name="setting_agent_screen_experience_clear_confirm_title">清除成功經驗？</string>
+  <string name="setting_agent_screen_experience_clear_confirm">清除後後續任務不再讀取這些路徑；進行中的任務即使稍後成功也不會把舊經驗寫回。</string>
   <string name="chat_message_council_expand">展開</string>
   <string name="chat_message_council_failure">失敗：%1$s</string>
   <string name="chat_message_council_no_output">（無輸出）</string>

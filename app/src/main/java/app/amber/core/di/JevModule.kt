@@ -55,6 +55,11 @@ val jevModule = module {
     single<JevCalibrationStore> {
         FileJevCalibrationStore(File(androidContext().filesDir, "jev/calibration.jsonl"))
     }
+    single<app.amber.core.jev.PerAppSuccessPathStore> {
+        app.amber.core.jev.FilePerAppSuccessPathStore(
+            File(androidContext().filesDir, "jev/per_app_success_paths.json"),
+        )
+    }
     single {
         JevRuntime(
             coordinator = get(),
@@ -114,6 +119,7 @@ val jevModule = module {
             },
             ocrEngine = getOrNull(),
             takeoverController = getOrNull(),
+            successPathStore = get(),
         )
     }
 }
