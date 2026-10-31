@@ -104,6 +104,8 @@ class ReminderReceiver : BroadcastReceiver(), KoinComponent {
 class ReminderRescheduleReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action !in RESCHEDULE_ACTIONS) return
+        // TIME_SET/boot can arrive before Koin; fail closed instead of crashing.
+        if (org.koin.core.context.GlobalContext.getOrNull() == null) return
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
