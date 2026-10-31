@@ -1023,6 +1023,8 @@ dependencies {
     // quickie (qrcode scanner)
     implementation(libs.quickie.bundled)
     implementation(libs.barcode.scanning)
+    // P0 端侧 OCR：ML Kit 文本识别（中文模型同时覆盖拉丁字母/英文）。
+    implementation(libs.mlkit.text.recognition.chinese)
     implementation(libs.androidx.camera.core)
 
     // Room

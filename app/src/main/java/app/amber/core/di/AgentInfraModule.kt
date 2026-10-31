@@ -96,7 +96,10 @@ val agentInfraModule = module {
     single { ScreenCaptureManager(get()) }
 
     single<app.amber.core.automation.ScreenOcrEngine> {
-        app.amber.core.automation.DefaultScreenOcrEngine(get(), get())
+        app.amber.core.automation.DefaultScreenOcrEngine(
+            context = get(),
+            screenCaptureManager = get(),
+        )
     }
 
     single { ScreenAutomationTools(get(), get(), get(), get(), get(), get(), getOrNull()) }

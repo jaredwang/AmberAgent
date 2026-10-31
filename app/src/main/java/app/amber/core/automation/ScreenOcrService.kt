@@ -8,12 +8,28 @@ import android.os.Build
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
+import com.google.android.gms.tasks.Task
+import com.google.mlkit.common.MlKitException
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
- * Raw OCR region returned by a bitmap/window recognizer before coordinate normalization.
+ * Raw OCR region returned by a recognizer before coordinate normalization.
+ *
+ * [confidence] is a heuristic score, not a calibrated ML Kit probability: the
+ * bundled text-recognition result exposes text + bounds, not per-block scores.
  */
 data class RawOcrRegion(
     val text: String,
@@ -24,6 +40,11 @@ data class RawOcrRegion(
     val confidence: Float = 0.9f,
 )
 
+/**
+ * One captured frame. The engine takes ownership of [bitmap] and recycles it
+ * after recognition (or after failure), so providers must not hand out cached
+ * or shared bitmaps.
+ */
 data class CapturedScreenBitmap(
     val bitmap: Bitmap?,
     val source: String,
@@ -32,45 +53,131 @@ data class CapturedScreenBitmap(
 )
 
 /**
- * Classifies and redacts sensitive text (passwords, OTP codes, payment/card numbers)
- * so OCR summaries and step receipts never leak raw secrets in UI previews.
+ * Result of running a bitmap recognizer once.
+ *
+ * [failure] is a stable diagnostic code (`model_not_found`, `screenshot_unavailable`, ...).
+ * A recognizer that finds no text returns `regions = emptyList(), failure = null`
+ * and the engine surfaces it as `ocr_no_text` instead of a silent success.
  */
-object SensitiveScreenTextClassifier {
-    private val SENSITIVE_KEYWORDS = Regex(
-        "密码|验证码|校验码|动态码|安全码|支付密码|银行卡|身份证|cvv|pin|password|passcode|otp|verification\\s*code|security\\s*code|secret|token",
-        RegexOption.IGNORE_CASE,
-    )
-    private val OTP_OR_CARD_DIGITS = Regex("\\b\\d{6,19}\\b")
-    private val KEY_VALUE_SECRET = Regex(
-        "((?:密码|验证码|校验码|动态码|安全码|支付密码|银行卡|身份证|cvv|pin|password|passcode|otp|verification\\s*code|security\\s*code|secret|token)\\s*(?:[:=：]|\\s+)\\s*)([^\\s\"',;，；]+)",
-        RegexOption.IGNORE_CASE,
-    )
+data class BitmapOcrResult(
+    val regions: List<RawOcrRegion> = emptyList(),
+    val failure: String? = null,
+) {
+    val succeeded: Boolean get() = failure == null
+}
 
-    fun isSensitive(text: String): Boolean {
-        val trimmed = text.trim()
-        if (trimmed.isEmpty()) return false
-        if (trimmed == "[password]" || trimmed == "[已隐藏敏感内容]") return true
-        return SENSITIVE_KEYWORDS.containsMatchIn(trimmed) || OTP_OR_CARD_DIGITS.containsMatchIn(trimmed)
+/**
+ * Compiled-in ML Kit text recognizer.
+ *
+ * Uses the **bundled** `text-recognition-chinese` model, which recognizes
+ * Chinese (Simplified/Traditional) plus Latin script — see
+ * [ScreenOcrCapabilities]. Bundle model => no Play Services download step at
+ * runtime, no "model not downloaded" state on first use, and no reflection:
+ * every symbol is resolved at compile time and survives R8.
+ *
+ * The recognizer instance is cached (model load is expensive) and released via
+ * [close]. `process` calls are safe to run concurrently.
+ */
+class MlKitScreenTextRecognizer(
+    private val clientFactory: () -> TextRecognizer = {
+        TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+    },
+) : AutoCloseable {
+    private val lock = Any()
+
+    @Volatile
+    private var client: TextRecognizer? = null
+
+    @Volatile
+    private var closed = false
+
+    suspend fun recognize(bitmap: Bitmap): BitmapOcrResult {
+        if (closed) return BitmapOcrResult(failure = "recognizer_closed")
+        if (bitmap.isRecycled) return BitmapOcrResult(failure = "bitmap_recycled")
+        val recognizer = try {
+            obtainClient()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Throwable) {
+            return BitmapOcrResult(failure = mlKitFailureReason(error))
+        }
+        val text = try {
+            recognizer.process(InputImage.fromBitmap(bitmap, 0)).awaitResult()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Throwable) {
+            return BitmapOcrResult(failure = mlKitFailureReason(error))
+        }
+        return BitmapOcrResult(regions = text.toRawRegions())
     }
 
-    fun redactIfSensitive(text: String): String {
-        val trimmed = text.trim()
-        if (trimmed.isEmpty()) return ""
-        if (!isSensitive(trimmed)) return trimmed
-        var redacted = OTP_OR_CARD_DIGITS.replace(trimmed) { match ->
-            val len = match.value.length
-            if (len <= 6) "******" else "${match.value.take(2)}****${match.value.takeLast(2)}"
+    override fun close() {
+        synchronized(lock) {
+            closed = true
+            val current = client
+            client = null
+            runCatching { current?.close() }
         }
-        redacted = KEY_VALUE_SECRET.replace(redacted) { match ->
-            val prefix = match.groupValues[1]
-            val value = match.groupValues[2]
-            if (value.all { it == '*' } || SENSITIVE_KEYWORDS.matches(value)) {
-                match.value
+    }
+
+    private fun obtainClient(): TextRecognizer {
+        client?.let { return it }
+        synchronized(lock) {
+            check(!closed) { "recognizer closed" }
+            client?.let { return it }
+            return clientFactory().also { client = it }
+        }
+    }
+
+    private suspend fun <T> Task<T>.awaitResult(): T = suspendCancellableCoroutine { continuation ->
+        addOnSuccessListener { value ->
+            if (continuation.isActive) continuation.resume(value)
+        }
+        addOnFailureListener { error ->
+            if (continuation.isActive) continuation.resumeWithException(error)
+        }
+    }
+
+    private fun Text.toRawRegions(): List<RawOcrRegion> = buildList {
+        textBlocks.forEach { block ->
+            val lines = block.lines
+            if (lines.isNotEmpty()) {
+                lines.forEach { line -> line.toRawRegion()?.let(::add) }
             } else {
-                "$prefix******"
+                block.toRawRegion()?.let(::add)
             }
         }
-        return redacted
+    }
+
+    private fun Text.Line.toRawRegion(): RawOcrRegion? {
+        val box = boundingBox ?: return null
+        val clean = text.trim()
+        if (clean.isEmpty() || box.right <= box.left || box.bottom <= box.top) return null
+        return RawOcrRegion(clean, box.left, box.top, box.right, box.bottom)
+    }
+
+    private fun Text.TextBlock.toRawRegion(): RawOcrRegion? {
+        val box = boundingBox ?: return null
+        val clean = text.trim()
+        if (clean.isEmpty() || box.right <= box.left || box.bottom <= box.top) return null
+        return RawOcrRegion(clean, box.left, box.top, box.right, box.bottom)
+    }
+}
+
+/** Maps an ML Kit failure to a stable, receipt-safe diagnostic code. */
+internal fun mlKitFailureReason(error: Throwable): String {
+    val code = (error as? MlKitException)?.errorCode ?: return "recognition_failed"
+    return when (code) {
+        MlKitException.NOT_ENOUGH_SPACE -> "not_enough_space"
+        MlKitException.MODEL_HASH_MISMATCH -> "model_hash_mismatch"
+        MlKitException.MODEL_INCOMPATIBLE_WITH_TFLITE -> "model_incompatible"
+        MlKitException.NOT_FOUND -> "model_not_found"
+        MlKitException.UNAVAILABLE -> "recognizer_unavailable"
+        MlKitException.NETWORK_ISSUE -> "network_issue"
+        MlKitException.DEADLINE_EXCEEDED -> "recognition_timeout"
+        MlKitException.CANCELLED -> "recognition_cancelled"
+        MlKitException.INVALID_ARGUMENT -> "invalid_image"
+        else -> "recognition_failed"
     }
 }
 
@@ -82,14 +189,29 @@ object SensitiveScreenTextClassifier {
  *   (and no explicit `forceReason` is supplied), returns immediately with `triggered = false`
  *   and performs **zero screenshot capture and zero OCR computation**.
  * - When triggered (low coverage, post-action verification fallback, or [ScreenOcrMode.ON]),
- *   captures a screen bitmap and extracts text blocks with both pixel bounds and `[0, 1]`
+ *   captures a screen bitmap and extracts text with both pixel bounds and `[0, 1]`
  *   normalized coordinates ([NormalizedScreenBounds]).
+ * - The observation reports its real [ScreenOcrObservation.source] / [ScreenOcrObservation.outcome]:
+ *   Accessibility-only metadata is never presented as bitmap OCR, and a failed/empty
+ *   pass carries a diagnostic code instead of a fake success.
+ * - The captured bitmap is recycled exactly once after recognition, including on
+ *   cancellation; a cancelled observation never returns blocks (so no stale action
+ *   is dispatched from an outdated frame).
  */
 class DefaultScreenOcrEngine(
     private val displaySizeProvider: () -> Pair<Int, Int>,
     private val screenshotProvider: suspend (Int, Int) -> CapturedScreenBitmap?,
-    private val recognizer: suspend (Bitmap?, ScreenSnapshot?, Int, Int) -> List<RawOcrRegion>,
-) : ScreenOcrEngine {
+    private val bitmapRecognizer: (suspend (Bitmap) -> BitmapOcrResult)? = null,
+    private val accessibilityRegionsProvider: (
+        snapshot: ScreenSnapshot?,
+        displayWidth: Int,
+        displayHeight: Int,
+    ) -> List<RawOcrRegion> = { snapshot, width, height ->
+        ExtendedAccessibilityOcrExtractor.extract(snapshot, width, height)
+    },
+    private val recognizerId: String? = null,
+    private val ownedRecognizer: MlKitScreenTextRecognizer? = null,
+) : ScreenOcrEngine, AutoCloseable {
 
     constructor(
         context: Context,
@@ -99,9 +221,9 @@ class DefaultScreenOcrEngine(
         screenshotProvider = { fallbackWidth, fallbackHeight ->
             captureBestEffortBitmap(screenCaptureManager, fallbackWidth, fallbackHeight)
         },
-        recognizer = { bitmap, snapshot, width, height ->
-            AndroidOnDeviceOcrRecognizer.recognize(context, bitmap, snapshot, width, height)
-        },
+        bitmapRecognizer = null,
+        recognizerId = ScreenOcrCapabilities.RECOGNIZER_ID,
+        ownedRecognizer = MlKitScreenTextRecognizer(),
     )
 
     override suspend fun observe(
@@ -116,15 +238,12 @@ class DefaultScreenOcrEngine(
         val coverage = ScreenTreeCoverageAnalyzer.analyzeUiTreeDump(uiTreeDump, snapshot)
 
         if (mode == ScreenOcrMode.OFF) {
-            return ScreenOcrObservation(
+            return notTriggeredObservation(
                 mode = mode,
-                triggered = false,
-                triggerReason = "disabled_by_caller",
+                reason = "disabled_by_caller",
                 coverage = coverage,
-                blocks = emptyList(),
                 displayWidth = displayWidth,
                 displayHeight = displayHeight,
-                screenshotSource = null,
             )
         }
 
@@ -133,15 +252,12 @@ class DefaultScreenOcrEngine(
             coverage.isLowCoverage
 
         if (!shouldTrigger) {
-            return ScreenOcrObservation(
+            return notTriggeredObservation(
                 mode = mode,
-                triggered = false,
-                triggerReason = "tree_coverage_sufficient",
+                reason = "tree_coverage_sufficient",
                 coverage = coverage,
-                blocks = emptyList(),
                 displayWidth = displayWidth,
                 displayHeight = displayHeight,
-                screenshotSource = null,
             )
         }
 
@@ -151,62 +267,96 @@ class DefaultScreenOcrEngine(
             else -> coverage.reason
         }
 
-        val captured = runCatching { screenshotProvider(displayWidth, displayHeight) }.getOrNull()
+        var screenshotFailure: String? = null
+        val captured = try {
+            screenshotProvider(displayWidth, displayHeight)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Throwable) {
+            screenshotFailure = "screenshot_failed"
+            null
+        }
         val effectiveWidth = (captured?.width?.takeIf { it > 0 } ?: displayWidth).coerceAtLeast(1)
         val effectiveHeight = (captured?.height?.takeIf { it > 0 } ?: displayHeight).coerceAtLeast(1)
+        val bitmap = captured?.bitmap?.takeIf { !it.isRecycled }
 
-        val rawRegions = try {
-            runCatching {
-                recognizer(captured?.bitmap, snapshot, effectiveWidth, effectiveHeight)
-            }.getOrDefault(emptyList())
-        } finally {
-            // Recycle transient bitmap only if we own it and it's not shared.
-            captured?.bitmap?.let { bmp ->
-                if (!bmp.isRecycled) {
-                    runCatching { bmp.recycle() }
+        var bitmapResult: BitmapOcrResult? = null
+        try {
+            val activeRecognizer = resolveRecognizer()
+            when {
+                bitmap == null -> {
+                    screenshotFailure = screenshotFailure ?: "screenshot_unavailable"
                 }
+                activeRecognizer == null -> {
+                    bitmapResult = BitmapOcrResult(failure = "bitmap_recognizer_unavailable")
+                }
+                else -> {
+                    bitmapResult = try {
+                        // ML Kit Task cannot be cancelled, and recycling the bitmap under a
+                        // running recognizer would be a use-after-free. Await settle inside
+                        // NonCancellable, then honor cancellation right after (before any
+                        // block is handed to a caller, so no stale-frame action).
+                        withContext(NonCancellable) { activeRecognizer(bitmap) }
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (_: Throwable) {
+                        BitmapOcrResult(failure = "recognition_failed")
+                    }
+                }
+            }
+        } finally {
+            // Ownership contract: the engine recycles every provided bitmap exactly once.
+            if (bitmap != null && !bitmap.isRecycled) {
+                runCatching { bitmap.recycle() }
             }
         }
 
-        val blocks = rawRegions
-            .mapNotNull { region ->
-                val cleanText = region.text.trim()
-                if (cleanText.isEmpty()) return@mapNotNull null
-                val left = region.left.coerceIn(0, effectiveWidth)
-                val top = region.top.coerceIn(0, effectiveHeight)
-                val right = region.right.coerceIn(left, effectiveWidth)
-                val bottom = region.bottom.coerceIn(top, effectiveHeight)
-                if (right <= left || bottom <= top) return@mapNotNull null
-                region.copy(
-                    text = cleanText,
-                    left = left,
-                    top = top,
-                    right = right,
-                    bottom = bottom,
-                )
+        // A cancelled observation must not hand blocks to a caller that could then
+        // dispatch an action against an old frame.
+        coroutineContext.ensureActive()
+
+        val bitmapRegions = bitmapResult?.regions.orEmpty()
+            .filter { it.text.isNotBlank() }
+        val accessibilityRegions = try {
+            accessibilityRegionsProvider(snapshot, effectiveWidth, effectiveHeight)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Throwable) {
+            emptyList()
+        }
+
+        val blocks = buildBlocks(
+            regions = bitmapRegions,
+            source = ScreenOcrSource.BITMAP_OCR,
+            displayWidth = effectiveWidth,
+            displayHeight = effectiveHeight,
+        ) + buildBlocks(
+            regions = accessibilityRegions,
+            source = ScreenOcrSource.EXTENDED_ACCESSIBILITY,
+            displayWidth = effectiveWidth,
+            displayHeight = effectiveHeight,
+        )
+
+        val hasBitmapText = bitmapRegions.isNotEmpty()
+        val source = when {
+            hasBitmapText -> ScreenOcrSource.BITMAP_OCR
+            blocks.isNotEmpty() -> ScreenOcrSource.EXTENDED_ACCESSIBILITY
+            else -> ScreenOcrSource.UNAVAILABLE
+        }
+        val outcome = when {
+            hasBitmapText -> ScreenOcrOutcome.RECOGNIZED
+            blocks.isNotEmpty() -> ScreenOcrOutcome.DEGRADED
+            else -> ScreenOcrOutcome.UNAVAILABLE
+        }
+        val bitmapFailure = bitmapResult?.failure
+        val bitmapSucceeded = bitmapResult?.succeeded == true
+        val diagnostics = buildList {
+            screenshotFailure?.let(::add)
+            bitmapFailure?.let(::add)
+            if (bitmapSucceeded && !hasBitmapText) {
+                add("ocr_no_text")
             }
-            .distinctBy { "${it.text}|${it.left},${it.top},${it.right},${it.bottom}" }
-            .take(MAX_OCR_BLOCKS)
-            .mapIndexed { index, region ->
-                ScreenOcrBlock(
-                    id = "ocr_$index",
-                    text = region.text,
-                    confidence = region.confidence.coerceIn(0f, 1f),
-                    left = region.left,
-                    top = region.top,
-                    right = region.right,
-                    bottom = region.bottom,
-                    normalizedBounds = NormalizedScreenBounds.fromPixelBounds(
-                        left = region.left,
-                        top = region.top,
-                        right = region.right,
-                        bottom = region.bottom,
-                        displayWidth = effectiveWidth,
-                        displayHeight = effectiveHeight,
-                    ),
-                    isSensitive = SensitiveScreenTextClassifier.isSensitive(region.text),
-                )
-            }
+        }
 
         return ScreenOcrObservation(
             mode = mode,
@@ -216,9 +366,91 @@ class DefaultScreenOcrEngine(
             blocks = blocks,
             displayWidth = effectiveWidth,
             displayHeight = effectiveHeight,
-            screenshotSource = captured?.source ?: "accessibility_fallback",
+            screenshotSource = captured?.source,
+            source = source,
+            outcome = outcome,
+            diagnostics = diagnostics,
+            recognizer = if (bitmap != null && bitmapResult != null) recognizerId else null,
         )
     }
+
+    override fun close() {
+        ownedRecognizer?.close()
+    }
+
+    private fun resolveRecognizer(): (suspend (Bitmap) -> BitmapOcrResult)? {
+        bitmapRecognizer?.let { return it }
+        val owned = ownedRecognizer ?: return null
+        return { frame -> owned.recognize(frame) }
+    }
+
+    private fun notTriggeredObservation(
+        mode: ScreenOcrMode,
+        reason: String,
+        coverage: ScreenTreeCoverageReport,
+        displayWidth: Int,
+        displayHeight: Int,
+    ) = ScreenOcrObservation(
+        mode = mode,
+        triggered = false,
+        triggerReason = reason,
+        coverage = coverage,
+        blocks = emptyList(),
+        displayWidth = displayWidth,
+        displayHeight = displayHeight,
+        screenshotSource = null,
+        source = ScreenOcrSource.UNAVAILABLE,
+        outcome = ScreenOcrOutcome.NOT_TRIGGERED,
+        diagnostics = emptyList(),
+        recognizer = null,
+    )
+
+    private fun buildBlocks(
+        regions: List<RawOcrRegion>,
+        source: ScreenOcrSource,
+        displayWidth: Int,
+        displayHeight: Int,
+    ): List<ScreenOcrBlock> = regions
+        .mapNotNull { region ->
+            val cleanText = region.text.trim()
+            if (cleanText.isEmpty()) return@mapNotNull null
+            val left = region.left.coerceIn(0, displayWidth)
+            val top = region.top.coerceIn(0, displayHeight)
+            val right = region.right.coerceIn(left, displayWidth)
+            val bottom = region.bottom.coerceIn(top, displayHeight)
+            if (right <= left || bottom <= top) return@mapNotNull null
+            region.copy(
+                text = cleanText,
+                left = left,
+                top = top,
+                right = right,
+                bottom = bottom,
+            )
+        }
+        .distinctBy { "${it.text}|${it.left},${it.top},${it.right},${it.bottom}" }
+        .take(MAX_OCR_BLOCKS)
+        .mapIndexed { index, region ->
+            ScreenOcrBlock(
+                id = "ocr_$index",
+                text = region.text,
+                confidence = region.confidence.coerceIn(0f, 1f),
+                left = region.left,
+                top = region.top,
+                right = region.right,
+                bottom = region.bottom,
+                normalizedBounds = NormalizedScreenBounds.fromPixelBounds(
+                    left = region.left,
+                    top = region.top,
+                    right = region.right,
+                    bottom = region.bottom,
+                    displayWidth = displayWidth,
+                    displayHeight = displayHeight,
+                ),
+                isSensitive = SensitiveScreenTextClassifier.isSensitive(region.text),
+                source = source,
+            )
+        }
+        .distinctBy { "${it.text}|${it.left},${it.top},${it.right},${it.bottom}" }
 
     companion object {
         private const val MAX_OCR_BLOCKS = 64
@@ -274,157 +506,12 @@ class DefaultScreenOcrEngine(
 }
 
 /**
- * On-device OCR recognizer that combines:
- * 1. Reflective ML Kit / Play Services on-device TextRecognition when available on the device.
- * 2. Extended Accessibility node attributes (hintText, tooltipText, stateDescription, paneTitle,
- *    extras, semantic viewId tokens) for custom views / WebViews whose primary `text` is blank.
+ * Extra Accessibility metadata that helps on custom views / WebViews whose primary
+ * `text` is blank. Results are tagged [ScreenOcrSource.EXTENDED_ACCESSIBILITY] and
+ * must not be presented as pixel OCR.
  */
-object AndroidOnDeviceOcrRecognizer {
-    suspend fun recognize(
-        context: Context,
-        bitmap: Bitmap?,
-        snapshot: ScreenSnapshot?,
-        displayWidth: Int,
-        displayHeight: Int,
-    ): List<RawOcrRegion> {
-        val results = mutableListOf<RawOcrRegion>()
-
-        // 1. Try on-device ML Kit / GMS Vision TextRecognizer if available at runtime.
-        if (bitmap != null && !bitmap.isRecycled) {
-            results += recognizeWithMlKitReflection(bitmap)
-            if (results.isEmpty()) {
-                results += recognizeWithGmsVisionReflection(context, bitmap)
-            }
-        }
-
-        // 2. Supplement with deep Accessibility node metadata (hints, tooltips, stateDescription,
-        //    paneTitle, and semantic resource-id labels on unlabeled interactive nodes).
-        results += extractExtendedAccessibilityRegions(snapshot, displayWidth, displayHeight)
-
-        return results
-    }
-
-    private suspend fun recognizeWithMlKitReflection(bitmap: Bitmap): List<RawOcrRegion> = runCatching {
-        val inputImageClass = Class.forName("com.google.mlkit.vision.common.InputImage")
-        val fromBitmap = inputImageClass.getMethod("fromBitmap", Bitmap::class.java, Int::class.javaPrimitiveType)
-        val inputImage = fromBitmap.invoke(null, bitmap, 0) ?: return@runCatching emptyList()
-
-        val textRecognitionClass = Class.forName("com.google.mlkit.vision.text.TextRecognition")
-        val recognizerOptionsInterface = Class.forName("com.google.mlkit.vision.text.TextRecognizerOptionsInterface")
-        val optionsObj = runCatching {
-            val chineseOptionsClass = Class.forName("com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions\$Builder")
-            val builder = chineseOptionsClass.getDeclaredConstructor().newInstance()
-            chineseOptionsClass.getMethod("build").invoke(builder)
-        }.getOrElse {
-            val defaultOptionsClass = Class.forName("com.google.mlkit.vision.text.latin.TextRecognizerOptions")
-            defaultOptionsClass.getField("DEFAULT_OPTIONS").get(null)
-        } ?: return@runCatching emptyList()
-
-        val getClient = textRecognitionClass.getMethod("getClient", recognizerOptionsInterface)
-        val client = getClient.invoke(null, optionsObj) ?: return@runCatching emptyList()
-        val processMethod = client.javaClass.getMethod("process", inputImageClass)
-        val task = processMethod.invoke(client, inputImage) ?: return@runCatching emptyList()
-
-        val visionText = awaitGmsTask(task) ?: return@runCatching emptyList()
-        val getTextBlocks = visionText.javaClass.getMethod("getTextBlocks")
-        val blocks = getTextBlocks.invoke(visionText) as? List<*> ?: return@runCatching emptyList()
-        buildList {
-            for (block in blocks) {
-                if (block == null) continue
-                val text = runCatching { block.javaClass.getMethod("getText").invoke(block) as? String }
-                    .getOrNull()?.trim().orEmpty()
-                val rect = runCatching { block.javaClass.getMethod("getBoundingBox").invoke(block) as? Rect }
-                    .getOrNull()
-                if (text.isNotEmpty() && rect != null) {
-                    add(
-                        RawOcrRegion(
-                            text = text,
-                            left = rect.left,
-                            top = rect.top,
-                            right = rect.right,
-                            bottom = rect.bottom,
-                            confidence = 0.92f,
-                        )
-                    )
-                }
-            }
-        }
-    }.getOrDefault(emptyList())
-
-    private fun recognizeWithGmsVisionReflection(context: Context, bitmap: Bitmap): List<RawOcrRegion> = runCatching {
-        val builderClass = Class.forName("com.google.android.gms.vision.text.TextRecognizer\$Builder")
-        val recognizer = builderClass.getDeclaredConstructor(Context::class.java)
-            .newInstance(context)
-            .let { builder -> builderClass.getMethod("build").invoke(builder) }
-            ?: return@runCatching emptyList()
-        try {
-            val isOperational = recognizer.javaClass.getMethod("isOperational").invoke(recognizer) as? Boolean ?: false
-            if (!isOperational) return@runCatching emptyList()
-            val frameBuilderClass = Class.forName("com.google.android.gms.vision.Frame\$Builder")
-            val frameBuilder = frameBuilderClass.getDeclaredConstructor().newInstance()
-            frameBuilderClass.getMethod("setBitmap", Bitmap::class.java).invoke(frameBuilder, bitmap)
-            val frame = frameBuilderClass.getMethod("build").invoke(frameBuilder)
-            val frameClass = Class.forName("com.google.android.gms.vision.Frame")
-            val sparseArray = recognizer.javaClass.getMethod("detect", frameClass).invoke(recognizer, frame)
-                ?: return@runCatching emptyList()
-            val size = sparseArray.javaClass.getMethod("size").invoke(sparseArray) as? Int ?: 0
-            val valueAt = sparseArray.javaClass.getMethod("valueAt", Int::class.javaPrimitiveType)
-            buildList {
-                for (i in 0 until size) {
-                    val item = valueAt.invoke(sparseArray, i) ?: continue
-                    val text = runCatching { item.javaClass.getMethod("getValue").invoke(item) as? String }
-                        .getOrNull()?.trim().orEmpty()
-                    val rect = runCatching { item.javaClass.getMethod("getBoundingBox").invoke(item) as? Rect }
-                        .getOrNull()
-                    if (text.isNotEmpty() && rect != null) {
-                        add(
-                            RawOcrRegion(
-                                text = text,
-                                left = rect.left,
-                                top = rect.top,
-                                right = rect.right,
-                                bottom = rect.bottom,
-                                confidence = 0.88f,
-                            )
-                        )
-                    }
-                }
-            }
-        } finally {
-            runCatching { recognizer.javaClass.getMethod("release").invoke(recognizer) }
-        }
-    }.getOrDefault(emptyList())
-
-    private suspend fun awaitGmsTask(task: Any): Any? = suspendCancellableCoroutine { cont ->
-        runCatching {
-            val onSuccessListenerClass = Class.forName("com.google.android.gms.tasks.OnSuccessListener")
-            val onFailureListenerClass = Class.forName("com.google.android.gms.tasks.OnFailureListener")
-            val successProxy = java.lang.reflect.Proxy.newProxyInstance(
-                onSuccessListenerClass.classLoader,
-                arrayOf(onSuccessListenerClass),
-            ) { _, method, args ->
-                if (method.name == "onSuccess" && cont.isActive) {
-                    cont.resume(args?.firstOrNull())
-                }
-                null
-            }
-            val failureProxy = java.lang.reflect.Proxy.newProxyInstance(
-                onFailureListenerClass.classLoader,
-                arrayOf(onFailureListenerClass),
-            ) { _, method, _ ->
-                if (method.name == "onFailure" && cont.isActive) {
-                    cont.resume(null)
-                }
-                null
-            }
-            task.javaClass.getMethod("addOnSuccessListener", onSuccessListenerClass).invoke(task, successProxy)
-            task.javaClass.getMethod("addOnFailureListener", onFailureListenerClass).invoke(task, failureProxy)
-        }.onFailure {
-            if (cont.isActive) cont.resume(null)
-        }
-    }
-
-    private fun extractExtendedAccessibilityRegions(
+object ExtendedAccessibilityOcrExtractor {
+    fun extract(
         snapshot: ScreenSnapshot?,
         displayWidth: Int,
         displayHeight: Int,

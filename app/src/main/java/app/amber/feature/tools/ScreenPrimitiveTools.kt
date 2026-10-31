@@ -244,7 +244,7 @@ internal class ScreenPrimitiveTools(
 
     val screenReadUiTool = Tool(
         name = "screen_read_ui",
-        description = "Read the current Accessibility UI tree for screen reasoning (with automatic on-device OCR fallback for low-coverage/WebView/Canvas screens). For a multi-step phone goal, first discover screen_run_goal: when enabled it uses Jev inside Accessibility to select and execute validated actions, reducing model round trips. Use this raw tree tool for inspection or when that tool hands back.",
+        description = "Read the current Accessibility UI tree for screen reasoning (with automatic compiled on-device OCR fallback for low-coverage/WebView/Canvas screens). OCR uses bundled ML Kit text recognition for Chinese (Simplified/Traditional) and Latin/English; `ocr_source`/`ocr_outcome` in the result distinguish real bitmap OCR from Accessibility-only metadata. For a multi-step phone goal, first discover screen_run_goal: when enabled it uses Jev inside Accessibility to select and execute validated actions, reducing model round trips. Use this raw tree tool for inspection or when that tool hands back.",
         parameters = {
             InputSchema.Obj(
                 properties = buildJsonObject {
@@ -653,11 +653,11 @@ internal class ScreenPrimitiveTools(
 
     private fun ScreenOcrBlock.toMatchJson(index: Int) = buildJsonObject {
         put("index", index)
-        put("source", "ocr")
+        put("source", source.wireName())
         put("id", id)
         put("text", SensitiveScreenTextClassifier.redactIfSensitive(text))
         put("content_description", "")
-        put("class_name", "ocr.text_block")
+        put("class_name", if (source.isBitmapOcr) "ocr.text_block" else "accessibility.extended_metadata")
         put("view_id", "")
         put("clickable", true)
         put("enabled", true)
@@ -688,8 +688,13 @@ internal class ScreenPrimitiveTools(
         put("ocr_triggered", observation.triggered)
         put("ocr_reason", observation.triggerReason)
         put("ocr_block_count", observation.blocks.size)
+        put("ocr_source", observation.source.wireName())
+        put("ocr_outcome", observation.outcome.wireName())
+        observation.recognizer?.let { put("ocr_recognizer", it) }
+        observation.diagnosticSummary?.let { put("ocr_diagnostics", it) }
         if (observation.triggered) {
-            put("ocr_text", observation.mergedText(maxChars = 4_000))
+            // Redacted: OTP / password / payment text must never enter model context or receipts.
+            put("ocr_text", observation.redactedText(maxChars = 4_000))
             put("ocr_blocks", buildJsonArray {
                 observation.blocks.forEachIndexed { index, block ->
                     add(block.toMatchJson(index))

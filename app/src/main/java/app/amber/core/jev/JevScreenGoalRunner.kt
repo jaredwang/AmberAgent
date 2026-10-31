@@ -216,6 +216,10 @@ class JevScreenGoalRunner(
                         put("goal", goal)
                         put("package", packageName)
                         put("screen", readableScreen(snapshot, stepOcr))
+                        stepOcr?.takeIf { it.triggered }?.let { ocr ->
+                            put("ocr_source", ocr.source.wireName())
+                            ocr.diagnosticSummary?.let { diagnostics -> put("ocr_diagnostics", diagnostics) }
+                        }
                         put("candidates", buildJsonObject {
                             candidates.forEachIndexed { index, candidate -> put("a$index", candidate.label) }
                         })
@@ -503,7 +507,7 @@ class JevScreenGoalRunner(
                 .distinct()
             val ocrLines = if (ocrObservation?.triggered == true) {
                 ocrObservation.blocks
-                    .map { it.text.trim() }
+                    .map { SensitiveScreenTextClassifier.redactIfSensitive(it.text) }
                     .filter { it.isNotBlank() && it !in treeLines }
                     .distinct()
             } else {
@@ -559,10 +563,15 @@ class JevScreenGoalRunner(
             ocrObservation?.let { obs ->
                 put("ocr_reason", obs.triggerReason)
                 put("ocr_block_count", obs.blocks.size)
+                put("ocr_source", obs.source.wireName())
+                put("ocr_outcome", obs.outcome.wireName())
+                obs.recognizer?.let { put("ocr_recognizer", it) }
+                obs.diagnosticSummary?.let { put("ocr_diagnostics", it) }
                 put("ocr_blocks", buildJsonArray {
                     obs.blocks.forEach { block ->
                         add(buildJsonObject {
                             put("id", block.id)
+                            put("source", block.source.wireName())
                             put("text", SensitiveScreenTextClassifier.redactIfSensitive(block.text))
                             put("confidence", block.confidence.toDouble())
                             put("sensitive", block.isSensitive)

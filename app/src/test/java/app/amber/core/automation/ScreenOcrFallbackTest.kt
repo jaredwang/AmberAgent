@@ -1,5 +1,7 @@
 package app.amber.core.automation
 
+import android.app.Application
+import android.graphics.Bitmap
 import app.amber.core.jev.JevClient
 import app.amber.core.jev.JevDataScope
 import app.amber.core.jev.JevDecisionCoordinator
@@ -13,17 +15,48 @@ import app.amber.core.jev.JevTransport
 import app.amber.core.jev.JevTransportResponse
 import app.amber.core.jev.JevUsageStore
 import app.amber.core.settings.Settings
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], application = Application::class)
 class ScreenOcrFallbackTest {
+
+    private fun bitmap(width: Int = 1000, height: Int = 2000): Bitmap =
+        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+    private fun engine(
+        width: Int = 1000,
+        height: Int = 2000,
+        recognizer: (suspend (Bitmap) -> BitmapOcrResult)? = null,
+        accessibility: (ScreenSnapshot?, Int, Int) -> List<RawOcrRegion> = { _, _, _ -> emptyList() },
+        screenshot: suspend (Int, Int) -> CapturedScreenBitmap? = { w, h ->
+            CapturedScreenBitmap(bitmap = bitmap(w, h), source = "test", width = w, height = h)
+        },
+    ) = DefaultScreenOcrEngine(
+        displaySizeProvider = { width to height },
+        screenshotProvider = screenshot,
+        bitmapRecognizer = recognizer,
+        accessibilityRegionsProvider = accessibility,
+    )
 
     private fun sampleNode(
         ref: String,
@@ -51,19 +84,29 @@ class ScreenOcrFallbackTest {
         enabled = true,
     )
 
+    private fun lowCoverageSnapshot() = ScreenSnapshot(
+        id = "webview-low",
+        packageName = "com.example.webview",
+        windowId = 2,
+        nodes = listOf(
+            sampleNode("0/0", label = "", className = "android.webkit.WebView"),
+            sampleNode("0/1", label = "", className = "android.view.View", clickable = true),
+            sampleNode("0/2", label = "", className = "android.view.View", clickable = true),
+        ),
+    )
+
     @Test
     fun normalAccessibilityTreeCoverageSkipsScreenshotAndOcrByDefault() = runTest {
         var screenshotCalls = 0
         var ocrCalls = 0
-        val engine = DefaultScreenOcrEngine(
-            displaySizeProvider = { 1080 to 2400 },
-            screenshotProvider = { w, h ->
-                screenshotCalls++
-                CapturedScreenBitmap(bitmap = null, source = "test", width = w, height = h)
-            },
-            recognizer = { _, _, _, _ ->
+        val engine = engine(
+            recognizer = {
                 ocrCalls++
-                listOf(RawOcrRegion("Should not run", 0, 0, 100, 100))
+                BitmapOcrResult(listOf(RawOcrRegion("Should not run", 0, 0, 100, 100)))
+            },
+            screenshot = { w, h ->
+                screenshotCalls++
+                CapturedScreenBitmap(bitmap = bitmap(w, h), source = "test", width = w, height = h)
             },
         )
         val snapshot = ScreenSnapshot(
@@ -86,38 +129,32 @@ class ScreenOcrFallbackTest {
         assertEquals(0, screenshotCalls)
         assertEquals(0, ocrCalls)
         assertTrue(observation.blocks.isEmpty())
+        assertEquals(ScreenOcrOutcome.NOT_TRIGGERED, observation.outcome)
+        assertEquals(ScreenOcrSource.UNAVAILABLE, observation.source)
+        assertNull(observation.screenshotSource)
     }
 
     @Test
     fun lowCoverageWebViewOrCanvasAutomaticallyTriggersOcrAndNormalizesCoordinates() = runTest {
         var screenshotCalls = 0
         var ocrCalls = 0
-        val engine = DefaultScreenOcrEngine(
-            displaySizeProvider = { 1000 to 2000 },
-            screenshotProvider = { w, h ->
-                screenshotCalls++
-                CapturedScreenBitmap(bitmap = null, source = "accessibility_screenshot", width = w, height = h)
-            },
-            recognizer = { _, _, _, _ ->
+        val engine = engine(
+            recognizer = {
                 ocrCalls++
-                listOf(
-                    RawOcrRegion("确认订单详情", left = 100, top = 400, right = 500, bottom = 500, confidence = 0.95f),
-                    RawOcrRegion("验证码 849201", left = 200, top = 800, right = 600, bottom = 900, confidence = 0.91f),
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("确认订单详情", left = 100, top = 400, right = 500, bottom = 500, confidence = 0.95f),
+                        RawOcrRegion("验证码 849201", left = 200, top = 800, right = 600, bottom = 900, confidence = 0.91f),
+                    ),
                 )
             },
-        )
-        val lowCoverageSnapshot = ScreenSnapshot(
-            id = "webview-low",
-            packageName = "com.example.webview",
-            windowId = 2,
-            nodes = listOf(
-                sampleNode("0/0", label = "", className = "android.webkit.WebView"),
-                sampleNode("0/1", label = "", className = "android.view.View", clickable = true),
-                sampleNode("0/2", label = "", className = "android.view.View", clickable = true),
-            ),
+            screenshot = { w, h ->
+                screenshotCalls++
+                CapturedScreenBitmap(bitmap = bitmap(w, h), source = "accessibility_screenshot", width = w, height = h)
+            },
         )
 
-        val observation = engine.observe(snapshot = lowCoverageSnapshot, mode = ScreenOcrMode.AUTO)
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
 
         assertTrue(observation.triggered)
         assertEquals("no_visible_text", observation.triggerReason)
@@ -125,6 +162,11 @@ class ScreenOcrFallbackTest {
         assertEquals(1, screenshotCalls)
         assertEquals(1, ocrCalls)
         assertEquals(2, observation.blocks.size)
+        assertEquals(ScreenOcrOutcome.RECOGNIZED, observation.outcome)
+        assertEquals(ScreenOcrSource.BITMAP_OCR, observation.source)
+        assertEquals("accessibility_screenshot", observation.screenshotSource)
+        assertTrue(observation.diagnostics.isEmpty())
+        assertTrue(observation.blocks.all { it.source == ScreenOcrSource.BITMAP_OCR })
 
         val first = observation.blocks[0]
         assertEquals("确认订单详情", first.text)
@@ -139,17 +181,46 @@ class ScreenOcrFallbackTest {
         val second = observation.blocks[1]
         assertTrue(second.isSensitive)
         assertEquals("验证码 ******", SensitiveScreenTextClassifier.redactIfSensitive(second.text))
+        // Model/receipt-facing text must not leak the OTP digits.
+        assertFalse(observation.redactedText().contains("849201"))
+    }
+
+    @Test
+    fun chineseAndLatinBlocksAreBothRecognizedFromOneBitmapPass() = runTest {
+        var ocrCalls = 0
+        val engine = engine(
+            recognizer = {
+                ocrCalls++
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("设置", 40, 100, 300, 160),
+                        RawOcrRegion("Wi-Fi", 40, 200, 300, 260),
+                        RawOcrRegion("Battery 82%", 40, 300, 500, 360),
+                    ),
+                )
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(1, ocrCalls)
+        assertEquals(listOf("设置", "Wi-Fi", "Battery 82%"), observation.blocks.map { it.text })
+        assertEquals(ScreenOcrOutcome.RECOGNIZED, observation.outcome)
+        assertTrue(observation.isBitmapOcr)
     }
 
     @Test
     fun explicitModelModeOverridesAutoCoverageDecision() = runTest {
         var ocrCalls = 0
-        val engine = DefaultScreenOcrEngine(
-            displaySizeProvider = { 1080 to 2400 },
-            screenshotProvider = { w, h -> CapturedScreenBitmap(null, "test", w, h) },
-            recognizer = { _, _, _, _ ->
+        var screenshotCalls = 0
+        val engine = engine(
+            recognizer = {
                 ocrCalls++
-                listOf(RawOcrRegion("显式识别文字", left = 270, top = 600, right = 810, bottom = 720))
+                BitmapOcrResult(listOf(RawOcrRegion("显式识别文字", left = 270, top = 600, right = 810, bottom = 720)))
+            },
+            screenshot = { w, h ->
+                screenshotCalls++
+                CapturedScreenBitmap(bitmap = bitmap(w, h), source = "test", width = w, height = h)
             },
         )
         val healthySnapshot = ScreenSnapshot(
@@ -182,18 +253,152 @@ class ScreenOcrFallbackTest {
         assertFalse(suppressed.triggered)
         assertEquals("disabled_by_caller", suppressed.triggerReason)
         assertEquals(1, ocrCalls)
+        assertEquals(1, screenshotCalls)
+        assertEquals(ScreenOcrOutcome.NOT_TRIGGERED, suppressed.outcome)
+    }
+
+    @Test
+    fun missingBitmapRecognizerDegradesToExtendedAccessibilityExplicitly() = runTest {
+        val engine = engine(
+            recognizer = null,
+            accessibility = { _, _, _ ->
+                listOf(RawOcrRegion("扩展无障碍标签", 100, 200, 400, 260, confidence = 0.85f))
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertTrue(observation.triggered)
+        assertEquals(ScreenOcrOutcome.DEGRADED, observation.outcome)
+        assertEquals(ScreenOcrSource.EXTENDED_ACCESSIBILITY, observation.source)
+        assertFalse(observation.isBitmapOcr)
+        assertTrue(observation.diagnostics.contains("bitmap_recognizer_unavailable"))
+        assertEquals(1, observation.blocks.size)
+        assertEquals(ScreenOcrSource.EXTENDED_ACCESSIBILITY, observation.blocks.single().source)
+        assertNull(observation.recognizer)
+    }
+
+    @Test
+    fun recognizerFailureIsReportedAsDegradedNotAsEmptySuccess() = runTest {
+        val engine = engine(
+            recognizer = { BitmapOcrResult(failure = "model_not_found") },
+            accessibility = { _, _, _ ->
+                listOf(RawOcrRegion("回退标签", 100, 200, 400, 260))
+            },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(ScreenOcrOutcome.DEGRADED, observation.outcome)
+        assertEquals(ScreenOcrSource.EXTENDED_ACCESSIBILITY, observation.source)
+        assertTrue(observation.diagnostics.contains("model_not_found"))
+        assertEquals(1, observation.blocks.size)
+    }
+
+    @Test
+    fun unavailableScreenshotAndEmptyFallbackReportDiagnostics() = runTest {
+        var ocrCalls = 0
+        val engine = engine(
+            recognizer = {
+                ocrCalls++
+                BitmapOcrResult(listOf(RawOcrRegion("不应出现", 10, 10, 100, 50)))
+            },
+            screenshot = { _, _ -> null },
+        )
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertTrue(observation.triggered)
+        assertEquals(0, ocrCalls)
+        assertEquals(ScreenOcrOutcome.UNAVAILABLE, observation.outcome)
+        assertEquals(ScreenOcrSource.UNAVAILABLE, observation.source)
+        assertTrue(observation.blocks.isEmpty())
+        assertTrue(observation.diagnostics.contains("screenshot_unavailable"))
+        assertNull(observation.screenshotSource)
+    }
+
+    @Test
+    fun recognizerFoundNoTextIsDiagnosedInsteadOfSilentSuccess() = runTest {
+        val engine = engine(recognizer = { BitmapOcrResult(emptyList()) })
+
+        val observation = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertEquals(ScreenOcrOutcome.UNAVAILABLE, observation.outcome)
+        assertTrue(observation.diagnostics.contains("ocr_no_text"))
+        assertEquals(ScreenOcrSource.UNAVAILABLE, observation.source)
+    }
+
+    @Test
+    fun capturedBitmapIsRecycledAfterRecognition() = runTest {
+        val frame = bitmap()
+        var recycledDuringRecognition = true
+        val engine = engine(
+            recognizer = { bmp ->
+                recycledDuringRecognition = bmp.isRecycled
+                BitmapOcrResult(listOf(RawOcrRegion("完", 10, 10, 100, 50)))
+            },
+            screenshot = { _, _ -> CapturedScreenBitmap(frame, "test", frame.width, frame.height) },
+        )
+
+        engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO)
+
+        assertFalse(recycledDuringRecognition)
+        assertTrue(frame.isRecycled)
+    }
+
+    @Test
+    fun cancellingObservationRecyclesBitmapAndReturnsNoStaleBlocks() = runTest {
+        val frame = bitmap()
+        var recycledDuringRecognition = true
+        val engine = engine(
+            recognizer = { bmp ->
+                recycledDuringRecognition = bmp.isRecycled
+                delay(100)
+                BitmapOcrResult(listOf(RawOcrRegion("旧帧文字", 10, 10, 200, 60)))
+            },
+            screenshot = { _, _ -> CapturedScreenBitmap(frame, "test", frame.width, frame.height) },
+        )
+
+        val job = launch { engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.AUTO) }
+        advanceTimeBy(10)
+        job.cancel()
+        advanceUntilIdle()
+
+        assertTrue(job.isCancelled)
+        assertFalse(recycledDuringRecognition)
+        assertTrue(frame.isRecycled)
+    }
+
+    @Test
+    fun productionEngineWithoutCaptureSessionFailsExplicitly() = runTest {
+        val context = RuntimeEnvironment.getApplication()
+        val engine = DefaultScreenOcrEngine(context, ScreenCaptureManager(context))
+        try {
+            val off = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.OFF)
+            assertEquals(ScreenOcrOutcome.NOT_TRIGGERED, off.outcome)
+            assertNull(off.screenshotSource)
+
+            // ON with no Accessibility service / no MediaProjection session: must report a
+            // diagnosable degradation instead of pretending OCR succeeded with zero blocks.
+            val on = engine.observe(snapshot = lowCoverageSnapshot(), mode = ScreenOcrMode.ON)
+            assertTrue(on.triggered)
+            assertEquals(ScreenOcrOutcome.UNAVAILABLE, on.outcome)
+            assertTrue(on.diagnostics.contains("screenshot_unavailable"))
+        } finally {
+            engine.close()
+        }
     }
 
     @Test
     fun jevScreenGoalRunnerAttachesStructuredOcrAndNormalizedCoordsOnLowCoverage() = runTest {
         var ocrCalls = 0
-        val ocrEngine = DefaultScreenOcrEngine(
-            displaySizeProvider = { 1000 to 2000 },
-            screenshotProvider = { w, h -> CapturedScreenBitmap(null, "test", w, h) },
-            recognizer = { _, _, _, _ ->
+        val ocrEngine = engine(
+            recognizer = {
                 ocrCalls++
-                listOf(
-                    RawOcrRegion("自绘页面已完成加载", left = 100, top = 500, right = 700, bottom = 600, confidence = 0.94f),
+                BitmapOcrResult(
+                    listOf(
+                        RawOcrRegion("自绘页面已完成加载", left = 100, top = 500, right = 700, bottom = 600, confidence = 0.94f),
+                    ),
                 )
             },
         )
@@ -264,9 +469,12 @@ class ScreenOcrFallbackTest {
         assertEquals("completed", result["status"]!!.jsonPrimitive.content)
         assertEquals("true", result["ocr_triggered"]!!.jsonPrimitive.content)
         assertEquals("1", result["ocr_block_count"]!!.jsonPrimitive.content)
+        assertEquals("bitmap_ocr", result["ocr_source"]!!.jsonPrimitive.content)
+        assertEquals("recognized", result["ocr_outcome"]!!.jsonPrimitive.content)
         assertTrue(capturedRequestJson.contains("自绘页面已完成加载"))
         val ocrBlock = result["ocr_blocks"]!!.jsonArray.single().jsonObject
         assertEquals("自绘页面已完成加载", ocrBlock["text"]!!.jsonPrimitive.content)
+        assertEquals("bitmap_ocr", ocrBlock["source"]!!.jsonPrimitive.content)
         val norm = ocrBlock["normalized_bounds"]!!.jsonObject
         assertEquals(0.4, norm["center_x"]!!.jsonPrimitive.content.toDouble(), 0.001)
         assertEquals(0.275, norm["center_y"]!!.jsonPrimitive.content.toDouble(), 0.001)

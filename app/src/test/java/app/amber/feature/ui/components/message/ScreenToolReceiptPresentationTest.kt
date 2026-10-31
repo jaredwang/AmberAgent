@@ -227,4 +227,64 @@ class ScreenToolReceiptPresentationTest {
             )
         )
     }
+
+    @Test
+    fun `accessibility-only OCR fallback is not presented as bitmap OCR`() {
+        val content = parseJson(
+            """
+            {
+              "status": "ok",
+              "ocr_mode": "auto",
+              "ocr_triggered": true,
+              "ocr_reason": "no_visible_text",
+              "ocr_block_count": 1,
+              "ocr_source": "extended_accessibility",
+              "ocr_outcome": "degraded",
+              "ocr_diagnostics": "screenshot_unavailable",
+              "ocr_blocks": [{"text": "设置", "source": "extended_accessibility"}]
+            }
+            """.trimIndent()
+        )
+
+        val receipt = ScreenToolReceiptParser.parse(
+            toolName = "screen_read_ui",
+            arguments = parseJson("""{}"""),
+            content = content,
+        )
+        requireNotNull(receipt)
+        val ocr = requireNotNull(receipt.ocrSummary)
+        assertEquals("extended_accessibility", ocr.source)
+        assertEquals("degraded", ocr.outcome)
+        assertEquals("screenshot_unavailable", ocr.diagnostics)
+        assertFalse(ocr.isBitmapOcr)
+        assertTrue(ocr.isAccessibilityOnly)
+    }
+
+    @Test
+    fun `bitmap ocr receipt exposes recognizer and keeps bitmap source`() {
+        val content = parseJson(
+            """
+            {
+              "status": "ok",
+              "ocr_mode": "auto",
+              "ocr_triggered": true,
+              "ocr_block_count": 2,
+              "ocr_source": "bitmap_ocr",
+              "ocr_outcome": "recognized",
+              "ocr_recognizer": "mlkit_text_recognition_chinese",
+              "ocr_blocks": [{"text": "设置"}, {"text": "Wi-Fi"}]
+            }
+            """.trimIndent()
+        )
+
+        val receipt = ScreenToolReceiptParser.parse(
+            toolName = "screen_read_ui",
+            arguments = parseJson("""{}"""),
+            content = content,
+        )
+        val ocr = requireNotNull(receipt?.ocrSummary)
+        assertTrue(ocr.isBitmapOcr)
+        assertFalse(ocr.isAccessibilityOnly)
+        assertEquals("mlkit_text_recognition_chinese", ocr.recognizer)
+    }
 }
