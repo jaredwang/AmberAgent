@@ -3502,10 +3502,13 @@
   <string name="zcode_preparing_session">ZCode ブラウザセッションを準備しています…</string>
   <string name="zcode_session_unavailable">ZCode ブラウザセッションを準備できませんでした。もう一度お試しください。</string>
   <string name="zcode_connection_changed">開いている間に ZCode 接続が変更されました。接続ページに戻ってもう一度開いてください。</string>
-  <string name="chat_activity_other_running">他の会話が実行中</string>
+  <string name="chat_activity_other_running">他の会話に動きがあります</string>
   <string name="chat_activity_panel_title">他の会話</string>
   <string name="chat_activity_kind_running">実行中</string>
-  <string name="chat_activity_empty">今は他の会話は実行されていません。</string>
+  <string name="chat_activity_kind_waiting">あなたの操作待ち</string>
+  <string name="chat_activity_kind_failed">確認が必要</string>
+  <string name="chat_activity_kind_completed">完了</string>
+  <string name="chat_activity_empty">他の会話に新しい動きはありません。</string>
   <string name="chat_activity_loading">読み込み中…</string>
   <string name="chat_shelf_title_count">%1$s · %2$d</string>
   <string name="chat_shelf_kind_video">動画</string>

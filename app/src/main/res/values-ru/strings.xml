@@ -3502,10 +3502,13 @@
   <string name="zcode_preparing_session">Подготовка сеанса браузера ZCode…</string>
   <string name="zcode_session_unavailable">Не удалось подготовить сеанс браузера ZCode. Повторите попытку.</string>
   <string name="zcode_connection_changed">Подключение ZCode изменилось во время открытия. Вернитесь на страницу подключения и откройте его снова.</string>
-  <string name="chat_activity_other_running">Другие диалоги выполняются</string>
+  <string name="chat_activity_other_running">Активность в других диалогах</string>
   <string name="chat_activity_panel_title">Другие диалоги</string>
   <string name="chat_activity_kind_running">Выполняется</string>
-  <string name="chat_activity_empty">Сейчас другие диалоги не выполняются.</string>
+  <string name="chat_activity_kind_waiting">Ожидает вас</string>
+  <string name="chat_activity_kind_failed">Требует внимания</string>
+  <string name="chat_activity_kind_completed">Завершено</string>
+  <string name="chat_activity_empty">В других диалогах сейчас ничего не происходит.</string>
   <string name="chat_activity_loading">Загрузка…</string>
   <string name="chat_shelf_title_count">%1$s · %2$d</string>
   <string name="chat_shelf_kind_video">Видео</string>

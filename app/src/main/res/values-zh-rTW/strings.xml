@@ -3819,10 +3819,13 @@
   <string name="chat_recap_next">接下來</string>
   <string name="chat_recap_rename_title">重新命名對話</string>
   <string name="chat_recap_title_label">標題</string>
-  <string name="chat_activity_other_running">其他對話正在執行</string>
+  <string name="chat_activity_other_running">其他對話有新動態</string>
   <string name="chat_activity_panel_title">其他對話</string>
   <string name="chat_activity_kind_running">正在執行</string>
-  <string name="chat_activity_empty">目前沒有其他對話在執行。</string>
+  <string name="chat_activity_kind_waiting">等待你處理</string>
+  <string name="chat_activity_kind_failed">需要關注</string>
+  <string name="chat_activity_kind_completed">已完成</string>
+  <string name="chat_activity_empty">其他對話目前沒有新動態。</string>
   <string name="chat_activity_loading">讀取中…</string>
   <string name="chat_shelf_title_count">%1$s · %2$d</string>
   <string name="chat_shelf">產物架</string>

@@ -63,7 +63,10 @@ val agentInfraModule = module {
     single { RunOwnershipRegistry() }
     // 跨对话活动提示：只读投影，不参与取消或所有权决策。
     single {
-        app.amber.feature.runtime.ConversationActivityCenter(get()) { conversationId ->
+        app.amber.feature.runtime.ConversationActivityCenter(
+            registry = get(),
+            terminals = get(),
+        ) { conversationId ->
             runCatching {
                 get<app.amber.core.repository.ConversationRepository>()
                     .getConversationTitleById(kotlin.uuid.Uuid.parse(conversationId))

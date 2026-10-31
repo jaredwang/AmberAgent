@@ -3837,10 +3837,13 @@
   <string name="chat_recap_next">接下来</string>
   <string name="chat_recap_rename_title">重命名对话</string>
   <string name="chat_recap_title_label">标题</string>
-  <string name="chat_activity_other_running">其他对话正在运行</string>
+  <string name="chat_activity_other_running">其他对话有新动态</string>
   <string name="chat_activity_panel_title">其他对话</string>
   <string name="chat_activity_kind_running">正在运行</string>
-  <string name="chat_activity_empty">当前没有其他对话在运行。</string>
+  <string name="chat_activity_kind_waiting">等待你处理</string>
+  <string name="chat_activity_kind_failed">需要关注</string>
+  <string name="chat_activity_kind_completed">已完成</string>
+  <string name="chat_activity_empty">其他对话目前没有新动态。</string>
   <string name="chat_activity_loading">读取中…</string>
   <string name="chat_shelf_title_count">%1$s · %2$d</string>
   <string name="chat_shelf">产物架</string>

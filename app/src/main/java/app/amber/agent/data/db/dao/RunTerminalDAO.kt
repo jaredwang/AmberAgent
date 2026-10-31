@@ -4,7 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import app.amber.agent.data.db.entity.ConversationActivityBaselineEntity
+import app.amber.agent.data.db.entity.ConversationActivitySeenEntity
 import app.amber.agent.data.db.entity.RunTerminalEntity
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Non-terminal states of [run_terminal] — the single source of truth for
@@ -103,4 +106,40 @@ interface RunTerminalDAO {
         conversationId: String,
         nowMs: Long,
     ): Int
+
+    /**
+     * Global activity projection: live runs plus attention terminals.
+     * CANCELLED is user-initiated and never a cross-chat prompt.
+     */
+    @Query(
+        "SELECT * FROM run_terminal WHERE state IN " +
+            "('RUNNING', 'WAITING_USER', 'WAITING_EXTERNAL', 'RESUMABLE', 'OUTCOME_UNKNOWN', " +
+            "'FAILED', 'COMPLETED', 'STEP_LIMIT', 'OUTPUT_LIMIT', 'GUARD_STOPPED', 'INTERRUPTED')"
+    )
+    fun observeActivityCandidates(): Flow<List<RunTerminalEntity>>
+
+    @Query("SELECT * FROM conversation_activity_seen")
+    fun observeActivitySeen(): Flow<List<ConversationActivitySeenEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertActivityBaselineIfAbsent(row: ConversationActivityBaselineEntity): Long
+
+    @Query("SELECT established_at_ms FROM conversation_activity_baseline WHERE id = 1")
+    suspend fun getActivityBaselineMs(): Long?
+
+    @Query(
+        "UPDATE conversation_activity_seen SET conversation_id = :conversationId, version_ms = :versionMs " +
+            "WHERE run_id = :runId AND version_ms < :versionMs"
+    )
+    suspend fun updateActivitySeenIfNewer(
+        runId: String,
+        conversationId: String,
+        versionMs: Long,
+    ): Int
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertActivitySeenIgnore(row: ConversationActivitySeenEntity): Long
+
+    @Query("SELECT * FROM conversation_activity_seen WHERE run_id = :runId")
+    suspend fun getActivitySeen(runId: String): ConversationActivitySeenEntity?
 }

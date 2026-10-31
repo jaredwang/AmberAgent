@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sonner.ToastType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import app.amber.core.recap.RECAP_MIN_USER_MESSAGES
@@ -200,12 +202,16 @@ internal fun ChatPageScaffold(
     val recapEligible by recapEligibleFlow.collectAsStateWithLifecycle(initialValue = false)
     // 跨对话活动：只读投影，别的对话还在跑时顶栏出现卫星。
     val activityCenter: app.amber.feature.runtime.ConversationActivityCenter = koinInject()
+    val activityScope = rememberCoroutineScope()
     val otherActivityFlow = remember(activityCenter, conversation.id) {
         activityCenter.notices(excluding = conversation.id.toString())
     }
     val otherActivity by otherActivityFlow.collectAsStateWithLifecycle(
         initialValue = emptyList(),
     )
+    LaunchedEffect(activityCenter, conversation.id) {
+        activityCenter.consumeWhileOpen(conversation.id.toString())
+    }
     LaunchedEffect(jumpToLiveKey) {
         if (jumpToLiveKey > 0) {
             previewMode = false
@@ -440,9 +446,11 @@ internal fun ChatPageScaffold(
                             top = innerPadding.calculateTopPadding(),
                             bottom = innerPadding.calculateBottomPadding(),
                         ),
-                        onOpen = { conversationId ->
+                        onOpen = { notice ->
                             activityOpen = false
-                            val target = runCatching { Uuid.parse(conversationId) }.getOrNull()
+                            activityCenter.rememberOpenedNotice(notice)
+                            activityScope.launch { activityCenter.markSeen(notice) }
+                            val target = runCatching { Uuid.parse(notice.conversationId) }.getOrNull()
                             if (target != null && target != conversation.id) {
                                 navigateToChatPage(navController, chatId = target)
                             }

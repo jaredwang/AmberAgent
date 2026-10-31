@@ -3502,10 +3502,13 @@
   <string name="zcode_preparing_session">ZCode 브라우저 세션 준비 중…</string>
   <string name="zcode_session_unavailable">ZCode 브라우저 세션을 준비하지 못했습니다. 다시 시도하세요.</string>
   <string name="zcode_connection_changed">여는 동안 ZCode 연결이 변경되었습니다. 연결 페이지로 돌아가 다시 여세요.</string>
-  <string name="chat_activity_other_running">다른 대화 실행 중</string>
+  <string name="chat_activity_other_running">다른 대화에 활동이 있습니다</string>
   <string name="chat_activity_panel_title">다른 대화</string>
   <string name="chat_activity_kind_running">실행 중</string>
-  <string name="chat_activity_empty">지금 실행 중인 다른 대화가 없습니다.</string>
+  <string name="chat_activity_kind_waiting">사용자 대기 중</string>
+  <string name="chat_activity_kind_failed">확인 필요</string>
+  <string name="chat_activity_kind_completed">완료됨</string>
+  <string name="chat_activity_empty">다른 대화에 새 활동이 없습니다.</string>
   <string name="chat_activity_loading">불러오는 중…</string>
   <string name="chat_shelf_title_count">%1$s · %2$d</string>
   <string name="chat_shelf_kind_video">동영상</string>
