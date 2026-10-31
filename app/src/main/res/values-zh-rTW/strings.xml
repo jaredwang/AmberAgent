@@ -1231,6 +1231,8 @@
   <string name="setting_agent_screen_experience_clear">清除</string>
   <string name="setting_agent_screen_experience_clear_confirm_title">清除成功經驗？</string>
   <string name="setting_agent_screen_experience_clear_confirm">清除後後續任務不再讀取這些路徑；進行中的任務即使稍後成功也不會把舊經驗寫回。</string>
+  <string name="setting_agent_screen_experience_clear_failed_title">未能清除成功經驗</string>
+  <string name="setting_agent_screen_experience_clear_failed">已儲存的路徑仍在本機。請在裝置可寫入時重試，或取消並保留它們。</string>
   <string name="chat_message_council_expand">展開</string>
   <string name="chat_message_council_failure">失敗：%1$s</string>
   <string name="chat_message_council_no_output">（無輸出）</string>

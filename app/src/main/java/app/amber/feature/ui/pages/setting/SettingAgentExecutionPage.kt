@@ -58,9 +58,12 @@ import app.amber.feature.ui.components.ui.Select
 import app.amber.feature.ui.components.ui.Switch
 import app.amber.feature.ui.context.LocalNavController
 import app.amber.feature.ui.theme.CustomColors
+import app.amber.core.jev.PerAppSuccessPathClearResult
 import app.amber.core.jev.PerAppSuccessPathStore
 import app.amber.core.jev.clearPerAppSuccessPaths
+import app.amber.core.jev.showRetryError
 import app.amber.core.utils.plus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,10 +85,31 @@ fun SettingAgentExecutionPage(vm: SettingVM = koinViewModel()) {
     val allowedScreenPackages = settings.agentRuntime.screenAutomation.allowedPackages
     var showScreenScopeDialog by remember { mutableStateOf(false) }
     var showClearExperienceDialog by remember { mutableStateOf(false) }
+    var showClearExperienceError by remember { mutableStateOf(false) }
+    var clearingExperience by remember { mutableStateOf(false) }
     val successPathStore = koinInject<PerAppSuccessPathStore>()
     val scope = rememberCoroutineScope()
     var experienceHasPaths by remember { mutableStateOf(false) }
     var experienceTick by remember { mutableStateOf(0) }
+    fun requestClearExperience() {
+        if (clearingExperience) return
+        clearingExperience = true
+        scope.launch {
+            val result = try {
+                withContext(Dispatchers.IO) { clearPerAppSuccessPaths(successPathStore) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                PerAppSuccessPathClearResult.Failed("persist_failed", error)
+            }
+            withContext(Dispatchers.Main) {
+                clearingExperience = false
+                showClearExperienceDialog = false
+                experienceTick++
+                showClearExperienceError = result.showRetryError()
+            }
+        }
+    }
     LaunchedEffect(experienceTick) {
         experienceHasPaths = withContext(Dispatchers.IO) { successPathStore.hasPaths() }
     }
@@ -528,24 +552,46 @@ fun SettingAgentExecutionPage(vm: SettingVM = koinViewModel()) {
     }
     if (showClearExperienceDialog) {
         AlertDialog(
-            onDismissRequest = { showClearExperienceDialog = false },
+            onDismissRequest = {
+                if (!clearingExperience) showClearExperienceDialog = false
+            },
             title = { Text(stringResource(R.string.setting_agent_screen_experience_clear_confirm_title)) },
             text = { Text(stringResource(R.string.setting_agent_screen_experience_clear_confirm)) },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        showClearExperienceDialog = false
-                        scope.launch(Dispatchers.IO) {
-                            clearPerAppSuccessPaths(successPathStore)
-                            withContext(Dispatchers.Main) { experienceTick++ }
-                        }
-                    },
+                    enabled = !clearingExperience,
+                    onClick = { requestClearExperience() },
                 ) {
                     Text(stringResource(R.string.setting_agent_screen_experience_clear))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showClearExperienceDialog = false }) {
+                TextButton(
+                    enabled = !clearingExperience,
+                    onClick = { showClearExperienceDialog = false },
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+    if (showClearExperienceError) {
+        AlertDialog(
+            onDismissRequest = { showClearExperienceError = false },
+            title = { Text(stringResource(R.string.setting_agent_screen_experience_clear_failed_title)) },
+            text = { Text(stringResource(R.string.setting_agent_screen_experience_clear_failed)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearExperienceError = false
+                        requestClearExperience()
+                    },
+                ) {
+                    Text(stringResource(R.string.retry))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearExperienceError = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             },

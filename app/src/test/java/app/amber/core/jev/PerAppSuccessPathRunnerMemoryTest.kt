@@ -509,4 +509,61 @@ class PerAppSuccessPathRunnerMemoryTest {
         assertEquals("false", later["experience_guided"]!!.jsonPrimitive.content)
         assertEquals(listOf("other"), laterController.actions.map { it.ref })
     }
+
+    @Test
+    fun scrollMemoryPromotesMatchingKindWithoutDroppingTheOtherDirection() = runTest {
+        val memory = store()
+        val list = node("list", "Items", viewId = "id/list").copy(scrollable = true, clickable = false)
+        val seed = PerAppSuccessPathSanitizer.buildPath(
+            packageName = "com.example.target",
+            goal = "open the draft",
+            steps = listOf(
+                PerAppSuccessPathSanitizer.stepFrom(ScreenActionKind.SCROLL_BACKWARD, list)!!,
+            ),
+            recordedAtMs = 1,
+        )!!
+        assertTrue(memory.recordSuccess(0, seed))
+        val transport = ScriptedTransport(
+            actionStepAnswers(answer("a0")).apply { add(answer("done", done = 0.96)) },
+        )
+        val controller = FakeAccessibilityController(snapshot("scroll", nodes = listOf(list)))
+        val result = runner(runtime(transport) { settings(JevMode.ACTIVE) }, testScheduler, memory).run(
+            controller, "com.example.target", "open the draft", emptyList(), "run-scroll",
+        )
+        assertEquals("completed", status(result))
+        assertEquals("true", result["experience_guided"]!!.jsonPrimitive.content)
+        assertEquals(listOf(ScreenActionKind.SCROLL_BACKWARD), controller.actions.map { it.kind })
+        assertTrue(transport.bodies.any { it.contains("Scroll down") && it.contains("Scroll up") })
+    }
+
+    @Test
+    fun multipleTypedTextsStayUnguidedOnSameRef() = runTest {
+        val memory = store()
+        val field = node("search", "Search", editable = true)
+        val seed = PerAppSuccessPathSanitizer.buildPath(
+            packageName = "com.example.target",
+            goal = "search listings",
+            steps = listOf(
+                PerAppSuccessPathSanitizer.stepFrom(ScreenActionKind.TYPE, field, typedValue = "hello query")!!,
+            ),
+            recordedAtMs = 1,
+        )!!
+        assertTrue(memory.recordSuccess(0, seed))
+        val transport = ScriptedTransport(
+            actionStepAnswers(answer("a0")).apply { add(answer("done", done = 0.96)) },
+        )
+        val controller = FakeAccessibilityController(snapshot("types", nodes = listOf(field)))
+        val result = runner(runtime(transport) { settings(JevMode.ACTIVE) }, testScheduler, memory).run(
+            controller,
+            "com.example.target",
+            "search listings",
+            listOf("alpha", "beta"),
+            "run-types",
+        )
+        assertEquals("completed", status(result))
+        assertEquals("false", result["experience_guided"]!!.jsonPrimitive.content)
+        assertEquals("alpha", controller.actions.single().text)
+        assertTrue(transport.bodies.any { it.contains("alpha") && it.contains("beta") })
+        assertTrue(transport.bodies.none { it.contains("experience_hint") })
+    }
 }

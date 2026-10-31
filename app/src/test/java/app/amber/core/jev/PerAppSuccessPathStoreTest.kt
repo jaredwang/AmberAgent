@@ -4,6 +4,7 @@ import app.amber.core.automation.ScreenActionKind
 import app.amber.core.automation.ScreenNode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -11,6 +12,15 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 
 class PerAppSuccessPathStoreTest {
+
+    @Test
+    fun reviewStandaloneCardNumberCannotBecomePersistableStep() {
+        val step = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("card", "6222021234567890", viewId = "id/item"),
+        )
+        org.junit.Assert.assertNull("payment digits without a keyword must not be remembered", step)
+    }
 
     @get:Rule
     val tmp = TemporaryFolder()
@@ -208,7 +218,10 @@ class PerAppSuccessPathStoreTest {
         assertTrue(store.recordSuccess(epoch, clickPath("com.example.app")))
         assertTrue(store.hasPaths())
 
-        val next = clearPerAppSuccessPaths(store)
+        val cleared = clearPerAppSuccessPaths(store)
+        assertTrue(cleared is PerAppSuccessPathClearResult.Cleared)
+        assertFalse(cleared.showRetryError())
+        val next = cleared.clearedEpochOrNull()!!
         assertTrue(next > epoch)
         assertTrue(store.pathsFor("com.example.app").isEmpty())
         assertFalse(store.hasPaths())
@@ -230,12 +243,176 @@ class PerAppSuccessPathStoreTest {
         val epoch = inflight.currentEpoch()
         assertTrue(inflight.recordSuccess(epoch, clickPath("com.example.app")))
         val cleared = clearPerAppSuccessPaths(settings)
-        assertTrue(cleared > epoch)
+        assertTrue(cleared is PerAppSuccessPathClearResult.Cleared)
+        assertTrue(cleared.clearedEpochOrNull()!! > epoch)
         assertFalse(inflight.recordSuccess(epoch, clickPath("com.example.app", label = "Resurrect", ref = "res")))
         assertTrue(inflight.pathsFor("com.example.app").isEmpty())
         assertTrue(settings.pathsFor("com.example.app").isEmpty())
         val disk = file.readText()
         assertFalse(disk.contains("Resurrect"))
         assertFalse(disk.contains("Open draft"))
+    }
+
+    @Test
+    fun diskOmitsBareCardSeparatedDigitsAndMirroredInput() {
+        val file = File(tmp.root, "jev/per_app_success_paths.json")
+        val store = store(file = file)
+        val card = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("card", "6222021234567890", viewId = "id/item"),
+        )
+        assertNull(card)
+        val grouped = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("pan", "6222 0212 3456 7890", viewId = "id/item"),
+        )
+        assertNull(grouped)
+        val hyphen = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("pan2", "6222-0212-3456-7890", viewId = "id/item"),
+        )
+        assertNull(hyphen)
+        val otp = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("otp", "123456", viewId = "id/code"),
+        )
+        assertNull(otp)
+
+        val mirroredDrop = PerAppSuccessPathSanitizer.stepFrom(
+            kind = ScreenActionKind.TYPE,
+            node = node("secret", "hunter2", viewId = "", clickable = false, editable = true),
+            typedValue = "hunter2",
+        )
+        assertNull("unknown field mirroring typed input must drop the step", mirroredDrop)
+
+        val mirroredKeepId = PerAppSuccessPathSanitizer.stepFrom(
+            kind = ScreenActionKind.TYPE,
+            node = node("search", "hunter2", viewId = "id/search", clickable = false, editable = true),
+            typedValue = "hunter2",
+        )!!
+        assertEquals("", mirroredKeepId.label)
+        assertEquals("id/search", mirroredKeepId.semanticId)
+
+        val path = PerAppSuccessPathSanitizer.buildPath(
+            packageName = "com.example.app",
+            goal = "type hunter2 into search",
+            steps = listOf(mirroredKeepId),
+            recordedAtMs = 11,
+            inputSecrets = listOf("hunter2"),
+            taskSensitive = false,
+        )!!
+        assertEquals("", path.goalHint)
+        assertEquals("", path.goalFingerprint)
+        assertTrue(store.recordSuccess(0, path))
+        val disk = file.readText()
+        assertFalse(disk.contains("6222021234567890"))
+        assertFalse(disk.contains("6222 0212"))
+        assertFalse(disk.contains("hunter2"))
+        assertTrue(disk.contains("id/search"))
+    }
+
+    @Test
+    fun taskSensitiveGoalIsNotStoredEvenWithoutKeyword() {
+        val step = PerAppSuccessPathSanitizer.stepFrom(
+            ScreenActionKind.CLICK,
+            node("open", "Open draft", viewId = "id/open"),
+        )!!
+        val path = PerAppSuccessPathSanitizer.buildPath(
+            packageName = "com.example.app",
+            goal = "open the draft",
+            steps = listOf(step),
+            recordedAtMs = 3,
+            taskSensitive = true,
+        )!!
+        assertEquals("", path.goalHint)
+        assertEquals("", path.goalFingerprint)
+        assertEquals("Open draft", path.steps.single().label)
+    }
+
+    @Test
+    fun readDiskScrubsLegacyCardAndOtpLabels() {
+        val file = File(tmp.root, "jev/per_app_success_paths.json")
+        file.parentFile?.mkdirs()
+        file.writeText(
+            """
+            {"version":1,"epoch":4,"packages":{"com.example.app":[
+              {"package_name":"com.example.app","goal_fingerprint":"abcdef0123456789","goal_hint":"pay 6222021234567890",
+               "recorded_at_ms":1,"steps":[{"kind":"click","label":"6222021234567890","semantic_id":"id/item"}]},
+              {"package_name":"com.example.app","goal_fingerprint":"fedcba9876543210","goal_hint":"enter 123456",
+               "recorded_at_ms":2,"steps":[{"kind":"click","label":"123456","semantic_id":"id/code"}]},
+              {"package_name":"com.example.app","goal_fingerprint":"aaaaaaaaaaaaaaaa","goal_hint":"open the draft",
+               "recorded_at_ms":3,"steps":[{"kind":"click","label":"Open draft","semantic_id":"id/open"}]}
+            ]}}
+            """.trimIndent(),
+        )
+        val reopened = store(file = file)
+        assertEquals(4, reopened.currentEpoch())
+        val kept = reopened.pathsFor("com.example.app")
+        assertEquals(1, kept.size)
+        assertEquals("Open draft", kept.single().steps.single().label)
+        assertFalse(kept.any { path -> path.steps.any { it.label.contains("6222") || it.label == "123456" } })
+        val disk = file.readText()
+        assertFalse(disk.contains("6222021234567890"))
+        assertFalse(disk.contains("123456"))
+        assertTrue(disk.contains("Open draft"))
+        assertNull(PerAppSuccessPathSanitizer.sanitizeStep(PerAppSuccessPathStep("click", "6222-0212-3456-7890", "id/item")))
+    }
+
+    @Test
+    fun failedClearResultShowsRetryErrorNotSuccess() {
+        val failed = PerAppSuccessPathClearResult.Failed("persist_failed")
+        assertTrue(failed.showRetryError())
+        assertNull(failed.clearedEpochOrNull())
+        val ok = PerAppSuccessPathClearResult.Cleared(3)
+        assertFalse(ok.showRetryError())
+        assertEquals(3L, ok.clearedEpochOrNull())
+    }
+
+    @Test
+    fun clearWriteFailureDoesNotReportSuccessOrBumpEpoch() {
+        val file = File(tmp.root, "jev/per_app_success_paths.json")
+        val store = store(file = file)
+        assertTrue(store.recordSuccess(0, clickPath("com.example.app")))
+        val original = file.readText()
+        val epoch = store.currentEpoch()
+        val failing = FilePerAppSuccessPathStore(
+            file = file,
+            writeText = { _, _ -> throw java.io.IOException("disk full") },
+        )
+        val result = clearPerAppSuccessPaths(failing)
+        assertTrue(result is PerAppSuccessPathClearResult.Failed)
+        assertTrue(result.showRetryError())
+        assertEquals(epoch, failing.currentEpoch())
+        assertEquals(original, file.readText())
+        assertTrue(failing.hasPaths())
+        assertTrue(failing.pathsFor("com.example.app").isNotEmpty())
+        assertTrue(store.recordSuccess(epoch, clickPath("com.example.app", recordedAtMs = 50)))
+        assertTrue(file.readText().contains("Open draft"))
+    }
+
+    @Test
+    fun clearRenameFailureLeavesOriginalAndDoesNotFence() {
+        val file = File(tmp.root, "jev/per_app_success_paths.json")
+        val store = store(file = file)
+        assertTrue(store.recordSuccess(0, clickPath("com.example.app")))
+        val original = file.readText()
+        val epoch = store.currentEpoch()
+        val failing = FilePerAppSuccessPathStore(
+            file = file,
+            renameTo = { _, _ -> false },
+        )
+        val result = clearPerAppSuccessPaths(failing)
+        assertTrue(result is PerAppSuccessPathClearResult.Failed)
+        assertEquals(epoch, failing.currentEpoch())
+        assertEquals(original, file.readText())
+        assertFalse(file.readText().contains("\"epoch\":1"))
+        assertTrue(store.recordSuccess(epoch, clickPath("com.example.app", label = "Later", ref = "later", recordedAtMs = 77)))
+        assertTrue(file.readText().contains("Later"))
+        val success = clearPerAppSuccessPaths(store)
+        assertTrue(success is PerAppSuccessPathClearResult.Cleared)
+        val next = success.clearedEpochOrNull()!!
+        assertTrue(next > epoch)
+        assertFalse(store.recordSuccess(epoch, clickPath("com.example.app", label = "Resurrect", ref = "res")))
+        assertTrue(store.pathsFor("com.example.app").isEmpty())
     }
 }

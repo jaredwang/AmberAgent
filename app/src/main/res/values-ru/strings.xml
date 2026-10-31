@@ -1194,6 +1194,8 @@
   <string name="setting_agent_screen_experience_clear">Очистить</string>
   <string name="setting_agent_screen_experience_clear_confirm_title">Очистить память успеха?</string>
   <string name="setting_agent_screen_experience_clear_confirm">Следующие задачи не будут читать сохранённые пути. Текущая задача, завершившись позже, не запишет старую память обратно.</string>
+  <string name="setting_agent_screen_experience_clear_failed_title">Не удалось очистить память успеха</string>
+  <string name="setting_agent_screen_experience_clear_failed">Сохранённые пути остались на устройстве. Повторите попытку, когда запись доступна, или отмените, чтобы оставить их.</string>
   <string name="chat_message_council_expand">Развернуть</string>
   <string name="chat_message_council_failure">Ошибка: %1$s</string>
   <string name="chat_message_council_no_output">(Нет вывода)</string>

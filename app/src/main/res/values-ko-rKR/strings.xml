@@ -1194,6 +1194,8 @@
   <string name="setting_agent_screen_experience_clear">지우기</string>
   <string name="setting_agent_screen_experience_clear_confirm_title">성공 기억을 지울까요?</string>
   <string name="setting_agent_screen_experience_clear_confirm">이후 작업은 저장된 경로를 읽지 않습니다. 진행 중인 작업이 나중에 성공해도 이전 기억은 다시 쓰이지 않습니다.</string>
+  <string name="setting_agent_screen_experience_clear_failed_title">성공 기억을 지우지 못했습니다</string>
+  <string name="setting_agent_screen_experience_clear_failed">저장된 경로는 기기에 남아 있습니다. 쓸 수 있을 때 다시 시도하거나 취소하고 유지하세요.</string>
   <string name="chat_message_council_expand">펼치기</string>
   <string name="chat_message_council_failure">실패: %1$s</string>
   <string name="chat_message_council_no_output">(출력 없음)</string>

@@ -11,7 +11,29 @@ import org.junit.Test
 
 class PerAppSuccessPathPlannerTest {
 
+    @Test
+    fun reviewGuidancePreservesBothScrollDirectionsAndPromotesMatchingKind() {
+        val snap = snapshot("fresh", node("list", "Items", viewId = "id/list").copy(scrollable = true))
+        val live = listOf(
+            Cand("Forward", ScreenAction(ScreenActionKind.SCROLL_FORWARD, "list")),
+            Cand("Backward", ScreenAction(ScreenActionKind.SCROLL_BACKWARD, "list")),
+        )
+        val path = remembered().copy(steps = listOf(PerAppSuccessPathStep("scroll_backward", "Items", "id/list")))
+        val guided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(path), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals("guidance may reorder but cannot remove live candidates", live.toSet(), guided.candidates.toSet())
+        assertEquals(ScreenActionKind.SCROLL_BACKWARD, guided.candidates.first().action.kind)
+    }
+
     private data class Cand(val label: String, val action: ScreenAction)
+
+    private fun identity(cand: Cand) = PerAppCandidateIdentity(
+        kind = cand.action.kind,
+        ref = cand.action.ref,
+        text = cand.action.text,
+    )
 
     private fun node(
         ref: String,
@@ -135,7 +157,7 @@ class PerAppSuccessPathPlannerTest {
             remembered = listOf(remembered()),
             goal = "open the draft",
             candidates = live,
-            refOf = { it.action.ref },
+            identityOf = { identity(it) },
         )
         assertEquals(listOf("fresh-open", "other"), guided.candidates.map { it.action.ref })
         assertTrue(guided.hint!!.contains("Open draft"))
@@ -147,9 +169,95 @@ class PerAppSuccessPathPlannerTest {
             remembered = listOf(remembered()),
             goal = "open the draft",
             candidates = blockedOnly,
-            refOf = { it.action.ref },
+            identityOf = { identity(it) },
         )
         assertEquals(listOf("other"), noInject.candidates.map { it.action.ref })
         assertNull(noInject.hint)
+    }
+
+    @Test
+    fun sameRefClickAndTypePromoteMatchingKindAndKeepTheOther() {
+        val snap = snapshot(
+            "fresh",
+            node("field", "Search", viewId = "id/search", clickable = true, editable = true),
+        )
+        val live = listOf(
+            Cand("Click Search", ScreenAction(ScreenActionKind.CLICK, "field")),
+            Cand("Type alpha", ScreenAction(ScreenActionKind.TYPE, "field", "alpha")),
+        )
+        val clickPath = remembered(label = "Search", viewId = "id/search")
+        val clickGuided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(clickPath), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals(live.toSet(), clickGuided.candidates.toSet())
+        assertEquals(ScreenActionKind.CLICK, clickGuided.candidates.first().action.kind)
+        assertEquals("alpha", clickGuided.candidates.last().action.text)
+
+        val typePath = remembered(label = "Search", viewId = "id/search").copy(
+            steps = listOf(PerAppSuccessPathStep("type", "Search", "id/search")),
+        )
+        val typeGuided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(typePath), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals(live.toSet(), typeGuided.candidates.toSet())
+        assertEquals(ScreenActionKind.TYPE, typeGuided.candidates.first().action.kind)
+        assertEquals("alpha", typeGuided.candidates.first().action.text)
+        assertEquals(ScreenActionKind.CLICK, typeGuided.candidates.last().action.kind)
+    }
+
+    @Test
+    fun multipleTypedTextsOnSameRefStayAndDoNotGuide() {
+        val snap = snapshot(
+            "fresh",
+            node("field", "Search", viewId = "id/search", clickable = false, editable = true),
+        )
+        val live = listOf(
+            Cand("Type alpha", ScreenAction(ScreenActionKind.TYPE, "field", "alpha")),
+            Cand("Type beta", ScreenAction(ScreenActionKind.TYPE, "field", "beta")),
+        )
+        val path = remembered(label = "Search", viewId = "id/search").copy(
+            steps = listOf(PerAppSuccessPathStep("type", "Search", "id/search")),
+        )
+        val guided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(path), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals(live, guided.candidates)
+        assertNull(guided.hint)
+        assertEquals(listOf("alpha", "beta"), guided.candidates.map { it.action.text })
+    }
+
+    @Test
+    fun missingRememberedKindKeepsOriginalOrder() {
+        val snap = snapshot("fresh", node("list", "Items", viewId = "id/list").copy(scrollable = true))
+        val live = listOf(
+            Cand("Click Items", ScreenAction(ScreenActionKind.CLICK, "list")),
+            Cand("Forward", ScreenAction(ScreenActionKind.SCROLL_FORWARD, "list")),
+        )
+        val path = remembered().copy(steps = listOf(PerAppSuccessPathStep("scroll_backward", "Items", "id/list")))
+        val guided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(path), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals(live, guided.candidates)
+        assertNull(guided.hint)
+    }
+
+    @Test
+    fun packageScopeDoesNotGuideForeignMemory() {
+        val snap = snapshot("fresh", node("open", "Open draft", viewId = "id/open"))
+        val live = listOf(
+            Cand("Click Other", ScreenAction(ScreenActionKind.CLICK, "other")),
+            Cand("Click Open draft", ScreenAction(ScreenActionKind.CLICK, "open")),
+        )
+        val foreign = remembered().copy(packageName = "com.other.app")
+        val guided = PerAppSuccessPathPlanner.guide(
+            "com.example.app", snap, listOf(foreign), "open the draft", live,
+            identityOf = { identity(it) },
+        )
+        assertEquals(live, guided.candidates)
+        assertNull(guided.hint)
     }
 }

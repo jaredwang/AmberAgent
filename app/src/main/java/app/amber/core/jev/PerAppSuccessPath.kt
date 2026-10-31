@@ -54,6 +54,13 @@ data class PerAppCandidateGuide<T>(
     val hint: String? = null,
 )
 
+/** Live candidate identity for memory ranking: at least kind+ref, plus current typed text. */
+data class PerAppCandidateIdentity(
+    val kind: ScreenActionKind,
+    val ref: String,
+    val text: String? = null,
+)
+
 object PerAppSuccessPathSanitizer {
     private val SENSITIVE = Regex(
         "发送|发布|支付|付款|购买|下单|删除|清空|授权|允许|登录|登出|退出登录|密码|验证码|" +
@@ -66,6 +73,7 @@ object PerAppSuccessPathSanitizer {
     )
     private val OTP_OR_PIN = Regex("^\\s*\\d{4,8}\\s*$")
     private val LONG_DIGITS = Regex("\\d{8,}")
+    private val CARDISH_RUN = Regex("\\d[\\d\\s-]{6,}\\d")
     private val COORD_IN_ID = Regex("\\d{2,4}[_.,-]\\d{2,4}[_.,-]\\d{2,4}")
     private val RESOURCE_ID = Regex(
         "^(?:[A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*:id/[A-Za-z_][A-Za-z0-9_]*$" +
@@ -78,6 +86,8 @@ object PerAppSuccessPathSanitizer {
         if (text.contains("[password]", ignoreCase = true)) return true
         if (SENSITIVE.containsMatchIn(text)) return true
         if (OTP_OR_PIN.matches(text.trim())) return true
+        if (LONG_DIGITS.containsMatchIn(text)) return true
+        if (hasSeparatedPaymentDigits(text)) return true
         return false
     }
 
@@ -105,8 +115,12 @@ object PerAppSuccessPathSanitizer {
         if (looksSensitive(node.label) || looksSensitive(node.viewId) || looksSensitive(node.editableValue.orEmpty())) {
             return null
         }
-        val label = clip(node.label, limits.maxTextChars)
         val semanticId = semanticId(node.viewId, node.ref, limits.maxTextChars)
+        var label = clip(node.label, limits.maxTextChars)
+        if (mirrorsTypedInput(kind, node, typedValue, label)) {
+            if (semanticId.isEmpty()) return null
+            label = ""
+        }
         if (label.isBlank() && semanticId.isEmpty()) return null
         return PerAppSuccessPathStep(
             kind = kind.name.lowercase(Locale.ROOT),
@@ -121,13 +135,15 @@ object PerAppSuccessPathSanitizer {
         steps: List<PerAppSuccessPathStep>,
         recordedAtMs: Long,
         limits: PerAppSuccessPathLimits = PerAppSuccessPathLimits.DEFAULT,
+        inputSecrets: Collection<String> = emptyList(),
+        taskSensitive: Boolean = false,
     ): PerAppSuccessPath? {
         if (!validPackageName(packageName)) return null
         val cleaned = steps
             .mapNotNull { step -> sanitizeStep(step, limits) }
             .take(limits.maxStepsPerPath)
         if (cleaned.isEmpty()) return null
-        val sensitiveGoal = looksSensitive(goal) || LONG_DIGITS.containsMatchIn(goal)
+        val sensitiveGoal = goalIsSensitive(goal, inputSecrets, taskSensitive)
         return PerAppSuccessPath(
             packageName = packageName.trim(),
             goalFingerprint = if (sensitiveGoal) "" else fingerprint(packageName, goal),
@@ -175,6 +191,47 @@ object PerAppSuccessPathSanitizer {
         "scroll_backward" -> ScreenActionKind.SCROLL_BACKWARD
         else -> null
     }
+
+    fun goalIsSensitive(
+        goal: String,
+        inputSecrets: Collection<String> = emptyList(),
+        taskSensitive: Boolean = false,
+    ): Boolean {
+        if (taskSensitive) return true
+        if (looksSensitive(goal)) return true
+        return inputSecrets.any { secret ->
+            secret.isNotBlank() && (looksSensitive(secret) || goal.contains(secret))
+        }
+    }
+
+    private fun hasSeparatedPaymentDigits(text: String): Boolean {
+        for (match in CARDISH_RUN.findAll(text)) {
+            val digits = match.value.filter { it.isDigit() }
+            if (digits.length >= 8) return true
+        }
+        return false
+    }
+
+    private fun mirrorsTypedInput(
+        kind: ScreenActionKind,
+        node: ScreenNode,
+        typedValue: String?,
+        label: String,
+    ): Boolean {
+        if (kind != ScreenActionKind.TYPE && !node.editable) return false
+        val secrets = listOfNotNull(typedValue, node.editableValue).map { it.trim() }.filter { it.isNotEmpty() }
+        if (secrets.isEmpty() || label.isBlank()) return false
+        return secrets.any { secret -> labelMirrorsSecret(label, secret) }
+    }
+
+    private fun labelMirrorsSecret(label: String, secret: String): Boolean {
+        val a = label.trim()
+        val b = secret.trim()
+        if (a.isEmpty() || b.isEmpty()) return false
+        return a.equals(b, ignoreCase = true) ||
+            a.contains(b, ignoreCase = true) ||
+            b.contains(a, ignoreCase = true)
+    }
 }
 
 object PerAppSuccessPathPlanner {
@@ -208,21 +265,28 @@ object PerAppSuccessPathPlanner {
         remembered: List<PerAppSuccessPath>,
         goal: String,
         candidates: List<T>,
-        refOf: (T) -> String,
+        identityOf: (T) -> PerAppCandidateIdentity,
     ): PerAppCandidateGuide<T> {
         if (candidates.isEmpty() || remembered.isEmpty()) {
             return PerAppCandidateGuide(candidates)
         }
         val hints = resolveUniqueHints(packageName, snapshot, remembered, goal)
         if (hints.isEmpty()) return PerAppCandidateGuide(candidates)
-        val preferred = hints.map { hint -> hint.freshRef }
-        val head = preferred.mapNotNull { ref -> candidates.firstOrNull { refOf(it) == ref } }
-        if (head.isEmpty()) return PerAppCandidateGuide(candidates)
-        val headRefs = head.map(refOf).toSet()
-        val tail = candidates.filter { refOf(it) !in headRefs }
         val hint = hints.first()
+        val wantKind = PerAppSuccessPathSanitizer.parseKind(hint.kind) ?: return PerAppCandidateGuide(candidates)
+        val matches = candidates.withIndex().filter { (_, candidate) ->
+            val identity = identityOf(candidate)
+            identity.kind == wantKind && identity.ref == hint.freshRef
+        }
+        if (matches.size != 1) return PerAppCandidateGuide(candidates)
+        val matchIndex = matches.single().index
+        val reordered = ArrayList<T>(candidates.size)
+        reordered.add(candidates[matchIndex])
+        candidates.forEachIndexed { index, candidate ->
+            if (index != matchIndex) reordered.add(candidate)
+        }
         return PerAppCandidateGuide(
-            candidates = head + tail,
+            candidates = reordered,
             hint = "Prior accepted success uniquely matched ${hint.kind} '${hint.label}'. " +
                 "History only ranks current-tree candidates; it never clicks.",
         )

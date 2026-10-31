@@ -607,6 +607,8 @@
   <string name="setting_agent_screen_experience_clear">Clear</string>
   <string name="setting_agent_screen_experience_clear_confirm_title">Clear success memory?</string>
   <string name="setting_agent_screen_experience_clear_confirm">Later tasks will not read saved paths. An in-progress task that finishes later cannot write the old memory back.</string>
+  <string name="setting_agent_screen_experience_clear_failed_title">Could not clear success memory</string>
+  <string name="setting_agent_screen_experience_clear_failed">Saved paths are still on this device. Retry when the phone can write, or cancel to keep them.</string>
   <string name="setting_page_agent_tool_loop_steps">Tool loop limit</string>
   <string name="setting_page_agent_tool_loop_steps_desc">Maximum tool rounds in one reply.</string>
   <string name="setting_page_agent_tool_loop_steps_value">%1$d steps</string>

@@ -101,6 +101,8 @@ class JevScreenGoalRunner(
                     goal = goal,
                     steps = recordedSemanticSteps,
                     recordedAtMs = System.currentTimeMillis(),
+                    inputSecrets = texts,
+                    taskSensitive = texts.any { PerAppSuccessPathSanitizer.looksSensitive(it) },
                 )
                 experienceWritten = path != null && successPathStore?.recordSuccess(runEpoch, path) == true
             }
@@ -585,7 +587,13 @@ class JevScreenGoalRunner(
             remembered = remembered,
             goal = goal,
             candidates = raw,
-            refOf = { it.action.ref },
+            identityOf = { candidate ->
+                PerAppCandidateIdentity(
+                    kind = candidate.action.kind,
+                    ref = candidate.action.ref,
+                    text = candidate.action.text,
+                )
+            },
         )
     }
 

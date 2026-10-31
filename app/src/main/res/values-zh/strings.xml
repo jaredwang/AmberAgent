@@ -880,6 +880,8 @@
   <string name="setting_agent_screen_experience_clear">清除</string>
   <string name="setting_agent_screen_experience_clear_confirm_title">清除成功经验？</string>
   <string name="setting_agent_screen_experience_clear_confirm">清除后后续任务不再读取这些路径；进行中的任务即使稍后成功也不会把旧经验写回。</string>
+  <string name="setting_agent_screen_experience_clear_failed_title">未能清除成功经验</string>
+  <string name="setting_agent_screen_experience_clear_failed">已保存的路径仍在本机。请在设备可写入时重试，或取消并保留它们。</string>
   <string name="setting_page_agent_tool_loop_steps">工具循环上限</string>
   <string name="setting_page_agent_tool_loop_steps_desc">单次回复最多调用的工具轮数。</string>
   <string name="setting_page_agent_tool_loop_steps_value">%1$d 步</string>
