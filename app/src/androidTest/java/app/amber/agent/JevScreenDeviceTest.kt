@@ -129,7 +129,7 @@ class JevScreenDeviceTest {
         val koin = GlobalContext.get()
         val settings = koin.get<SettingsAggregator>()
         withTimeout(15_000) { settings.settingsFlow.first { !it.init } }
-        assertEquals(JevMode.ACTIVE, settings.settingsFlow.value.jev.modeFor(JevPurpose.SCREEN_AUTOMATION))
+        assertEquals(JevMode.ACTIVE, settings.settingsFlow.value.jev.modeFor(JevPurpose.PHONE_ACTIONS))
         connectAccessibility()
         // W08：多步自控只进显式授权的应用；测试操作员在此显式授权。
         settings.update { current ->
@@ -172,11 +172,15 @@ class JevScreenDeviceTest {
         // This opt-in test also enables the feature requested by the device owner.
         settings.update { current -> current.copy(jev = current.jev.copy(
             enabled = true,
-            purposes = current.jev.purposes + (JevPurpose.SCREEN_AUTOMATION to JevMode.ACTIVE),
+            purposes = current.jev.purposes +
+                (JevPurpose.PHONE_VERIFICATION to JevMode.ACTIVE) +
+                (JevPurpose.PHONE_ACTIONS to JevMode.ACTIVE),
             dataScopes = current.jev.dataScopes + JevDataScope.SCREEN_CONTENT + JevDataScope.TASK_TEXT,
         )) }
         withTimeout(10_000) { settings.settingsFlow.first {
-            it.jev.modeFor(JevPurpose.SCREEN_AUTOMATION) == JevMode.ACTIVE && JevDataScope.SCREEN_CONTENT in it.jev.dataScopes
+            it.jev.modeFor(JevPurpose.PHONE_VERIFICATION) == JevMode.ACTIVE &&
+                it.jev.modeFor(JevPurpose.PHONE_ACTIONS) == JevMode.ACTIVE &&
+                JevDataScope.SCREEN_CONTENT in it.jev.dataScopes
         } }
         connectAccessibility()
         val testPackage = instrumentation.context.packageName

@@ -135,7 +135,7 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                 onDeny = { showDenyDialog = true },
                 onApprove = { onToolApproval?.invoke(tool.toolCallId, true, "") },
                 actionsEnabled = onToolApproval != null,
-                notice = jevAutoApprovalNotice(tool),
+                notice = jevApprovalNotice(tool),
             )
         } else {
             AgentToolCallCapsule(
@@ -363,7 +363,13 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
     }
 }
 
-/** Jev 复核把自动批准收紧为人工审批时，审批卡上说明命中的风险类别。 */
+/** Jev 复核/分诊把权限收紧为人工审批时，审批卡上说明原因。 */
+@Composable
+private fun jevApprovalNotice(tool: UIMessagePart.Tool): String? {
+    val parts = listOfNotNull(jevAutoApprovalNotice(tool), jevApprovalTriageNotice(tool))
+    return parts.takeIf { it.isNotEmpty() }?.joinToString("\n")
+}
+
 @Composable
 private fun jevAutoApprovalNotice(tool: UIMessagePart.Tool): String? {
     val keys = (tool.metadata?.get(app.amber.core.jev.JevAutoApprovalGate.METADATA_KEY) as? kotlinx.serialization.json.JsonArray)
@@ -379,4 +385,18 @@ private fun jevAutoApprovalNotice(tool: UIMessagePart.Tool): String? {
         }
     }
     return stringResource(R.string.chat_tool_jev_auto_approval_paused, labels.joinToString(stringResource(R.string.chat_tool_jev_risk_separator)))
+}
+
+@Composable
+private fun jevApprovalTriageNotice(tool: UIMessagePart.Tool): String? {
+    val triage = tool.metadata?.get(app.amber.core.jev.JevApprovalTriage.METADATA_KEY) as? kotlinx.serialization.json.JsonObject
+        ?: return null
+    val applied = triage["applied"]?.jsonPrimitive?.contentOrNull ?: return null
+    if (applied == "allow") return null
+    val facts = (triage["facts"] as? kotlinx.serialization.json.JsonArray)
+        ?.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+        .orEmpty()
+    val detail = facts.takeIf { it.isNotEmpty() }?.joinToString(stringResource(R.string.chat_tool_jev_risk_separator))
+        ?: applied
+    return stringResource(R.string.chat_tool_jev_approval_triage_paused, detail)
 }

@@ -22,6 +22,8 @@ import app.amber.feature.runtime.ToolEffectStatus
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -162,6 +164,63 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         assertEquals(1, transport.calls)
     }
 
+    @Test
+    fun `jev triage tightens auto approved calls to manual approval`() = runTest {
+        val executions = mutableListOf<String>()
+        val transport = TriageTransport(choice = "deny", highRisk = 0.95)
+        val engine = FakeRoundEngine(listOf(
+            { toolCallAssistant("rm_1", "terminal_execute", """{"command":"rm -rf build"}""") },
+            { textAssistant("已完成") },
+        ))
+        val terminals = mutableListOf<GenerationTerminal>()
+        val chunks = kernel(engine, triage = triage(transport)).run(
+            session(
+                listOf(UIMessage.user("整理一下目录")), listOf(approvalTool("terminal_execute", executions)),
+                terminals = terminals, autoApproveHighRiskTools = true,
+            ),
+        ).toList()
+
+        assertTrue(executions.isEmpty())
+        assertEquals(1, transport.calls)
+        assertEquals(listOf<GenerationTerminal>(GenerationTerminal.WaitingUser), terminals)
+        val tool = lastMessages(chunks).last().getTools().single()
+        assertTrue(tool.isPending)
+        assertTrue(tool.metadata?.containsKey(app.amber.core.jev.JevApprovalTriage.METADATA_KEY) == true)
+        assertEquals(
+            "ask",
+            tool.metadata?.get(app.amber.core.jev.JevApprovalTriage.METADATA_KEY)
+                ?.jsonObject?.get("applied")?.jsonPrimitive?.content,
+        )
+    }
+
+    @Test
+    fun `jev triage cannot relax a pending ask into auto approval`() = runTest {
+        val executions = mutableListOf<String>()
+        val transport = TriageTransport(choice = "allow", highRisk = 0.0)
+        val engine = FakeRoundEngine(listOf(
+            { toolCallAssistant("rm_1", "terminal_execute", """{"command":"rm -rf build"}""") },
+            { textAssistant("已完成") },
+        ))
+        val terminals = mutableListOf<GenerationTerminal>()
+        val chunks = kernel(engine, triage = triage(transport)).run(
+            session(
+                listOf(UIMessage.user("整理一下目录")), listOf(approvalTool("terminal_execute", executions)),
+                terminals = terminals, autoApproveHighRiskTools = false,
+            ),
+        ).toList()
+
+        assertTrue(executions.isEmpty())
+        assertEquals(1, transport.calls)
+        assertEquals(listOf<GenerationTerminal>(GenerationTerminal.WaitingUser), terminals)
+        val tool = lastMessages(chunks).last().getTools().single()
+        assertTrue(tool.isPending)
+        assertEquals(
+            "ask",
+            tool.metadata?.get(app.amber.core.jev.JevApprovalTriage.METADATA_KEY)
+                ?.jsonObject?.get("applied")?.jsonPrimitive?.content,
+        )
+    }
+
     /** 只读调用不需要审批，不问 Jev。 */
     @Test
     fun `jev gate never asks about read only calls`() = runTest {
@@ -281,6 +340,24 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         jevRuntime(transport, app.amber.core.jev.JevPurpose.AUTO_APPROVAL_GATE),
     )
 
+    private class TriageTransport(
+        private val choice: String,
+        private val highRisk: Double,
+    ) : app.amber.core.jev.JevTransport {
+        var calls = 0
+
+        override suspend fun execute(request: app.amber.core.jev.JevHttpRequest): app.amber.core.jev.JevTransportResponse {
+            calls++
+            val body = """{"model":"jev-test","answers":{"posture":{"type":"choice","choice":"$choice","confidence":0.9},""" +
+                """"high_risk":{"type":"noul","noul":$highRisk}}}"""
+            return app.amber.core.jev.JevTransportResponse.Http(200, body.toByteArray(), null)
+        }
+    }
+
+    private fun triage(transport: TriageTransport) = app.amber.core.jev.JevApprovalTriage(
+        jevRuntime(transport, app.amber.core.jev.JevPurpose.APPROVAL_TRIAGE),
+    )
+
     private fun approvalTool(name: String, executions: MutableList<String>) = Tool(
         name = name,
         description = "approval-required test tool",
@@ -292,18 +369,16 @@ class DefaultRunKernelTest : DurableRuntimeTestBase() {
         },
     )
 
-    private fun kernel(engine: GenerationRoundEngine, gate: app.amber.core.jev.JevAutoApprovalGate): DefaultRunKernel =
-        DefaultRunKernel(
-            context = testContext(),
-            toolDispatcher = AgentToolDispatcher(json, PermissionDecisionResolver()),
-            roundEngine = engine,
-            autoApprovalGate = gate,
-        )
-
-    private fun kernel(engine: GenerationRoundEngine): DefaultRunKernel = DefaultRunKernel(
+    private fun kernel(
+        engine: GenerationRoundEngine,
+        gate: app.amber.core.jev.JevAutoApprovalGate? = null,
+        triage: app.amber.core.jev.JevApprovalTriage? = null,
+    ): DefaultRunKernel = DefaultRunKernel(
         context = testContext(),
         toolDispatcher = AgentToolDispatcher(json, PermissionDecisionResolver()),
         roundEngine = engine,
+        autoApprovalGate = gate,
+        approvalTriage = triage,
     )
 
     private fun durableKernel(
