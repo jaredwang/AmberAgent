@@ -2,7 +2,7 @@
 
 > 本文件是 P2 竖屏视频专用记录，不修改 `2026-10-31-android-selected-parity-handoff.md`。
 > 本轮只做 handoff §7。不做 per-App 记忆、不安装/启动/操作真机。
-> `cb52fa0ba` 独立代码验收未通过（§10）；返工后停等重验。真机横竖视频/关闭/退后台/手动恢复仍待最后统一验证。
+> `cb52fa0ba` 独立代码验收未通过（§10）；返工 `33deefa7d` 主代理代码验收通过（§9）。真机渲染/触控/后台无声仍待最后统一验证，不能标完全完成。
 
 ## 1. 基线
 
@@ -123,9 +123,11 @@
 6. **点播放器/控制条不关弹层**；点 scrim 关闭。
 7. **时间线**：返回后滚动位置不被抢走；芯片 44.dp 占位不跳。
 
-## 9. 停等验收
+## 9. 主代理代码验收通过（`33deefa7d`）
 
-P2 竖屏视频返工完成（独立提交），停等主代理重验。未通过继续返工。本轮不进入 perApp，不操作真机。
+主代理独立核查 Compose 播放/暂停/恢复、STOP 后手动播放、release session 使迟到回调不再 read/start；独立复跑 `VideoDisplaySizeTest` / `VideoPlaybackSessionTest` / `ContainVideoViewTest` 36 tests 全通过（`/tmp/amber-video-rereview.log`）。
+
+代码验收通过。真机渲染、触控、后台无声仍待最后统一验证，**不能标完全完成**。后续阶段不再改视频实现，除非验收明确返工。
 
 ## 10. 首轮代码验收未通过（`cb52fa0ba`）
 
