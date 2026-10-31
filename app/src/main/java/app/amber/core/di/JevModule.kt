@@ -108,6 +108,8 @@ val jevModule = module {
                     }
                 }
             },
+            ocrEngine = getOrNull(),
+            takeoverController = getOrNull(),
         )
     }
 }

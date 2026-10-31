@@ -9,6 +9,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import app.amber.ai.ui.UIMessagePart
 import app.amber.core.automation.AccessibilityController
+import app.amber.core.automation.ScreenOcrEngine
+import app.amber.core.automation.ScreenOcrMode
+import app.amber.core.automation.ScreenOcrObservation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -33,6 +36,7 @@ internal suspend fun verifiedScreenActionResult(
     input: JsonElement,
     success: Boolean,
     targetWasVisibleBefore: Boolean = false,
+    ocrEngine: ScreenOcrEngine? = null,
 ): List<UIMessagePart> {
     val verifyText = input.string("verify_text")
     val expectation = (input.jsonObject["expectation"] as? kotlinx.serialization.json.JsonObject)
@@ -47,19 +51,39 @@ internal suspend fun verifiedScreenActionResult(
         }
     }
 
+    val ocrMode = input.resolveOcrMode()
     val deadline = System.currentTimeMillis() +
         (input.long("verify_timeout_ms") ?: 2_000L).coerceIn(200L, 15_000L)
     var found = false
+    var ocrObservation: ScreenOcrObservation? = null
     while (System.currentTimeMillis() < deadline) {
         if (service.findTextNodes(verifyText!!, maxNodes = 200).isNotEmpty()) {
             found = true
             break
+        }
+        if (ocrMode != ScreenOcrMode.OFF && ocrEngine != null) {
+            val snapshot = runCatching { service.captureScreenSnapshot() }.getOrNull()
+            ocrObservation = ocrEngine.observe(
+                snapshot = snapshot,
+                mode = ocrMode,
+                forceReason = if (ocrMode == ScreenOcrMode.AUTO) "verify_text_tree_miss" else null,
+            )
+            if (ocrObservation.findMatches(verifyText).isNotEmpty()) {
+                found = true
+                break
+            }
         }
         delay(250)
     }
     return textJson {
         put("success", success)
         put("verify_text_found", found)
+        put("ocr_mode", ocrMode.wireName())
+        put("ocr_triggered", ocrObservation?.triggered == true)
+        ocrObservation?.let { obs ->
+            put("ocr_reason", obs.triggerReason)
+            put("ocr_block_count", obs.blocks.size)
+        }
     }
 }
 

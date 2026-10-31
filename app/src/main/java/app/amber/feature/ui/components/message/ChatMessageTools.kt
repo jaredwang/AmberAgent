@@ -102,6 +102,17 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
     val isGenerateImage = tool.toolName == "generate_image"
     val hasExtraContent = isDenied || (images.isNotEmpty() && !isGenerateImage)
     val toolKind = getToolKind(tool.toolName)
+    val screenReceipt = remember(tool.toolName, tool.isExecuted, arguments, content) {
+        if (tool.isExecuted && content != null) {
+            ScreenToolReceiptParser.parse(
+                toolName = tool.toolName,
+                arguments = arguments,
+                content = content,
+            )
+        } else {
+            null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -136,6 +147,13 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
                 loading = loading,
                 onClick = { showResult = true },
                 approvalActions = null,
+            )
+        }
+
+        if (screenReceipt != null && !isDenied && !isPending) {
+            ScreenToolReceiptInlineSummary(
+                receipt = screenReceipt,
+                onClick = { showResult = true },
             )
         }
 
