@@ -6,23 +6,26 @@
 
 ## 0. 结论（先看这个）
 
+`752feca80` 最终验收**未通过**：设备证据未闭合。五阶段**代码**仍独立通过，本轮不否定。下表已更正，不再把离屏注入、不完整 suite 日志、contain-fit 数学、ART 假 snapshot 写成生产全链路。
+
 | 层 | 状态 |
 | --- | --- |
 | 五阶段代码 | 独立验收通过（见 §1 提交） |
 | JVM / 编译 / APK | 已跑。app 全量 3567 tests 中 2 个既有 `AntigravityOAuthSessionTest` 并发基线失败，未降断言、未无关修 |
-| 非 debuggable / R8 等价 | `fullProfileableDebug`（graphite 同包同签、`isDebuggable=false`）已装已跑；`fullBenchmarkRelease`（R8 minify）已组装、**未**装到生产 `app.amber.agent` |
-| 真机安装/启动 | graphite `-r -t` 保留用户数据成功；`RouteActivity` Status ok；无 FATAL |
-| P0 非 debuggable 真实 OCR | **真机通过**（profileable，owned ML Kit，WebView+Canvas 像素，`source=BITMAP_OCR`） |
-| P1 Room 四态 / 水位 / 冷启 | **真机通过**（隔离 Room，不碰用户库） |
-| P1 Compose 四态面板 | **未完成**：PIN 锁屏 + `createAndroidComposeRule` `waitForIdleSync` 挂起 |
-| P2 Jev 设置迁移 | **真机通过**（ART decode） |
-| P2 Jev 原生快照 / 真机自控 | **未完成**：Amber 无障碍未开；opt-in `realJev` 无参数 |
-| P2 视频 contain-fit + 静音 pause | **真机通过**（无 Activity，解码器 + 数学） |
-| P2 视频 Dialog 控制 / 时间线滚动 | **未完成**：同一 PIN 锁屏 Compose 阻塞 |
-| P2 per-App 规划/隔离/接管/清除 | **真机通过**（设备 ART + 隔离 cache 文件，fixture 快照） |
-| P2 per-App 对真实三方 App | **未完成**：无 Amber 无障碍、未对用户应用操作 |
+| 非 debuggable / R8 等价 | `fullProfileableDebug` 已组装并曾覆盖安装；`fullBenchmarkRelease` 已组装、**未**装到生产 `app.amber.agent` |
+| 真机安装/启动 | graphite `-r -t` 保留用户数据成功；`RouteActivity` Status ok |
+| P0 离屏 ML Kit 像素 OCR | **部分证据已闭合（锁屏）**：owned ML Kit 识别中文/Latin 像素。`screenshotSource=offscreen_view_draw`，**不经过** `captureFreshBitmap` / Accessibility screenshot。完整 log：`/tmp/amber-s9-class-ocr-offscreen.log` OK (4 tests) CODE -1 exit 0。不能写成「非 debuggable 真实 OCR 全链路通过」 |
+| P0 前台生产截图 OCR | **未跑**（待解锁）：fixture Activity 前台 + `DefaultScreenOcrEngine(context, ScreenCaptureManager(context))` + 实际 `AmberAccessibilityService` 截图 + AX 不给词 + 可点区域映射当前树唯一目标。随后非 debuggable 同包 profileable 再验 |
+| P1 Room 四态 / 水位 / 冷启 | **已闭合（锁屏）**：per-class 完整日志 `INSTRUMENTATION_CODE: -1` + exit 0（§11.2）。不以 `/tmp/amber-s9-connected-core.log` 中途 STATUS 0 当 suite 通过 |
+| P1 Compose 四态面板 | **未跑**（待解锁）。夹具已改：`createEmptyComposeRule` + 显式启动 + `-e amberFixture s9` 隔离 Koin。挂起根因含 plain Application / `ReminderRescheduleReceiver` Koin、idle 同步、Activity 注册，**不单是 PIN** |
+| P2 Jev 设置 decode | **已闭合（锁屏）**：`JevSettingsDeviceTest` OK (2 tests) CODE -1 exit 0 |
+| P2 Jev 原生快照 / scripted controller | **未跑**（待解锁）。可临时开启 Amber 无障碍并**精确恢复**原 `enabled_accessibility_services`（保留 DSH）。缺外部 Jev key **只**阻塞联网 `realJev`，不阻塞本地原生/scripted |
+| P2 视频 contain-fit 数学 + 静音 MediaPlayer | **补充证据已闭合（锁屏）**：OK (2 tests) CODE -1 exit 0。**不是** `VideoPlaybackDialog` 实操 |
+| P2 视频 Dialog 控制 / 时间线 | **未跑**（待解锁）。需真实界面截图 + pause/resume/close 点击 + 列表 row-12 |
+| P2 per-App ART 假 snapshot | **已闭合（锁屏，假 snapshot）**：`PerAppSuccessPathDeviceTest` OK (4 tests) CODE -1 exit 0。`FakeAccessibilityController`，与真 controller **分开标** |
+| P2 per-App 真 controller + 隔离 fixture | **未跑**（待解锁）。`JevScreenFixtureActivity` + 真实 AccessibilityController + scripted transport；定位/接管去重/清除。不对微信等真实业务包操作 |
 
-停等主代理最终验收。未 push / 未开 PR。
+前台项等用户解锁并保持亮屏后再跑。未 push / 未开 PR。不得把本表标成全部完成。
 
 ---
 
@@ -202,11 +205,13 @@ logcat 无 `FATAL EXCEPTION` / `AndroidRuntime`。锁屏下 `visibleRequested=fa
 
 ## 6. 真机证据矩阵
 
-runner：`app.amber.agent.graphite.test/app.amber.agent.AmberAgentAndroidTestRunner`（plain `Application`，无 Koin）。因此 **不能** 启动生产 Activity：`ReminderRescheduleReceiver` 会 `KoinApplication has not been started`。OCR / 视频 contain / Room / per-App 均改为无 Activity。Compose 规则仍会启动空 `ComponentActivity`，在 PIN 后会 `waitForIdleSync` 挂起。
+runner 默认：`AmberAgentAndroidTestRunner` + plain `Application`（无 Koin），供锁屏可跑的 Room / JSON / ART / 离屏 OCR。目标包 Activity 会走到 `ReminderRescheduleReceiver`（`KoinComponent`），plain Application 下会 `KoinApplication has not been started`。这是 Compose/Activity 挂起的原因之一，不能只归因于 PIN。
+
+前台项使用同一 runner 加 `-e amberFixture s9` → `ChatDeviceFixtureApplication`（隔离 files/DB/prefs + Koin，不跑 `AmberAgentApp` 的 cron/bubble/recoverInterrupted）。Compose 改为 `createEmptyComposeRule`，规则启动时不拉 Activity。
 
 证据目录：`/tmp/amber-s9-evidence/` 与 `/tmp/amber-s9-evidence/profileable-ocr/amber-s9/`。
 
-### 6.1 P0 OCR — 真机（含非 debuggable）
+### 6.1 P0 OCR — 离屏 ML Kit 像素（部分证据，不是生产截图链路）
 
 命令（profileable，FLAG_DEBUGGABLE 关闭）：
 
@@ -231,7 +236,9 @@ adb shell am instrument -w -e class \
 | 充分树零截图 | `triggered=false reason=tree_coverage_sufficient shots=0` | `sufficient-tree.txt` |
 | 缺截图 | `diagnostics=[screenshot_unavailable]` `UNAVAILABLE` | `screenshot-unavailable.txt` |
 
-同一 4 条 OCR 先前也在 debuggable graphite 上 2.513s 全过（`/tmp/amber-s9-connected-ocr.log`）。**非 debuggable 以 profileable 6 tests 为准。**
+同一 4 条 OCR 先前也在 debuggable graphite 上 2.513s 全过（`/tmp/amber-s9-connected-ocr.log`）。profileable 6 tests = 4 条离屏 OCR + 2 条 contain-fit 数学，**不是**前台 WebView/Canvas 生产截图通过。
+
+生产路径（待解锁）见 §11：前台 `ScreenOcrFixtureActivity` + `DefaultScreenOcrEngine(context, ScreenCaptureManager(context))` + `screenshotSource=accessibility_screenshot` + AX 不给词 + 可点区域映射当前树唯一目标。离屏注入不得再冒充该链路。
 
 ### 6.2 P1 活动中心
 
@@ -241,9 +248,9 @@ adb shell am instrument -w -e class \
 
 覆盖：等待 / 失败 / 完成 / 运行 四态投影与优先级、当前对话排除、打开即已读、关库重开冷启仍在、升级基线前历史完成不轰炸。
 
-`AppDatabaseMigrationTest` 全部 OK，含 `migration_21_22_creates_activity_watermark_tables`。
+`AppDatabaseMigrationTest` 曾在未完成的 `core.log` 中出现过 STATUS 0；本轮以 §11 per-class 完整日志 + `INSTRUMENTATION_CODE` + 退出码为准。
 
-Compose `ConversationActivityDeviceTest` 四态面板：**未跑完**。原因：PIN keyguard，`createAndroidComposeRule` 在 `waitForIdleSync` 挂起。未清 PIN。夹具保留供解锁后跑。
+Compose `ConversationActivityDeviceTest` 四态面板：**未跑**。先前挂起不能只写成 PIN：plain Application 无 Koin、`createAndroidComposeRule` 在规则启动时等 RESUMED、keyguard 下 Activity 到不了 RESUMED。夹具已改为 empty compose rule + `-e amberFixture s9`；解锁后跑。
 
 ### 6.3 P2 Jev
 
@@ -254,9 +261,9 @@ Compose `ConversationActivityDeviceTest` 四态面板：**未跑完**。原因�
 
 均 OK（`/tmp/amber-s9-connected-core.log`）。
 
-`JevScreenDeviceTest.nativeSnapshotsRejectStaleAndVerifyLocalActions`：**未跑**。Amber 无障碍未启用；启用会改用户无障碍列表，本轮不做。
+`JevScreenDeviceTest.nativeSnapshotsRejectStaleAndVerifyLocalActions`：**未跑**（待解锁）。本轮允许临时开启 Amber 无障碍，保存并逐项恢复原 `enabled_accessibility_services`，禁止覆盖丢 DSH。
 
-opt-in `realJev` / `bilibiliJev` / `SettingsTransferDeviceTest`：**未跑**（无 instrumentation args / 无保存的 Jev key，且需要 Amber 无障碍）。
+opt-in `realJev` / `bilibiliJev`：**未跑**。无外部 Jev key 只阻塞联网 realJev，不阻塞上述本地原生 + scripted transport。
 
 ### 6.4 P2 视频
 
@@ -273,9 +280,9 @@ opt-in `realJev` / `bilibiliJev` / `SettingsTransferDeviceTest`：**未跑**（�
 | landscape | 640×360 | 640×360 1.5s | 1168×657（宽限制） |
 | square | 360×360 | 360×360 1.5s | 1168×1168 ≤ availH |
 
-`MediaPlayer` 预置音量 0，`pause` 后不自动 `start`（`video-player-pause.txt`）。
+`MediaPlayer` 预置音量 0，`pause` 后不自动 `start`（`video-player-pause.txt`）。这是解码器补充证据，**不能**代替 Dialog 实操。
 
-`VideoPlaybackDialog` 横竖方控制可点、ON_STOP 暂停、关弹层无声、时间线滚到 row-12 不抢滚动：**未在 Dialog UI 上完成**（PIN + Compose rule）。JVM `VideoDisplaySizeTest` 覆盖 contain 数学，不计入真机 Dialog。
+`VideoPlaybackDialog` 横竖方控制可点、ON_STOP 暂停、关弹层无声、时间线滚到 row-12：**未在 Dialog UI 上完成**。解锁后跑改写后的 `VideoPlaybackDeviceTest`，记录截图与 pause/resume/close 点击，不用 contain-fit 数学冒充。
 
 ### 6.5 P2 per-App
 
@@ -288,7 +295,7 @@ opt-in `realJev` / `bilibiliJev` / `SettingsTransferDeviceTest`：**未跑**（�
 | `plannerUniqueKindRefOnlyReordersLiveCandidates` | OK |
 | `takeoverDoesNotRepeatAndClearBlocksInflightWrite` | OK |
 
-日志：`/tmp/amber-s9-connected-core.log`。用 fixture 快照与 scripted transport，**不是**对微信等真实包发点击。未支付、未发消息、未删用户数据。
+日志：当时写在未完成的 `/tmp/amber-s9-connected-core.log`（无 `INSTRUMENTATION_CODE`）。本轮 ART 假 snapshot 以 §11 per-class 完整日志为准。用 `FakeAccessibilityController` + scripted transport，**不是**真实 AccessibilityController，也**不是**对微信等真实包发点击。真 controller 见 `PerAppRealControllerDeviceTest`（待解锁）。未支付、未发消息、未删用户数据。
 
 ---
 
@@ -296,32 +303,36 @@ opt-in `realJev` / `bilibiliJev` / `SettingsTransferDeviceTest`：**未跑**（�
 
 | 文件 | 作用 |
 | --- | --- |
-| `app/src/androidTest/AndroidManifest.xml` | 登记 `ScreenOcrFixtureActivity`（测试 APK） |
+| `app/src/androidTest/AndroidManifest.xml` | 登记 `ScreenOcrFixtureActivity` / `JevScreenFixtureActivity`（测试 APK） |
 | `ScreenOcrFixtureActivity.kt` | WebView/Canvas 工厂，AX hide descendants |
-| `ScreenOcrDeviceTest.kt` | 离屏真实 ML Kit |
-| `ConversationActivityDeviceTest.kt` | Store 隔离 Room + Compose 面板（后者待解锁） |
+| `ScreenOcrDeviceTest.kt` | 离屏 ML Kit 像素（部分证据） |
+| `ScreenOcrProductionCaptureDeviceTest.kt` | 前台生产截图 OCR（待解锁） |
+| `ConversationActivityDeviceTest.kt` | Store 隔离 Room + empty-compose 面板（后者待解锁） |
 | `JevSettingsDeviceTest.kt` | 用途拆分 decode |
-| `PerAppSuccessPathDeviceTest.kt` | 设备 ART 记忆 |
-| `VideoPlaybackDeviceTest.kt` | Dialog UI（待解锁） |
-| `VideoContainFitDeviceTest.kt` | 无 Activity contain + 静音 pause |
+| `PerAppSuccessPathDeviceTest.kt` | ART + FakeAccessibilityController |
+| `PerAppRealControllerDeviceTest.kt` | 真实 controller + 隔离 fixture（待解锁） |
+| `VideoPlaybackDeviceTest.kt` | Dialog UI 实操（待解锁） |
+| `VideoContainFitDeviceTest.kt` | 补充 contain + 静音 pause，不是 Dialog |
 | `AmberS9VideoAssets.kt` | 本地 ffmpeg 色块 mp4 的 base64 |
+| `AmberAgentAndroidTestRunner.kt` | `-e amberFixture s9` → `ChatDeviceFixtureApplication` |
+| `AmberS9DeviceSupport.kt` | 解锁 assume、a11y 保存/恢复 DSH、证据、unique tree target |
 
-生产代码无调试绕过。
+生产代码无调试绕过。不启动真实用户作业。
 
 ---
 
 ## 8. 未闭合风险
 
-1. PIN 锁屏阻塞所有 `createAndroidComposeRule` 真机 UI（活动中心面板、视频 Dialog/时间线）。安全替代：解锁后重跑上述两个 class；禁止 `locksettings clear`。
-2. Amber 无障碍未开：原生 `JevScreenDeviceTest`、对真实前台包的 per-App 辅助未验。安全替代：用户手动打开 Amber 无障碍后定点跑，再恢复原 Dsh-only 列表。
-3. 无 Jev API key / 账号：opt-in 真机自控与依赖云端的业务路径未验。
-4. `fullBenchmarkRelease` 未装：生产 `applicationId`，debug 签名，装上去会覆盖正式包。OCR 的非 debuggable 证据用同签 graphite profileable。
-5. 仓库无 `google-services.json`、无发行 keystore；未留假配置。正式 Play 签名 release 未组。
-6. 测试 runner 无 Koin：不能把生产 `RouteActivity` 当 instrument 宿主。启动验证用 `am start`，不走 test runner。
-7. WebView OCR 把 Latin 拆成 `OCR-` / `LATIN-` / `MARK` 多块；断言按子串通过，点击框来自「立即查看详」。
+1. 设备仍锁屏/休眠：前台 OCR / Compose 面板 / 视频 Dialog / 真 controller 均未跑。禁止 `locksettings clear`、不轮询 PIN。
+2. P0 生产截图链路未闭合。离屏 `view.draw` 不得再写成全链路。解锁后跑 `ScreenOcrProductionCaptureDeviceTest`，再在 profileable 上复验。
+3. Compose/Activity 挂起根因包括 plain Application + `ReminderRescheduleReceiver` Koin、`createAndroidComposeRule` idle、测试包 Activity 注册。夹具已改，仍需解锁后实跑。
+4. 无外部 Jev key：只阻塞联网 `realJev`。本地原生快照与 scripted controller 不因此跳过。
+5. `fullBenchmarkRelease` 未装：生产 `applicationId`，debug 签名。非 debuggable 用同签 graphite profileable。
+6. 仓库无 `google-services.json`、无发行 keystore；未留假配置。
+7. WebView OCR 可能把 Latin 拆成多块；断言按子串。
 8. 既有 `AntigravityOAuthSessionTest` 2 失败、本地化脚本既有缺口：基线，本轮未动。
-9. 折叠 override 已 `state reset`；结束时物理 CLOSED。亮度恢复 118，timeout 60000，stay_on 0，overlay 已删。电池 `dumpsys battery reset` 后仍显示 AC + 100%（锁屏也报正在充电），未强制 `unplug`。
-10. 视频 Dialog 的「返回时间线不抢滚动」与「控制可操作」仍缺解锁后的 Compose 证据。
+9. 视频 Dialog 仍缺解锁后的真实点击 + 截图。contain-fit 数学不是 Dialog 证据。
+10. per-App ART 假 snapshot 与真 controller 必须分开标；不对用户真实账号应用操作。
 
 ---
 
@@ -347,6 +358,67 @@ opt-in `realJev` / `bilibiliJev` / `SettingsTransferDeviceTest`：**未跑**（�
 
 ---
 
-## 10. 停等最终验收
+## 10. 停等最终验收（历史，752feca80）
 
-handoff §9 的 JVM / 组装 / 非 debuggable OCR / 安装启动 / 可在锁屏下完成的仪器路径已经落地，并留下可复核日志。Compose 面板、视频 Dialog、原生 Jev 快照、真实三方 App 经验仍打开。本项**不能**标完全完成。
+当时把离屏 OCR 写成「非 debuggable 真实 OCR 真机通过」，并把不完整 `core.log` 当 suite 通过。主代理最终验收未通过。更正见 §0 与 §11。本项**不能**标完全完成。
+
+---
+
+## 11. 752feca80 返工（本轮）
+
+### 11.1 夹具 / runner（已装到 graphite，设备已验证 arg 拾取）
+
+Compose/Activity 挂起**不能**只写成 PIN。本轮在锁屏下复现并修了这些：
+
+1. 默认 runner 用 plain `Application`，目标进程收到 `TIME_SET` 时 `ReminderRescheduleReceiver`（`KoinComponent`）抛 `KoinApplication has not been started`，instrument 在测试执行前崩溃（`INSTRUMENTATION_CODE: 0` / `shortMsg=Process crashed`）。logcat：`FATAL EXCEPTION` at `ReminderRescheduleReceiver.onReceive`。
+2. `-e amberFixture s9` 原先读不到：`AndroidJUnitRunner.getArguments()` / `mArguments` 在 Android 17 Xiaomi 上不可用（`No field mArguments in class Landroid/app/Instrumentation`），runner 一直走 `fixture=<none>`。
+3. `createAndroidComposeRule` 在规则启动时等 `RESUMED`；keyguard 下 Activity 停在 PAUSED/STOPPED，表现为 idle hang。
+4. 测试 APK 的 `ScreenOcrFixtureActivity` / `JevScreenFixtureActivity` 与目标包不是同一进程。
+
+修复（无生产 test bypass，不启真实用户作业）：
+
+- 生产 `ReminderRescheduleReceiver`：Koin 未启动则失败关闭返回。这是 boot/`TIME_SET` 竞态的真实防护，不是 `if (isTest)`。
+- `AmberAgentAndroidTestRunner`：从 `ActivityThread$AppBindData.instrumentationArgs` 读 bind 参数。设备 logcat 已证实：
+  - `-e amberFixture s9` → `newApplication fixture=s9 app=app.amber.agent.ChatDeviceFixtureApplication`（`/tmp/amber-s9-class-fixture-probe.log` OK 2 tests CODE -1）
+  - 无该 extra → `newApplication fixture=<none> app=android.app.Application`（`/tmp/amber-s9-class-plain-app-probe.log` OK 2 tests CODE -1）
+- Compose：`createEmptyComposeRule` + 解锁后显式启动目标包 `ComponentActivity`；`assumeUnlocked` / `assumeS9FixtureApplication`，锁屏 skip。
+- `AmberS9DeviceSupport`：保存并精确恢复 `enabled_accessibility_services`；临时追加 Amber 无障碍；禁止覆盖丢 DSH。本轮锁屏测试**未**改无障碍，结束后仍仅为 DSH。
+- 生产 OCR：`ScreenOcrProductionCaptureDeviceTest`（待解锁跑）。
+- 真 controller per-App：`PerAppRealControllerDeviceTest`（待解锁跑）。
+
+安装：`adb install -r -t` fullDebug + androidTest。`firstInstallTime=2026-10-28 19:02:18` 保留；`lastUpdateTime=2026-11-01 05:28:50`。未改 PIN、未 `pm clear`、未扩大其他权限。
+
+### 11.2 锁屏可跑 class（完整 raw 日志）
+
+`/tmp/amber-s9-connected-core.log` 止于 `ScreenOcrDeviceTest` START，无 `INSTRUMENTATION_CODE`，**不算** suite 通过。本轮逐 class `am instrument -w -r`，要求文件含 `INSTRUMENTATION_CODE: -1`、`OK (N tests)`、adb exit 0。Gradle `--console plain`。不把中途 `STATUS_CODE: 0` 当整 suite 通过。
+
+新 APK（含 receiver 守卫 + runner 扫描）上的结果：
+
+| class | log | OK | INSTRUMENTATION_CODE | exit |
+| --- | --- | --- | --- | --- |
+| `AppDatabaseMigrationTest` | `/tmp/amber-s9-class-migration.log` | 7 tests / 0.75s | -1 | 0 |
+| `JevSettingsDeviceTest` | `/tmp/amber-s9-class-jevsettings.log` | 2 tests / 0.023s | -1 | 0 |
+| `ConversationActivityStoreDeviceTest` | `/tmp/amber-s9-class-activity-store.log` | 1 test / 0.185s | -1 | 0 |
+| `PerAppSuccessPathDeviceTest`（ART 假 snapshot） | `/tmp/amber-s9-class-perapp-art.log` | 4 tests / 0.228s | -1 | 0 |
+| `VideoContainFitDeviceTest`（补充，非 Dialog） | `/tmp/amber-s9-class-containfit.log` | 2 tests / 0.609s | -1 | 0 |
+| `ScreenOcrDeviceTest`（离屏部分证据） | `/tmp/amber-s9-class-ocr-offscreen.log` | 4 tests / 2.537s | -1 | 0 |
+
+`PerAppSuccessPathDeviceTest` 第一次 120s 内 log 0 字节、host perl alarm exit 142（instrument 未吐 raw）。`am force-stop` + 一次 `KEYCODE_WAKEUP` 后重跑成功；**只认重跑这份完整 log**。锁屏测试均**未**传 `-e amberFixture s9`，用于证明 receiver 守卫下 plain Application 可活。无障碍结束后仍为 DSH。
+
+### 11.3 待用户解锁后再跑（未宣布完成）
+
+设备仍 `mDreamingLockscreen=true` / PIN。不轮询、不索取 PIN。解锁并保持亮屏后立即跑：
+
+1. `ScreenOcrProductionCaptureDeviceTest`（debug，然后同包 profileable）：前台 fixture + 生产 `DefaultScreenOcrEngine(context, ScreenCaptureManager(context))` + Amber 无障碍截图 `screenshotSource=accessibility_screenshot` + AX 不给词 + 可点区域映射当前树唯一目标。离屏 `view.draw` 不得再冒充此条。
+2. `ConversationActivityDeviceTest`（`-e amberFixture s9`）：四态面板截图 + 点击证据。
+3. `VideoPlaybackDeviceTest`（`-e amberFixture s9`）：Dialog 截图 + pause/resume/close 点击 + 列表 row-12。contain-fit 数学不是 Dialog 证据。
+4. `JevScreenDeviceTest.nativeSnapshotsRejectStaleAndVerifyLocalActions`：临时开 Amber 无障碍，精确恢复 DSH。scripted/native；无外部 key **只**阻塞联网 `realJev`。
+5. `PerAppRealControllerDeviceTest`：隔离 `JevScreenFixtureActivity` + 真实 controller + scripted transport。不对微信等真实业务包操作。
+
+解锁后不轮询锁屏、不索取 PIN。无障碍用完恢复 DSH。
+
+### 11.4 本轮完成 / 仍需用户动作
+
+**已经完成（独立可做）：** 报告矩阵更正；runner/夹具/receiver 守卫；APK 重装保留用户数据；6 个锁屏 class 完整 raw 日志 + CODE -1 + exit 0；`-e amberFixture s9` 在设备上拾取成功。未 push / 未开 PR。三个用户未跟踪文档未动。
+
+**仍需用户动作：** 解锁并保持亮屏，才能跑 §11.3 前台项。不得把本文件标成全部完成。

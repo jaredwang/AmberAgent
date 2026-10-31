@@ -30,8 +30,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Real-device OCR: PixelCopy/screenshot of WebView and custom-drawn canvas, owned ML Kit
- * `text-recognition-chinese` 16.0.1, no fake recognizer and no AX labels as OCR source.
+ * Partial on-device OCR evidence: offscreen WebView/Canvas `view.draw` into owned ML Kit
+ * `text-recognition-chinese` 16.0.1. Does **not** go through production
+ * `captureFreshBitmap` / Accessibility screenshot.
+ *
+ * Full production capture is [ScreenOcrProductionCaptureDeviceTest].
  */
 @RunWith(AndroidJUnit4::class)
 class ScreenOcrDeviceTest {
@@ -105,8 +108,7 @@ class ScreenOcrDeviceTest {
     }
 
     private fun recognizeFixture(mode: String, evidenceName: String) {
-        // Off-screen WebView/Canvas: real pixels into owned ML Kit, no Activity launch
-        // (plain test Application has no Koin; starting an Activity crashes ReminderRescheduleReceiver).
+        // Off-screen WebView/Canvas: real ML Kit on pixels. Not the production capture path.
         val width = 1080
         val height = 1600
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

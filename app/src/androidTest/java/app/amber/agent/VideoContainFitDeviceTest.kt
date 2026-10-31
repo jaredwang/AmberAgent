@@ -15,9 +15,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Device ART + decoder coverage for contain-fit math and silent pause of the
- * three fixture clips. Does not launch an Activity (plain test Application has
- * no Koin; Compose dialog coverage stays in [VideoPlaybackDeviceTest]).
+ * Supplementary device ART + decoder coverage for contain-fit math and silent
+ * pause of the three fixture clips. This is **not** VideoPlaybackDialog evidence.
+ * Dialog clicks / pause / resume / close / list position live in
+ * [VideoPlaybackDeviceTest].
  */
 @RunWith(AndroidJUnit4::class)
 class VideoContainFitDeviceTest {

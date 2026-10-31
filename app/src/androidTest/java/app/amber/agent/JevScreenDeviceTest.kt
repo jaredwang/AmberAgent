@@ -63,24 +63,7 @@ class JevScreenFixtureActivity : Activity() {
 /** Explicit opt-in: uses the user's saved Jev key and real Accessibility service + HTTP. */
 class JevScreenDeviceTest {
     private suspend fun connectAccessibility() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val automation = instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-        // Instrumentation force-stops its target; some OEMs do not rebind enabled services automatically.
-        if (getActiveAccessibilityController() == null) {
-            val resolver = instrumentation.targetContext.contentResolver
-            val key = android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-            val component = "${instrumentation.targetContext.packageName}/app.amber.core.automation.AmberAccessibilityService"
-            val original = android.provider.Settings.Secure.getString(resolver, key).orEmpty()
-            require(component in original.split(':')) { "Enable Amber Accessibility before testing" }
-            automation.adoptShellPermissionIdentity(android.Manifest.permission.WRITE_SECURE_SETTINGS)
-            try {
-                android.provider.Settings.Secure.putString(resolver, key, original.split(':').filterNot { it == component }.joinToString(":"))
-                delay(250)
-            } finally {
-                try { android.provider.Settings.Secure.putString(resolver, key, original) }
-                finally { automation.dropShellPermissionIdentity() }
-            }
-        }
+        AmberS9DeviceSupport.enableAmberAccessibility()
         withTimeout(20_000) { while (getActiveAccessibilityController() == null) delay(250) }
     }
 
@@ -97,8 +80,14 @@ class JevScreenDeviceTest {
         }
     }
 
+    @org.junit.After
+    fun restoreAccessibility() {
+        AmberS9DeviceSupport.restoreAmberAccessibility()
+    }
+
     @Test
     fun nativeSnapshotsRejectStaleAndVerifyLocalActions() = runBlocking {
+        AmberS9DeviceSupport.assumeUnlocked()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         connectAccessibility()
         val testPackage = instrumentation.context.packageName
@@ -124,6 +113,8 @@ class JevScreenDeviceTest {
     @Test
     fun realJevBilibiliSearch() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        AmberS9DeviceSupport.assumeUnlocked()
+        AmberS9DeviceSupport.assumeS9FixtureApplication()
         org.junit.Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("bilibiliJev") == "true")
         instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
         val koin = GlobalContext.get()
@@ -162,6 +153,8 @@ class JevScreenDeviceTest {
     @Test
     fun realJevRunsNativeGoalThroughProductionTool() = runBlocking {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
+        AmberS9DeviceSupport.assumeUnlocked()
+        AmberS9DeviceSupport.assumeS9FixtureApplication()
         val args = InstrumentationRegistry.getArguments()
         org.junit.Assume.assumeTrue(args.getString("realJev") == "true")
         instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)

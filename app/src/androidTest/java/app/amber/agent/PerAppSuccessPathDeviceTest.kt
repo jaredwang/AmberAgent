@@ -42,8 +42,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Device ART + real files for per-App memory. Isolated fixture packages only;
- * no payment, send, or user-data deletion.
+ * Device ART + fake [AccessibilityController] snapshots + real files for per-App
+ * memory. Isolated fixture packages only; no payment, send, or user-data deletion.
+ *
+ * This is **not** real-controller / foreground evidence. That path is
+ * [PerAppRealControllerDeviceTest].
  */
 @RunWith(AndroidJUnit4::class)
 class PerAppSuccessPathDeviceTest {
