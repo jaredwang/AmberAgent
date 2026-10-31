@@ -17,7 +17,7 @@
 | P0 离屏 ML Kit 像素 OCR | **部分证据已闭合（锁屏）**：owned ML Kit 识别中文/Latin 像素。`screenshotSource=offscreen_view_draw`，**不经过** `captureFreshBitmap` / Accessibility screenshot。完整 log：`/tmp/amber-s9-class-ocr-offscreen.log` OK (4 tests) CODE -1 exit 0。不能写成「非 debuggable 真实 OCR 全链路通过」 |
 | P0 前台生产截图 OCR | **未跑**（待解锁）：fixture Activity 前台 + `DefaultScreenOcrEngine(context, ScreenCaptureManager(context))` + 实际 `AmberAccessibilityService` 截图 + AX 不给词 + 可点区域映射当前树唯一目标。随后非 debuggable 同包 profileable 再验 |
 | P1 Room 四态 / 水位 / 冷启 | **已闭合（锁屏）**：per-class 完整日志 `INSTRUMENTATION_CODE: -1` + exit 0（§11.2）。不以 `/tmp/amber-s9-connected-core.log` 中途 STATUS 0 当 suite 通过 |
-| P1 Compose 四态面板 | **未跑**（待解锁）。夹具已改：`createEmptyComposeRule` + 显式启动 + `-e amberFixture s9` 隔离 Koin。挂起根因含 plain Application / `ReminderRescheduleReceiver` Koin、idle 同步、Activity 注册，**不单是 PIN** |
+| P1 Compose 四态面板 | **未跑**（待解锁）。夹具：`createEmptyComposeRule` + 显式启动 + `ChatDeviceFixtureRunner`。锁屏隔离已证明 TIME_SET 崩测试可在 androidTest 消化，**不单是 PIN** |
 | P2 Jev 设置 decode | **已闭合（锁屏）**：`JevSettingsDeviceTest` OK (2 tests) CODE -1 exit 0 |
 | P2 Jev 原生快照 / scripted controller | **未跑**（待解锁）。可临时开启 Amber 无障碍并**精确恢复**原 `enabled_accessibility_services`（保留 DSH）。缺外部 Jev key **只**阻塞联网 `realJev`，不阻塞本地原生/scripted |
 | P2 视频 contain-fit 数学 + 静音 MediaPlayer | **补充证据已闭合（锁屏）**：OK (2 tests) CODE -1 exit 0。**不是** `VideoPlaybackDialog` 实操 |
@@ -205,9 +205,12 @@ logcat 无 `FATAL EXCEPTION` / `AndroidRuntime`。锁屏下 `visibleRequested=fa
 
 ## 6. 真机证据矩阵
 
-runner 默认：`AmberAgentAndroidTestRunner` + plain `Application`（无 Koin），供锁屏可跑的 Room / JSON / ART / 离屏 OCR。目标包 Activity 会走到 `ReminderRescheduleReceiver`（`KoinComponent`），plain Application 下会 `KoinApplication has not been started`。这是 Compose/Activity 挂起的原因之一，不能只归因于 PIN。
+两个显式 runner（`am instrument` 组件选择，`newApplication` 固定 Application，不读私有 instrumentation 参数）：
 
-前台项使用同一 runner 加 `-e amberFixture s9` → `ChatDeviceFixtureApplication`（隔离 files/DB/prefs + Koin，不跑 `AmberAgentApp` 的 cron/bubble/recoverInterrupted）。Compose 改为 `createEmptyComposeRule`，规则启动时不拉 Activity。
+- `AmberAgentAndroidTestRunner`：plain `Application`，锁屏 Room / JSON / ART / 离屏 OCR。`newApplication` 先装空 store / 无 AlarmManager 的 no-op `ReminderScheduler` Koin，再 disable `ReminderRescheduleReceiver`，`finish()` 恢复原 `enabledSetting`。plain Application 无生产 Koin 时 TIME_SET 会崩测试，这是测试隔离问题，不是已证实的生产 boot 缺陷。
+- `ChatDeviceFixtureRunner`：`ChatDeviceFixtureApplication`（隔离 files/DB/prefs + Koin，不跑 `AmberAgentApp` cron/bubble/recoverInterrupted）。前台 Compose / Dialog 用此 runner。同样 no-op Koin + disable/restore，不碰其他组件。
+
+Compose 使用 `createEmptyComposeRule`，规则启动时不拉 Activity。
 
 证据目录：`/tmp/amber-s9-evidence/` 与 `/tmp/amber-s9-evidence/profileable-ocr/amber-s9/`。
 
@@ -250,7 +253,7 @@ adb shell am instrument -w -e class \
 
 `AppDatabaseMigrationTest` 曾在未完成的 `core.log` 中出现过 STATUS 0；本轮以 §11 per-class 完整日志 + `INSTRUMENTATION_CODE` + 退出码为准。
 
-Compose `ConversationActivityDeviceTest` 四态面板：**未跑**。先前挂起不能只写成 PIN：plain Application 无 Koin、`createAndroidComposeRule` 在规则启动时等 RESUMED、keyguard 下 Activity 到不了 RESUMED。夹具已改为 empty compose rule + `-e amberFixture s9`；解锁后跑。
+Compose `ConversationActivityDeviceTest` 四态面板：**未跑**。先前挂起不能只写成 PIN：plain Application 无生产 Koin 时 TIME_SET 崩测试、`createAndroidComposeRule` 在规则启动时等 RESUMED、keyguard 下 Activity 到不了 RESUMED。夹具已改为 empty compose rule + `ChatDeviceFixtureRunner`；TIME_SET 隔离见 §11.5。解锁后跑前台面板。
 
 ### 6.3 P2 Jev
 
@@ -314,7 +317,9 @@ opt-in `realJev` / `bilibiliJev`：**未跑**。无外部 Jev key 只阻塞联�
 | `VideoPlaybackDeviceTest.kt` | Dialog UI 实操（待解锁） |
 | `VideoContainFitDeviceTest.kt` | 补充 contain + 静音 pause，不是 Dialog |
 | `AmberS9VideoAssets.kt` | 本地 ffmpeg 色块 mp4 的 base64 |
-| `AmberAgentAndroidTestRunner.kt` | `-e amberFixture s9` → `ChatDeviceFixtureApplication` |
+| `AmberAgentAndroidTestRunner.kt` | 默认 plain `Application`；no-op ReminderScheduler Koin + disable/restore |
+| `ChatDeviceFixtureRunner` | 第二 instrumentation；固定 `ChatDeviceFixtureApplication` |
+| `TestReminderReceiverIsolation.kt` | 只动 reminder 接收器；persist 原 enabledSetting；no-op Koin 吞 TIME_SET |
 | `AmberS9DeviceSupport.kt` | 解锁 assume、a11y 保存/恢复 DSH、证据、unique tree target |
 
 生产代码无调试绕过。不启动真实用户作业。
@@ -325,7 +330,7 @@ opt-in `realJev` / `bilibiliJev`：**未跑**。无外部 Jev key 只阻塞联�
 
 1. 设备仍锁屏/休眠：前台 OCR / Compose 面板 / 视频 Dialog / 真 controller 均未跑。禁止 `locksettings clear`、不轮询 PIN。
 2. P0 生产截图链路未闭合。离屏 `view.draw` 不得再写成全链路。解锁后跑 `ScreenOcrProductionCaptureDeviceTest`，再在 profileable 上复验。
-3. Compose/Activity 挂起根因包括 plain Application + `ReminderRescheduleReceiver` Koin、`createAndroidComposeRule` idle、测试包 Activity 注册。夹具已改，仍需解锁后实跑。
+3. Compose/Activity 挂起根因包括 plain Application 下 TIME_SET 崩测试、`createAndroidComposeRule` idle、测试包 Activity 注册。隔离在 androidTest runner（no-op Koin + disable/restore），不改生产 reminder。仍需解锁后实跑前台项。
 4. 无外部 Jev key：只阻塞联网 `realJev`。本地原生快照与 scripted controller 不因此跳过。
 5. `fullBenchmarkRelease` 未装：生产 `applicationId`，debug 签名。非 debuggable 用同签 graphite profileable。
 6. 仓库无 `google-services.json`、无发行 keystore；未留假配置。
@@ -366,33 +371,30 @@ opt-in `realJev` / `bilibiliJev`：**未跑**。无外部 Jev key 只阻塞联�
 
 ## 11. 752feca80 返工（本轮）
 
-### 11.1 夹具 / runner（已装到 graphite，设备已验证 arg 拾取）
+### 11.1 夹具 / runner
 
-Compose/Activity 挂起**不能**只写成 PIN。本轮在锁屏下复现并修了这些：
+Compose/Activity 挂起**不能**只写成 PIN。锁屏下复现：
 
-1. 默认 runner 用 plain `Application`，目标进程收到 `TIME_SET` 时 `ReminderRescheduleReceiver`（`KoinComponent`）抛 `KoinApplication has not been started`，instrument 在测试执行前崩溃（`INSTRUMENTATION_CODE: 0` / `shortMsg=Process crashed`）。logcat：`FATAL EXCEPTION` at `ReminderRescheduleReceiver.onReceive`。
-2. `-e amberFixture s9` 原先读不到：`AndroidJUnitRunner.getArguments()` / `mArguments` 在 Android 17 Xiaomi 上不可用（`No field mArguments in class Landroid/app/Instrumentation`），runner 一直走 `fixture=<none>`。
-3. `createAndroidComposeRule` 在规则启动时等 `RESUMED`；keyguard 下 Activity 停在 PAUSED/STOPPED，表现为 idle hang。
-4. 测试 APK 的 `ScreenOcrFixtureActivity` / `JevScreenFixtureActivity` 与目标包不是同一进程。
+1. 默认 runner 用 plain `Application`，目标进程收到 `TIME_SET` 时 `ReminderRescheduleReceiver` 抛 `KoinApplication has not been started`，instrument 在测试执行前崩溃。这只证明 **plain test Application 不启动 Koin** 时会崩，**不能**写成已证实的生产 boot/时间变化竞态。
+2. 曾用 `-e amberFixture s9` + 反射扫 `ActivityThread` 私有 Bundle；Android 版本不稳，已弃用。
+3. `createAndroidComposeRule` 在规则启动时等 `RESUMED`；keyguard 下到不了 RESUMED。
+4. 测试 APK fixture Activity 与目标包不是同一进程。
 
-修复（无生产 test bypass，不启真实用户作业）：
+androidTest 隔离（不改生产 reminder 行为）：
 
-- 生产 `ReminderRescheduleReceiver`：Koin 未启动则失败关闭返回。这是 boot/`TIME_SET` 竞态的真实防护，不是 `if (isTest)`。
-- `AmberAgentAndroidTestRunner`：从 `ActivityThread$AppBindData.instrumentationArgs` 读 bind 参数。设备 logcat 已证实：
-  - `-e amberFixture s9` → `newApplication fixture=s9 app=app.amber.agent.ChatDeviceFixtureApplication`（`/tmp/amber-s9-class-fixture-probe.log` OK 2 tests CODE -1）
-  - 无该 extra → `newApplication fixture=<none> app=android.app.Application`（`/tmp/amber-s9-class-plain-app-probe.log` OK 2 tests CODE -1）
-- Compose：`createEmptyComposeRule` + 解锁后显式启动目标包 `ComponentActivity`；`assumeUnlocked` / `assumeS9FixtureApplication`，锁屏 skip。
-- `AmberS9DeviceSupport`：保存并精确恢复 `enabled_accessibility_services`；临时追加 Amber 无障碍；禁止覆盖丢 DSH。本轮锁屏测试**未**改无障碍，结束后仍仅为 DSH。
-- 生产 OCR：`ScreenOcrProductionCaptureDeviceTest`（待解锁跑）。
-- 真 controller per-App：`PerAppRealControllerDeviceTest`（待解锁跑）。
+- `AmberAgentAndroidTestRunner`：`newApplication` 固定 plain `Application`。
+- `ChatDeviceFixtureRunner`：同一测试 APK 的第二 instrumentation，`newApplication` 固定 `ChatDeviceFixtureApplication`。选择方式：`am instrument -w -r -e class … app.amber.agent.graphite.test/app.amber.agent.ChatDeviceFixtureRunner`。
+- `TestReminderReceiverIsolation`：先装空 store / 无 AlarmManager 的 no-op `ReminderScheduler` Koin（吞掉已在途的 TIME_SET，且不碰用户闹钟），再 disable 这一个 receiver；`finish()` 恢复 persist 的原 `enabledSetting`。不碰无障碍、不碰 WorkManager `RescheduleReceiver`。shell `pm disable`/`pm default-state` 在本机抛 `Shell cannot change component state`，不能当隔离手段。
+- Compose：`createEmptyComposeRule` + `assumeUnlocked` / `assumeS9FixtureApplication`。
+- 生产 OCR / 真 controller 夹具仍待解锁跑。
 
-安装：`adb install -r -t` fullDebug + androidTest。`firstInstallTime=2026-10-28 19:02:18` 保留；`lastUpdateTime=2026-11-01 05:28:50`。未改 PIN、未 `pm clear`、未扩大其他权限。
+`d2ad26d88` 两行生产 Koin 守卫已由 `ecab66e9b` 撤销。那两行只覆盖 plain test Application 不启动 Koin 的路径，**不能**写成已证实的生产 boot/时间变化缺陷修复。
 
 ### 11.2 锁屏可跑 class（完整 raw 日志）
 
 `/tmp/amber-s9-connected-core.log` 止于 `ScreenOcrDeviceTest` START，无 `INSTRUMENTATION_CODE`，**不算** suite 通过。本轮逐 class `am instrument -w -r`，要求文件含 `INSTRUMENTATION_CODE: -1`、`OK (N tests)`、adb exit 0。Gradle `--console plain`。不把中途 `STATUS_CODE: 0` 当整 suite 通过。
 
-新 APK（含 receiver 守卫 + runner 扫描）上的结果：
+当时 APK 仍含后来撤销的生产守卫与反射 runner。结果只证明那些 class 能跑完，**不再**当作生产守卫的证据：
 
 | class | log | OK | INSTRUMENTATION_CODE | exit |
 | --- | --- | --- | --- | --- |
@@ -403,22 +405,50 @@ Compose/Activity 挂起**不能**只写成 PIN。本轮在锁屏下复现并修�
 | `VideoContainFitDeviceTest`（补充，非 Dialog） | `/tmp/amber-s9-class-containfit.log` | 2 tests / 0.609s | -1 | 0 |
 | `ScreenOcrDeviceTest`（离屏部分证据） | `/tmp/amber-s9-class-ocr-offscreen.log` | 4 tests / 2.537s | -1 | 0 |
 
-`PerAppSuccessPathDeviceTest` 第一次 120s 内 log 0 字节、host perl alarm exit 142（instrument 未吐 raw）。`am force-stop` + 一次 `KEYCODE_WAKEUP` 后重跑成功；**只认重跑这份完整 log**。锁屏测试均**未**传 `-e amberFixture s9`，用于证明 receiver 守卫下 plain Application 可活。无障碍结束后仍为 DSH。
+`PerAppSuccessPathDeviceTest` 第一次 120s 内 log 0 字节、host perl alarm exit 142。`am force-stop` + 一次 `KEYCODE_WAKEUP` 后重跑成功；**只认重跑这份完整 log**。无障碍结束后仍为 DSH。撤销生产守卫后的隔离复跑见 §11.5。
 
 ### 11.3 待用户解锁后再跑（未宣布完成）
 
 设备仍 `mDreamingLockscreen=true` / PIN。不轮询、不索取 PIN。解锁并保持亮屏后立即跑：
 
 1. `ScreenOcrProductionCaptureDeviceTest`（debug，然后同包 profileable）：前台 fixture + 生产 `DefaultScreenOcrEngine(context, ScreenCaptureManager(context))` + Amber 无障碍截图 `screenshotSource=accessibility_screenshot` + AX 不给词 + 可点区域映射当前树唯一目标。离屏 `view.draw` 不得再冒充此条。
-2. `ConversationActivityDeviceTest`（`-e amberFixture s9`）：四态面板截图 + 点击证据。
-3. `VideoPlaybackDeviceTest`（`-e amberFixture s9`）：Dialog 截图 + pause/resume/close 点击 + 列表 row-12。contain-fit 数学不是 Dialog 证据。
-4. `JevScreenDeviceTest.nativeSnapshotsRejectStaleAndVerifyLocalActions`：临时开 Amber 无障碍，精确恢复 DSH。scripted/native；无外部 key **只**阻塞联网 `realJev`。
+2. `ConversationActivityDeviceTest`（`ChatDeviceFixtureRunner`）：四态面板截图 + 点击证据。
+3. `VideoPlaybackDeviceTest`（`ChatDeviceFixtureRunner`）：Dialog 截图 + pause/resume/close 点击 + 列表 row-12。contain-fit 数学不是 Dialog 证据。
+4. `JevScreenDeviceTest.nativeSnapshotsRejectStaleAndVerifyLocalActions`（plain 或 fixture runner 均可 native；`realJev` 需 fixture runner）：临时开 Amber 无障碍，精确恢复 DSH。无外部 key **只**阻塞联网 `realJev`。
 5. `PerAppRealControllerDeviceTest`：隔离 `JevScreenFixtureActivity` + 真实 controller + scripted transport。不对微信等真实业务包操作。
 
 解锁后不轮询锁屏、不索取 PIN。无障碍用完恢复 DSH。
 
 ### 11.4 本轮完成 / 仍需用户动作
 
-**已经完成（独立可做）：** 报告矩阵更正；runner/夹具/receiver 守卫；APK 重装保留用户数据；6 个锁屏 class 完整 raw 日志 + CODE -1 + exit 0；`-e amberFixture s9` 在设备上拾取成功。未 push / 未开 PR。三个用户未跟踪文档未动。
+**已经完成（独立可做）：** 报告矩阵更正；`ecab66e9b` 撤销生产守卫；双 runner + androidTest no-op Koin/disable/restore；锁屏小组隔离复跑见 §11.5。未 push / 未开 PR。三个用户未跟踪文档未动。
 
 **仍需用户动作：** 解锁并保持亮屏，才能跑 §11.3 前台项。不得把本文件标成全部完成。
+
+### 11.5 撤销生产守卫后的锁屏隔离复跑
+
+命令（plain）：
+
+```bash
+adb shell am instrument -w -r -e class app.amber.agent.JevSettingsDeviceTest \
+  app.amber.agent.graphite.test/app.amber.agent.AmberAgentAndroidTestRunner
+```
+
+命令（fixture）：
+
+```bash
+adb shell am instrument -w -r -e class app.amber.agent.JevSettingsDeviceTest \
+  app.amber.agent.graphite.test/app.amber.agent.ChatDeviceFixtureRunner
+```
+
+本轮从 **DEFAULT（enabledSetting=0）** 冷启动复跑。`setComponentEnabledSetting` 单独不够：disable 返回后约 80ms `onReceive` 仍跑。no-op `ReminderScheduler` Koin（空 store、无 AlarmManager）让已在途 TIME_SET 不崩、不改用户闹钟，再 disable/restore 这一只 receiver。
+
+| 项 | log | OK | CODE | exit | 说明 |
+| --- | --- | --- | --- | --- | --- |
+| plain `JevSettingsDeviceTest` | `/tmp/amber-s9-iso-plain-jev.log` | 2 tests / 0.019s | -1 | 0 | `AmberAgentAndroidTestRunner`；`newApplication app=android.app.Application`；logcat `original enabledSetting=0 (current=0)` → disable → `restored enabledSetting=0` |
+| plain `PerAppSuccessPathDeviceTest` | `/tmp/amber-s9-iso-plain-perapp.log` | 4 tests / 0.208s | -1 | 0 | 同上 runner；force-stop 后 DEFAULT 冷启动未崩 |
+| fixture `JevSettingsDeviceTest` | `/tmp/amber-s9-iso-fixture-jev.log` | 2 tests / 0.008s | -1 | 0 | `ChatDeviceFixtureRunner`；`newApplication app=…ChatDeviceFixtureApplication`；同样 restore 0 |
+| reminder 接收器 | host dumpsys | — | — | — | 每 class 跑后 `disabledComponents` 只剩 WorkManager `RescheduleReceiver`。`ReminderRescheduleReceiver` 不在 disabled/enabled 列表（DEFAULT=0）。`SystemJobService` 仍在 `enabledComponents` |
+| 无障碍 | `enabled_accessibility_services` | — | — | — | 仍仅为 DSH |
+
+`firstInstallTime=2026-10-28 19:02:18` 保留。`lastUpdateTime=2026-11-01 05:46:18`（本轮只重装 androidTest APK）。完整 host 记录：`/tmp/amber-s9-iso-run3.log`。前台项仍等解锁，未轮询 PIN。

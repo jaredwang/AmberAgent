@@ -127,7 +127,7 @@ class ConversationActivityStoreDeviceTest {
 /**
  * Isolated Compose four-kind panel. Launches a target-package ComponentActivity only
  * after [createEmptyComposeRule] (no Activity at rule start) and requires
- * `-e amberFixture s9` so [ReminderRescheduleReceiver] has Koin.
+ * [ChatDeviceFixtureRunner] so isolated Koin is started.
  * Skips when keyguard is locked instead of waiting on idle sync.
  */
 @RunWith(AndroidJUnit4::class)

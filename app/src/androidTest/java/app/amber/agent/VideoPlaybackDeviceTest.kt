@@ -56,7 +56,7 @@ import org.junit.runner.RunWith
 
 /**
  * Isolated VideoPlaybackDialog on a real Activity: control clicks, ON_STOP pause,
- * close silence, timeline row-12. Requires `-e amberFixture s9` and an unlocked screen.
+ * close silence, timeline row-12. Requires [ChatDeviceFixtureRunner] and an unlocked screen.
  * [VideoContainFitDeviceTest] math is supplementary only.
  */
 @RunWith(AndroidJUnit4::class)

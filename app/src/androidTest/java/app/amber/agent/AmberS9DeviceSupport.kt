@@ -54,7 +54,7 @@ object AmberS9DeviceSupport {
 
     fun assumeS9FixtureApplication() {
         assumeTrue(
-            "requires -e amberFixture s9 so ChatDeviceFixtureApplication starts isolated Koin",
+            "requires ChatDeviceFixtureRunner so ChatDeviceFixtureApplication starts isolated Koin",
             targetContext.applicationContext is ChatDeviceFixtureApplication,
         )
     }
