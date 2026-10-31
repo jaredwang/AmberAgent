@@ -1,8 +1,7 @@
 # Android 选定差异补全 · P2 Jev 用途补齐与手机用途拆分执行记录（2026-11-01）
 
 > 本文件是 P2 Jev 专用记录，不修改 `2026-10-31-android-selected-parity-handoff.md`。
-> 本轮只做 handoff §6。不做竖屏视频、不做 per-App 记忆、不操作真机。
-> 完成后停等主代理独立代码验收；未通过继续返工。设备/migration/面板仍待最后统一验证。
+> 主代理已对 `b42ea9c2a` 做代码验收通过（§9）；设备/migration/面板仍待最后统一验证，P2 Jev 不能标完全完成。
 
 ## 1. 基线
 
@@ -240,3 +239,22 @@ DI：`JevModule` 绑定 `JevApprovalTriage` / `JevSubagentIntent` / `JevScriptJu
 ## 8. 停等验收
 
 P2 Jev 返工完成（独立提交），停等主代理重验。未通过继续返工。本轮不进入视频 / perApp，不操作真机。
+
+## 9. 主代理代码验收（`b42ea9c2a`）
+
+主代理已独立核对 SCRIPT receipt reader+UI、verification-only 零动作与禁止 autoReturn、manager 真实 catalog 集成路径，并复跑：
+
+```bash
+./gradlew :core:jev:testDebugUnitTest :app:testFullDebugUnitTest \
+  --tests '*Jev*Test' \
+  --tests '*DefaultRunKernelTest' \
+  --tests '*ChatApprovalActionsTest' \
+  --tests '*ScreenOcrFallbackTest' \
+  --tests '*PhoneAutomationTakeoverControllerTest' \
+  --tests '*ExecutionPolicyCoveragePinTest' \
+  --tests '*SubAgentThreadGraphIntegrationTest'
+# core 71 + app 278 = 349 tests / 0 failures / 0 errors / 0 skipped
+# 日志 /tmp/amber-p2-rereview.log
+```
+
+**代码验收通过。** P2 Jev 不能标完全完成：设备安装/启动、Jev 实操、migration/面板仍待选定差异补全最后一轮统一验证（见 §7）。竖屏视频与 per-App 记忆不在本文件范围。
