@@ -760,22 +760,152 @@ class JevScreenGoalRunnerTest {
         assertEquals(1, controller.actions.size)
     }
 
+    /**
+     * Independent-config correction: verification ACTIVE + actions OFF is a
+     * reachable read-only path. Zero action decide/dispatch is the retained
+     * safety assertion from [actionsOffDisablesRunnerEvenIfVerificationActive];
+     * verification may issue its own request. canExecute stays false so
+     * screen_run_goal does not launch the target or auto-return to host.
+     */
     @Test
-    fun actionsOffDisablesRunnerEvenIfVerificationActive() = runTest {
-        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.99)))
-        val controller = FakeAccessibilityController(snapshot("actions-off"))
+    fun verificationActiveActionsOffCompletesWithoutDispatchOrHostReturn() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.96)))
+        val controller = FakeAccessibilityController(snapshot("verify-only-done"))
         val runtime = runtime(transport) {
             settings(JevMode.ACTIVE, verification = JevMode.ACTIVE, actions = JevMode.OFF)
         }
         val goalRunner = runner(runtime, testScheduler)
         assertFalse(goalRunner.canExecute())
         val result = goalRunner.run(
-            controller, "com.example.target", "goal", emptyList(), "phone-actions-off",
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-only-done",
+            hostPackageName = "app.amber.agent",
         )
-        assertEquals("disabled", status(result))
-        assertEquals("enable_jev_phone_actions", result["reason"]!!.jsonPrimitive.content)
-        assertEquals(0, transport.calls)
+        assertEquals("completed", status(result))
+        assertEquals(1, transport.calls)
+        assertTrue(transport.bodies.single().contains("\"done\""))
+        assertFalse(transport.bodies.single().contains("\"action\""))
+        assertEquals(0, controller.actions.size)
+        assertEquals(0, result["actions_dispatched"]!!.jsonPrimitive.content.toInt())
+        assertEquals("false", result["returned_to_host"]!!.jsonPrimitive.content)
+        assertEquals("verification_only_keep_foreground", result["host_return_reason"]!!.jsonPrimitive.content)
+        assertEquals("false", result["snapshot_invalidated"]!!.jsonPrimitive.content)
+        assertTrue(controller.hostReturns.isEmpty())
+    }
+
+    @Test
+    fun verificationActiveActionsOffNotDoneHandsBackWithoutDispatch() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.1)))
+        val controller = FakeAccessibilityController(snapshot("verify-only-notdone"))
+        val runtime = runtime(transport) {
+            settings(JevMode.ACTIVE, verification = JevMode.ACTIVE, actions = JevMode.OFF)
+        }
+        val goalRunner = runner(runtime, testScheduler)
+        assertFalse(goalRunner.canExecute())
+        val result = goalRunner.run(
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-only-notdone",
+        )
+        assertEquals("handback", status(result))
+        assertEquals("goal_not_verified", result["reason"]!!.jsonPrimitive.content)
+        assertEquals(1, transport.calls)
+        assertTrue(transport.bodies.single().contains("\"done\""))
+        assertFalse(transport.bodies.any { it.contains("\"action\"") })
+        assertEquals(0, controller.actions.size)
+    }
+
+    @Test
+    fun verificationActiveActionsOffFailedDecisionHandsBackWithoutDispatch() = runTest {
+        var calls = 0
+        val transport = JevTransport {
+            calls++
+            JevTransportResponse.Http(500, "boom".toByteArray(), null)
+        }
+        val controller = FakeAccessibilityController(snapshot("verify-only-fail"))
+        val runtime = runtime(transport) {
+            settings(JevMode.ACTIVE, verification = JevMode.ACTIVE, actions = JevMode.OFF)
+        }
+        val goalRunner = runner(runtime, testScheduler)
+        assertFalse(goalRunner.canExecute())
+        val result = goalRunner.run(
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-only-fail",
+        )
+        assertEquals("handback", status(result))
+        assertEquals("server_error", result["reason"]!!.jsonPrimitive.content)
+        assertEquals(0, controller.actions.size)
+        // ACTIVE verification HTTP 500 retries once, then fail-closes; never PHONE_ACTIONS.
+        assertEquals(2, calls)
+    }
+
+    @Test
+    fun verificationActiveActionsOffMissingScopeNeverRequests() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.99)))
+        val controller = FakeAccessibilityController(snapshot("verify-only-scope"))
+        val runtime = runtime(transport) {
+            settings(
+                JevMode.ACTIVE,
+                scopes = setOf(JevDataScope.TASK_TEXT),
+                verification = JevMode.ACTIVE,
+                actions = JevMode.OFF,
+            )
+        }
+        val goalRunner = runner(runtime, testScheduler)
+        assertFalse(goalRunner.canExecute())
+        val result = goalRunner.run(
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-only-scope",
+        )
+        assertEquals("handback", status(result))
+        assertEquals("screen_content_or_task_text_not_authorized", result["reason"]!!.jsonPrimitive.content)
         assertEquals(0, controller.captures)
+        assertEquals(0, transport.calls)
+        assertEquals(0, controller.actions.size)
+    }
+
+    @Test
+    fun verificationActiveActionsOffBudgetExhaustedHandsBackWithoutDispatch() = runTest {
+        val transport = ScriptedTransport(
+            MutableList(JevBudget.PHONE_MAX_REQUESTS + 4) { answer("done", done = 0.99) },
+        )
+        val runtime = runtime(transport) {
+            settings(JevMode.ACTIVE, verification = JevMode.ACTIVE, actions = JevMode.OFF)
+        }
+        repeat(JevBudget.PHONE_MAX_REQUESTS) { index ->
+            runtime.decide(
+                purpose = JevPurpose.PHONE_VERIFICATION,
+                runKey = "phone-verify-only-budget",
+                state = buildJsonObject { put("n", index) },
+                questions = mapOf("done" to JevQuestion.Noul("done?")),
+                requiredScopes = JevPurpose.PHONE_VERIFICATION.requiredScopes,
+            )
+        }
+        val controller = FakeAccessibilityController(snapshot("verify-only-budget"))
+        val goalRunner = runner(runtime, testScheduler)
+        assertFalse(goalRunner.canExecute())
+        val result = goalRunner.run(
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-only-budget",
+        )
+        assertEquals("handback", status(result))
+        assertEquals("budget_exhausted", result["reason"]!!.jsonPrimitive.content)
+        assertEquals(0, controller.actions.size)
+        assertEquals(JevBudget.PHONE_MAX_REQUESTS, transport.calls)
+    }
+
+    @Test
+    fun verificationShadowActionsOffTracesWithoutCompletingOrDispatch() = runTest {
+        val transport = ScriptedTransport(mutableListOf(answer("done", done = 0.99)))
+        val controller = FakeAccessibilityController(snapshot("verify-shadow-only"))
+        val runtime = runtime(transport) {
+            settings(JevMode.SHADOW, verification = JevMode.SHADOW, actions = JevMode.OFF)
+        }
+        val goalRunner = runner(runtime, testScheduler)
+        assertFalse(goalRunner.canExecute())
+        val result = goalRunner.run(
+            controller, "com.example.target", "goal", emptyList(), "phone-verify-shadow-only",
+        )
+        assertEquals("shadow_trace", status(result))
+        assertEquals(1, transport.calls)
+        assertTrue(transport.bodies.single().contains("\"done\""))
+        assertFalse(transport.bodies.single().contains("\"action\""))
+        assertEquals(0, controller.actions.size)
+        assertTrue(controller.hostReturns.isEmpty())
     }
 
     @Test

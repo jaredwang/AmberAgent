@@ -88,6 +88,7 @@ class JevScreenGoalRunner(
         var dispatched = 0
         var inFlight = false
         var imageReport = "not_requested"
+        var allowHostReturn = true
         suspend fun finish(status: String, reason: String? = null): JsonObject {
             val sessionState = takeoverController?.state?.value
             val takeoverCount = sessionState?.takeoverCount ?: 0
@@ -106,6 +107,7 @@ class JevScreenGoalRunner(
                     if (dryRun || status == "shadow_trace") "dry_run" else "not_completed_keep_foreground"
                 }
                 dryRun -> "dry_run"
+                !allowHostReturn -> "verification_only_keep_foreground"
                 isTargetHost -> "target_is_host"
                 !shouldAutoReturn -> "disabled_by_setting"
                 else -> {
@@ -149,11 +151,25 @@ class JevScreenGoalRunner(
         }
         try {
             val actionsConfig = runtime.configFor(JevPurpose.PHONE_ACTIONS)
-                ?: return finish("disabled", "enable_jev_phone_actions")
-            if (!actionsConfig.allowedScopes.containsAll(ACTION_SCOPES)) {
-                return finish("handback", "screen_content_or_task_text_not_authorized")
-            }
             val verificationConfig = runtime.configFor(JevPurpose.PHONE_VERIFICATION)
+            val actionsAuthorized = actionsConfig != null &&
+                actionsConfig.allowedScopes.containsAll(ACTION_SCOPES)
+            val verificationAuthorized = verificationConfig != null &&
+                verificationConfig.allowedScopes.containsAll(VERIFY_SCOPES)
+            if (!actionsAuthorized && !verificationAuthorized) {
+                val unauthorized = actionsConfig != null || verificationConfig != null
+                return finish(
+                    status = if (unauthorized) "handback" else "disabled",
+                    reason = if (unauthorized) {
+                        "screen_content_or_task_text_not_authorized"
+                    } else {
+                        "enable_jev_phone_actions"
+                    },
+                )
+            }
+            // Auto-return is an action-side effect. Verification-only and SHADOW
+            // actions keep the target in the foreground.
+            allowHostReturn = actionsAuthorized && actionsConfig.mode == JevMode.ACTIVE
             fun phoneConfigsUnchanged(): Boolean =
                 runtime.configFor(JevPurpose.PHONE_ACTIONS) == actionsConfig &&
                     runtime.configFor(JevPurpose.PHONE_VERIFICATION) == verificationConfig
@@ -233,15 +249,17 @@ class JevScreenGoalRunner(
                         ),
                     )
                     // 截图与当前观察绑定：reference 同时出现在 state 里，网关据此切块。
-                    val screenshot = screenshotProvider
-                    val wantsScreenshot = screenshot != null && (
-                        JevDataScope.SCREEN_SCREENSHOTS in actionsConfig.allowedScopes ||
-                            verificationConfig?.allowedScopes?.contains(JevDataScope.SCREEN_SCREENSHOTS) == true
+                    val screenshotFn = screenshotProvider
+                    val wantsScreenshot = screenshotFn != null && (
+                        (actionsAuthorized &&
+                            JevDataScope.SCREEN_SCREENSHOTS in actionsConfig.allowedScopes) ||
+                            (verificationAuthorized &&
+                                JevDataScope.SCREEN_SCREENSHOTS in verificationConfig.allowedScopes)
                     )
                     val reference = "<<SCREEN:${snapshot.id}>>"
-                    val attempt = if (wantsScreenshot && screenshot != null) screenshot(reference) else null
+                    val attempt = if (wantsScreenshot) screenshotFn(reference) else null
                     imageReport = describeImageAttempt(
-                        providerPresent = screenshot != null,
+                        providerPresent = screenshotFn != null,
                         scopeAllowed = wantsScreenshot,
                         attempt = attempt,
                     )
@@ -266,7 +284,7 @@ class JevScreenGoalRunner(
                         if (asset != null) imageReport = "skipped:configuration_changed"
                         return@withTimeoutOrNull finish("handback", "configuration_changed")
                     }
-                    if (verificationConfig != null) {
+                    if (verificationAuthorized) {
                         val verifyOutcome = runtime.decide(
                             purpose = JevPurpose.PHONE_VERIFICATION,
                             runKey = runKey,
@@ -326,6 +344,13 @@ class JevScreenGoalRunner(
                             return@withTimeoutOrNull finish("handback", reason)
                         }
                     }
+                    if (!actionsAuthorized) {
+                        return@withTimeoutOrNull when {
+                            verificationConfig?.mode == JevMode.SHADOW -> finish("shadow_trace")
+                            else -> finish("handback", "goal_not_verified")
+                        }
+                    }
+                    val actionMode = actionsConfig.mode
                     val outcome = runtime.decide(
                         purpose = JevPurpose.PHONE_ACTIONS,
                         runKey = runKey,
@@ -378,7 +403,7 @@ class JevScreenGoalRunner(
                     if (choice !in options) return@withTimeoutOrNull finish("handback", "invalid_action")
                     if (choice == "handback") return@withTimeoutOrNull finish("handback", "jev_requested_handback")
                     // Shadow and dry-run can never claim an executed or verified completion.
-                    if (dryRun || actionsConfig.mode == JevMode.SHADOW) {
+                    if (dryRun || actionMode == JevMode.SHADOW) {
                         steps += buildJsonObject { put("choice", choice); put("dispatched", false) }
                         return@withTimeoutOrNull finish("shadow_trace")
                     }

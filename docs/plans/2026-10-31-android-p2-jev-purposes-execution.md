@@ -68,19 +68,23 @@ JevRuntime.configFor(purpose)     OFF → null（零开销）
     │     ChatApprovalActions 批量批准 / 设置续跑拒绝 triage metadata
     │
     ├─ SCRIPT_JUDGMENT
-    │     DefaultRunKernel：toolDispatcher.executeBatch 之后
+    │     DefaultRunKernel：toolDispatcher.executeBatch 之后 annotate
     │     只评估 terminal_execute / terminal_session_exec / terminal_job_start
     │     已有输出截成 400+200；只写 metadata，不改 output 文本
+    │     消费方：JevScriptJudgment.noticeFor → ChatMessageTools 已执行回执
+    │     中性展示 ok / failed / needs_attention；不改 AgentToolStatus、不重试
+    │     OFF/SHADOW：不写 metadata，noticeFor=null，用户/主模型可见结果不变
     │
     └─ PHONE_VERIFICATION then PHONE_ACTIONS
-          JevScreenGoalRunner 每步两次 decide（verification OFF 则跳过第一次）
+          JevScreenGoalRunner.run 入口按两用途独立授权，不再要求 actionsConfig 非 null
+          verification 有 scopes 且 actions OFF：只读核验路径，零 PHONE_ACTIONS decide/派发
           verification：Noul done，state 无 candidates/history
-          ACTIVE + done≥threshold + 同 id 新鲜快照 → completed，不再问 action
+          ACTIVE + done≥threshold + 同 id 新鲜快照 → completed；verification-only 不自动回 host
           ACTIVE 失败/timeout/Skipped：fail-closed handback，不派发
-          SHADOW verification：真实 decide，不 complete，继续 actions
+          SHADOW verification：真实 decide，不 complete；actions OFF 时 shadow_trace
           actions：Choice(handback+aN) + safe_aN Noul；Box 不出现
-          canExecute = PHONE_ACTIONS ACTIVE + ACTION_SCOPES
-          截图默认关；任一手机用途授权 SCREEN_SCREENSHOTS 才捕获一次，两路共用
+          canExecute = PHONE_ACTIONS ACTIVE + ACTION_SCOPES（不因 verification 开启点击/回 host）
+          截图默认关；已授权用途含 SCREEN_SCREENSHOTS 才捕获一次，两路共用
           stale_snapshot / 唯一目标 / enabled+visible / 审批 / 接管 /
           动作后验收 / 副作用去重仍由 AccessibilityController 与
           PhoneAutomationTakeoverController 掌权
@@ -130,11 +134,53 @@ DI：`JevModule` 绑定 `JevApprovalTriage` / `JevSubagentIntent` / `JevScriptJu
 - `SettingJevPage.kt` / `JevStatusTool.kt` / `ChatMessageTools.kt`
 - 六套 `strings.xml`（替换 `setting_jev_purpose_screen_automation*`，新增 triage/intent/script 与审批卡文案）
 
-测试同步：`JevScreenGoalRunnerTest`、`DefaultRunKernelTest`、`ChatApprovalActionsTest`、`JevStatusToolTest`、`ScreenOcrFallbackTest`、`PhoneAutomationTakeoverControllerTest`、`JevScreenDeviceTest`、`JevBudgetTest`。
+测试同步：`JevScreenGoalRunnerTest`、`DefaultRunKernelTest`、`ChatApprovalActionsTest`、`JevStatusToolTest`、`ScreenOcrFallbackTest`、`PhoneAutomationTakeoverControllerTest`、`JevScreenDeviceTest`、`JevBudgetTest`、`SubAgentThreadGraphIntegrationTest`。
 
 无新依赖。
 
 ## 6. 测试命令与结果
+
+首轮 `1a499d424` 代码验收未通过（SCRIPT_JUDGMENT 无 reader、verification 绑死 actions、无 SubAgentManager.start 集成用例）。返工后重跑：
+
+```bash
+./gradlew :core:jev:testDebugUnitTest --offline --rerun-tasks
+# 6 suites / 71 tests / 0 failures / 0 errors / 0 skipped
+# /tmp/amber-p2-rework-core-jev.log  BUILD SUCCESSFUL
+
+./gradlew :app:testFullDebugUnitTest --offline \
+  --tests 'app.amber.core.jev.JevScreenGoalRunnerTest' \
+  --tests 'app.amber.core.jev.JevApprovalTriageTest' \
+  --tests 'app.amber.core.jev.JevSubagentIntentTest' \
+  --tests 'app.amber.core.jev.JevScriptJudgmentTest' \
+  --tests 'app.amber.core.jev.JevAutoApprovalGateTest' \
+  --tests 'app.amber.core.ai.tools.JevStatusToolTest' \
+  --tests 'app.amber.core.service.ChatApprovalActionsTest' \
+  --tests 'app.amber.core.ai.DefaultRunKernelTest' \
+  --tests 'app.amber.core.automation.ScreenOcrFallbackTest' \
+  --tests 'app.amber.core.automation.PhoneAutomationTakeoverControllerTest' \
+  --tests 'app.amber.core.jev.baseline.JevScreenCorpusBaselineTest' \
+  --tests 'app.amber.feature.runtime.ExecutionPolicyCoveragePinTest' \
+  --tests 'app.amber.feature.subagent.SubAgentThreadGraphIntegrationTest'
+# 13 suites / 194 tests / 0 failures / 0 errors / 0 skipped
+# /tmp/amber-p2-rework-app.log  BUILD SUCCESSFUL
+
+./gradlew :app:compileFullDebugKotlin --offline
+# /tmp/amber-p2-rework-compile.log  BUILD SUCCESSFUL
+```
+
+消费路径（本轮闭合）：
+
+- SCRIPT_JUDGMENT：`DefaultRunKernel.executeBatch` → `annotate` → 持久化 tool.metadata → `JevScriptJudgment.noticeFor` → `ChatMessageTools` 回执中性文案。kernel 测试证明 ACTIVE 可见/被消费，OFF/SHADOW noticeFor=null 且原 output/错误状态保留；`toolStatusFromMessagePart` 不因 verdict=ok 把 FAILED 改成成功。
+- PHONE_VERIFICATION：`JevScreenGoalRunner.run` 在 actions OFF 时仍走 PHONE_VERIFICATION decide。V ACTIVE/A OFF：done→completed 且 `verification_only_keep_foreground`（零派发、零回 host）；notdone→`goal_not_verified`；HTTP 500 仍 2 次后 fail-closed；缺 scope 零请求；共享预算耗尽 handback；SHADOW 真实 decide 后 `shadow_trace` 不 complete。`canExecute()` 仍为 false。替换原 `actionsOffDisablesRunnerEvenIfVerificationActive`：保留零 actions 派发，按独立配置修正为 verification 可发自己的请求。
+- SUBAGENT_INTENT：`SubAgentThreadGraphIntegrationTest.manager().start` 真实 explorer catalog。OFF/SHADOW spawn 且 allowlist 仍是 parent∩catalog（`tools_list`）；ACTIVE misaligned → `intent_misaligned` 不 spawn；fail-open spawn；invalid catalog / 空 allowlist 不调用 alignment、不 spawn。
+
+既有安全断言未降：triage 只收紧、AUTO_APPROVAL_GATE、stale/package/takeover/configuration_changed、`failedDecisionFallsBackWithoutDispatch` 仍期望 2 次 HTTP。
+
+本地化：新增 `chat_tool_jev_script_judgment_{ok,failed,needs_attention}` 六套 locale 均在。`python3 scripts/check_android_localization.py` 仍 FAIL 的是既有缺口（ja/ko/ru 缺 `chat_shelf_kind_html` / `live_update_*`、zh 缺 grok oauth waiting、`IntelligentUiStudyView` 内联中文），不是本轮引入。
+
+首轮记录（保留备查）：
+
+## 6a. 首轮测试命令与结果（`1a499d424`）
 
 日志均在 `/tmp`。
 
@@ -187,10 +233,10 @@ DI：`JevModule` 绑定 `JevApprovalTriage` / `JevSubagentIntent` / `JevScriptJu
 
 - P0 OCR / P1 活动中心 / 本轮 P2 Jev **均未做真机安装、启动、面板或 Jev 实操**；`JevScreenDeviceTest` 已改成两个手机用途 ACTIVE，设备上未跑。
 - Room `MIGRATION_21_22` 实库、跨对话活动面板仍待最后统一验证。P1 不能标完全完成。
-- `SubAgentManager.start` 的 `intent_misaligned` 与 kernel 里 `scriptJudgment.annotate(...)` 有生产接线；集成路径分别由 `JevSubagentIntentTest` / `JevScriptJudgmentTest` 覆盖，没有再加一层 manager/kernel 大环测试。
+- SCRIPT_JUDGMENT / PHONE_VERIFICATION / SUBAGENT_INTENT 的生产消费路径已有 kernel / runner / `SubAgentManager.start` 测试；未做 Compose UI 截图或真机回执展示。
 - 手机截图仍依赖宿主已有 MediaProjection；本轮不拉起授权 Activity。
 - 不做 P2 竖屏视频、不做 per-App 成功路径记忆。
 
 ## 8. 停等验收
 
-P2 Jev 代码施工完成，停等主代理独立验收。未通过继续返工。本轮不进入视频 / perApp，不操作真机。
+P2 Jev 返工完成（独立提交），停等主代理重验。未通过继续返工。本轮不进入视频 / perApp，不操作真机。

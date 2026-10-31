@@ -3580,6 +3580,9 @@
   <string name="chat_tool_jev_risk_exfiltration">отправка данных наружу</string>
   <string name="chat_tool_jev_risk_off_task">вне задачи</string>
   <string name="chat_tool_jev_risk_separator">", "</string>
+  <string name="chat_tool_jev_script_judgment_ok">Оценка: ok</string>
+  <string name="chat_tool_jev_script_judgment_failed">Оценка: сбой</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">Оценка: требует внимания</string>
   <string name="setting_jev_purpose_web_automation">Веб-автоматизация</string>
   <string name="setting_jev_purpose_web_automation_desc">Ограниченные быстрые действия для явных веб-целей (wm_run_goal)</string>
   <string name="setting_jev_mode_off">Выкл</string>

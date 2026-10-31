@@ -3628,6 +3628,9 @@
   <string name="chat_tool_jev_risk_exfiltration">外发数据</string>
   <string name="chat_tool_jev_risk_off_task">超出任务范围</string>
   <string name="chat_tool_jev_risk_separator">"、"</string>
+  <string name="chat_tool_jev_script_judgment_ok">判断：正常</string>
+  <string name="chat_tool_jev_script_judgment_failed">判断：失败</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">判断：需留意</string>
   <string name="setting_jev_mode_off">关闭</string>
   <string name="setting_jev_mode_shadow">测试</string>
   <string name="setting_jev_mode_active">启用</string>

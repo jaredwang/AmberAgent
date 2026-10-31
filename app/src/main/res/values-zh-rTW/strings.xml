@@ -3607,6 +3607,9 @@
   <string name="chat_tool_jev_risk_exfiltration">外傳資料</string>
   <string name="chat_tool_jev_risk_off_task">超出任務範圍</string>
   <string name="chat_tool_jev_risk_separator">"、"</string>
+  <string name="chat_tool_jev_script_judgment_ok">判斷：正常</string>
+  <string name="chat_tool_jev_script_judgment_failed">判斷：失敗</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">判斷：需留意</string>
   <string name="setting_jev_purpose_web_automation">網頁自動化</string>
   <string name="setting_jev_purpose_web_automation_desc">為明確的網頁目標執行有界快速操作（wm_run_goal）</string>
   <string name="setting_jev_mode_off">關閉</string>

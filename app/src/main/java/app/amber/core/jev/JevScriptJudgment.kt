@@ -2,7 +2,10 @@ package app.amber.core.jev
 
 import app.amber.ai.ui.UIMessagePart
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.put
 
 /**
@@ -94,6 +97,17 @@ class JevScriptJudgment(private val runtime: JevRuntime) {
         private val VERDICTS = setOf("ok", "failed", "needs_attention")
         private const val HEAD_CHARS = 400
         private const val TAIL_CHARS = 200
+
+        /** Neutral receipt caption. Invalid or missing metadata is ignored. */
+        data class Notice(val verdict: String, val confidence: Double?)
+
+        fun noticeFor(tool: UIMessagePart.Tool): Notice? {
+            val raw = tool.metadata?.get(METADATA_KEY) as? JsonObject ?: return null
+            val verdict = (raw["verdict"] as? JsonPrimitive)?.contentOrNull ?: return null
+            if (verdict !in VERDICTS) return null
+            val confidence = (raw["confidence"] as? JsonPrimitive)?.doubleOrNull
+            return Notice(verdict = verdict, confidence = confidence)
+        }
 
         internal fun outputSample(tool: UIMessagePart.Tool): String {
             val text = tool.output.filterIsInstance<UIMessagePart.Text>().joinToString("\n") { it.text }

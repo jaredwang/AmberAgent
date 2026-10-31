@@ -150,6 +150,19 @@ fun ChainOfThoughtScope.ChatMessageToolStep(
             )
         }
 
+        val scriptJudgmentNotice = if (!isPending && !isDenied && tool.isExecuted) {
+            jevScriptJudgmentNotice(tool)
+        } else {
+            null
+        }
+        if (scriptJudgmentNotice != null) {
+            Text(
+                text = scriptJudgmentNotice,
+                style = MaterialTheme.typography.labelSmall,
+                color = workspace.muted,
+            )
+        }
+
         if (screenReceipt != null && !isDenied && !isPending) {
             ScreenToolReceiptInlineSummary(
                 receipt = screenReceipt,
@@ -399,4 +412,17 @@ private fun jevApprovalTriageNotice(tool: UIMessagePart.Tool): String? {
     val detail = facts.takeIf { it.isNotEmpty() }?.joinToString(stringResource(R.string.chat_tool_jev_risk_separator))
         ?: applied
     return stringResource(R.string.chat_tool_jev_approval_triage_paused, detail)
+}
+
+/** Neutral SCRIPT_JUDGMENT caption. Does not change tool status or retry. */
+@Composable
+private fun jevScriptJudgmentNotice(tool: UIMessagePart.Tool): String? {
+    val notice = app.amber.core.jev.JevScriptJudgment.noticeFor(tool) ?: return null
+    val res = when (notice.verdict) {
+        "ok" -> R.string.chat_tool_jev_script_judgment_ok
+        "failed" -> R.string.chat_tool_jev_script_judgment_failed
+        "needs_attention" -> R.string.chat_tool_jev_script_judgment_needs_attention
+        else -> return null
+    }
+    return stringResource(res)
 }

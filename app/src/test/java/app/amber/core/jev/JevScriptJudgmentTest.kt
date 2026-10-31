@@ -10,6 +10,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -91,6 +92,16 @@ class JevScriptJudgmentTest {
             "ok",
             next.metadata?.get(JevScriptJudgment.METADATA_KEY)?.jsonObject?.get("verdict")?.jsonPrimitive?.content,
         )
+        assertEquals("ok", JevScriptJudgment.noticeFor(next)?.verdict)
+    }
+
+    @Test
+    fun noticeForReadsValidVerdictsAndIgnoresInvalid() {
+        assertEquals("ok", JevScriptJudgment.noticeFor(toolWithMeta("ok"))?.verdict)
+        assertEquals("failed", JevScriptJudgment.noticeFor(toolWithMeta("failed"))?.verdict)
+        assertEquals("needs_attention", JevScriptJudgment.noticeFor(toolWithMeta("needs_attention"))?.verdict)
+        assertNull(JevScriptJudgment.noticeFor(toolWithMeta("maybe")))
+        assertNull(JevScriptJudgment.noticeFor(tool()))
     }
 
     @Test
@@ -124,6 +135,7 @@ class JevScriptJudgmentTest {
         val judged = judgment(JevMode.OFF, transport).annotate(listOf(original), "run-script")
         assertEquals(listOf(original), judged)
         assertEquals(0, transport.calls)
+        assertNull(JevScriptJudgment.noticeFor(judged.single()))
     }
 
     @Test
@@ -134,8 +146,10 @@ class JevScriptJudgmentTest {
             .annotate(listOf(original), "run-script")
         assertEquals(listOf(original), judged)
         assertEquals(0, transport.calls)
+        assertNull(JevScriptJudgment.noticeFor(judged.single()))
         runCurrent()
         assertEquals(1, transport.calls)
+        assertNull(JevScriptJudgment.noticeFor(judged.single()))
     }
 
     @Test
@@ -202,5 +216,17 @@ class JevScriptJudgmentTest {
         val judged = checker.annotate(listOf(original), "run-script")
         assertEquals(original, judged.single())
         assertEquals(before, transport.calls)
+        assertNull(JevScriptJudgment.noticeFor(judged.single()))
     }
+
+    private fun toolWithMeta(verdict: String) = tool().copy(
+        metadata = JsonObject(
+            mapOf(
+                JevScriptJudgment.METADATA_KEY to buildJsonObject {
+                    put("verdict", verdict)
+                    put("confidence", 0.9)
+                },
+            ),
+        ),
+    )
 }

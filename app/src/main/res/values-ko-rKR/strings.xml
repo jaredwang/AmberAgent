@@ -3580,6 +3580,9 @@
   <string name="chat_tool_jev_risk_exfiltration">외부로 데이터 전송</string>
   <string name="chat_tool_jev_risk_off_task">작업 범위 밖</string>
   <string name="chat_tool_jev_risk_separator">", "</string>
+  <string name="chat_tool_jev_script_judgment_ok">판단: 정상</string>
+  <string name="chat_tool_jev_script_judgment_failed">판단: 실패</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">판단: 확인 필요</string>
   <string name="setting_jev_purpose_web_automation">웹 자동화</string>
   <string name="setting_jev_purpose_web_automation_desc">명시적 웹 목표에 대한 제한적 빠른 작업(wm_run_goal)</string>
   <string name="setting_jev_mode_off">끔</string>

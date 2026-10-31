@@ -3630,6 +3630,9 @@ My task:</string>
   <string name="chat_tool_jev_risk_exfiltration">sends data out</string>
   <string name="chat_tool_jev_risk_off_task">outside the task</string>
   <string name="chat_tool_jev_risk_separator">", "</string>
+  <string name="chat_tool_jev_script_judgment_ok">Judgment: ok</string>
+  <string name="chat_tool_jev_script_judgment_failed">Judgment: failed</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">Judgment: needs attention</string>
   <string name="setting_jev_mode_off">Off</string>
   <string name="setting_jev_mode_shadow">Test</string>
   <string name="setting_jev_mode_active">Active</string>

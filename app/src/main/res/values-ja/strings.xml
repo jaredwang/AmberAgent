@@ -3580,6 +3580,9 @@
   <string name="chat_tool_jev_risk_exfiltration">データ外部送信</string>
   <string name="chat_tool_jev_risk_off_task">タスク範囲外</string>
   <string name="chat_tool_jev_risk_separator">"、"</string>
+  <string name="chat_tool_jev_script_judgment_ok">判定：ok</string>
+  <string name="chat_tool_jev_script_judgment_failed">判定：失敗</string>
+  <string name="chat_tool_jev_script_judgment_needs_attention">判定：要確認</string>
   <string name="setting_jev_purpose_web_automation">Web オートメーション</string>
   <string name="setting_jev_purpose_web_automation_desc">明示的な Web 目標に対する有界の高速操作（wm_run_goal）</string>
   <string name="setting_jev_mode_off">オフ</string>
