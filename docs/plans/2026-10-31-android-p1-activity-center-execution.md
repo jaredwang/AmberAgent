@@ -1,7 +1,7 @@
 # Android 选定差异补全 · P1 跨对话活动中心执行记录（2026-11-01）
 
 > 本文件是 P1 专用记录，不修改 `2026-10-31-android-selected-parity-handoff.md`。
-> 施工提交停在本轮；未获主代理验收不得进入 P2。真机安装/启动/操作仍禁止。
+> 主代理已对 `04c6a3116` 做代码验收通过（§10）；设备 migration/面板实操仍待最后统一验证，P1 不能标完全完成。
 
 ## 1. 基线
 
@@ -151,3 +151,18 @@ collect 启动：`notices()` / `consumeWhileOpen()` 都先 `ensureActivityBaseli
 3. `ChatPageScaffold` 原先裸 `LaunchedEffect` 退后台仍 collect。现 `repeatOnLifecycle(RESUMED)`；点击 markSeen 只在合法导航目标下调用。
 
 schema 仍为 v22，未改表形，无新 migration。三个未跟踪用户文档未提交。未 push / 未开 PR。
+
+## 10. 主代理代码验收（`04c6a3116`）
+
+主代理已独立核对多 run 消费、DAO 事务归属校验与 version 上界、`RESUMED` lifecycle 和合法导航，并复跑：
+
+```bash
+./gradlew :app:testFullDebugUnitTest --offline \
+  --tests '*ConversationActivity*Test' \
+  --tests '*RunTerminalStoreTest' \
+  --tests '*SyncArchiveTableCoverageTest'
+# 65 tests / 0 failures / 0 errors / 0 skipped
+# 日志 /tmp/amber-p1-rereview.log
+```
+
+**代码验收通过。** P1 不能标完全完成：设备安装/启动、Room `MIGRATION_21_22` 实库 migration、跨对话面板实操仍待选定差异补全最后一轮统一验证（见 §7）。
