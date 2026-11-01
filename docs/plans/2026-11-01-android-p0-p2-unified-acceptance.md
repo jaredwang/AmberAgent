@@ -426,7 +426,7 @@ androidTest 隔离（不改生产 reminder 行为）：
 
 **已经完成：** 报告矩阵更正；`ecab66e9b` 撤销生产守卫；双 runner + androidTest 隔离；锁屏 8 项；§11.3 前台 6 class；视频 first-prepare 生产返工；最终 DEBUGGABLE APK 保留用户数据安装启动；临时亮屏/无障碍已恢复。
 
-**不停在用户动作。** 停等 Paseo 最终审核。未 push / 未开 PR。三个用户未跟踪文档未动。
+**不停在用户动作。** 主代理最终审核结果见 §12。未 push / 未开 PR。三个用户未跟踪文档未动。
 
 ### 11.5 撤销生产守卫后的锁屏隔离复跑
 
@@ -455,3 +455,14 @@ adb shell am instrument -w -r -e class app.amber.agent.JevSettingsDeviceTest \
 | 无障碍 | `enabled_accessibility_services` | — | — | — | 仍仅为 DSH |
 
 `firstInstallTime=2026-10-28 19:02:18` 保留。`lastUpdateTime=2026-11-01 05:46:18`（本轮只重装 androidTest APK）。完整 host 记录：`/tmp/amber-s9-iso-run3.log`。前台项仍等解锁，未轮询 PIN。
+
+## 12. 主代理最终验收（2026-11-01）
+
+五阶段代码及本地真机验收通过；联网 realJev 验证保留为未完成项，不声称外部服务端到端已通过。
+
+- 独立核对 §11.3 六组 raw 日志，均正常结束 `INSTRUMENTATION_CODE: -1`：11 项实际通过，2 项 realJev 因无 key 跳过。
+- 查看非 debuggable 前台 OCR 原始输出：`screenshotSource=accessibility_screenshot`、`BITMAP_OCR`、中文/Latin 及文字区域 bounds；WebView 个别字形误识别的限制仍保留。
+- 查看四态活动面板和竖屏视频截图，并核对点击、后台暂停、前台手动恢复、关闭后 row-12 及真实 controller 接管/清除的证据。
+- 独立复跑最终视频 session 回归：`./gradlew :app:testFullDebugUnitTest --offline --tests '*VideoPlaybackSessionTest'` 成功，日志 `/tmp/amber-final-video-review.log`。最终生产增量仅视频首次 prepare 自动播放修复；提醒生产守卫已撤销。
+- 全量 JVM 既有 2 项 OAuth 并发失败、15 项 skip 与本地化既有缺口仍单列；本验收不将这些记为通过。
+- APK 已保留用户数据安装启动。未 push、未开 PR；工作区仅原有三份未跟踪计划，构建产物和临时证据未入库。
