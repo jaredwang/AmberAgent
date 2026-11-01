@@ -15,8 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * A new view must construct a **new** session. Releasing this one never
  * blocks a later session.
  *
- * Auto-start happens only when prepared while the host is in the foreground.
- * [onHostStarted] does not start playback; the user resumes with
+ * Auto-start happens only on the first [dispatchPrepared] while the host is
+ * in the foreground. A later prepare (surface recreate after `ON_STOP`) does
+ * not start. [onHostStarted] does not start playback; the user resumes with
  * [dispatchUserPlay].
  */
 internal class VideoPlaybackSession(
@@ -54,10 +55,10 @@ internal class VideoPlaybackSession(
         if (!alive.get()) return VideoPreparedDispatch.Ignored
         val metrics = readMetrics()
         if (!alive.get()) return VideoPreparedDispatch.Ignored
-        prepared.set(true)
+        val firstPrepare = !prepared.getAndSet(true)
         return VideoPreparedDispatch.Ready(
             metrics = metrics,
-            startPlayback = foreground.get(),
+            startPlayback = firstPrepare && foreground.get(),
         )
     }
 

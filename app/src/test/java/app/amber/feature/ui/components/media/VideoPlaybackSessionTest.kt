@@ -53,6 +53,18 @@ class VideoPlaybackSessionTest {
     }
 
     @Test
+    fun reprepareAfterStopDoesNotAutoStart() {
+        val session = VideoPlaybackSession(initiallyForeground = true)
+        val first = session.dispatchPrepared { VideoTrackMetrics(1920, 1080) } as VideoPreparedDispatch.Ready
+        assertTrue(first.startPlayback)
+        session.onHostStopped()
+        session.onHostStarted()
+        val second = session.dispatchPrepared { VideoTrackMetrics(1920, 1080) } as VideoPreparedDispatch.Ready
+        assertFalse("surface recreate after ON_STOP must not auto-start", second.startPlayback)
+        assertTrue(session.dispatchUserPlay())
+    }
+
+    @Test
     fun stopThenForegroundAllowsALaterPrepareToAutoStart() {
         val session = VideoPlaybackSession(initiallyForeground = true)
         session.onHostStopped()
