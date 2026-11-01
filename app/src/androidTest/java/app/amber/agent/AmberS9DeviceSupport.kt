@@ -3,21 +3,30 @@ package app.amber.agent
 import android.Manifest
 import android.app.KeyguardManager
 import android.app.UiAutomation
+import android.content.Intent
 import android.graphics.Bitmap
+import android.hardware.display.DisplayManager
 import android.os.ParcelFileDescriptor
+import android.view.Display
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.activity.ComponentActivity
-import androidx.test.core.app.ActivityScenario
+import androidx.lifecycle.Lifecycle
 import androidx.test.platform.app.InstrumentationRegistry
 import app.amber.core.automation.ScreenNode
 import app.amber.core.automation.ScreenOcrBlock
 import app.amber.core.automation.ScreenSnapshot
 import app.amber.core.automation.getActiveAccessibilityController
+import java.io.Closeable
 import java.io.File
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
@@ -101,27 +110,172 @@ object AmberS9DeviceSupport {
         }
     }
 
-    fun launchTestPackageActivity(componentClass: String, extras: String = ""): String {
-        val cmd = buildString {
-            append("am start -W -n $testPackage/$componentClass")
-            append(" --activity-clear-task --activity-new-task")
-            if (extras.isNotBlank()) append(' ').append(extras)
-        }
-        return shell(cmd)
+    fun interactiveDisplayId(): Int {
+        val dm = targetContext.getSystemService(DisplayManager::class.java)
+        val on = dm.displays.filter { it.state == Display.STATE_ON }
+        return on.firstOrNull { it.displayId == Display.DEFAULT_DISPLAY }?.displayId
+            ?: on.minByOrNull { it.displayId }?.displayId
+            ?: Display.DEFAULT_DISPLAY
     }
 
-    fun launchTargetComposeHost(): ActivityScenario<ComponentActivity> {
+    fun dismissTransientSystemUi() {
+        shell("cmd statusbar collapse")
+    }
+
+    /**
+     * Framework [android.app.Instrumentation.startActivitySync], not
+     * MonitoringInstrumentation's idle-gated override. ComposeTestRule's
+     * Espresso idling makes the override wait 45s. Same-uid starts are still
+     * MIUI BAL-aborted (result 102) when the process is background.
+     */
+    fun startActivitySyncRaw(intent: Intent): android.app.Activity {
+        val method = android.app.Instrumentation::class.java.getDeclaredMethod(
+            "startActivitySync",
+            Intent::class.java,
+        )
+        method.isAccessible = true
+        return method.invoke(instrumentation, intent) as android.app.Activity
+    }
+
+    /**
+     * Shell `am start` (uid 2000) of an exported debug fixture. Same-uid
+     * [startActivitySync] is BAL-aborted while Paseo holds the cover.
+     */
+    fun launchTargetActivity(componentClass: String, extras: String = ""): android.app.Activity {
+        dismissTransientSystemUi()
+        shell("input keyevent KEYCODE_HOME")
+        val displayId = interactiveDisplayId()
+        val extraArgs = extras.trim().let { if (it.isEmpty()) "" else " $it" }
+        val monitor = instrumentation.addMonitor(componentClass, null, false)
+        try {
+            val startOut = shell(
+                "am start -W --display $displayId --windowingMode 1 -f 0x10008000 " +
+                    "-n $targetPackage/$componentClass$extraArgs",
+            )
+            println("AmberS9 amStart display=$displayId $startOut")
+            var activity = instrumentation.waitForMonitorWithTimeout(monitor, 8_000)
+            if (activity == null) {
+                println("AmberS9 amStart missed monitor; fallback startActivitySyncRaw")
+                val intent = Intent().setClassName(targetPackage, componentClass)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                applyShellExtras(intent, extras)
+                activity = startActivitySyncRaw(intent)
+            }
+            instrumentation.runOnMainSync {
+                activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            awaitForegroundActivity(activity, extras)
+            return activity
+        } finally {
+            instrumentation.removeMonitor(monitor)
+        }
+    }
+
+    /**
+     * MIUI may first attach an exported fixture as a tiny unfocused window.
+     * Production OCR must wait until the cover display actually shows it.
+     */
+    fun awaitForegroundActivity(
+        activity: android.app.Activity,
+        extras: String = "",
+        minWidth: Int = 800,
+    ) {
+        val deadline = System.currentTimeMillis() + 10_000
+        while (System.currentTimeMillis() < deadline) {
+            var width = 0
+            var focused = false
+            instrumentation.runOnMainSync {
+                width = activity.window?.decorView?.width ?: 0
+                focused = activity.hasWindowFocus()
+            }
+            println("AmberS9 awaitForeground focused=$focused w=$width extras=$extras")
+            if (focused && width >= minWidth) return
+            Thread.sleep(200)
+        }
+        error(
+            "fixture not foreground focused=${activity.hasWindowFocus()} " +
+                "w=${activity.window?.decorView?.width}",
+        )
+    }
+
+    /**
+     * Launch a debug-variant fixture that lives in the target package.
+     */
+    fun launchTestPackageActivity(componentClass: String, extras: String = ""): String {
+        val activity = launchTargetActivity(componentClass, extras)
+        val width = intArrayOf(0)
+        instrumentation.runOnMainSync {
+            width[0] = activity.window?.decorView?.width ?: 0
+        }
+        val report =
+            "amStart component=${activity.componentName} display=${activity.display?.displayId} " +
+                "hasFocus=${activity.hasWindowFocus()} width=${width[0]}"
+        println("AmberS9 $report")
+        return report
+    }
+
+    /**
+     * Must run before [androidx.compose.ui.test.junit4.createEmptyComposeRule]
+     * applies Espresso idling.
+     */
+    fun launchTargetComposeHost(): ComposeHostSession {
         assumeUnlocked()
         assumeS9FixtureApplication()
-        shell(
-            "am start -W -n $targetPackage/androidx.activity.ComponentActivity " +
-                "--activity-clear-task --activity-new-task",
+        S9ComposeHostActivity.clearInstance()
+        val started = launchTargetActivity(S9ComposeHostActivity::class.java.name) as ComponentActivity
+        println(
+            "AmberS9 composeHost component=${started.componentName} " +
+                "display=${started.display?.displayId} hasFocus=${started.hasWindowFocus()} " +
+                "state=${started.lifecycle.currentState}",
         )
-        val scenario = ActivityScenario.launch(ComponentActivity::class.java)
-        scenario.onActivity { activity ->
-            activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        return ComposeHostSession(started)
+    }
+
+    private fun applyShellExtras(intent: Intent, extras: String) {
+        val parts = extras.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        var index = 0
+        while (index < parts.size) {
+            if (parts[index] == "--es" && index + 2 < parts.size) {
+                intent.putExtra(parts[index + 1], parts[index + 2])
+                index += 3
+            } else {
+                index += 1
+            }
         }
-        return scenario
+    }
+
+    fun waitForSnapshotPackage(
+        expectedPackage: String,
+        timeoutMs: Long = 15_000,
+        minWidth: Int = 0,
+    ): ScreenSnapshot {
+        var last = "(none)"
+        var found: ScreenSnapshot? = null
+        try {
+            runBlocking {
+                withTimeout(timeoutMs) {
+                    while (found == null) {
+                        val current = withContext(Dispatchers.Main) {
+                            getActiveAccessibilityController()?.captureScreenSnapshot()
+                        }
+                        last = current?.packageName ?: "(null-snapshot)"
+                        val wideEnough = minWidth <= 0 ||
+                            current?.nodes?.any { it.right - it.left >= minWidth } == true
+                        if (current != null && current.packageName == expectedPackage && wideEnough) {
+                            found = current
+                        } else {
+                            delay(250)
+                        }
+                    }
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw AssertionError(
+                "timed out waiting for snapshot package $expectedPackage; last=$last",
+                e,
+            )
+        }
+        return checkNotNull(found)
     }
 
     fun <T> withZeroAnimations(block: () -> T): T {
@@ -278,5 +432,80 @@ object AmberS9DeviceSupport {
                 shell("settings put secure enabled_accessibility_services $value")
             }
         }
+    }
+}
+
+/** Wraps a target-package Activity already resumed by [Instrumentation.startActivitySync]. */
+class ComposeHostSession(
+    val activity: ComponentActivity,
+) : Closeable {
+    private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
+
+    fun onActivity(block: (ComponentActivity) -> Unit) {
+        instrumentation.runOnMainSync { block(activity) }
+    }
+
+    fun moveToState(state: Lifecycle.State) {
+        when (state) {
+            Lifecycle.State.CREATED -> {
+                instrumentation.runOnMainSync {
+                    activity.startActivity(
+                        android.content.Intent(activity, S9LifecycleCoverActivity::class.java),
+                    )
+                }
+                val coverDeadline = System.currentTimeMillis() + 5_000
+                while (System.currentTimeMillis() < coverDeadline &&
+                    S9LifecycleCoverActivity.instance == null
+                ) {
+                    Thread.sleep(50)
+                }
+            }
+            Lifecycle.State.RESUMED -> instrumentation.runOnMainSync {
+                S9LifecycleCoverActivity.instance?.finish()
+            }
+            else -> error("unsupported lifecycle state $state")
+        }
+        instrumentation.waitForIdleSync()
+        val deadline = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < deadline) {
+            val current = activity.lifecycle.currentState
+            val ok = when (state) {
+                Lifecycle.State.CREATED -> !current.isAtLeast(Lifecycle.State.STARTED)
+                Lifecycle.State.RESUMED -> current.isAtLeast(Lifecycle.State.RESUMED)
+                else -> current == state
+            }
+            if (ok) return
+            Thread.sleep(50)
+        }
+        error("lifecycle ${activity.lifecycle.currentState} did not reach $state")
+    }
+
+    override fun close() {
+        instrumentation.runOnMainSync {
+            if (!activity.isFinishing) activity.finish()
+        }
+        instrumentation.waitForIdleSync()
+        val deadline = System.currentTimeMillis() + 3_000
+        while (System.currentTimeMillis() < deadline && !activity.isDestroyed) {
+            Thread.sleep(50)
+        }
+    }
+}
+
+/**
+ * Starts [S9ComposeHostActivity] via [Instrumentation.startActivitySync] before
+ * ComposeTestRule installs Espresso idling.
+ */
+class ComposeHostRule : TestWatcher() {
+    var session: ComposeHostSession? = null
+        private set
+
+    override fun starting(description: Description) {
+        session = AmberS9DeviceSupport.launchTargetComposeHost()
+    }
+
+    override fun finished(description: Description) {
+        session?.close()
+        session = null
     }
 }

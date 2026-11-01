@@ -12,7 +12,9 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 
 /**
- * Isolated OCR fixture: WebView HTML or a custom [onDraw] canvas, both with
+ * Debug-only OCR fixture in the target package so instrumentation
+ * [android.app.Instrumentation.startActivitySync] can resume it on the
+ * interactive display. WebView HTML or a custom [onDraw] canvas, both with
  * descendants hidden from Accessibility so bitmap OCR cannot be faked by AX labels.
  */
 class ScreenOcrFixtureActivity : Activity() {
@@ -97,6 +99,9 @@ class ScreenOcrFixtureActivity : Activity() {
         fun createWebView(context: android.content.Context, onReady: () -> Unit): WebView =
             WebView(context).apply {
                 settings.javaScriptEnabled = false
+                settings.useWideViewPort = true
+                settings.loadWithOverviewMode = true
+                settings.setSupportZoom(false)
                 setBackgroundColor(Color.WHITE)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
                 contentDescription = null
@@ -115,12 +120,22 @@ class ScreenOcrFixtureActivity : Activity() {
             }
         private val WEB_HTML = """
             <!doctype html>
-            <html>
-            <head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-            <body style="margin:0;padding:48px;background:#ffffff;color:#000000;font-family:sans-serif">
-              <p style="font-size:56px;font-weight:700;margin:0 0 24px">$CHINESE</p>
-              <p style="font-size:48px;margin:0 0 24px">$LATIN</p>
-              <a href="#click" style="font-size:48px;color:#0000cc">$CLICKABLE</a>
+            <html lang="zh" aria-hidden="true">
+            <head>
+              <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+              <style>
+                html,body{margin:0;padding:0;background:#ffffff;color:#000000}
+                body{padding:96px 32px 32px;font-family:sans-serif}
+                p,a{display:block;white-space:nowrap;overflow:hidden;line-height:1.25;margin:0 0 28px}
+                .zh{font-size:36px;font-weight:700}
+                .latin{font-size:32px}
+                a{font-size:32px;color:#0000cc}
+              </style>
+            </head>
+            <body aria-hidden="true">
+              <p class="zh" aria-hidden="true">$CHINESE</p>
+              <p class="latin" aria-hidden="true">$LATIN</p>
+              <a aria-hidden="true" href="#click">$CLICKABLE</a>
             </body>
             </html>
         """.trimIndent()

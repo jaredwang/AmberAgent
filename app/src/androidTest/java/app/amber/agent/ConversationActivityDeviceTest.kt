@@ -141,6 +141,9 @@ class ConversationActivityDeviceTest {
     }
 
     @get:Rule(order = 1)
+    val host = ComposeHostRule()
+
+    @get:Rule(order = 2)
     val compose = createEmptyComposeRule()
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -157,31 +160,29 @@ class ConversationActivityDeviceTest {
         )
         var opened: String? = null
         AmberS9DeviceSupport.withZeroAnimations {
-            AmberS9DeviceSupport.launchTargetComposeHost().use { scenario ->
-                scenario.onActivity { activity ->
-                    activity.setContent {
-                        FixtureTheme {
-                            Column(Modifier.fillMaxWidth()) {
-                                ChatActivityPanelContent(notices = notices) { opened = it.conversationId }
-                            }
+            checkNotNull(host.session).onActivity { activity ->
+                activity.setContent {
+                    FixtureTheme {
+                        Column(Modifier.fillMaxWidth()) {
+                            ChatActivityPanelContent(notices = notices) { opened = it.conversationId }
                         }
                     }
                 }
-                compose.waitForIdle()
-                compose.onNodeWithText(context.getString(R.string.chat_activity_panel_title)).assertIsDisplayed()
-                compose.onNodeWithText(context.getString(R.string.chat_activity_kind_waiting)).assertIsDisplayed()
-                compose.onNodeWithText(context.getString(R.string.chat_activity_kind_failed)).assertIsDisplayed()
-                compose.onNodeWithText(context.getString(R.string.chat_activity_kind_completed)).assertIsDisplayed()
-                compose.onNodeWithText(context.getString(R.string.chat_activity_kind_running)).assertIsDisplayed()
-                compose.onNodeWithText("Wait chat").assertIsDisplayed()
-                AmberS9DeviceSupport.takeUiScreenshot("activity-panel.png")
-                compose.onNodeWithText("Wait chat").performClick()
-                compose.runOnIdle { assertEquals("wait-conv", opened) }
-                AmberS9DeviceSupport.writeEvidence(
-                    "activity-panel-click.txt",
-                    "opened=$opened title=Wait chat kind=waiting\n",
-                )
             }
+            compose.waitForIdle()
+            compose.onNodeWithText(context.getString(R.string.chat_activity_panel_title)).assertIsDisplayed()
+            compose.onNodeWithText(context.getString(R.string.chat_activity_kind_waiting)).assertIsDisplayed()
+            compose.onNodeWithText(context.getString(R.string.chat_activity_kind_failed)).assertIsDisplayed()
+            compose.onNodeWithText(context.getString(R.string.chat_activity_kind_completed)).assertIsDisplayed()
+            compose.onNodeWithText(context.getString(R.string.chat_activity_kind_running)).assertIsDisplayed()
+            compose.onNodeWithText("Wait chat").assertIsDisplayed()
+            AmberS9DeviceSupport.takeUiScreenshot("activity-panel.png")
+            compose.onNodeWithText("Wait chat").performClick()
+            compose.runOnIdle { assertEquals("wait-conv", opened) }
+            AmberS9DeviceSupport.writeEvidence(
+                "activity-panel-click.txt",
+                "opened=$opened title=Wait chat kind=waiting\n",
+            )
         }
     }
 

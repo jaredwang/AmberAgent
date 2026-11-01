@@ -28,7 +28,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -58,7 +57,7 @@ class PerAppRealControllerDeviceTest {
             val snapshot = runBlocking {
                 withContext(Dispatchers.Main) { getActiveAccessibilityController()!!.captureScreenSnapshot()!! }
             }
-            assertEquals(AmberS9DeviceSupport.testPackage, snapshot.packageName)
+            assertEquals(AmberS9DeviceSupport.targetPackage, snapshot.packageName)
             val matches = snapshot.nodes.filter { it.clickable && it.label == "打开评论列表" }
             assertEquals("expected a unique clickable 打开评论列表, got ${matches.map { it.ref }}", 1, matches.size)
             val target = matches.single()
@@ -95,7 +94,8 @@ class PerAppRealControllerDeviceTest {
     }
 
     @Test
-    fun rememberedPathUniquelyGuidesFreshSnapshot() = runBlocking {
+    fun rememberedPathUniquelyGuidesFreshSnapshot() {
+        runBlocking {
         AmberS9DeviceSupport.assumeUnlocked()
         AmberS9DeviceSupport.uiAutomation()
         AmberS9DeviceSupport.withAmberAccessibilitySuspending {
@@ -104,7 +104,7 @@ class PerAppRealControllerDeviceTest {
             val first = withContext(Dispatchers.Main) { getActiveAccessibilityController()!!.captureScreenSnapshot()!! }
             val open = first.nodes.single { it.clickable && it.label == "打开评论列表" }
             val seed = PerAppSuccessPathSanitizer.buildPath(
-                packageName = AmberS9DeviceSupport.testPackage,
+                packageName = AmberS9DeviceSupport.targetPackage,
                 goal = "打开评论列表",
                 steps = listOf(PerAppSuccessPathSanitizer.stepFrom(ScreenActionKind.CLICK, open)!!),
                 recordedAtMs = 1,
@@ -116,7 +116,7 @@ class PerAppRealControllerDeviceTest {
                 memory,
             ).run(
                 getActiveAccessibilityController()!!,
-                AmberS9DeviceSupport.testPackage,
+                AmberS9DeviceSupport.targetPackage,
                 "打开评论列表",
                 emptyList(),
                 "run-real-guide",
@@ -125,10 +125,12 @@ class PerAppRealControllerDeviceTest {
             assertEquals("true", guided["experience_guided"]!!.jsonPrimitive.content)
             AmberS9DeviceSupport.writeEvidence("perapp-real-guide.txt", guided.toString())
         }
+        }
     }
 
     @Test
-    fun takeoverDoesNotRepeatAndClearBlocksInflightWrite() = runBlocking {
+    fun takeoverDoesNotRepeatAndClearBlocksInflightWrite() {
+        runBlocking {
         AmberS9DeviceSupport.assumeUnlocked()
         AmberS9DeviceSupport.uiAutomation()
         AmberS9DeviceSupport.withAmberAccessibilitySuspending {
@@ -137,7 +139,7 @@ class PerAppRealControllerDeviceTest {
             val first = withContext(Dispatchers.Main) { getActiveAccessibilityController()!!.captureScreenSnapshot()!! }
             val open = first.nodes.single { it.clickable && it.label == "打开评论列表" }
             val seed = PerAppSuccessPathSanitizer.buildPath(
-                packageName = AmberS9DeviceSupport.testPackage,
+                packageName = AmberS9DeviceSupport.targetPackage,
                 goal = "打开评论列表",
                 steps = listOf(PerAppSuccessPathSanitizer.stepFrom(ScreenActionKind.CLICK, open)!!),
                 recordedAtMs = 1,
@@ -155,7 +157,7 @@ class PerAppRealControllerDeviceTest {
             openFixture()
             val side = runner(runtime(sideTransport), memory, takeover).run(
                 getActiveAccessibilityController()!!,
-                AmberS9DeviceSupport.testPackage,
+                AmberS9DeviceSupport.targetPackage,
                 "打开评论列表",
                 emptyList(),
                 "run-real-side",
@@ -171,30 +173,25 @@ class PerAppRealControllerDeviceTest {
                 settle = { clearPerAppSuccessPaths(memory) },
             ).run(
                 getActiveAccessibilityController()!!,
-                AmberS9DeviceSupport.testPackage,
+                AmberS9DeviceSupport.targetPackage,
                 "打开评论列表",
                 emptyList(),
                 "run-real-inflight",
                 autoReturnToHost = false,
             )
             assertEquals("false", inflight["experience_written"]!!.jsonPrimitive.content)
-            assertTrue(memory.pathsFor(AmberS9DeviceSupport.testPackage).isEmpty())
+            assertTrue(memory.pathsFor(AmberS9DeviceSupport.targetPackage).isEmpty())
             AmberS9DeviceSupport.writeEvidence(
                 "perapp-real-takeover-clear.txt",
                 "side=${status(side)} reason=${side["reason"]} inflightWritten=${inflight["experience_written"]}\n",
             )
         }
+        }
     }
 
     private fun openFixture() {
         AmberS9DeviceSupport.launchTestPackageActivity("app.amber.agent.JevScreenFixtureActivity")
-        runBlocking {
-            withTimeout(10_000) {
-                while (withContext(Dispatchers.Main) {
-                    getActiveAccessibilityController()?.captureScreenSnapshot()?.packageName
-                } != AmberS9DeviceSupport.testPackage) delay(250)
-            }
-        }
+        AmberS9DeviceSupport.waitForSnapshotPackage(AmberS9DeviceSupport.targetPackage, timeoutMs = 10_000)
     }
 
     private fun store() = FilePerAppSuccessPathStore(

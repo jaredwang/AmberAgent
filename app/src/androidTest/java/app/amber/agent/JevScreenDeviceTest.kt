@@ -1,12 +1,7 @@
 package app.amber.agent
 
-import android.app.Activity
 import android.app.UiAutomation
 import android.os.Bundle
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.content.Intent
 import androidx.test.platform.app.InstrumentationRegistry
 import app.amber.core.automation.getActiveAccessibilityController
 import app.amber.core.di.JevApiKeyDescriptor
@@ -31,35 +26,6 @@ import org.junit.Test
 import org.koin.core.context.GlobalContext
 import java.io.File
 
-/** Native UI fixture installed only in the test APK; no external-account side effects. */
-class JevScreenFixtureActivity : Activity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        showPage(0)
-    }
-
-    private fun showPage(page: Int) {
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 160, 48, 48)
-            addView(TextView(context).apply {
-                textSize = 24f
-                text = when (page) {
-                    0 -> "无障碍实测首页。请打开评论列表，再进入第二页。"
-                    1 -> "评论列表第 1 页。评论甲：画质清晰。"
-                    else -> "评论列表第 2 页。验证标记：琥珀验证完成。评论乙：声音清晰。"
-                }
-            })
-            if (page < 2) addView(Button(context).apply {
-                text = if (page == 0) "打开评论列表" else "下一页"
-                setOnClickListener { showPage(page + 1) }
-            })
-            addView(Button(context).apply { text = "删除全部评论" })
-        }
-        setContentView(layout)
-    }
-}
-
 /** Explicit opt-in: uses the user's saved Jev key and real Accessibility service + HTTP. */
 class JevScreenDeviceTest {
     private suspend fun connectAccessibility() {
@@ -68,16 +34,11 @@ class JevScreenDeviceTest {
     }
 
     private suspend fun openFixture() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val testPackage = instrumentation.context.packageName
-        val fd = instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-            .executeShellCommand("am start -W -n $testPackage/app.amber.agent.JevScreenFixtureActivity --activity-clear-task --activity-new-task")
-        android.os.ParcelFileDescriptor.AutoCloseInputStream(fd).bufferedReader().use { it.readText() }
-        withTimeout(10_000) {
-            while (kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                getActiveAccessibilityController()?.captureScreenSnapshot()?.packageName
-            } != testPackage) delay(250)
-        }
+        AmberS9DeviceSupport.launchTestPackageActivity("app.amber.agent.JevScreenFixtureActivity")
+        AmberS9DeviceSupport.waitForSnapshotPackage(
+            AmberS9DeviceSupport.targetPackage,
+            timeoutMs = 10_000,
+        )
     }
 
     @org.junit.After
@@ -90,7 +51,7 @@ class JevScreenDeviceTest {
         AmberS9DeviceSupport.assumeUnlocked()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         connectAccessibility()
-        val testPackage = instrumentation.context.packageName
+        val testPackage = AmberS9DeviceSupport.targetPackage
         openFixture()
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
             val controller = getActiveAccessibilityController()!!
@@ -176,7 +137,7 @@ class JevScreenDeviceTest {
                 JevDataScope.SCREEN_CONTENT in it.jev.dataScopes
         } }
         connectAccessibility()
-        val testPackage = instrumentation.context.packageName
+        val testPackage = AmberS9DeviceSupport.targetPackage
         // W08：先显式授权测试夹具包名，再跑多步目标。
         settings.update { current ->
             val scope = current.agentRuntime.screenAutomation

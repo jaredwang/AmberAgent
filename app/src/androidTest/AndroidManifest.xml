@@ -14,10 +14,5 @@
         android:label="S9 isolated fixture tests"
         android:handleProfiling="false"
         android:functionalTest="false" />
-    <application>
-        <activity android:name="app.amber.agent.JevScreenFixtureActivity"
-            android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
-        <activity android:name="app.amber.agent.ScreenOcrFixtureActivity"
-            android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
-    </application>
+    <application />
 </manifest>
